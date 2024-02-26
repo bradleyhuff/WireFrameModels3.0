@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "Projects/1.0.0": {
+        "dependencies": {
+          "BaseObjects": "1.0.0"
+        },
+        "runtime": {
+          "Projects.dll": {}
+        }
+      },
+      "BaseObjects/1.0.0": {
+        "runtime": {
+          "BaseObjects.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Projects/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "BaseObjects/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

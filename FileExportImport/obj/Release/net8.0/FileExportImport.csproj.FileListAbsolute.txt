@@ -1,0 +1,11 @@
+C:\Projects\WireFrameModels3.0\FileExportImport\bin\Release\net8.0\FileExportImport.deps.json
+C:\Projects\WireFrameModels3.0\FileExportImport\bin\Release\net8.0\FileExportImport.dll
+C:\Projects\WireFrameModels3.0\FileExportImport\bin\Release\net8.0\FileExportImport.pdb
+C:\Projects\WireFrameModels3.0\FileExportImport\obj\Release\net8.0\FileExportImport.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\WireFrameModels3.0\FileExportImport\obj\Release\net8.0\FileExportImport.AssemblyInfoInputs.cache
+C:\Projects\WireFrameModels3.0\FileExportImport\obj\Release\net8.0\FileExportImport.AssemblyInfo.cs
+C:\Projects\WireFrameModels3.0\FileExportImport\obj\Release\net8.0\FileExportImport.csproj.CoreCompileInputs.cache
+C:\Projects\WireFrameModels3.0\FileExportImport\obj\Release\net8.0\FileExportImport.dll
+C:\Projects\WireFrameModels3.0\FileExportImport\obj\Release\net8.0\refint\FileExportImport.dll
+C:\Projects\WireFrameModels3.0\FileExportImport\obj\Release\net8.0\FileExportImport.pdb
+C:\Projects\WireFrameModels3.0\FileExportImport\obj\Release\net8.0\ref\FileExportImport.dll

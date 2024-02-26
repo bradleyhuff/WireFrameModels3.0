@@ -1,0 +1,11 @@
+C:\Projects\WireFrameModels3.0\BaseObjects\bin\Debug\net8.0\BaseObjects.deps.json
+C:\Projects\WireFrameModels3.0\BaseObjects\bin\Debug\net8.0\BaseObjects.dll
+C:\Projects\WireFrameModels3.0\BaseObjects\bin\Debug\net8.0\BaseObjects.pdb
+C:\Projects\WireFrameModels3.0\BaseObjects\obj\Debug\net8.0\BaseObjects.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\WireFrameModels3.0\BaseObjects\obj\Debug\net8.0\BaseObjects.AssemblyInfoInputs.cache
+C:\Projects\WireFrameModels3.0\BaseObjects\obj\Debug\net8.0\BaseObjects.AssemblyInfo.cs
+C:\Projects\WireFrameModels3.0\BaseObjects\obj\Debug\net8.0\BaseObjects.csproj.CoreCompileInputs.cache
+C:\Projects\WireFrameModels3.0\BaseObjects\obj\Debug\net8.0\BaseObjects.dll
+C:\Projects\WireFrameModels3.0\BaseObjects\obj\Debug\net8.0\refint\BaseObjects.dll
+C:\Projects\WireFrameModels3.0\BaseObjects\obj\Debug\net8.0\BaseObjects.pdb
+C:\Projects\WireFrameModels3.0\BaseObjects\obj\Debug\net8.0\ref\BaseObjects.dll

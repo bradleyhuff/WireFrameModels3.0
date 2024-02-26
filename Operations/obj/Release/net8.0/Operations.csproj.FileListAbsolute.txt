@@ -1,0 +1,11 @@
+C:\Projects\WireFrameModels3.0\Operations\bin\Release\net8.0\Operations.deps.json
+C:\Projects\WireFrameModels3.0\Operations\bin\Release\net8.0\Operations.dll
+C:\Projects\WireFrameModels3.0\Operations\bin\Release\net8.0\Operations.pdb
+C:\Projects\WireFrameModels3.0\Operations\obj\Release\net8.0\Operations.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\WireFrameModels3.0\Operations\obj\Release\net8.0\Operations.AssemblyInfoInputs.cache
+C:\Projects\WireFrameModels3.0\Operations\obj\Release\net8.0\Operations.AssemblyInfo.cs
+C:\Projects\WireFrameModels3.0\Operations\obj\Release\net8.0\Operations.csproj.CoreCompileInputs.cache
+C:\Projects\WireFrameModels3.0\Operations\obj\Release\net8.0\Operations.dll
+C:\Projects\WireFrameModels3.0\Operations\obj\Release\net8.0\refint\Operations.dll
+C:\Projects\WireFrameModels3.0\Operations\obj\Release\net8.0\Operations.pdb
+C:\Projects\WireFrameModels3.0\Operations\obj\Release\net8.0\ref\Operations.dll

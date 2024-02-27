@@ -1,11 +1,30 @@
 {
   "version": 3,
   "targets": {
-    "net8.0": {}
+    "net6.0": {
+      "BaseObjects/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v6.0",
+        "compile": {
+          "bin/placeholder/BaseObjects.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BaseObjects.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "BaseObjects/1.0.0": {
+      "type": "project",
+      "path": "../BaseObjects/BaseObjects.csproj",
+      "msbuildProject": "../BaseObjects/BaseObjects.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net8.0": []
+    "net6.0": [
+      "BaseObjects >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\bhuff\\.nuget\\packages\\": {},
@@ -28,16 +47,20 @@
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
-        "net8.0"
+        "net6.0"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
-          "projectReferences": {}
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "projectReferences": {
+            "C:\\Projects\\WireFrameModels3.0\\BaseObjects\\BaseObjects.csproj": {
+              "projectPath": "C:\\Projects\\WireFrameModels3.0\\BaseObjects\\BaseObjects.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
@@ -52,8 +75,8 @@
       }
     },
     "frameworks": {
-      "net8.0": {
-        "targetAlias": "net8.0",
+      "net6.0": {
+        "targetAlias": "net6.0",
         "imports": [
           "net461",
           "net462",
@@ -70,7 +93,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200\\RuntimeIdentifierGraph.json"
       }
     }
   }

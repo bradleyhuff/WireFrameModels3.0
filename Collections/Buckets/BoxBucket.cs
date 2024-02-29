@@ -1,7 +1,7 @@
-﻿using BaseWireFrameObjects.Buckets.Interfaces;
+﻿using Collections.Buckets.Interfaces;
 using BasicObjects.GeometricObjects;
 
-namespace BaseWireFrameObjects.Buckets
+namespace Collections.Buckets
 {
     public class BoxBucket<T> : IBoxBucket<T> where T : IBox
     {

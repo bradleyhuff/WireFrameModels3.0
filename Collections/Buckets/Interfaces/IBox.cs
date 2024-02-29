@@ -1,6 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 
-namespace BaseWireFrameObjects.Buckets.Interfaces
+namespace Collections.Buckets.Interfaces
 {
     public interface IBox
     {

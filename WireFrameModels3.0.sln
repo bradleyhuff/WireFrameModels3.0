@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projects", "Projects\Projects.csproj", "{F9513CBD-88F6-4A4C-BBF3-5B5F860A4CD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Projects", "Projects\Projects.csproj", "{F9513CBD-88F6-4A4C-BBF3-5B5F860A4CD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseObjects", "BaseObjects\BaseObjects.csproj", "{A19F5EDF-03B0-4988-841A-CCDD987DD330}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BaseObjects", "BaseObjects\BaseObjects.csproj", "{A19F5EDF-03B0-4988-841A-CCDD987DD330}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Operations", "Operations\Operations.csproj", "{4B306DDF-87C1-4E9A-A610-381D502EED7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Operations", "Operations\Operations.csproj", "{4B306DDF-87C1-4E9A-A610-381D502EED7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileExportImport", "FileExportImport\FileExportImport.csproj", "{6EA2BFB3-50F7-4115-9FC2-30A21F4B419E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileExportImport", "FileExportImport\FileExportImport.csproj", "{6EA2BFB3-50F7-4115-9FC2-30A21F4B419E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseWireFrameObjects", "BaseWireFrameObjects\BaseWireFrameObjects.csproj", "{BDBED2E5-15FF-43D6-87C2-F079D606EAF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Collections", "Collections\Collections.csproj", "{76005341-4971-4B70-A7AB-3845626E7B30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{6EA2BFB3-50F7-4115-9FC2-30A21F4B419E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6EA2BFB3-50F7-4115-9FC2-30A21F4B419E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6EA2BFB3-50F7-4115-9FC2-30A21F4B419E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BDBED2E5-15FF-43D6-87C2-F079D606EAF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDBED2E5-15FF-43D6-87C2-F079D606EAF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDBED2E5-15FF-43D6-87C2-F079D606EAF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDBED2E5-15FF-43D6-87C2-F079D606EAF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76005341-4971-4B70-A7AB-3845626E7B30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76005341-4971-4B70-A7AB-3845626E7B30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76005341-4971-4B70-A7AB-3845626E7B30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76005341-4971-4B70-A7AB-3845626E7B30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

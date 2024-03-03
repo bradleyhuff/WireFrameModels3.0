@@ -10,6 +10,12 @@ namespace BasicObjects.GeometricObjects
          point.Z - margin, point.Z + margin)
         { }
 
+        public Rectangle3D(Point3D point, double marginX, double marginY, double marginZ) : this(
+            point.X - marginX, point.X + marginX,
+            point.Y - marginY, point.Y + marginY,
+            point.Z - marginZ, point.Z + marginZ)
+        { }
+
         public Rectangle3D(Point3D minPoint, Point3D maxPoint) : this(
             minPoint.X, maxPoint.X, minPoint.Y, maxPoint.Y, minPoint.Z, maxPoint.Z
             )
@@ -123,48 +129,47 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
-
-        public bool Contains(Point3D point, double flexMargin = E.Double.DifferenceError)
+        public bool Contains(Point3D point)
         {
-            return MinPoint.X < point.X + flexMargin && point.X < MaxPoint.X + flexMargin &&
-                MinPoint.Y < point.Y + flexMargin && point.Y < MaxPoint.Y + flexMargin &&
-                MinPoint.Z < point.Z + flexMargin && point.Z < MaxPoint.Z + flexMargin;
+            return MinPoint.X < point.X && point.X < MaxPoint.X &&
+                MinPoint.Y < point.Y && point.Y < MaxPoint.Y &&
+                MinPoint.Z < point.Z && point.Z < MaxPoint.Z;
         }
 
 
-        public bool Contains(Rectangle3D box, double flexMargin = E.Double.DifferenceError)
+        public bool Contains(Rectangle3D box)
         {
-            return MinPoint.X < box.MinPoint.X + flexMargin && box.MaxPoint.X < MaxPoint.X + flexMargin &&
-                MinPoint.Y < box.MinPoint.Y + flexMargin && box.MaxPoint.Y < MaxPoint.Y + flexMargin &&
-                MinPoint.Z < box.MinPoint.Z + flexMargin && box.MaxPoint.Z < MaxPoint.Z + flexMargin;
+            return MinPoint.X < box.MinPoint.X && box.MaxPoint.X < MaxPoint.X &&
+                MinPoint.Y < box.MinPoint.Y && box.MaxPoint.Y < MaxPoint.Y &&
+                MinPoint.Z < box.MinPoint.Z && box.MaxPoint.Z < MaxPoint.Z;
         }
 
-        public static bool IsDisjoint(Rectangle3D a, Rectangle3D b, double flexMargin = E.Double.DifferenceError)
+        public static bool IsDisjoint(Rectangle3D a, Rectangle3D b)
         {
-            return (b.MinPoint.X > a.MaxPoint.X + flexMargin || a.MinPoint.X > b.MaxPoint.X + flexMargin) ||
-                (b.MinPoint.Y > a.MaxPoint.Y + flexMargin || a.MinPoint.Y > b.MaxPoint.Y + flexMargin) ||
-                (b.MinPoint.Z > a.MaxPoint.Z + flexMargin || a.MinPoint.Z > b.MaxPoint.Z + flexMargin);
+            return (b.MinPoint.X > a.MaxPoint.X || a.MinPoint.X > b.MaxPoint.X) ||
+                (b.MinPoint.Y > a.MaxPoint.Y || a.MinPoint.Y > b.MaxPoint.Y) ||
+                (b.MinPoint.Z > a.MaxPoint.Z || a.MinPoint.Z > b.MaxPoint.Z);
         }
 
         public static bool IsDisjoint(double minAX, double minAY, double minAZ, double maxAX, double maxAY, double maxAZ,
-            double minBX, double minBY, double minBZ, double maxBX, double maxBY, double maxBZ, double flexMargin = E.Double.DifferenceError)
+            double minBX, double minBY, double minBZ, double maxBX, double maxBY, double maxBZ)
         {
-            return (minBX > maxAX + flexMargin || minAX > maxBX + flexMargin) ||
-                (minBY > maxAY + flexMargin || minAY > maxBY + flexMargin) ||
-                (minBZ > maxAZ + flexMargin || minAZ > maxBZ + flexMargin);
+            return (minBX > maxAX || minAX > maxBX) ||
+                (minBY > maxAY || minAY > maxBY) ||
+                (minBZ > maxAZ || minAZ > maxBZ);
         }
 
-        public static bool IsDisjoint(Triangle3D a, LineSegment3D b, double flexMargin = E.Double.DifferenceError)
+        public static bool IsDisjoint(Triangle3D a, LineSegment3D b)
         {
             var box = a.Box;
-            return (E.Math.Min(b.Start.X, b.End.X) > box.MaxPoint.X + flexMargin || box.MinPoint.X > E.Math.Max(b.Start.X, b.End.X) + flexMargin) ||
-                (E.Math.Min(b.Start.Y, b.End.Y) > box.MaxPoint.Y + flexMargin || box.MinPoint.Y > E.Math.Max(b.Start.Y, b.End.Y) + flexMargin) ||
-                (E.Math.Min(b.Start.Z, b.End.Z) > box.MaxPoint.Z + flexMargin || box.MinPoint.Z > E.Math.Max(b.Start.Z, b.End.Z) + flexMargin);
+            return (E.Math.Min(b.Start.X, b.End.X) > box.MaxPoint.X || box.MinPoint.X > E.Math.Max(b.Start.X, b.End.X)) ||
+                (E.Math.Min(b.Start.Y, b.End.Y) > box.MaxPoint.Y || box.MinPoint.Y > E.Math.Max(b.Start.Y, b.End.Y)) ||
+                (E.Math.Min(b.Start.Z, b.End.Z) > box.MaxPoint.Z || box.MinPoint.Z > E.Math.Max(b.Start.Z, b.End.Z));
         }
 
-        public static bool Overlaps(Rectangle3D a, Rectangle3D b, double flexMargin = E.Double.DifferenceError)
+        public static bool Overlaps(Rectangle3D a, Rectangle3D b)
         {
-            return !IsDisjoint(a, b, flexMargin);
+            return !IsDisjoint(a, b);
         }
 
         public IEnumerable<Rectangle3D> Overlapping(params Rectangle3D[] boxes)
@@ -180,6 +185,15 @@ namespace BasicObjects.GeometricObjects
             if (obj is null || obj is not Rectangle3D) { return false; }
             Rectangle3D compare = (Rectangle3D)obj;
             return compare.MinPoint.Equals(MinPoint) && compare.MaxPoint.Equals(MaxPoint);
+        }
+
+        public static bool operator ==(Rectangle3D a, Rectangle3D b)
+        {
+            return a.MinPoint.Equals(b.MinPoint) && a.MaxPoint.Equals(b.MaxPoint);
+        }
+        public static bool operator !=(Rectangle3D a, Rectangle3D b)
+        {
+            return !(a.MinPoint.Equals(b.MinPoint) && a.MaxPoint.Equals(b.MaxPoint));
         }
 
         public override int GetHashCode()
@@ -249,6 +263,14 @@ namespace BasicObjects.GeometricObjects
             double maxZ = points.Max(p => p.Z);
 
             return new Rectangle3D(minX, maxX, minY, maxY, minZ, maxZ);
+        }
+
+        public static Rectangle3D CubeContaining(Rectangle3D box, double factor = 1.0)
+        {
+            var center = box.CenterPoint;
+            var radius = E.Math.Max(box.LengthX, box.LengthY, box.LengthZ) * 0.5 * factor;
+
+            return new Rectangle3D(center, radius);
         }
     }
 }

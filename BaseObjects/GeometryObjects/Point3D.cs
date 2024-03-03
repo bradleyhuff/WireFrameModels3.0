@@ -19,13 +19,7 @@ namespace BasicObjects.GeometricObjects
         {
             if (obj == null || obj is not Point3D) { return false; }
             Point3D compare = (Point3D)obj;
-            var distanceX = System.Math.Abs(X - compare.X);
-            if (distanceX > Double.DifferenceError) { return false; }
-            var distanceY = System.Math.Abs(Y - compare.Y);
-            if (distanceY > Double.DifferenceError) { return false; }
-            var distanceZ = System.Math.Abs(Z - compare.Z);
-            if (distanceZ > Double.DifferenceError) { return false; }
-            return System.Math.Sqrt(distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ) < Double.DifferenceError;
+            return AreEqual(this, compare);
         }
 
         public static bool AreEqual(Point3D a, Point3D b)
@@ -101,11 +95,11 @@ namespace BasicObjects.GeometricObjects
         }
         public static bool operator ==(Point3D a, Point3D b)
         {
-            return a.Equals(b);
+            return AreEqual(a, b);
         }
         public static bool operator !=(Point3D a, Point3D b)
         {
-            return !a.Equals(b);
+            return !AreEqual(a, b);
         }
         public static Point3D MidPoint(Point3D a, Point3D b)
         {

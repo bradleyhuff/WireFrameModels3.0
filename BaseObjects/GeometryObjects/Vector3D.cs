@@ -115,16 +115,16 @@ namespace BasicObjects.GeometricObjects
             dot = E.Math.Max(-1, dot);
             dot = E.Math.Min(1, dot);
             double theta = System.Math.Acos(dot);
-            if (E.Double.IsEqual(theta, 0, 1e-6)) { return 0; }
-            if (E.Double.IsEqual(theta, System.Math.PI, 1e-6)) { return System.Math.PI; }
+            if (E.Double.IsEqual(theta, 0, E.Double.RadianDifferenceError)) { return 0; }
+            if (E.Double.IsEqual(theta, System.Math.PI, E.Double.RadianDifferenceError)) { return System.Math.PI; }
             return theta;
         }
 
         public static double SignedAngle(Vector3D n, Vector3D a, Vector3D b)
         {
             var angle = Angle(a, b);
-            if (E.Double.IsEqual(angle, 0)) { return 0; }
-            if (E.Double.IsEqual(angle, System.Math.PI)) { return System.Math.PI; }
+            if (E.Double.IsEqual(angle, 0, E.Double.RadianDifferenceError)) { return 0; }
+            if (E.Double.IsEqual(angle, System.Math.PI, E.Double.RadianDifferenceError)) { return System.Math.PI; }
             var cross = Cross(b, a);
             var dot = Dot(cross, n);
             var sign = System.Math.Sign(dot);

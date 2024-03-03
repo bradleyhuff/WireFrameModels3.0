@@ -4,6 +4,6 @@ namespace Collections.Buckets.Interfaces
 {
     public interface IBox
     {
-        Rectangle3D? Box { get; }
+        Rectangle3D Box { get; }
     }
 }

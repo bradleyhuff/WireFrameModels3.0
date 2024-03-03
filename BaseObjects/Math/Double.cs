@@ -3,10 +3,10 @@ namespace BasicObjects.Math
 {
     public static class Double
     {
-        public const double DifferenceError = 1.0e-9;
-        public const double DifferenceErrorPlusOne = 1 + 1.0e-9;
-        public const double DifferenceErrorMinusOne = 1 - 1.0e-9;
-        public const double RadianDifferenceError = 1e-6;
+        public const double DifferenceError = 1.0e-12;
+        public const double DifferenceErrorPlusOne = 1 + 1.0e-12;
+        public const double DifferenceErrorMinusOne = 1 - 1.0e-12;
+        public const double RadianDifferenceError = 1e-9;
 
         public static bool IsEqual(double x, double y, double epsilon = DifferenceError)
         {

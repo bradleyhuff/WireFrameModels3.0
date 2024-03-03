@@ -1,18 +1,19 @@
 ﻿using Collections.Buckets.Interfaces;
 using BasicObjects.GeometricObjects;
+using System.Linq.Expressions;
 
 namespace Collections.Buckets
 {
-    internal class CubeXYZgroupings<T> where T : IBox
+    internal class CubeXYZgroupings8<T> where T : IBox
     {
-        public CubeXYZgroupings(IBoxBucket<T> bucket)
+        internal CubeXYZgroupings8(IBoxBucketInternal<T> bucket)
         {
             Bucket = bucket;
         }
 
-        public IBoxBucket<T> Bucket { get; private set; }
+        internal IBoxBucketInternal<T> Bucket { get; private set; }
 
-        public T[] BasicFetch(Rectangle3D box)
+        internal List<T> Fetch(Rectangle3D box)
         {
             if (Bucket is null || !Bucket.Box.Contains(box)) { return null; }
 
@@ -30,53 +31,6 @@ namespace Collections.Buckets
             }
 
             return null;
-        }
-
-        public void Profile()
-        {
-            if(_partsX4 != null)
-            {
-                foreach(var part in _partsX4)
-                {
-                    part?.Profile("PartsX4 ");
-                }
-            }
-            if (_partsY4 != null)
-            {
-                foreach (var part in _partsY4)
-                {
-                    part?.Profile("PartsY4 ");
-                }
-            }
-            if (_partsZ4 != null)
-            {
-                foreach (var part in _partsZ4)
-                {
-                    part?.Profile("PartsZ4 ");
-                }
-            }
-            if (_partsXY2 != null)
-            {
-                foreach (var part in _partsXY2)
-                {
-                    part?.Profile("PartsXY2 ");
-                }
-            }
-            if (_partsXZ2 != null)
-            {
-                foreach (var part in _partsXZ2)
-                {
-                    part?.Profile("PartsXZ2 ");
-                }
-            }
-            if (_partsYZ2 != null)
-            {
-                foreach (var part in _partsYZ2)
-                {
-                    part?.Profile("PartsYZ2 ");
-                }
-            }
-            _partsXYZ1?.Profile("PartsXYZ1 ");
         }
 
         private int GetCase(Rectangle3D box)
@@ -97,72 +51,79 @@ namespace Collections.Buckets
             return digitZ << 2 | digitY << 1 | digitX;
         }
 
-        private IBoxBucket<T>[] _partsX4 = null;
-        private IBoxBucket<T>[] _partsY4 = null;
-        private IBoxBucket<T>[] _partsZ4 = null;
-        private IBoxBucket<T>[] _partsXY2 = null;
-        private IBoxBucket<T>[] _partsXZ2 = null;
-        private IBoxBucket<T>[] _partsYZ2 = null;
-        private IBoxBucket<T> _partsXYZ1 = null;
+        private IBoxBucketInternal<T>[] _partsX4 = null;
+        private IBoxBucketInternal<T>[] _partsY4 = null;
+        private IBoxBucketInternal<T>[] _partsZ4 = null;
+        private IBoxBucketInternal<T>[] _partsXY2 = null;
+        private IBoxBucketInternal<T>[] _partsXZ2 = null;
+        private IBoxBucketInternal<T>[] _partsYZ2 = null;
+        private IBoxBucketInternal<T> _partsXYZ1 = null;
 
-        private T[] ReturnX4(Rectangle3D box)
+        internal IEnumerable<IBoxBucketInternal<T>> GetSubBoxBuckets()
         {
-            int index4;
-            bool ok = Shared.GetYZindicies4(Bucket.Box, box, out index4);
+            if (_partsX4 is not null) { foreach (var element in _partsX4){ yield return element; } }
+            if (_partsY4 is not null) { foreach (var element in _partsY4) { yield return element; } }
+            if (_partsZ4 is not null) { foreach (var element in _partsZ4) { yield return element; } }
+
+            if (_partsXY2 is not null) { foreach (var element in _partsXY2) { yield return element; } }
+            if (_partsXZ2 is not null) { foreach (var element in _partsXZ2) { yield return element; } }
+            if (_partsYZ2 is not null) { foreach (var element in _partsYZ2) { yield return element; } }
+
+            if(_partsXYZ1 is not null) { yield return _partsXYZ1; }
+        }
+
+        private List<T> ReturnX4(Rectangle3D box)
+        {
+            bool ok = Shared.GetYZindicies4(Bucket.Box, box, out int index4);
             if (!ok) { return null; }
             BuildPartsX4();
-            return _partsX4[index4].RawFetch(box);
+            return _partsX4[index4].Fetch(box);
         }
 
-        private T[] ReturnY4(Rectangle3D box)
+        private List<T> ReturnY4(Rectangle3D box)
         {
-            int index4;
-            bool ok = Shared.GetXZindicies4(Bucket.Box, box, out index4);
+            bool ok = Shared.GetXZindicies4(Bucket.Box, box, out int index4);
             if (!ok) { return null; }
             BuildPartsY4();
-            return _partsY4[index4].RawFetch(box);
+            return _partsY4[index4].Fetch(box);
         }
 
-        private T[] ReturnZ4(Rectangle3D box)
+        private List<T> ReturnZ4(Rectangle3D box)
         {
-            int index4;
-            bool ok = Shared.GetXYindicies4(Bucket.Box, box, out index4);
+            bool ok = Shared.GetXYindicies4(Bucket.Box, box, out int index4);
             if (!ok) { return null; }
             BuildPartsZ4();
-            return _partsZ4[index4].RawFetch(box);
+            return _partsZ4[index4].Fetch(box);
         }
 
-        private T[] ReturnXY2(Rectangle3D box)
+        private List<T> ReturnXY2(Rectangle3D box)
         {
-            int index2;
-            bool ok = Shared.GetZindicies2(Bucket.Box, box, out index2);
+            bool ok = Shared.GetZindicies2(Bucket.Box, box, out int index2);
             if (!ok) { return null; }
             BuildPartsXY2();
-            return _partsXY2[index2].RawFetch(box);
+            return _partsXY2[index2].Fetch(box);
         }
 
-        private T[] ReturnXZ2(Rectangle3D box)
+        private List<T> ReturnXZ2(Rectangle3D box)
         {
-            int index2;
-            bool ok = Shared.GetYindicies2(Bucket.Box, box, out index2);
+            bool ok = Shared.GetYindicies2(Bucket.Box, box, out int index2);
             if (!ok) { return null; }
             BuildPartsXZ2();
-            return _partsXZ2[index2].RawFetch(box);
+            return _partsXZ2[index2].Fetch(box);
         }
 
-        private T[] ReturnYZ2(Rectangle3D box)
+        private List<T> ReturnYZ2(Rectangle3D box)
         {
-            int index2;
-            bool ok = Shared.GetXindicies2(Bucket.Box, box, out index2);
+            bool ok = Shared.GetXindicies2(Bucket.Box, box, out int index2);
             if (!ok) { return null; }
             BuildPartsYZ2();
-            return _partsYZ2[index2].RawFetch(box);
+            return _partsYZ2[index2].Fetch(box);
         }
 
-        private T[] ReturnXYZ1(Rectangle3D box)
+        private List<T> ReturnXYZ1(Rectangle3D box)
         {
             BuildPartsXYZ1();
-            return _partsXYZ1.RawFetch(box);
+            return _partsXYZ1.Fetch(box);
         }
 
         private void BuildPartsX4()

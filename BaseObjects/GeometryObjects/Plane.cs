@@ -136,20 +136,20 @@ namespace BasicObjects.GeometricObjects
             return false;
         }
 
-        public static Line3D Intersection(Plane aa, Plane bb, double threshold = E.Double.DifferenceError)
+        public static Line3D Intersection(Plane aa, Plane bb)
         {
-            double a = 0, b = 0, c = 0; // cross of plane and other plane to give the normal plane.
-            Matricies.Cross3D(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C, out a, out b, out c);
+            // cross of plane and other plane to give the normal plane.
+            Matricies.Cross3D(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C, out double a, out double b, out double c);
             var vector = new Vector3D(a, b, c);
-            if (vector.Magnitude < threshold) { return null; }
+            if (vector.Magnitude < E.Double.DifferenceError) { return null; }
 
-            double x = 0, y = 0, z = 0;// solves for a point in line which is intersection between given planes and the normal plane.
+            // solves for a point in line which is intersection between given planes and the normal plane.
             E.LinearSystems.Solve3x3(
                 aa.A, aa.B, aa.C,
                 bb.A, bb.B, bb.C,
                 a, b, c,
                 aa.D, bb.D, 0,
-                out x, out y, out z);
+                out double x, out double y, out double z);
 
             return new Line3D(new Point3D(x, y, z), new Vector3D(a, b, c));
         }

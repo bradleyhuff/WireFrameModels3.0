@@ -13,8 +13,4 @@
     <ProjectReference Include="..\BaseObjects\BaseObjects.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="WireFrameBuilder\Interfaces\" />
-  </ItemGroup>
-
 </Project>

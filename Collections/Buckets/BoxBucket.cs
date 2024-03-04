@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace Collections.Buckets
 {
+    public class BoxBucket
+    {
+        public const double MARGINS = 1e-6;
+    }
     public class BoxBucket<T> : IBoxBucket<T> where T : IBox
     {
         private BoxBucketInternal<T>? _boxBuckets = null;

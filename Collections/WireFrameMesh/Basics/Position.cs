@@ -2,31 +2,28 @@
 using BasicObjects.GeometricObjects;
 using M = BasicObjects.Math;
 
-namespace Collections.WireFrameBuilder.Basics
+namespace Collections.WireFrameMesh.Basics
 {
     public class Position : IBox
     {
         private static int _id = 0;
 
-        internal Position()
+        internal Position(Point3D point)
         {
+            _position = point;
+
             Id = _id++;
         }
 
         public int Id { get; }
 
-        private Point3D _position = null;
-        private Rectangle3D _box = null;
-        private List<PositionNormal> _positionNormals = new List<PositionNormal>();
+        private Point3D _position;
+        private Rectangle3D _box;
+        internal List<PositionNormal> _positionNormals = new List<PositionNormal>();
 
         public IReadOnlyList<PositionNormal> PositionNormals 
         {
             get { return _positionNormals; }
-        }
-
-        internal void SetPositionNormals(IEnumerable<PositionNormal> positionNormals)
-        {
-            _positionNormals = positionNormals.ToList();
         }
 
         public Point3D Point

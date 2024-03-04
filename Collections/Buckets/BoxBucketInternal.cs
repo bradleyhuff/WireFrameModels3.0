@@ -6,6 +6,7 @@ namespace Collections.Buckets
     internal class BoxBucketInternal<T> : IBoxBucketInternal<T> where T : IBox
     {
         public const int MAX_GROUP = 16;
+        public const double MIN_LENGTH = 1e-6;
 
         public BoxBucketInternal(IEnumerable<T> boxNodes)
         {
@@ -45,7 +46,7 @@ namespace Collections.Buckets
                 }
             }
 
-            if (BoxNodes.Count < MAX_GROUP || Box.LengthX < 1e-6)
+            if (BoxNodes.Count < MAX_GROUP || Box.LengthX < MIN_LENGTH)
             {
                 return BoxNodes;
             }

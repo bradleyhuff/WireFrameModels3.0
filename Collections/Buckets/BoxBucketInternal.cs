@@ -8,7 +8,7 @@ namespace Collections.Buckets
         public const int MAX_GROUP = 16;
         public const double MIN_LENGTH = 1e-6;
 
-        public BoxBucketInternal(IEnumerable<T> boxNodes)
+        public BoxBucketInternal(IEnumerable<T> boxNodes):this()
         {
             BoxNodes = boxNodes.ToList();
             Box = Rectangle3D.CubeContaining(Rectangle3D.Containing(boxNodes.Select(b => b.Box).ToArray()), 2);
@@ -16,12 +16,20 @@ namespace Collections.Buckets
 
         }
 
-        protected BoxBucketInternal(Rectangle3D box, IEnumerable<T> boxNodes)
+        protected BoxBucketInternal(Rectangle3D box, IEnumerable<T> boxNodes):this()
         {
             Box = box;
             BoxNodes = boxNodes.Where(b => Rectangle3D.Overlaps(Box, b.Box)).ToList();
             CenterBox = new Rectangle3D(Box.CenterPoint, Box.LengthX * 0.25, Box.LengthY * 0.25, Box.LengthZ * 0.25);
         }
+
+        private static int _id = 0;
+        private BoxBucketInternal()
+        {
+            Id = _id++;
+        }
+
+        public int Id { get; }
 
         public virtual IBoxBucketInternal<T> CreateInstance(Rectangle3D box, IEnumerable<T> boxNodes)
         {
@@ -32,7 +40,7 @@ namespace Collections.Buckets
 
         public List<T> Fetch(Rectangle3D box)
         {
-            if (addedBoxNodes.Any())
+            if (addedBoxNodes is not null && addedBoxNodes.Any())
             {
                 lock (locker)
                 {

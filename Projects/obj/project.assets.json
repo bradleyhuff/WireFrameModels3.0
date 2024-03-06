@@ -11,6 +11,19 @@
         "runtime": {
           "bin/placeholder/BaseObjects.dll": {}
         }
+      },
+      "Collections/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "BaseObjects": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Collections.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Collections.dll": {}
+        }
       }
     }
   },
@@ -19,11 +32,17 @@
       "type": "project",
       "path": "../BaseObjects/BaseObjects.csproj",
       "msbuildProject": "../BaseObjects/BaseObjects.csproj"
+    },
+    "Collections/1.0.0": {
+      "type": "project",
+      "path": "../Collections/Collections.csproj",
+      "msbuildProject": "../Collections/Collections.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "BaseObjects >= 1.0.0"
+      "BaseObjects >= 1.0.0",
+      "Collections >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -59,6 +78,9 @@
           "projectReferences": {
             "C:\\Projects\\WireFrameModels3.0\\BaseObjects\\BaseObjects.csproj": {
               "projectPath": "C:\\Projects\\WireFrameModels3.0\\BaseObjects\\BaseObjects.csproj"
+            },
+            "C:\\Projects\\WireFrameModels3.0\\Collections\\Collections.csproj": {
+              "projectPath": "C:\\Projects\\WireFrameModels3.0\\Collections\\Collections.csproj"
             }
           }
         }

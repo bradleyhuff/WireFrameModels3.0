@@ -57,10 +57,12 @@ namespace Collections.Buckets
                 var boxNodes = _boxBuckets.BoxNodes;
                 boxNodes.Add(box);
                 _boxBuckets = new BoxBucketInternal<T>(boxNodes);
+                _boxNodes = null;
                 return;
             }
 
-            _boxBuckets.Add(box);
+            if (_boxNodes is null) { _boxBuckets.Add(box); }
+            _boxNodes = null;
         }
         public void AddRange(IEnumerable<T> boxes)
         {
@@ -86,7 +88,6 @@ namespace Collections.Buckets
             if (_boxBuckets is null)
             {
                 _boxBuckets = new BoxBucketInternal<T>(_boxNodes);
-                _boxNodes = null;
             }
         }
     }

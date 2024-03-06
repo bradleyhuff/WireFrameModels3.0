@@ -16,7 +16,7 @@ namespace Collections.WireFrameMesh.Basics
             A._triangles.Add(this);
             B._triangles.Add(this);
             C._triangles.Add(this);
-
+            A.Mesh._triangles.Add(this);
             Id = _id++;
         }
 
@@ -36,6 +36,7 @@ namespace Collections.WireFrameMesh.Basics
             A._triangles.Add(this);
             B._triangles.Add(this);
             C._triangles.Add(this);
+            A.Mesh._triangles.Add(this);
         }
 
         public void DelinkPositionNormals()
@@ -43,6 +44,7 @@ namespace Collections.WireFrameMesh.Basics
             A?._triangles.Remove(this);
             B?._triangles.Remove(this);
             C?._triangles.Remove(this);
+            A?.Mesh._triangles.Remove(this);
             A = null;
             B = null;
             C = null;

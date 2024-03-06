@@ -12,9 +12,9 @@ using Collections.Buckets;
 
 namespace Collections.WireFrameMesh.BasicWireFrameMesh
 {
-    internal class WireFrameMesh : PositionTriangleMesh, IWireFrameMesh
+    public class WireFrameMesh : PositionTriangleMesh, IWireFrameMesh
     {
-        public WireFrameMesh()
+        internal WireFrameMesh()
         {
             Positions = new ReadOnlyCollection<Position>(_positions);
         }
@@ -32,7 +32,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         }
 
         public PositionNormal AddPointNoRow(Point3D position, Vector3D normal)
-        {           
+        {   
             var positionObject = _bucket.Fetch(new Rectangle3D(position, BoxBucket.MARGINS)).SingleOrDefault(p => p.Point == position);
             if (positionObject is null)
             {
@@ -60,7 +60,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             {
                 var clone = new PositionNormal(positionNormal.Position, positionNormal.Normal, this);
                 positionObject = new Position(positionNormal.Position);
-                positionNormal.LinkPosition(positionObject);
+                clone.LinkPosition(positionObject);
                 _bucket.Add(positionObject);
                 _positions.Add(positionObject);
                 return clone;
@@ -94,7 +94,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             }
             foreach(var triangle in mapping.Values.Where(v => v.Count == 3))
             {
-                AddTriangle(new PositionTriangle(triangle[0], triangle[1], triangle[2]));
+                new PositionTriangle(triangle[0], triangle[1], triangle[2]);
             }
 
             EndGrid();
@@ -128,7 +128,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
 
             foreach (var triangle in mapping.Values.Where(v => v.Count == 3))
             {
-                clone.AddTriangle(new PositionTriangle(triangle[0], triangle[1], triangle[2]));
+                new PositionTriangle(triangle[0], triangle[1], triangle[2]);
             }
 
             return clone;
@@ -147,6 +147,11 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         }
 
         public IWireFrameMesh CreateNewInstance()
+        {
+            return new WireFrameMesh();
+        }
+
+        public static IWireFrameMesh CreateMesh()
         {
             return new WireFrameMesh();
         }

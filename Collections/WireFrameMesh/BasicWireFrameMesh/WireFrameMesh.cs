@@ -146,6 +146,22 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return clones;
         }
 
+        public void Transformation(Func<Point3D, Point3D> transform)
+        {
+            foreach(var position in Positions)
+            {
+                var point = position.Point;
+                var pointT = transform(position.Point);
+                position.Point = pointT;
+                foreach(var positionNormal in position.PositionNormals)
+                {
+                    var pointOffsetT = transform(point + positionNormal.Normal);
+                    positionNormal.Normal = (pointOffsetT - pointT).Direction;
+                }
+            }
+            _bucket = new BoxBucket<Position>(Positions);
+        }
+
         public IWireFrameMesh CreateNewInstance()
         {
             return new WireFrameMesh();

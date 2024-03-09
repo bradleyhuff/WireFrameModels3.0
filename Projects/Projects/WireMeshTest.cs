@@ -1,6 +1,7 @@
 ﻿using BasicObjects;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
+using FileExportImport;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,6 +70,36 @@ namespace Projects.Projects
             Console.WriteLine($"Clone Triangles {clone.Triangles.Count} Positions {clone.Positions.Count}");
             TableDisplays.ShowCountSpread("Position normal triangle counts", clone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", clone.Positions, p => p.PositionNormals.Count);
+
+            WavefrontFile.Export(wireMesh, "Wavefront/WireMeshTest");
+            PntFile.Export(wireMesh, "PositionNormalTriangle/WireMeshTest");
+
+            var import = PntFile.Import(() => WireFrameMesh.CreateMesh(), "PositionNormalTriangle/WireMeshTest");
+            WavefrontFile.Export(import, "PositionNormalTriangle/WireMeshImportExportTest");
+            TableDisplays.ShowCountSpread("Position normal triangle counts", import.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
+            TableDisplays.ShowCountSpread("Position normal counts", import.Positions, p => p.PositionNormals.Count);
+
+            var wireMesh2 = WireFrameMesh.CreateMesh();
+            wireMesh2.AddPoint(new Point3D(0, 0, 0), new Vector3D(0, -1, 0));
+            wireMesh2.AddPoint(new Point3D(1, 0, 0), new Vector3D(0, -1, 0));
+            wireMesh2.AddPoint(new Point3D(2, 0, 0), new Vector3D(0, -1, 0));
+            wireMesh2.AddPoint(new Point3D(3, 0, 0), new Vector3D(0, -1, 0));
+            wireMesh2.EndRow();
+            wireMesh2.AddPoint(new Point3D(0, 0, 1), new Vector3D(0, -1, 0));
+            wireMesh2.AddPoint(new Point3D(1, 0, 1), new Vector3D(0, -1, 0));
+            wireMesh2.AddPoint(new Point3D(2, 0, 1), new Vector3D(0, -1, 0));
+            wireMesh2.AddPoint(new Point3D(3, 0, 1), new Vector3D(0, -1, 0));
+            wireMesh2.EndRow();
+            wireMesh2.EndGrid();
+            WavefrontFile.Export(wireMesh2, "PositionNormalTriangle/WireMeshTest2");
+
+            wireMesh.AddGrid(wireMesh2);
+            wireMesh.Transformation(p => 2 * p);
+            Console.WriteLine($"Triangles {wireMesh.Triangles.Count} Positions {wireMesh.Positions.Count}");
+            TableDisplays.ShowCountSpread("Position normal triangle counts", wireMesh.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
+            TableDisplays.ShowCountSpread("Position normal counts", wireMesh.Positions, p => p.PositionNormals.Count);
+            PntFile.Export(wireMesh, "PositionNormalTriangle/WireMeshTest3");
+            WavefrontFile.Export(wireMesh, "PositionNormalTriangle/WireMeshImportExportTest3");
         }
     }
 }

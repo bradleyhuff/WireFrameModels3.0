@@ -1,6 +1,7 @@
 ﻿using Collections.Buckets.Interfaces;
 using BasicObjects.GeometricObjects;
 using M = BasicObjects.Math;
+using Collections.Buckets;
 
 namespace Collections.WireFrameMesh.Basics
 {
@@ -31,7 +32,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (PositionObject is null) { return new Rectangle3D(_position, M.Double.DifferenceError); }
+                if (PositionObject is null) { return new Rectangle3D(_position, BoxBucket.MARGINS); }
                 return PositionObject.Box;
             }
         }
@@ -45,6 +46,11 @@ namespace Collections.WireFrameMesh.Basics
             {
                 if (PositionObject is not null) { return PositionObject.Point; }
                 return _position;
+            }
+            set
+            {
+                if (PositionObject is not null) { PositionObject.Point = value; }
+                _position = value;
             }
         }
 
@@ -89,6 +95,17 @@ namespace Collections.WireFrameMesh.Basics
         public void CommitInvert()
         {
             _wasInverted = false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id;
+        }
+        public override bool Equals(object? obj)
+        {
+            if (obj == null || obj is not PositionNormal) { return false; }
+            PositionNormal compare = (PositionNormal)obj;
+            return Id == compare.Id;
         }
     }
 }

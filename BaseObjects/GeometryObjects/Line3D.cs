@@ -238,20 +238,19 @@ namespace BasicObjects.GeometricObjects
 
         private static Point3D MidPointIntersection(Point3D aStart, Vector3D aVector, Point3D bStart, Vector3D bVector, out double gap)
         {
-            double c0 = 0, c1 = 0, c2 = 0; // cross of lines a and b
+            // cross of lines a and b
 
             var aVectorNormal = aVector.Direction;
             var bVectorNormal = bVector.Direction;
-            Matricies.Cross3D(aVectorNormal.X, aVectorNormal.Y, aVectorNormal.Z, bVectorNormal.X, bVectorNormal.Y, bVectorNormal.Z, out c0, out c1, out c2);
+            Matricies.Cross3D(aVectorNormal.X, aVectorNormal.Y, aVectorNormal.Z, bVectorNormal.X, bVectorNormal.Y, bVectorNormal.Z, out double c0, out double c1, out double c2);
 
             if (E.Double.IsZero(c0) && E.Double.IsZero(c1) && E.Double.IsZero(c2)) { gap = double.NaN; return null; }
 
-            double α0 = 0, α1 = 0, ß = 0;
             E.LinearSystems.Solve3x3(
                 aVector.X, -bVector.X, c0, aVector.Y,
                 -bVector.Y, c1, aVector.Z, -bVector.Z,
                 c2, bStart.X - aStart.X, bStart.Y - aStart.Y, bStart.Z - aStart.Z,
-                out α0, out α1, out ß);
+                out double α0, out double α1, out double ß);
 
             double ia0 = aStart.X + α0 * aVector.X; // intersection of line a
             double ia1 = aStart.Y + α0 * aVector.Y;

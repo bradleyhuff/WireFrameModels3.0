@@ -17,5 +17,6 @@ namespace Collections.WireFrameMesh.Interfaces
         public IWireFrameMesh Clone();
         public IEnumerable<IWireFrameMesh> Clones(int number);
         public IWireFrameMesh CreateNewInstance();
+        public void Transformation(Func<Point3D, Point3D> transform);
     }
 }

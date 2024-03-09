@@ -9,4 +9,9 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BaseObjects\BaseObjects.csproj" />
+    <ProjectReference Include="..\Collections\Collections.csproj" />
+  </ItemGroup>
+
 </Project>

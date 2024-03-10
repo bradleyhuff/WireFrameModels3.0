@@ -1,7 +1,6 @@
-﻿
-using Double = BasicObjects.Math.Double;
+﻿using Double = BasicObjects.Math.Double;
 
-namespace BasicObjects.Transformations
+namespace BaseObjects.Transformations.Old
 {
     internal static class Matricies
     {
@@ -64,7 +63,7 @@ namespace BasicObjects.Transformations
 
         internal static void Normalize3D(double v0, double v1, double v2, out double n0, out double n1, out double n2)
         {
-            double length = (double)System.Math.Sqrt(v0 * v0 + v1 * v1 + v2 * v2);
+            double length = (double)Math.Sqrt(v0 * v0 + v1 * v1 + v2 * v2);
             // make sure we don't divide by 0.
             if (length > Double.DifferenceError)
             {
@@ -143,7 +142,7 @@ namespace BasicObjects.Transformations
         internal static double[] Perspective4X4(double fieldOfViewInRadians, double aspect, double near, double far)
         {
             double[] dst = new double[16];
-            double f = (double)System.Math.Tan(System.Math.PI * 0.5 - 0.5 * fieldOfViewInRadians);
+            double f = (double)Math.Tan(Math.PI * 0.5 - 0.5 * fieldOfViewInRadians);
             double rangeInv = (double)(1.0 / (near - far));
 
             dst[0] = f / aspect;
@@ -272,7 +271,7 @@ namespace BasicObjects.Transformations
         internal static void AxisRotation3x3(double x, double y, double z, double angle,
             out double m00, out double m01, out double m02, out double m10, out double m11, out double m12, out double m20, out double m21, out double m22)
         {
-            double n = (double)System.Math.Sqrt(x * x + y * y + z * z);
+            double n = (double)Math.Sqrt(x * x + y * y + z * z);
             x /= n;
             y /= n;
             z /= n;
@@ -280,8 +279,8 @@ namespace BasicObjects.Transformations
             double xx = x * x;
             double yy = y * y;
             double zz = z * z;
-            double c = (double)System.Math.Cos(angle);
-            double s = (double)System.Math.Sin(angle);
+            double c = (double)Math.Cos(angle);
+            double s = (double)Math.Sin(angle);
             double oneMinusCosine = 1 - c;
 
             m00 = xx + (1 - xx) * c;
@@ -299,7 +298,7 @@ namespace BasicObjects.Transformations
 
         internal static double[] AxisRotation(double[] axis, double angleInRadians)
         {
-            return AxisRotationOfCosine(axis, System.Math.Cos(angleInRadians));
+            return AxisRotationOfCosine(axis, Math.Cos(angleInRadians));
         }
 
         internal static double[] AxisRotationOfCosine(double[] axis, double angleCosine)
@@ -309,7 +308,7 @@ namespace BasicObjects.Transformations
             double x = axis[0];
             double y = axis[1];
             double z = axis[2];
-            double n = System.Math.Sqrt(x * x + y * y + z * z);
+            double n = Math.Sqrt(x * x + y * y + z * z);
             x /= n;
             y /= n;
             z /= n;
@@ -317,7 +316,7 @@ namespace BasicObjects.Transformations
             double yy = y * y;
             double zz = z * z;
             double c = angleCosine;
-            double s = System.Math.Sqrt(1 - c * c);
+            double s = Math.Sqrt(1 - c * c);
             double oneMinusCosine = 1 - c;
 
             dst[0] = xx + (1 - xx) * c;
@@ -361,15 +360,15 @@ namespace BasicObjects.Transformations
             double x = axis[0];
             double y = axis[1];
             double z = axis[2];
-            double n = System.Math.Sqrt(x * x + y * y + z * z);
+            double n = Math.Sqrt(x * x + y * y + z * z);
             x /= n;
             y /= n;
             z /= n;
             double xx = x * x;
             double yy = y * y;
             double zz = z * z;
-            double c = System.Math.Cos(angleInRadians);
-            double s = System.Math.Sin(angleInRadians);
+            double c = Math.Cos(angleInRadians);
+            double s = Math.Sin(angleInRadians);
             double oneMinusCosine = 1 - c;
 
             dst[0] = xx + (1 - xx) * c;
@@ -401,15 +400,15 @@ namespace BasicObjects.Transformations
             double x = axis[0];
             double y = axis[1];
             double z = axis[2];
-            double n = System.Math.Sqrt(x * x + y * y + z * z);
+            double n = Math.Sqrt(x * x + y * y + z * z);
             x /= n;
             y /= n;
             z /= n;
             double xx = x * x;
             double yy = y * y;
             double zz = z * z;
-            double c = System.Math.Cos(angleInRadians);
-            double s = System.Math.Sin(angleInRadians);
+            double c = Math.Cos(angleInRadians);
+            double s = Math.Sin(angleInRadians);
             double oneMinusCosine = 1 - c;
 
             double r00 = xx + (1 - xx) * c;

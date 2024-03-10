@@ -1,6 +1,5 @@
 ﻿
-using BasicObjects.GeometricTransformations;
-using BasicObjects.Transformations;
+using BaseObjects.Transformations.Old;
 using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
@@ -44,8 +43,7 @@ namespace BasicObjects.GeometricObjects
         }
         public static Vector3D Cross(Vector3D a, Vector3D b)
         {
-            double c0 = 0, c1 = 0, c2 = 0;
-            Matricies.Cross3D(a.X, a.Y, a.Z, b.X, b.Y, b.Z, out c0, out c1, out c2);
+            Matricies.Cross3D(a.X, a.Y, a.Z, b.X, b.Y, b.Z, out double c0, out double c1, out double c2);
             return new Vector3D(c0, c1, c2);
         }
 

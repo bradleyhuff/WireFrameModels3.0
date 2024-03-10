@@ -1,5 +1,4 @@
-﻿using BasicObjects.GeometricTransformations;
-using BasicObjects.Transformations;
+﻿using BaseObjects.Transformations.Old;
 using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
@@ -27,8 +26,7 @@ namespace BasicObjects.GeometricObjects
             {
                 if (_vector is null)
                 {
-                    double v0 = 0, v1 = 0, v2 = 0;
-                    Matricies.Normalize3D(End.X - Start.X, End.Y - Start.Y, End.Z - Start.Z, out v0, out v1, out v2);
+                    Matricies.Normalize3D(End.X - Start.X, End.Y - Start.Y, End.Z - Start.Z, out double v0, out double v1, out double v2);
                     _vector = new Vector3D(v0, v1, v2);
                 }
                 return _vector;
@@ -227,7 +225,7 @@ namespace BasicObjects.GeometricObjects
             return gap < E.Double.DifferenceError ? point : null;
         }
 
-        public static Point3D MidPointIntersection(LineSegment3D a, LineSegment3D b, out double gap)
+        private static Point3D MidPointIntersection(LineSegment3D a, LineSegment3D b, out double gap)
         {
             var intersection = MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out gap);
             if (intersection is null) { return null; }

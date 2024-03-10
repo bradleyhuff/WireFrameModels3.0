@@ -1,7 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
-using BasicObjects.Transformations;
 
-namespace BasicObjects.GeometricTransformations
+namespace BaseObjects.Transformations.Old
 {
     public static class VectorTransform3D
     {
@@ -14,7 +13,7 @@ namespace BasicObjects.GeometricTransformations
         public static Vector3D Transform(Vector3D basis, Transform3x3 transform)
         {
             Matricies.TransformVector3x3(
-                transform.m00, transform.m01, transform.m02, transform.m10, transform.m11, transform.m12, transform.m20, transform.m21, transform.m22, 
+                transform.m00, transform.m01, transform.m02, transform.m10, transform.m11, transform.m12, transform.m20, transform.m21, transform.m22,
                 basis.X, basis.Y, basis.Z, out double tx, out double ty, out double tz);
 
             return new Vector3D(tx, ty, tz);
@@ -33,7 +32,7 @@ namespace BasicObjects.GeometricTransformations
         {
             double[] rotation = Matricies.AxisRotation(new double[] { axis.X, axis.Y, axis.Z, 0 }, angle);
             double[] vector2 = Matricies.TransformVector(rotation, new double[] { vector.X, vector.Y, vector.Z, 0 });
-            return new Vector3D(vector2[0],vector2[1],vector2[2]);
+            return new Vector3D(vector2[0], vector2[1], vector2[2]);
         }
 
         public static IEnumerable<Vector3D> Rotate(IEnumerable<Vector3D> basisArray, Vector3D axis, double angle)
@@ -54,7 +53,7 @@ namespace BasicObjects.GeometricTransformations
             start = start.Direction;
             end = end.Direction;
             Vector3D cross = Vector3D.Cross(start, end).Direction;
-            int steps = (int)System.Math.Ceiling(angle/maxSteppingAngle);
+            int steps = (int)Math.Ceiling(angle / maxSteppingAngle);
             for (int i = 0; i <= steps; i++)
             {
                 double stepAngle = angle * i / steps;
@@ -80,7 +79,7 @@ namespace BasicObjects.GeometricTransformations
         {
             double angle = Vector3D.Angle(pole, surfaceStart);
 
-            int lateralSteps = (int)System.Math.Ceiling(angle / maxSteppingAngle);
+            int lateralSteps = (int)Math.Ceiling(angle / maxSteppingAngle);
             return Steradian(pole, surfaceStart, surfaceEnd, lateralSteps, maxSteppingAngle);
         }
 

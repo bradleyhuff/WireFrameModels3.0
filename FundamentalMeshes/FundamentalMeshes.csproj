@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <BaseOutputPath>bin\</BaseOutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
@@ -13,8 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BaseObjects\BaseObjects.csproj" />
     <ProjectReference Include="..\Collections\Collections.csproj" />
-    <ProjectReference Include="..\FileExportImport\FileExportImport.csproj" />
-    <ProjectReference Include="..\FundamentalMeshes\FundamentalMeshes.csproj" />
   </ItemGroup>
 
 </Project>

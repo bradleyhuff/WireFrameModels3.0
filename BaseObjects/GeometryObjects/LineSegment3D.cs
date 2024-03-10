@@ -1,5 +1,4 @@
-﻿using BasicObjects.GeometricTransformations;
-using E = BasicObjects.Math;
+﻿using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
 {

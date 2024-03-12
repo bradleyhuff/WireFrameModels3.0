@@ -210,6 +210,13 @@ namespace BasicObjects.GeometricObjects
             get { return HeightAtoBC < Double.DifferenceError || HeightBtoCA < Double.DifferenceError || HeightCtoAB < Double.DifferenceError; }
         }
 
+        public double AngleAtPoint(Point3D point)
+        {
+            if (point == A) { return AngleAtA; }
+            if (point == B) { return AngleAtB; }
+            return AngleAtC;
+        }
+
         private double _angleAtA = 0;
         private bool _angleAtAfound = false;
         public double AngleAtA

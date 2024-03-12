@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects.Transformations.Interfaces;
+using BasicObjects.GeometricObjects;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,35 +10,57 @@ using System.Threading.Tasks;
 
 namespace BaseObjects.Transformations
 {
-    public class Transform
+    public class Transform: ITransform
     {
-        private double m00;
-        private double m01;
-        private double m02;
-        private double m03;
+        private double p00;
+        private double p01;
+        private double p02;
+        private double p03;
 
-        private double m10;
-        private double m11;
-        private double m12;
-        private double m13;
+        private double p10;
+        private double p11;
+        private double p12;
+        private double p13;
 
-        private double m20;
-        private double m21;
-        private double m22;
-        private double m23;
+        private double p20;
+        private double p21;
+        private double p22;
+        private double p23;
 
-        private double m30;
-        private double m31;
-        private double m32;
-        private double m33;
+        private double p30;
+        private double p31;
+        private double p32;
+        private double p33;
+
+
+        private double n00;
+        private double n01;
+        private double n02;
+
+        private double n10;
+        private double n11;
+        private double n12;
+
+        private double n20;
+        private double n21;
+        private double n22;
 
         public Point3D Apply(Point3D point)
         {
-            double x = m00 * point.X + m01 * point.Y + m02 * point.Z + m03;
-            double y = m10 * point.X + m11 * point.Y + m12 * point.Z + m13;
-            double z = m20 * point.X + m21 * point.Y + m22 * point.Z + m23;
+            double x = p00 * point.X + p01 * point.Y + p02 * point.Z + p03;
+            double y = p10 * point.X + p11 * point.Y + p12 * point.Z + p13;
+            double z = p20 * point.X + p21 * point.Y + p22 * point.Z + p23;
 
             return new Point3D(x, y, z);
+        }
+
+        public Vector3D Apply(Point3D point,Vector3D normal)
+        {
+            double x = n00 * normal.X + n01 * normal.Y + n02 * normal.Z;
+            double y = n10 * normal.X + n11 * normal.Y + n12 * normal.Z;
+            double z = n20 * normal.X + n21 * normal.Y + n22 * normal.Z;
+
+            return new Vector3D(x, y, z);
         }
 
         public Transform Rotate(Vector3D axis, double angle)
@@ -86,25 +109,38 @@ namespace BaseObjects.Transformations
         {
             Transform c = new Transform();
 
-            c.m00 = a.m00 * b.m00 + a.m01 * b.m10 + a.m02 * b.m20 + a.m03 * b.m30;
-            c.m01 = a.m00 * b.m01 + a.m01 * b.m11 + a.m02 * b.m21 + a.m03 * b.m31;
-            c.m02 = a.m00 * b.m02 + a.m01 * b.m12 + a.m02 * b.m22 + a.m03 * b.m32;
-            c.m03 = a.m00 * b.m03 + a.m01 * b.m13 + a.m02 * b.m23 + a.m03 * b.m33;
+            c.p00 = a.p00 * b.p00 + a.p01 * b.p10 + a.p02 * b.p20 + a.p03 * b.p30;
+            c.p01 = a.p00 * b.p01 + a.p01 * b.p11 + a.p02 * b.p21 + a.p03 * b.p31;
+            c.p02 = a.p00 * b.p02 + a.p01 * b.p12 + a.p02 * b.p22 + a.p03 * b.p32;
+            c.p03 = a.p00 * b.p03 + a.p01 * b.p13 + a.p02 * b.p23 + a.p03 * b.p33;
 
-            c.m10 = a.m10 * b.m00 + a.m11 * b.m10 + a.m12 * b.m20 + a.m13 * b.m30;
-            c.m11 = a.m10 * b.m01 + a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31;
-            c.m12 = a.m10 * b.m02 + a.m11 * b.m12 + a.m12 * b.m22 + a.m13 * b.m32;
-            c.m13 = a.m10 * b.m03 + a.m11 * b.m13 + a.m12 * b.m23 + a.m13 * b.m33;
+            c.p10 = a.p10 * b.p00 + a.p11 * b.p10 + a.p12 * b.p20 + a.p13 * b.p30;
+            c.p11 = a.p10 * b.p01 + a.p11 * b.p11 + a.p12 * b.p21 + a.p13 * b.p31;
+            c.p12 = a.p10 * b.p02 + a.p11 * b.p12 + a.p12 * b.p22 + a.p13 * b.p32;
+            c.p13 = a.p10 * b.p03 + a.p11 * b.p13 + a.p12 * b.p23 + a.p13 * b.p33;
 
-            c.m20 = a.m20 * b.m00 + a.m21 * b.m10 + a.m22 * b.m20 + a.m23 * b.m30;
-            c.m21 = a.m20 * b.m01 + a.m21 * b.m11 + a.m22 * b.m21 + a.m23 * b.m31;
-            c.m22 = a.m20 * b.m02 + a.m21 * b.m12 + a.m22 * b.m22 + a.m23 * b.m32;
-            c.m23 = a.m20 * b.m03 + a.m21 * b.m13 + a.m22 * b.m23 + a.m23 * b.m33;
+            c.p20 = a.p20 * b.p00 + a.p21 * b.p10 + a.p22 * b.p20 + a.p23 * b.p30;
+            c.p21 = a.p20 * b.p01 + a.p21 * b.p11 + a.p22 * b.p21 + a.p23 * b.p31;
+            c.p22 = a.p20 * b.p02 + a.p21 * b.p12 + a.p22 * b.p22 + a.p23 * b.p32;
+            c.p23 = a.p20 * b.p03 + a.p21 * b.p13 + a.p22 * b.p23 + a.p23 * b.p33;
 
-            c.m30 = a.m30 * b.m00 + a.m31 * b.m10 + a.m32 * b.m20 + a.m33 * b.m30;
-            c.m31 = a.m30 * b.m01 + a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31;
-            c.m32 = a.m30 * b.m02 + a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32;
-            c.m33 = a.m30 * b.m03 + a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33;
+            c.p30 = a.p30 * b.p00 + a.p31 * b.p10 + a.p32 * b.p20 + a.p33 * b.p30;
+            c.p31 = a.p30 * b.p01 + a.p31 * b.p11 + a.p32 * b.p21 + a.p33 * b.p31;
+            c.p32 = a.p30 * b.p02 + a.p31 * b.p12 + a.p32 * b.p22 + a.p33 * b.p32;
+            c.p33 = a.p30 * b.p03 + a.p31 * b.p13 + a.p32 * b.p23 + a.p33 * b.p33;
+
+
+            c.n00 = a.n00 * b.n00 + a.n01 * b.n10 + a.n02 * b.n20;
+            c.n01 = a.n00 * b.n01 + a.n01 * b.n11 + a.n02 * b.n21;
+            c.n02 = a.n00 * b.n02 + a.n01 * b.n12 + a.n02 * b.n22;
+
+            c.n10 = a.n10 * b.n00 + a.n11 * b.n10 + a.n12 * b.n20;
+            c.n11 = a.n10 * b.n01 + a.n11 * b.n11 + a.n12 * b.n21;
+            c.n12 = a.n10 * b.n02 + a.n11 * b.n12 + a.n12 * b.n22;
+
+            c.n20 = a.n20 * b.n00 + a.n21 * b.n10 + a.n22 * b.n20;
+            c.n21 = a.n20 * b.n01 + a.n21 * b.n11 + a.n22 * b.n21;
+            c.n22 = a.n20 * b.n02 + a.n21 * b.n12 + a.n22 * b.n22;
 
             return c;
         }
@@ -114,25 +150,37 @@ namespace BaseObjects.Transformations
             n = n.Direction;
 
             Transform t = new Transform();
-            t.m00 = 1 - 2 * n.X * n.X;
-            t.m01 = -2 * n.X * n.Y;
-            t.m02 = -2 * n.X * n.Z;
-            t.m03 = 0;
+            t.p00 = 1 - 2 * n.X * n.X;
+            t.p01 = -2 * n.X * n.Y;
+            t.p02 = -2 * n.X * n.Z;
+            t.p03 = 0;
 
-            t.m10 = -2 * n.X * n.Y;
-            t.m11 = 1 - 2 * n.Y * n.Y;
-            t.m12 = -2 * n.Y * n.Z;
-            t.m13 = 0;
+            t.p10 = -2 * n.X * n.Y;
+            t.p11 = 1 - 2 * n.Y * n.Y;
+            t.p12 = -2 * n.Y * n.Z;
+            t.p13 = 0;
 
-            t.m20 = -2 * n.X * n.Z;
-            t.m21 = -2 * n.Y * n.Z;
-            t.m22 = 1 - 2 * n.Z * n.Z;
-            t.m23 = 0;
+            t.p20 = -2 * n.X * n.Z;
+            t.p21 = -2 * n.Y * n.Z;
+            t.p22 = 1 - 2 * n.Z * n.Z;
+            t.p23 = 0;
 
-            t.m30 = 0;
-            t.m31 = 0;
-            t.m32 = 0;
-            t.m33 = 1;
+            t.p30 = 0;
+            t.p31 = 0;
+            t.p32 = 0;
+            t.p33 = 1;
+
+            t.n00 = t.p00;
+            t.n01 = t.p01;
+            t.n02 = t.p02;
+
+            t.n10 = t.p10;
+            t.n11 = t.p11;
+            t.n12 = t.p12;
+
+            t.n20 = t.p20;
+            t.n21 = t.p21;
+            t.n22 = t.p22;
 
             return t;
 
@@ -146,25 +194,37 @@ namespace BaseObjects.Transformations
             var c = Math.Cos(angle);
 
             Transform t = new Transform();
-            t.m00 = axis.X * axis.X * cc + c;
-            t.m01 = axis.Y * axis.X * cc - axis.Z * s;
-            t.m02 = axis.Z * axis.X * cc + axis.Y * s;
-            t.m03 = 0;
+            t.p00 = axis.X * axis.X * cc + c;
+            t.p01 = axis.Y * axis.X * cc - axis.Z * s;
+            t.p02 = axis.Z * axis.X * cc + axis.Y * s;
+            t.p03 = 0;
 
-            t.m10 = axis.X * axis.Y * cc + axis.Z * s;
-            t.m11 = axis.Y * axis.Y * cc + c;
-            t.m12 = axis.Z * axis.Y * cc - axis.X * s;
-            t.m13 = 0;
+            t.p10 = axis.X * axis.Y * cc + axis.Z * s;
+            t.p11 = axis.Y * axis.Y * cc + c;
+            t.p12 = axis.Z * axis.Y * cc - axis.X * s;
+            t.p13 = 0;
 
-            t.m20 = axis.X * axis.Z * cc - axis.Y * s;
-            t.m21 = axis.Y * axis.Z * cc + axis.X * s;
-            t.m22 = axis.Z * axis.Z * cc + c;
-            t.m23 = 0;
+            t.p20 = axis.X * axis.Z * cc - axis.Y * s;
+            t.p21 = axis.Y * axis.Z * cc + axis.X * s;
+            t.p22 = axis.Z * axis.Z * cc + c;
+            t.p23 = 0;
 
-            t.m30 = 0;
-            t.m31 = 0;
-            t.m32 = 0;
-            t.m33 = 1;
+            t.p30 = 0;
+            t.p31 = 0;
+            t.p32 = 0;
+            t.p33 = 1;
+
+            t.n00 = t.p00;
+            t.n01 = t.p01;
+            t.n02 = t.p02;
+
+            t.n10 = t.p10;
+            t.n11 = t.p11;
+            t.n12 = t.p12;
+
+            t.n20 = t.p20;
+            t.n21 = t.p21;
+            t.n22 = t.p22;
 
             return t;
         }
@@ -177,22 +237,34 @@ namespace BaseObjects.Transformations
         public static Transform Scale(double x, double y, double z)
         {
             Transform t = new Transform();
-            t.m00 = x;
-            t.m01 = 0;
-            t.m02 = 0;
-            t.m03 = 0;
-            t.m10 = 0;
-            t.m11 = y;
-            t.m12 = 0;
-            t.m13 = 0;
-            t.m20 = 0;
-            t.m21 = 0;
-            t.m22 = z;
-            t.m23 = 0;
-            t.m30 = 0;
-            t.m31 = 0;
-            t.m32 = 0;
-            t.m33 = 1;
+            t.p00 = x;
+            t.p01 = 0;
+            t.p02 = 0;
+            t.p03 = 0;
+            t.p10 = 0;
+            t.p11 = y;
+            t.p12 = 0;
+            t.p13 = 0;
+            t.p20 = 0;
+            t.p21 = 0;
+            t.p22 = z;
+            t.p23 = 0;
+            t.p30 = 0;
+            t.p31 = 0;
+            t.p32 = 0;
+            t.p33 = 1;
+
+            t.n00 = 1 / t.p00;
+            t.n01 = t.p01;
+            t.n02 = t.p02;
+
+            t.n10 = t.p10;
+            t.n11 = 1 / t.p11;
+            t.n12 = t.p12;
+
+            t.n20 = t.p20;
+            t.n21 = t.p21;
+            t.n22 = 1 / t.p22;
 
             return t;
         }
@@ -200,22 +272,34 @@ namespace BaseObjects.Transformations
         public static Transform ShearXY(double x, double y)
         {
             Transform t = new Transform();
-            t.m00 = 1;
-            t.m01 = 0;
-            t.m02 = x;
-            t.m03 = 0;
-            t.m10 = 0;
-            t.m11 = 1;
-            t.m12 = y;
-            t.m13 = 0;
-            t.m20 = 0;
-            t.m21 = 0;
-            t.m22 = 1;
-            t.m23 = 0;
-            t.m30 = 0;
-            t.m31 = 0;
-            t.m32 = 0;
-            t.m33 = 1;
+            t.p00 = 1;
+            t.p01 = 0;
+            t.p02 = x;
+            t.p03 = 0;
+            t.p10 = 0;
+            t.p11 = 1;
+            t.p12 = y;
+            t.p13 = 0;
+            t.p20 = 0;
+            t.p21 = 0;
+            t.p22 = 1;
+            t.p23 = 0;
+            t.p30 = 0;
+            t.p31 = 0;
+            t.p32 = 0;
+            t.p33 = 1;
+
+            t.n00 = 1 + x;
+            t.n01 = 0;
+            t.n02 = 0;
+
+            t.n10 = 0;
+            t.n11 = 1 + y;
+            t.n12 = 0;
+
+            t.n20 = 0;
+            t.n21 = 0;
+            t.n22 = 1;
 
             return t;
         }
@@ -223,22 +307,34 @@ namespace BaseObjects.Transformations
         public static Transform ShearXZ(double x, double z)
         {
             Transform t = new Transform();
-            t.m00 = 1;
-            t.m01 = x;
-            t.m02 = 0;
-            t.m03 = 0;
-            t.m10 = 0;
-            t.m11 = 1;
-            t.m12 = 0;
-            t.m13 = 0;
-            t.m20 = 0;
-            t.m21 = z;
-            t.m22 = 1;
-            t.m23 = 0;
-            t.m30 = 0;
-            t.m31 = 0;
-            t.m32 = 0;
-            t.m33 = 1;
+            t.p00 = 1;
+            t.p01 = x;
+            t.p02 = 0;
+            t.p03 = 0;
+            t.p10 = 0;
+            t.p11 = 1;
+            t.p12 = 0;
+            t.p13 = 0;
+            t.p20 = 0;
+            t.p21 = z;
+            t.p22 = 1;
+            t.p23 = 0;
+            t.p30 = 0;
+            t.p31 = 0;
+            t.p32 = 0;
+            t.p33 = 1;
+
+            t.n00 = 1 + x;
+            t.n01 = 0;
+            t.n02 = 0;
+
+            t.n10 = 0;
+            t.n11 = 1;
+            t.n12 = 0;
+
+            t.n20 = 0;
+            t.n21 = 0;
+            t.n22 = 1 + z;
 
             return t;
         }
@@ -246,22 +342,34 @@ namespace BaseObjects.Transformations
         public static Transform ShearYZ(double y, double z)
         {
             Transform t = new Transform();
-            t.m00 = 1;
-            t.m01 = 0;
-            t.m02 = 0;
-            t.m03 = 0;
-            t.m10 = y;
-            t.m11 = 1;
-            t.m12 = 0;
-            t.m13 = 0;
-            t.m20 = z;
-            t.m21 = 0;
-            t.m22 = 1;
-            t.m23 = 0;
-            t.m30 = 0;
-            t.m31 = 0;
-            t.m32 = 0;
-            t.m33 = 1;
+            t.p00 = 1;
+            t.p01 = 0;
+            t.p02 = 0;
+            t.p03 = 0;
+            t.p10 = y;
+            t.p11 = 1;
+            t.p12 = 0;
+            t.p13 = 0;
+            t.p20 = z;
+            t.p21 = 0;
+            t.p22 = 1;
+            t.p23 = 0;
+            t.p30 = 0;
+            t.p31 = 0;
+            t.p32 = 0;
+            t.p33 = 1;
+
+            t.n00 = 1;
+            t.n01 = 0;
+            t.n02 = 0;
+
+            t.n10 = 0;
+            t.n11 = 1 + y;
+            t.n12 = 0;
+
+            t.n20 = 0;
+            t.n21 = 0;
+            t.n22 = 1 + z;
 
             return t;
         }
@@ -269,22 +377,34 @@ namespace BaseObjects.Transformations
         public static Transform Translation(Point3D point)
         {
             Transform t = new Transform();
-            t.m00 = 1;
-            t.m01 = 0;
-            t.m02 = 0;
-            t.m03 = point.X;
-            t.m10 = 0;
-            t.m11 = 1;
-            t.m12 = 0;
-            t.m13 = point.Y;
-            t.m20 = 0;
-            t.m21 = 0;
-            t.m22 = 1;
-            t.m23 = point.Z;
-            t.m30 = 0;
-            t.m31 = 0;
-            t.m32 = 0;
-            t.m33 = 1;
+            t.p00 = 1;
+            t.p01 = 0;
+            t.p02 = 0;
+            t.p03 = point.X;
+            t.p10 = 0;
+            t.p11 = 1;
+            t.p12 = 0;
+            t.p13 = point.Y;
+            t.p20 = 0;
+            t.p21 = 0;
+            t.p22 = 1;
+            t.p23 = point.Z;
+            t.p30 = 0;
+            t.p31 = 0;
+            t.p32 = 0;
+            t.p33 = 1;
+
+            t.n00 = t.p00;
+            t.n01 = t.p01;
+            t.n02 = t.p02;
+
+            t.n10 = t.p10;
+            t.n11 = t.p11;
+            t.n12 = t.p12;
+
+            t.n20 = t.p20;
+            t.n21 = t.p21;
+            t.n22 = t.p22;
 
             return t;
         }

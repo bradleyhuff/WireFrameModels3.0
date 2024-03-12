@@ -13,11 +13,12 @@ namespace Collections.WireFrameMesh.Basics
             A = a;
             B = b;
             C = c;
+            Id = _id++;
+            if (a.Position == b.Position || a.Position == c.Position || b.Position == c.Position) { return; }
             A._triangles.Add(this);
             B._triangles.Add(this);
             C._triangles.Add(this);
             A.Mesh._triangles.Add(this);
-            Id = _id++;
         }
 
         public int Id { get; }

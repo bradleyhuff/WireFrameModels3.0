@@ -13,38 +13,30 @@ namespace FundamentalMeshes
     public static class Sphere
     {
         public static IWireFrameMesh Create(double radius, int octantSubDivisions)
-        {
-            var sphere = WireFrameMesh.CreateMesh();
-            var octant = OctantMeshBuilder(radius, octantSubDivisions);
+        {            
+            var octant = OctantMesh(radius, octantSubDivisions);
 
-            var octant2 = octant.Clone();
-            var octant3 = octant.Clone();
-            var octant4 = octant.Clone();
-
-            var transform = Transform.Rotation(new Vector3D(0, 0, 1), Math.PI / 2);
-            octant2.Transformation(p => transform.Apply(p));
-            transform = Transform.Rotation(new Vector3D(0, 0, 1), Math.PI);
-            octant3.Transformation(p => transform.Apply(p));
-            transform = Transform.Rotation(new Vector3D(0, 0, 1), -Math.PI / 2);
-            octant4.Transformation(p => transform.Apply(p));
+            var octantClones = octant.Clones(3).ToArray();
+            for(int i = 0; i < 3; i++)
+            {
+                octantClones[i].Transform(Transform.Rotation(Vector3D.BasisZ, (i + 1) * Math.PI / 2));
+            }
 
             var hemisphere = WireFrameMesh.CreateMesh();
             hemisphere.AddGrid(octant);
-            hemisphere.AddGrid(octant2);
-            hemisphere.AddGrid(octant3);
-            hemisphere.AddGrid(octant4);
-
+            hemisphere.AddGrids(octantClones);
+ 
             var hemisphere2 = hemisphere.Clone();
-            transform = Transform.Rotation(new Vector3D(1, 0, 0), Math.PI);
-            hemisphere2.Transformation(p => transform.Apply(p));
+            hemisphere2.Transform(Transform.Rotation(Vector3D.BasisX, Math.PI));
 
+            var sphere = WireFrameMesh.CreateMesh();
             sphere.AddGrid(hemisphere);
             sphere.AddGrid(hemisphere2);
 
             return sphere;
         }
 
-        private static IWireFrameMesh OctantMeshBuilder(double radius, int subdivisions)
+        private static IWireFrameMesh OctantMesh(double radius, int subdivisions)
         {
             int cubeSubdivisions = subdivisions / 2;
 
@@ -106,12 +98,8 @@ namespace FundamentalMeshes
 
         private static double TangentConversion(double alpha)
         {
-            if (alpha == 0)
-            {
-                return 0;
-            }
-            double theta = Math.PI / 2 - alpha * Math.PI / 4;
-            return 1 / Math.Tan(theta);
+            double theta = alpha * Math.PI / 4;
+            return Math.Tan(theta);
         }
     }
 }

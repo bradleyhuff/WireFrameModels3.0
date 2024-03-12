@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Collections.Buckets;
+using BaseObjects.Transformations;
+using BaseObjects.Transformations.Interfaces;
 
 namespace Collections.WireFrameMesh.BasicWireFrameMesh
 {
@@ -22,7 +24,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         private List<Position> _positions = new List<Position>();
         private BoxBucket<Position> _bucket = new BoxBucket<Position>(Enumerable.Empty<Position>());
 
-        public IReadOnlyList<Position> Positions { get; }
+        public IReadOnlyList<Position> Positions { get; }//re-evaluate normals if transform was used in adding points.
 
         public PositionNormal AddPoint(Point3D position, Vector3D normal)
         {
@@ -31,8 +33,13 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return positionNormal;
         }
 
+        public PositionNormal AddPoint(Point3D position, Vector3D normal, ITransform transform)
+        {
+            return AddPoint(transform.Apply(position), transform.Apply(position, normal));
+        }
+
         public PositionNormal AddPointNoRow(Point3D position, Vector3D normal)
-        {   
+        {
             var positionObject = _bucket.Fetch(new Rectangle3D(position, BoxBucket.MARGINS)).SingleOrDefault(p => p.Point == position);
             if (positionObject is null)
             {
@@ -51,6 +58,11 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 positionNormal.LinkPosition(positionObject);
                 return positionNormal;
             }
+        }
+
+        public PositionNormal AddPointNoRow(Point3D position, Vector3D normal, ITransform transform)
+        {
+            return AddPointNoRow(transform.Apply(position), transform.Apply(position, normal));
         }
 
         private PositionNormal CloneAddOrExisting(PositionNormal positionNormal)
@@ -83,16 +95,16 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
 
             foreach (var position in inputMesh.Positions)
             {
-                foreach(var positionNormal in position.PositionNormals)
+                foreach (var positionNormal in position.PositionNormals)
                 {
-                    foreach(var triangle in positionNormal.Triangles)
+                    foreach (var triangle in positionNormal.Triangles)
                     {
                         if (!mapping.ContainsKey(triangle.Id)) { mapping[triangle.Id] = new List<PositionNormal>(3); }
                         mapping[triangle.Id].Add(CloneAddOrExisting(positionNormal));
                     }
                 }
             }
-            foreach(var triangle in mapping.Values.Where(v => v.Count == 3))
+            foreach (var triangle in mapping.Values.Where(v => v.Count == 3))
             {
                 new PositionTriangle(triangle[0], triangle[1], triangle[2]);
             }
@@ -146,21 +158,57 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return clones;
         }
 
-        public void Transformation(Func<Point3D, Point3D> transform)
+        public void Transform(ITransform transform)
         {
-            foreach(var position in Positions)
+            foreach (var position in Positions)
             {
-                var point = position.Point;
-                var pointT = transform(position.Point);
-                position.Point = pointT;
-                foreach(var positionNormal in position.PositionNormals)
+                var oldPoint = position.Point;
+                position.Point = transform.Apply(position.Point);
+                foreach (var positionNormal in position.PositionNormals)
                 {
-                    var pointOffsetT = transform(point + positionNormal.Normal);
-                    positionNormal.Normal = (pointOffsetT - pointT).Direction;
+                    positionNormal.Normal = transform.Apply(oldPoint, positionNormal.Normal);
                 }
             }
             _bucket = new BoxBucket<Position>(Positions);
         }
+
+        //public void Transformation(Func<Point3D, Point3D> pointTransform, Func<Vector3D, Vector3D> normalTransform)
+        //{
+        //    foreach (var position in Positions)
+        //    {
+        //        position.Point = pointTransform(position.Point);
+        //        foreach (var positionNormal in position.PositionNormals)
+        //        {
+        //            positionNormal.Normal = normalTransform(positionNormal.Normal);
+        //        }
+
+        //        //var point = position.Point;
+        //        //var pointT = pointTransform(position.Point);
+        //        //position.Point = pointT;
+        //        //foreach (var positionNormal in position.PositionNormals)
+        //        //{
+        //        //    var pointOffsetT = transform(position.Point + positionNormal.Normal);
+        //        //    positionNormal.Normal = (pointOffsetT - pointT).Direction;
+        //        //}
+        //        //position.Point = pointT;
+        //    }
+        //    //foreach (var positionNormal in Positions.SelectMany(p => p.PositionNormals))
+        //    //{
+        //    //    var triangles = positionNormal.Triangles;
+        //    //    var angles = triangles.Select(t => t.Triangle.AngleAtPoint(positionNormal.Position)).ToArray();
+        //    //    double totalAngle = angles.Sum();
+        //    //    var weights = angles.Select(a => a / totalAngle).ToArray();
+        //    //    var normals = triangles.Select(t => t.Triangle.Normal).ToArray();
+        //    //    Vector3D weightedSum = Vector3D.Zero;
+        //    //    for (int i = 0; i < weights.Length; i++)
+        //    //    {
+        //    //        weightedSum += weights[i] * normals[i];
+        //    //    }
+        //    //    //var sum = Vector3D.Average(normals);
+        //    //    positionNormal.Normal = weightedSum.Direction;
+        //    //}
+        //    _bucket = new BoxBucket<Position>(Positions);
+        //}
 
         public IWireFrameMesh CreateNewInstance()
         {

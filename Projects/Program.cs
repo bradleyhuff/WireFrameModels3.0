@@ -2,7 +2,7 @@
 
 //var project = new ShellTest();
 //var project = new WireMeshTest();
-var project = new SphereTest();
+var project = new FundamentalMeshesTest();
 
 project.Run();
 

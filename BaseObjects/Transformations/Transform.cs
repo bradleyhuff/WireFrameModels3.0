@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BaseObjects.Transformations
 {
-    public class Transform: ITransform
+    public class Transform : ITransform
     {
         private double p00;
         private double p01;
@@ -54,13 +54,13 @@ namespace BaseObjects.Transformations
             return new Point3D(x, y, z);
         }
 
-        public Vector3D Apply(Point3D point,Vector3D normal)
+        public Vector3D Apply(Point3D point, Vector3D normal)
         {
             double x = n00 * normal.X + n01 * normal.Y + n02 * normal.Z;
             double y = n10 * normal.X + n11 * normal.Y + n12 * normal.Z;
             double z = n20 * normal.X + n21 * normal.Y + n22 * normal.Z;
 
-            return new Vector3D(x, y, z);
+            return new Vector3D(x, y, z).Direction;
         }
 
         public Transform Rotate(Vector3D axis, double angle)
@@ -241,14 +241,17 @@ namespace BaseObjects.Transformations
             t.p01 = 0;
             t.p02 = 0;
             t.p03 = 0;
+
             t.p10 = 0;
             t.p11 = y;
             t.p12 = 0;
             t.p13 = 0;
+
             t.p20 = 0;
             t.p21 = 0;
             t.p22 = z;
             t.p23 = 0;
+
             t.p30 = 0;
             t.p31 = 0;
             t.p32 = 0;
@@ -276,29 +279,32 @@ namespace BaseObjects.Transformations
             t.p01 = 0;
             t.p02 = x;
             t.p03 = 0;
+
             t.p10 = 0;
             t.p11 = 1;
             t.p12 = y;
             t.p13 = 0;
+
             t.p20 = 0;
             t.p21 = 0;
             t.p22 = 1;
             t.p23 = 0;
+
             t.p30 = 0;
             t.p31 = 0;
             t.p32 = 0;
             t.p33 = 1;
 
-            t.n00 = 1 + x;
+            t.n00 = 1;
             t.n01 = 0;
             t.n02 = 0;
 
             t.n10 = 0;
-            t.n11 = 1 + y;
+            t.n11 = 1;
             t.n12 = 0;
 
-            t.n20 = 0;
-            t.n21 = 0;
+            t.n20 = -x;
+            t.n21 = -y;
             t.n22 = 1;
 
             return t;
@@ -311,30 +317,33 @@ namespace BaseObjects.Transformations
             t.p01 = x;
             t.p02 = 0;
             t.p03 = 0;
+
             t.p10 = 0;
             t.p11 = 1;
             t.p12 = 0;
             t.p13 = 0;
+
             t.p20 = 0;
             t.p21 = z;
             t.p22 = 1;
             t.p23 = 0;
+
             t.p30 = 0;
             t.p31 = 0;
             t.p32 = 0;
             t.p33 = 1;
 
-            t.n00 = 1 + x;
+            t.n00 = 1;
             t.n01 = 0;
             t.n02 = 0;
 
-            t.n10 = 0;
+            t.n10 = -x;
             t.n11 = 1;
-            t.n12 = 0;
+            t.n12 = -z;
 
             t.n20 = 0;
             t.n21 = 0;
-            t.n22 = 1 + z;
+            t.n22 = 1;
 
             return t;
         }
@@ -346,30 +355,33 @@ namespace BaseObjects.Transformations
             t.p01 = 0;
             t.p02 = 0;
             t.p03 = 0;
+
             t.p10 = y;
             t.p11 = 1;
             t.p12 = 0;
             t.p13 = 0;
+
             t.p20 = z;
             t.p21 = 0;
             t.p22 = 1;
             t.p23 = 0;
+
             t.p30 = 0;
             t.p31 = 0;
             t.p32 = 0;
             t.p33 = 1;
 
             t.n00 = 1;
-            t.n01 = 0;
-            t.n02 = 0;
+            t.n01 = -y;
+            t.n02 = -z;
 
             t.n10 = 0;
-            t.n11 = 1 + y;
+            t.n11 = 1;
             t.n12 = 0;
 
             t.n20 = 0;
             t.n21 = 0;
-            t.n22 = 1 + z;
+            t.n22 = 1;
 
             return t;
         }
@@ -381,26 +393,33 @@ namespace BaseObjects.Transformations
             t.p01 = 0;
             t.p02 = 0;
             t.p03 = point.X;
+
             t.p10 = 0;
             t.p11 = 1;
             t.p12 = 0;
             t.p13 = point.Y;
+
             t.p20 = 0;
             t.p21 = 0;
             t.p22 = 1;
             t.p23 = point.Z;
+
             t.p30 = 0;
             t.p31 = 0;
             t.p32 = 0;
             t.p33 = 1;
 
-            t.n00 = t.p00;
-            t.n01 = t.p01;
-            t.n02 = t.p02;
+            t.n00 = 1;
+            t.n01 = 0;
+            t.n02 = 0;
 
-            t.n10 = t.p10;
-            t.n11 = t.p11;
-            t.n12 = t.p12;
+            t.n10 = 0;
+            t.n11 = 1;
+            t.n12 = 0;
+
+            t.n20 = 0;
+            t.n21 = 0;
+            t.n22 = 1;
 
             t.n20 = t.p20;
             t.n21 = t.p21;

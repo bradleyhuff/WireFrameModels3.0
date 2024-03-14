@@ -1,6 +1,9 @@
 ﻿using BaseObjects.Transformations;
 using BasicObjects;
 using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using FundamentalMeshes;
 using System;
@@ -19,14 +22,15 @@ namespace Projects.Projects
             //CylinderTest();
             //ConeTest();
             //CuboidTest();
-            SphereTest();
-            //TorusTest();
+            //SphereTest();
+            TorusTest();
         }
 
         private void ConeTest()
         {
-            var cone = Cone.Create(0.5, 3, 64);
-            cone.Transform(Transform.Scale(0.25, 1, 1));
+            var cone = Cone.Create(0.5, 3, 128);
+            //cone.Transform(Transform.Scale(0.10, 1, 1));
+            cone.Transform(Transform.ShearXZ(2, 2));
 
             TableDisplays.ShowCountSpread("Position normal triangle counts", cone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", cone.Positions, p => p.PositionNormals.Count);
@@ -34,13 +38,13 @@ namespace Projects.Projects
             PntFile.Export(cone, "Pnt/Cone");
             WavefrontFile.Export(cone, "Wavefront/Cone");
 
-            cone.Transform(Transform.Reflection(Vector3D.BasisY));
+            //cone.Transform(Transform.Reflection(Vector3D.BasisY));
 
-            TableDisplays.ShowCountSpread("Position normal triangle counts", cone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", cone.Positions, p => p.PositionNormals.Count);
+            //TableDisplays.ShowCountSpread("Position normal triangle counts", cone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
+            //TableDisplays.ShowCountSpread("Position normal counts", cone.Positions, p => p.PositionNormals.Count);
 
-            PntFile.Export(cone, "Pnt/ConeReflection");
-            WavefrontFile.Export(cone, "Wavefront/ConeReflection");
+            //PntFile.Export(cone, "Pnt/ConeReflection");
+            //WavefrontFile.Export(cone, "Wavefront/ConeReflection");
         }
 
         private void CylinderTest()
@@ -83,17 +87,39 @@ namespace Projects.Projects
 
         private void TorusTest()
         {
-            var torus = Torus.Create(4, 2, 64, 32);
+            var shape = Torus.Create(4, 2, 64, 256);
+            //var shape = Cuboid.Create(1, 1, 1, 1, 1, 1);
             //var squash = Transform.Scale(1, 0.25, 2);
             //var squash = Transform.ShearXZ(2, 1);
-            //torus.Transform(Transform.Scale(0.1, 0.25, 2));
-            torus.Transform(Transform.ShearXZ(10, 10));
+            //torus.Transform(Transform.Scale(0.5, 1, 2));
+            //torus.Transform(Transform.Scale(1, 0.2, 1));
+            //shape.Transform(Transform.Scale(2.05, 2.45, 1) * Transform.Rotation(Vector3D.BasisZ, -0.375) * Transform.Scale(1, 0.20, 1) * Transform.Rotation(Vector3D.BasisZ, 1.1));
+            shape.Transform(Transform.ShearXZ(2, 2));
+            //shape.Transform(Transform.ShearXY(2, 2));
+            //shape.Transform(Transform.ShearYZ(2, 2));
 
-            TableDisplays.ShowCountSpread("Position normal triangle counts", torus.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", torus.Positions, p => p.PositionNormals.Count);
+            TableDisplays.ShowCountSpread("Position normal triangle counts", shape.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
+            TableDisplays.ShowCountSpread("Position normal counts", shape.Positions, p => p.PositionNormals.Count);
 
-            PntFile.Export(torus, "Pnt/Torus");
-            WavefrontFile.Export(torus, "Wavefront/Torus");
+            PntFile.Export(shape, "Pnt/Shape");
+            WavefrontFile.Export(shape, "Wavefront/Shape");
+            WavefrontFile.Export(NormalOverlay(shape, 0.25), "Wavefront/ShapeNormals");
+        }
+
+        private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)
+        {
+            var output = WireFrameMesh.CreateMesh();
+
+            foreach(var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
+            {
+                var pointA = output.AddPointNoRow(positionNormal.Position, Vector3D.Zero);
+                var pointB = output.AddPointNoRow(positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero);
+                var pointC = output.AddPointNoRow(positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
+                new PositionTriangle(pointA, pointB, pointC);
+
+            }
+
+            return output;
         }
     }
 }

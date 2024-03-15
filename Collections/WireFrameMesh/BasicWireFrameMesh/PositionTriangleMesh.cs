@@ -82,6 +82,14 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                     pointB = queueB.Dequeue();
                 }
             }
+
+            //var row_A = rowA.ToArray();
+            //var row_B = rowB.ToArray();
+            //for (int i = 0; i < row_A.Length - 1; i++)
+            //{
+            //    new PositionTriangle(row_A[i], row_B[i], row_B[i + 1]);
+            //    new PositionTriangle(row_A[i], row_B[i+ 1], row_A[i + 1]);
+            //}
         }
     }
 }

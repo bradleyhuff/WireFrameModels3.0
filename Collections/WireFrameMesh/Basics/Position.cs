@@ -17,6 +17,18 @@ namespace Collections.WireFrameMesh.Basics
 
         public int Id { get; }
 
+        public override int GetHashCode()
+        {
+            return Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null || obj is not Position) { return false; }
+            Position compare = (Position)obj;
+            return Id == compare.Id;
+        }
+
         private Point3D _position;
         private Rectangle3D _box;
         internal List<PositionNormal> _positionNormals = new List<PositionNormal>();

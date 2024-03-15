@@ -87,14 +87,14 @@ namespace Projects.Projects
 
         private void TorusTest()
         {
-            var shape = Torus.Create(4, 2, 64, 256);
+            var shape = Torus.Create(4, 2, 8, 128);
             //var shape = Cuboid.Create(1, 1, 1, 1, 1, 1);
             //var squash = Transform.Scale(1, 0.25, 2);
             //var squash = Transform.ShearXZ(2, 1);
             //torus.Transform(Transform.Scale(0.5, 1, 2));
             //torus.Transform(Transform.Scale(1, 0.2, 1));
             //shape.Transform(Transform.Scale(2.05, 2.45, 1) * Transform.Rotation(Vector3D.BasisZ, -0.375) * Transform.Scale(1, 0.20, 1) * Transform.Rotation(Vector3D.BasisZ, 1.1));
-            shape.Transform(Transform.ShearXZ(2, 2));
+            //shape.Transform(Transform.ShearXZ(2, 2));
             //shape.Transform(Transform.ShearXY(2, 2));
             //shape.Transform(Transform.ShearYZ(2, 2));
 

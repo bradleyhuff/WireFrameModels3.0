@@ -23,6 +23,18 @@ namespace Collections.WireFrameMesh.Basics
 
         public int Id { get; }
 
+        public override int GetHashCode()
+        {
+            return Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null || obj is not PositionTriangle) { return false; }
+            PositionTriangle compare = (PositionTriangle)obj;
+            return Id == compare.Id;
+        }
+
         public PositionNormal A { get; private set; }
         public PositionNormal B { get; private set; }
         public PositionNormal C { get; private set; }
@@ -49,31 +61,99 @@ namespace Collections.WireFrameMesh.Basics
             A = null;
             B = null;
             C = null;
+            ClearStates();
         }
 
-        public IEnumerable<PositionTriangle> GetABadjacents()
+        private IReadOnlyList<PositionTriangle> _abAdjacents;
+        private IReadOnlyList<PositionTriangle> _bcAdjacents;
+        private IReadOnlyList<PositionTriangle> _caAdjacents;
+        private IReadOnlyList<PositionTriangle> _aVerticies;
+        private IReadOnlyList<PositionTriangle> _bVerticies;
+        private IReadOnlyList<PositionTriangle> _cVerticies;
+
+        private void ClearStates()
         {
-            return A.Triangles.Intersect(B.Triangles).Where(t => t.Id != Id);
+            _abAdjacents = null;
+            _bcAdjacents = null;
+            _caAdjacents = null;
+            _aVerticies = null;
+            _bVerticies = null;
+            _cVerticies = null;
         }
-        public IEnumerable<PositionTriangle> GetBCadjacents()
+
+        public IReadOnlyList<PositionTriangle> ABadjacents
         {
-            return B.Triangles.Intersect(C.Triangles).Where(t => t.Id != Id);
+            get
+            {
+                if(_abAdjacents is null)
+                {
+                    _abAdjacents = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
+                        Intersect(B.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
+                }
+                return _abAdjacents;
+            }
         }
-        public IEnumerable<PositionTriangle> GetCAadjacents()
+
+        public IReadOnlyList<PositionTriangle> BCadjacents
         {
-            return C.Triangles.Intersect(A.Triangles).Where(t => t.Id != Id);
+            get
+            {
+                if (_bcAdjacents is null)
+                {
+                    _bcAdjacents = B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
+                        Intersect(C.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
+                }
+                return _bcAdjacents;
+            }
         }
-        public IEnumerable<PositionTriangle> GetAverticies()
+
+        public IReadOnlyList<PositionTriangle> CAadjacents
         {
-            return A.Triangles.Where(t => t.Id != Id);
+            get
+            {
+                if (_caAdjacents is null)
+                {
+                    _caAdjacents = C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
+                        Intersect(A.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
+                }
+                return _caAdjacents;
+            }
         }
-        public IEnumerable<PositionTriangle> GetBverticies()
+
+        public IReadOnlyList<PositionTriangle> Averticies
         {
-            return B.Triangles.Where(t => t.Id != Id);
+            get
+            {
+                if(_aVerticies is null)
+                {
+                    _aVerticies = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
+                }
+                return _aVerticies;
+            }
         }
-        public IEnumerable<PositionTriangle> GetCverticies()
+
+        public IReadOnlyList<PositionTriangle> Bverticies
         {
-            return C.Triangles.Where(t => t.Id != Id);
+            get
+            {
+                if (_bVerticies is null)
+                {
+                    _bVerticies = B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
+                }
+                return _bVerticies;
+            }
+        }
+
+        public IReadOnlyList<PositionTriangle> Cverticies
+        {
+            get
+            {
+                if (_cVerticies is null)
+                {
+                    _cVerticies = C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
+                }
+                return _cVerticies;
+            }
         }
 
         private Rectangle3D _box = null;

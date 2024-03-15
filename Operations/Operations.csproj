@@ -9,4 +9,13 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Intermesh\ElasticIntermeshOperations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BaseObjects\BaseObjects.csproj" />
+    <ProjectReference Include="..\Collections\Collections.csproj" />
+  </ItemGroup>
+
 </Project>

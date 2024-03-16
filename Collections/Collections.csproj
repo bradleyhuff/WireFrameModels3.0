@@ -13,4 +13,8 @@
     <ProjectReference Include="..\BaseObjects\BaseObjects.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Threading\" />
+  </ItemGroup>
+
 </Project>

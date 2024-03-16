@@ -72,6 +72,7 @@ namespace Operations.Intermesh.Basics
         private IReadOnlyList<IntermeshTriangle> _aVerticies;
         private IReadOnlyList<IntermeshTriangle> _bVerticies;
         private IReadOnlyList<IntermeshTriangle> _cVerticies;
+        private IReadOnlyList<IntermeshTriangle> _adjacents;
 
         public IReadOnlyList<IntermeshTriangle> ABadjacents
         {
@@ -142,6 +143,18 @@ namespace Operations.Intermesh.Basics
                     _cVerticies = _triangle.Cverticies.Select(t => _lookup[t]).ToList();
                 }
                 return _cVerticies;
+            }
+        }
+
+        public IReadOnlyList<IntermeshTriangle> AdjacentTriangles
+        {
+            get
+            {
+                if (_adjacents is null)
+                {
+                    _adjacents = Averticies.Concat(Bverticies).Concat(Cverticies).DistinctBy(t => t.Id).ToList();
+                }
+                return _adjacents;
             }
         }
 

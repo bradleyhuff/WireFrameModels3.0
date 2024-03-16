@@ -48,7 +48,7 @@ namespace Projects.Projects
             TableDisplays.ShowCountSpread("Position normal counts", intermesh.Positions, p => p.PositionNormals.Count);
 
             //
-            var output = ElasticIntermeshOperations.Intermesh(intermesh);
+            var output = Operations.Intermesh.ElasticIntermeshOperations.Operations.Intermesh(intermesh);
 
 
             //

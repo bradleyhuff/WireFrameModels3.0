@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    public class VertexCore
+    internal class VertexCore
     {
         private static int _id = 0;
         public VertexCore()

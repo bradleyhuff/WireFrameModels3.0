@@ -2,7 +2,7 @@
 
 namespace Operations.Intermesh.Basics
 {
-    public class DivisionVertexContainer
+    internal class DivisionVertexContainer
     {
         private static int _id = 0;
         public DivisionVertexContainer()

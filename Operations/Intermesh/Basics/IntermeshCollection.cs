@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    public class IntermeshCollection
+    internal class IntermeshCollection
     {
         private IReadOnlyList<PositionTriangle> gridTriangles;
         private IReadOnlyList<IntermeshTriangle> triangles;

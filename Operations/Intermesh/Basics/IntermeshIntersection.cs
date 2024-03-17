@@ -3,7 +3,7 @@ using Collections.Buckets.Interfaces;
 
 namespace Operations.Intermesh.Basics
 {
-    public class IntermeshIntersection : IBox
+    internal class IntermeshIntersection : IBox
     {
         private static int _id = 0;
 

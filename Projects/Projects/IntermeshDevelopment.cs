@@ -52,8 +52,8 @@ namespace Projects.Projects
 
 
             //
-            PntFile.Export(intermesh, "Pnt/Intermesh");
-            WavefrontFile.Export(intermesh, "Wavefront/Intermesh");
+            PntFile.Export(output, "Pnt/Intermesh");
+            WavefrontFile.Export(output, "Wavefront/Intermesh");
         }
     }
 }

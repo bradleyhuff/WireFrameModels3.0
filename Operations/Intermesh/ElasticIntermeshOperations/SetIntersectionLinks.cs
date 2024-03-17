@@ -29,8 +29,6 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             SamePointDisableAndRemoval(intersectionNodes);
 
             foreach (var triangle in intermeshTriangles) { triangle.ClearDisabledIntersections(); }
-            //var table = new TriangleEdgeTable(intermeshTriangles);
-            //table.SetPerimeterEdges(intermeshTriangles);
 
             Console.WriteLine($"Set intersection links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
             Console.WriteLine();

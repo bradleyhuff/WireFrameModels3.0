@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    public class IntermeshDivision
+    internal class IntermeshDivision
     {
         private static int _id = 0;
         public IntermeshDivision()

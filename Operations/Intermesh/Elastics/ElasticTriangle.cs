@@ -1,10 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
-using BasicObjects.MathExtensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Operations.Intermesh.Basics;
+using Operations.SurfaceSegmentChaining.Basics;
+using System.Xml.Linq;
 
 namespace Operations.Intermesh.Elastics
 {
@@ -79,50 +76,16 @@ namespace Operations.Intermesh.Elastics
         }
 
         private List<ElasticSegment> _segments = new List<ElasticSegment>();
-        //private ElasticVertexLink[] _perimeterSegments;
-        //private ElasticVertexLink[] _dividingSegments;
-        //private Combination2Dictionary<bool> _perimeterKeys;
+        private ElasticVertexLink[] _perimeterSegments;
+        private ElasticVertexLink[] _dividingSegments;
 
         public IReadOnlyList<ElasticSegment> Segments { get { return _segments; } }
 
-        Dictionary<int, ElasticVertexCore> _vertexLookup;
-        public Dictionary<int, ElasticVertexCore> VertexLookup
-        {
-            get
-            {
-                if (_vertexLookup is null)
-                {
-                    _vertexLookup = new Dictionary<int, ElasticVertexCore>();
-                    _vertexLookup[AnchorA.Id] = AnchorA;
-                    _vertexLookup[AnchorB.Id] = AnchorB;
-                    _vertexLookup[AnchorC.Id] = AnchorC;
-                    foreach (var point in PerimeterEdgeAB.PerimeterPoints)
-                    {
-                        _vertexLookup[point.Id] = point;
-                    }
-                    foreach (var point in PerimeterEdgeBC.PerimeterPoints)
-                    {
-                        _vertexLookup[point.Id] = point;
-                    }
-                    foreach (var point in PerimeterEdgeCA.PerimeterPoints)
-                    {
-                        _vertexLookup[point.Id] = point;
-                    }
-                    foreach (var segment in _segments)
-                    {
-                        _vertexLookup[segment.VertexA.Vertex.Id] = segment.VertexA.Vertex;
-                        _vertexLookup[segment.VertexB.Vertex.Id] = segment.VertexB.Vertex;
-                    }
-                }
-                return _vertexLookup;
-            }
-        }
         public void SetSegments(IEnumerable<ElasticSegment> segments)
         {
             _segments = new List<ElasticSegment>(segments);
-            //_perimeterSegments = null;
-            //_dividingSegments = null;
-            _vertexLookup = null;
+            _perimeterSegments = null;
+            _dividingSegments = null;
         }
 
         public int SegmentsCount
@@ -140,56 +103,59 @@ namespace Operations.Intermesh.Elastics
             get { return Segments.SelectMany(s => s.VerticiesAB).Count(v => v.Vertex.Id == AnchorA.Id || v.Vertex.Id == AnchorB.Id || v.Vertex.Id == AnchorC.Id); }
         }
 
-        //private IEnumerable<ElasticVertexLink> GetPerimeterLinks()
-        //{
-        //    foreach (var segment in PerimeterEdgeAB.GetPerimeterLinks()) { yield return segment; }
-        //    foreach (var segment in PerimeterEdgeBC.GetPerimeterLinks()) { yield return segment; }
-        //    foreach (var segment in PerimeterEdgeCA.GetPerimeterLinks()) { yield return segment; }
-        //}
+        private IEnumerable<ElasticVertexLink> GetPerimeterLinks()
+        {
+            foreach (var segment in PerimeterEdgeAB.GetPerimeterLinks()) { yield return segment; }
+            foreach (var segment in PerimeterEdgeBC.GetPerimeterLinks()) { yield return segment; }
+            foreach (var segment in PerimeterEdgeCA.GetPerimeterLinks()) { yield return segment; }
+        }
 
-        //private void SetPerimeterLinks()
-        //{
-        //    if (_perimeterSegments is not null) { return; }
-        //    _perimeterSegments = GetPerimeterLinks().ToArray();
-        //    _perimeterKeys = new Combination2Dictionary<bool>();
-        //    foreach (var segment in _perimeterSegments)
-        //    {
-        //        var key = new Combination2(segment.PointA.Id, segment.PointB.Id);
-        //        _perimeterKeys[key] = true;
-        //    }
-        //}
+        private void SetPerimeterLinks()
+        {
+            if (_perimeterSegments is not null) { return; }
+            _perimeterSegments = GetPerimeterLinks().ToArray();
+        }
 
-        //private void SetDividingLinks()
-        //{
-        //    if (_dividingSegments is not null) { return; }
-        //    _dividingSegments = Segments.Where(s =>
-        //        !_perimeterKeys.ContainsKey(new Combination2(s.VertexA.Vertex.Id, s.VertexB.Vertex.Id))
-        //        ).Select(s => new ElasticVertexLink(s.VertexA.Vertex, s.VertexB.Vertex)).ToArray();
-        //}
+        private void SetDividingLinks()
+        {
+            if (_dividingSegments is not null) { return; }
+            _dividingSegments = Segments.Select(s => new ElasticVertexLink(s.VertexA.Vertex, s.VertexB.Vertex)).ToArray();
+        }
 
-        //public IEnumerable<SurfaceSegmentNode<IndexTag>> GetDividingSurfaceSegments()
-        //{
-        //    SetPerimeterLinks();
-        //    SetDividingLinks();
+        public IEnumerable<SurfaceSegmentContainer<int>> GetDividingSurfaceSegments()
+        {
+            SetPerimeterLinks();
+            SetDividingLinks();
 
-        //    foreach (var segment in _dividingSegments)
-        //    {
-        //        yield return new SurfaceSegmentNode<IndexTag>(
-        //            new SurfaceRayNode<IndexTag>(RayFromProjectedPoint(segment.PointA.Point), new IndexTag(segment.PointA.Id)),
-        //            new SurfaceRayNode<IndexTag>(RayFromProjectedPoint(segment.PointB.Point), new IndexTag(segment.PointB.Id)));
-        //    }
-        //}
+            foreach (var segment in _dividingSegments)
+            {
+                yield return new SurfaceSegmentContainer<int>(
+                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id),
+                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id));
+            }
+        }
 
-        //public IEnumerable<SurfaceSegmentNode<IndexTag>> GetPerimeterSurfaceSegments()
-        //{
-        //    SetPerimeterLinks();
+        public IEnumerable<SurfaceSegmentContainer<int>> GetPerimeterSurfaceSegments()
+        {
+            SetPerimeterLinks();
 
-        //    foreach (var segment in _perimeterSegments)
-        //    {
-        //        yield return new SurfaceSegmentNode<IndexTag>(
-        //            new SurfaceRayNode<IndexTag>(RayFromProjectedPoint(segment.PointA.Point), new IndexTag(segment.PointA.Id)),
-        //            new SurfaceRayNode<IndexTag>(RayFromProjectedPoint(segment.PointB.Point), new IndexTag(segment.PointB.Id)));
-        //    }
-        //}
+            foreach (var segment in _perimeterSegments)
+            {
+                yield return new SurfaceSegmentContainer<int>(
+                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id),
+                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id));
+            }
+        }
+
+        public SurfaceSegmentSets<TriangleFillingGroup, int> CreateSurfaceSegmentSet()
+        {
+            return new SurfaceSegmentSets<TriangleFillingGroup, int>
+            {
+                NodeId = Id,
+                GroupObject = new TriangleFillingGroup(SurfaceTriangle),
+                DividingSegments = GetDividingSurfaceSegments().ToArray(),
+                PerimeterSegments = GetPerimeterSurfaceSegments().ToArray()
+            };
+        }
     }
 }

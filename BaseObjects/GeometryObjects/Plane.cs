@@ -1,5 +1,4 @@
-﻿using BaseObjects.Transformations.Old;
-using E = BasicObjects.Math;
+﻿using E = BasicObjects.Math;
 using SMath = System.Math;
 
 namespace BasicObjects.GeometricObjects
@@ -138,19 +137,20 @@ namespace BasicObjects.GeometricObjects
         public static Line3D Intersection(Plane aa, Plane bb)
         {
             // cross of plane and other plane to give the normal plane.
-            Matricies.Cross3D(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C, out double a, out double b, out double c);
-            var vector = new Vector3D(a, b, c);
+            //Matricies.Cross3D(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C, out double a, out double b, out double c);
+            //var vector = new Vector3D(a, b, c);
+            var vector = Vector3D.Cross(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C);
             if (vector.Magnitude < E.Double.DifferenceError) { return null; }
 
             // solves for a point in line which is intersection between given planes and the normal plane.
             E.LinearSystems.Solve3x3(
                 aa.A, aa.B, aa.C,
                 bb.A, bb.B, bb.C,
-                a, b, c,
+                vector.X, vector.Y, vector.Z,
                 aa.D, bb.D, 0,
                 out double x, out double y, out double z);
 
-            return new Line3D(new Point3D(x, y, z), new Vector3D(a, b, c));
+            return new Line3D(new Point3D(x, y, z), vector);
         }
 
         public override string ToString()

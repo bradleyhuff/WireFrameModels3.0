@@ -1,5 +1,4 @@
-﻿using BaseObjects.Transformations.Old;
-using E = BasicObjects.Math;
+﻿using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
 {
@@ -26,8 +25,9 @@ namespace BasicObjects.GeometricObjects
             {
                 if (_vector is null)
                 {
-                    Matricies.Normalize3D(End.X - Start.X, End.Y - Start.Y, End.Z - Start.Z, out double v0, out double v1, out double v2);
-                    _vector = new Vector3D(v0, v1, v2);
+                    //Matricies.Normalize3D(End.X - Start.X, End.Y - Start.Y, End.Z - Start.Z, out double v0, out double v1, out double v2);
+                    //_vector = new Vector3D(v0, v1, v2);
+                    _vector = new Vector3D(End.X - Start.X, End.Y - Start.Y, End.Z - Start.Z).Direction;
                 }
                 return _vector;
             }
@@ -240,14 +240,15 @@ namespace BasicObjects.GeometricObjects
 
             var aVectorNormal = aVector.Direction;
             var bVectorNormal = bVector.Direction;
-            Matricies.Cross3D(aVectorNormal.X, aVectorNormal.Y, aVectorNormal.Z, bVectorNormal.X, bVectorNormal.Y, bVectorNormal.Z, out double c0, out double c1, out double c2);
+            //Matricies.Cross3D(aVectorNormal.X, aVectorNormal.Y, aVectorNormal.Z, bVectorNormal.X, bVectorNormal.Y, bVectorNormal.Z, out double c0, out double c1, out double c2);
+            var direction = Vector3D.Cross(aVectorNormal, bVectorNormal);
 
-            if (E.Double.IsZero(c0) && E.Double.IsZero(c1) && E.Double.IsZero(c2)) { gap = double.NaN; return null; }
+            if (E.Double.IsZero(direction.X) && E.Double.IsZero(direction.Y) && E.Double.IsZero(direction.Z)) { gap = double.NaN; return null; }
 
             E.LinearSystems.Solve3x3(
-                aVector.X, -bVector.X, c0, aVector.Y,
-                -bVector.Y, c1, aVector.Z, -bVector.Z,
-                c2, bStart.X - aStart.X, bStart.Y - aStart.Y, bStart.Z - aStart.Z,
+                aVector.X, -bVector.X, direction.X, aVector.Y,
+                -bVector.Y, direction.Y, aVector.Z, -bVector.Z,
+                direction.Z, bStart.X - aStart.X, bStart.Y - aStart.Y, bStart.Z - aStart.Z,
                 out double α0, out double α1, out double ß);
 
             double ia0 = aStart.X + α0 * aVector.X; // intersection of line a

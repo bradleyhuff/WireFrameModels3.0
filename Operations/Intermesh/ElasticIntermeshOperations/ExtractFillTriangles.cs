@@ -1,6 +1,8 @@
 ﻿
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
+using Operations.SurfaceSegmentChaining.Chaining;
+using Operations.SurfaceSegmentChaining.Interfaces;
 using Console = BaseObjects.Console;
 
 namespace Operations.Intermesh.ElasticIntermeshOperations
@@ -158,41 +160,41 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             yield break;
         }
 
-        //public static int LoopError = 0;
-        //public static int SpurredLoopError = 0;
+        public static int LoopError = 0;
+        public static int SpurredLoopError = 0;
 
         private static IEnumerable<FillTriangle> ComplexSegmentFills(ElasticTriangle triangle)
         {
-            //var surfaceSet = SurfaceSegmentSets.Create(triangle);
-            //var collection = new SurfaceElasticSegmentCollections<TriangleFillingGroup>(surfaceSet);
+            var surfaceSet = triangle.CreateSurfaceSegmentSet();
+            var collection = new SurfaceElasticSegmentCollections<TriangleFillingGroup>(surfaceSet);
 
-            //ISurfaceSegmentChaining<TriangleFillingGroup, IndexTag> chain;
-            //try
-            //{
-            //    chain = SurfaceSegmentChaining<TriangleFillingGroup, IndexTag>.Create(collection);
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine($"Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-            //    LoopError++;
-            //    yield break;
-            //}
+            ISurfaceSegmentChaining<TriangleFillingGroup, int> chain;
+            try
+            {
+                chain = SurfaceSegmentChaining<TriangleFillingGroup, int>.Create(collection);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                LoopError++;
+                yield break;
+            }
 
 
-            //if (chain.SpurredLoops.Any())
-            //{
-            //    try
-            //    {
-            //        chain = OpenSpurConnectChaining<TriangleFillingGroup, IndexTag>.Create(chain);
-            //        chain = SpurLoopingChaining<TriangleFillingGroup, IndexTag>.Create(chain);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-            //        SpurredLoopError++;
-            //        yield break;
-            //    }
-            //}
+            if (chain.SpurredLoops.Any())
+            {
+                try
+                {
+                    chain = OpenSpurConnectChaining<TriangleFillingGroup, int>.Create(chain);
+                    chain = SpurLoopingChaining<TriangleFillingGroup, int>.Create(chain);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                    SpurredLoopError++;
+                    yield break;
+                }
+            }
 
             //var planarFilling = new PlanarFilling<TriangleFillingGroup, IndexTag>(chain, triangle.Id);
             //var fillings = planarFilling.Fillings.ToArray();

@@ -1,6 +1,7 @@
 ﻿
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
+using Operations.PlanarFilling.Filling;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Interfaces;
 using Console = BaseObjects.Console;
@@ -196,15 +197,15 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 }
             }
 
-            //var planarFilling = new PlanarFilling<TriangleFillingGroup, IndexTag>(chain, triangle.Id);
-            //var fillings = planarFilling.Fillings.ToArray();
-            //var lookup = triangle.VertexLookup;
+            var planarFilling = new PlanarFilling<TriangleFillingGroup, int>(chain, triangle.Id);
+            var fillings = planarFilling.Fillings.ToArray();
+            var lookup = triangle.VertexLookup;
 
-            //foreach (var filling in fillings)
-            //{
-            //    yield return new FillTriangle(lookup[filling.A.Reference.Index], filling.A.Normal,
-            //        lookup[filling.B.Reference.Index], filling.B.Normal, lookup[filling.C.Reference.Index], filling.C.Normal);
-            //}
+            foreach (var filling in fillings)
+            {
+                yield return new FillTriangle(lookup[filling.A.Reference], filling.A.Normal,
+                    lookup[filling.B.Reference], filling.B.Normal, lookup[filling.C.Reference], filling.C.Normal);
+            }
 
             yield break;
         }

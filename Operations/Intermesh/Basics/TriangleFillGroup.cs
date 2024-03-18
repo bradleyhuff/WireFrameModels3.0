@@ -1,10 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
-using Operations.RegionalFilling.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Operations.PlanarFilling.Basics;
 
 namespace Operations.Intermesh.Basics
 {
@@ -14,7 +9,6 @@ namespace Operations.Intermesh.Basics
         {
             Triangle = triangle;
             Plane = triangle.Triangle.Plane;
-            //Planar = new PlanarGroupNode(triangle.Triangle.Plane);
             TestSegmentLength = triangle.Triangle.Box.Diagonal;
         }
         public SurfaceTriangle Triangle { get; set; }

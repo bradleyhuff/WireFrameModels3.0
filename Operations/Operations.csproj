@@ -11,11 +11,13 @@
 
   <ItemGroup>
     <Folder Include="Intermesh\ElasticIntermeshOperations\" />
+    <Folder Include="PlanarFilling\Interfaces\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BaseObjects\BaseObjects.csproj" />
     <ProjectReference Include="..\Collections\Collections.csproj" />
+    <ProjectReference Include="..\FileExportImport\FileExportImport.csproj" />
   </ItemGroup>
 
 </Project>

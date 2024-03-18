@@ -1,4 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
+using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 using System.Xml.Linq;
@@ -156,6 +158,57 @@ namespace Operations.Intermesh.Elastics
                 DividingSegments = GetDividingSurfaceSegments().ToArray(),
                 PerimeterSegments = GetPerimeterSurfaceSegments().ToArray()
             };
+        }
+
+        Dictionary<int, ElasticVertexCore> _vertexLookup;
+        public Dictionary<int, ElasticVertexCore> VertexLookup
+        {
+            get
+            {
+                if (_vertexLookup is null)
+                {
+                    _vertexLookup = new Dictionary<int, ElasticVertexCore>();
+                    _vertexLookup[AnchorA.Id] = AnchorA;
+                    _vertexLookup[AnchorB.Id] = AnchorB;
+                    _vertexLookup[AnchorC.Id] = AnchorC;
+                    foreach (var point in PerimeterEdgeAB.PerimeterPoints)
+                    {
+                        _vertexLookup[point.Id] = point;
+                    }
+                    foreach (var point in PerimeterEdgeBC.PerimeterPoints)
+                    {
+                        _vertexLookup[point.Id] = point;
+                    }
+                    foreach (var point in PerimeterEdgeCA.PerimeterPoints)
+                    {
+                        _vertexLookup[point.Id] = point;
+                    }
+                    foreach (var segment in _segments)
+                    {
+                        _vertexLookup[segment.VertexA.Vertex.Id] = segment.VertexA.Vertex;
+                        _vertexLookup[segment.VertexB.Vertex.Id] = segment.VertexB.Vertex;
+                    }
+                }
+                return _vertexLookup;
+            }
+        }
+
+        public void Export(IWireFrameMesh mesh)
+        {
+            var a = mesh.AddPointNoRow(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal);
+            var b = mesh.AddPointNoRow(SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal);
+            var c = mesh.AddPointNoRow(SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal);
+
+            new PositionTriangle(a, b, c);
+
+            foreach(var segment in Segments)
+            {
+                var aa = mesh.AddPointNoRow(segment.VertexA.Point, NormalFromProjectedPoint(segment.VertexA.Point));
+                var bb = mesh.AddPointNoRow(segment.VertexB.Point, NormalFromProjectedPoint(segment.VertexB.Point));
+                var mid = (segment.VertexA.Point + segment.VertexB.Point) / 2;
+                var cc = mesh.AddPointNoRow(mid, NormalFromProjectedPoint(mid));
+                new PositionTriangle(aa, bb, cc);
+            }
         }
     }
 }

@@ -24,6 +24,20 @@
         "runtime": {
           "bin/placeholder/Collections.dll": {}
         }
+      },
+      "FileExportImport/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "BaseObjects": "1.0.0",
+          "Collections": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/FileExportImport.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FileExportImport.dll": {}
+        }
       }
     }
   },
@@ -37,12 +51,18 @@
       "type": "project",
       "path": "../Collections/Collections.csproj",
       "msbuildProject": "../Collections/Collections.csproj"
+    },
+    "FileExportImport/1.0.0": {
+      "type": "project",
+      "path": "../FileExportImport/FileExportImport.csproj",
+      "msbuildProject": "../FileExportImport/FileExportImport.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
       "BaseObjects >= 1.0.0",
-      "Collections >= 1.0.0"
+      "Collections >= 1.0.0",
+      "FileExportImport >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -81,6 +101,9 @@
             },
             "C:\\Projects\\WireFrameModels3.0\\Collections\\Collections.csproj": {
               "projectPath": "C:\\Projects\\WireFrameModels3.0\\Collections\\Collections.csproj"
+            },
+            "C:\\Projects\\WireFrameModels3.0\\FileExportImport\\FileExportImport.csproj": {
+              "projectPath": "C:\\Projects\\WireFrameModels3.0\\FileExportImport\\FileExportImport.csproj"
             }
           }
         }

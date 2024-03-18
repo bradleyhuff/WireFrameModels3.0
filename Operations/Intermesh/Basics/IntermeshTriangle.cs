@@ -197,7 +197,9 @@ namespace Operations.Intermesh.Basics
                 {
                     var existingEdge = AdjacentTriangles.SelectMany(t => t.ExistingEdges).
                         FirstOrDefault(e => e.HasPosition(A.PositionObject) && e.HasPosition(B.PositionObject));
-                    if (existingEdge is not null) { _edgeAB = existingEdge; } else { _edgeAB = new IntermeshEdge(A, B, ABadjacents); }
+                    var allAdjacents = ABadjacents.ToList();
+                    allAdjacents.Add(this);
+                    if (existingEdge is not null) { _edgeAB = existingEdge; } else { _edgeAB = new IntermeshEdge(A, B, allAdjacents); }
                 }
                 return _edgeAB;
             }
@@ -210,7 +212,9 @@ namespace Operations.Intermesh.Basics
                 {
                     var existingEdge = AdjacentTriangles.SelectMany(t => t.ExistingEdges).
                         FirstOrDefault(e => e.HasPosition(B.PositionObject) && e.HasPosition(C.PositionObject));
-                    if (existingEdge is not null) { _edgeBC = existingEdge; } else { _edgeBC = new IntermeshEdge(B, C, BCadjacents); }
+                    var allAdjacents = BCadjacents.ToList();
+                    allAdjacents.Add(this);
+                    if (existingEdge is not null) { _edgeBC = existingEdge; } else { _edgeBC = new IntermeshEdge(B, C, allAdjacents); }
                 }
                 return _edgeBC;
             }
@@ -222,7 +226,9 @@ namespace Operations.Intermesh.Basics
                 {
                     var existingEdge = AdjacentTriangles.SelectMany(t => t.ExistingEdges).
                         FirstOrDefault(e => e.HasPosition(C.PositionObject) && e.HasPosition(A.PositionObject));
-                    if (existingEdge is not null) { _edgeCA = existingEdge; } else { _edgeCA = new IntermeshEdge(C, A, CAadjacents); }
+                    var allAdjacents = CAadjacents.ToList();
+                    allAdjacents.Add(this);
+                    if (existingEdge is not null) { _edgeCA = existingEdge; } else { _edgeCA = new IntermeshEdge(C, A, allAdjacents); }
                 }
                 return _edgeCA;
             }
@@ -290,6 +296,42 @@ namespace Operations.Intermesh.Basics
             var b = mesh.AddPointNoRow(B.Position, B.Normal);
             var c = mesh.AddPointNoRow(C.Position, C.Normal);
             new PositionTriangle(a, b, c);
+        }
+
+        public void ExportWithDivisions(IWireFrameMesh mesh)
+        {
+            var a = mesh.AddPointNoRow(A.Position, A.Normal);
+            var b = mesh.AddPointNoRow(B.Position, B.Normal);
+            var c = mesh.AddPointNoRow(C.Position, C.Normal);
+
+            new PositionTriangle(a, b, c);
+
+            foreach (var division in Divisions)
+            {
+                var aa = mesh.AddPointNoRow(division.VertexA.Point, Triangle.Normal);
+                var bb = mesh.AddPointNoRow(division.VertexB.Point, Triangle.Normal);
+                var mid = (division.VertexA.Point + division.VertexB.Point) / 2;
+                var cc = mesh.AddPointNoRow(mid, Triangle.Normal);
+                new PositionTriangle(aa, bb, cc);
+            }
+        }
+
+        public void ExportWithIntersections(IWireFrameMesh mesh)
+        {
+            var a = mesh.AddPointNoRow(A.Position, A.Normal);
+            var b = mesh.AddPointNoRow(B.Position, B.Normal);
+            var c = mesh.AddPointNoRow(C.Position, C.Normal);
+
+            new PositionTriangle(a, b, c);
+
+            foreach (var intersection in Intersections)
+            {
+                var aa = mesh.AddPointNoRow(intersection.VertexA.Point, Triangle.Normal);
+                var bb = mesh.AddPointNoRow(intersection.VertexB.Point, Triangle.Normal);
+                var mid = (intersection.VertexA.Point + intersection.VertexB.Point) / 2;
+                var cc = mesh.AddPointNoRow(mid, Triangle.Normal);
+                new PositionTriangle(aa, bb, cc);
+            }
         }
     }
 }

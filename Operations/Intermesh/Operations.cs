@@ -1,5 +1,4 @@
-﻿using Collections.WireFrameMesh.Basics;
-using Collections.WireFrameMesh.BasicWireFrameMesh;
+﻿using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
 
@@ -31,7 +30,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             {
                 triangle.AddWireFrameTriangle(output);
             }
-            foreach(var triangle in fillTriangles)
+            foreach (var triangle in fillTriangles)
             {
                 triangle.AddWireFrameTriangle(output);
             }

@@ -193,6 +193,10 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
             {
                 return IndexSpurredLoops;
             }
+            public IReadOnlyList<int[]> GetIndexSpurs()
+            {
+                return IndexSpurs;
+            }
         }
 
         public static int NextIndex(int[] spurredLoop, int i, int next)

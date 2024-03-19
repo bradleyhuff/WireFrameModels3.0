@@ -65,50 +65,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
             }
         }
 
-        public class OpenSpurEndpoint<G, I, S, T> where I : IBox where S : new()
-        {
-            public OpenSpurEndpoint(int[] openSpur, int groupKey, G group, BoxBucket<I> bucket, IReadOnlyList<SurfaceRayContainer<T>> referenceArray)
-            {
-                OpenSpur = openSpur;
-                GroupKey = groupKey;
-                Group = group;
-                Bucket = bucket;
-                ReferenceArray = referenceArray;
-            }
-            public int[] OpenSpur { get; }
-            public int GroupKey { get; }
-            public G Group { get; }
-            public BoxBucket<I> Bucket { get; }
-            public IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray { get; }
-            public S Status { get; } = new S();
-        }
-
-        public class SpurEndpoint<G, I, S, T> where G : TriangleFillingGroup where I : IBox where S : new()
-        {
-            public SpurEndpoint(int[] spurredLoop, int index, int groupKey, G group, BoxBucket<I> bucket, IReadOnlyList<SurfaceRayContainer<T>> referenceArray)
-            {
-                Index = index;
-                SpurredLoop = spurredLoop;
-                GroupKey = groupKey;
-                Group = group;
-                Bucket = bucket;
-                ReferenceArray = referenceArray;
-            }
-            public int Index { get; }
-            public int[] SpurredLoop { get; }
-            public int GroupKey { get; }
-            public G Group { get; }
-            public BoxBucket<I> Bucket { get; }
-            public IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray { get; }
-            public S Status { get; } = new S();
-
-            public override string ToString()
-            {
-                return $"Index: {SpurredLoop[Index]} Loop: {SpurredLoop.Length}";
-            }
-        }
-
-        public static IEnumerable<InternalLinkedIndexSurfaceSegment<G, T>> PullSegments<G, T>(ISurfaceSegmentChaining<G, T> input) where G : TriangleFillingGroup
+        public static IEnumerable<LinkedIndexSurfaceSegment<G, T>> PullSegments<G, T>(ISurfaceSegmentChaining<G, T> input) where G : TriangleFillingGroup
         {
             var protectedIndexLoops = ProtectedIndexedLoops.Create<InternalProtectedIndexedLoops>(input.ProtectedIndexedLoops);
             var indexLoops = protectedIndexLoops.GetIndexLoops();
@@ -132,7 +89,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
             { yield return segment; }
         }
 
-        private static IEnumerable<InternalLinkedIndexSurfaceSegment<G, T>> PullLoopSegments<G, T>(
+        private static IEnumerable<LinkedIndexSurfaceSegment<G, T>> PullLoopSegments<G, T>(
             Combination2Dictionary<bool> segmentTable,
             Rank rank,
             IReadOnlyList<int[]> indexLoops,
@@ -154,7 +111,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
                     var key = new Combination2(indexA, indexB);
                     if (!segmentTable.ContainsKey(key))
                     {
-                        yield return new InternalLinkedIndexSurfaceSegment<G, T>(groupKey, groupObject, indexA, indexB, rank);
+                        yield return new LinkedIndexSurfaceSegment<G, T>(groupKey, groupObject, indexA, indexB, rank);
                         segmentTable[key] = true;
                     }
                 }

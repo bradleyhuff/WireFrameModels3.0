@@ -30,7 +30,7 @@ namespace Projects.Projects
         {
             var cone = Cone.Create(0.5, 3, 128);
             //cone.Transform(Transform.Scale(0.10, 1, 1));
-            cone.Transform(Transform.ShearXZ(2, 2));
+            cone.Apply(Transform.ShearXZ(2, 2));
 
             TableDisplays.ShowCountSpread("Position normal triangle counts", cone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", cone.Positions, p => p.PositionNormals.Count);
@@ -50,7 +50,7 @@ namespace Projects.Projects
         private void CylinderTest()
         {
             var cylinder = Cylinder.Create(0.5, 3, 64);
-            cylinder.Transform(Transform.Scale(0.25, 1, 1));
+            cylinder.Apply(Transform.Scale(0.25, 1, 1));
 
             TableDisplays.ShowCountSpread("Position normal triangle counts", cylinder.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", cylinder.Positions, p => p.PositionNormals.Count);
@@ -63,7 +63,7 @@ namespace Projects.Projects
         {
             var cuboid = Cuboid.Create(1.0, 3, 2.0, 5, 3.0, 7);
 
-            cuboid.Transform(Transform.ShearXY(4.5, 1.5));
+            cuboid.Apply(Transform.ShearXY(4.5, 1.5));
 
             TableDisplays.ShowCountSpread("Position normal triangle counts", cuboid.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", cuboid.Positions, p => p.PositionNormals.Count);

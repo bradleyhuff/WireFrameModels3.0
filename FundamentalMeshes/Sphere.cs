@@ -19,7 +19,7 @@ namespace FundamentalMeshes
             var octantClones = octant.Clones(3).ToArray();
             for(int i = 0; i < 3; i++)
             {
-                octantClones[i].Transform(Transform.Rotation(Vector3D.BasisZ, (i + 1) * Math.PI / 2));
+                octantClones[i].Apply(Transform.Rotation(Vector3D.BasisZ, (i + 1) * Math.PI / 2));
             }
 
             var hemisphere = WireFrameMesh.CreateMesh();
@@ -27,7 +27,7 @@ namespace FundamentalMeshes
             hemisphere.AddGrids(octantClones);
  
             var hemisphere2 = hemisphere.Clone();
-            hemisphere2.Transform(Transform.Rotation(Vector3D.BasisX, Math.PI));
+            hemisphere2.Apply(Transform.Rotation(Vector3D.BasisX, Math.PI));
 
             var sphere = WireFrameMesh.CreateMesh();
             sphere.AddGrid(hemisphere);

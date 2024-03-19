@@ -29,11 +29,6 @@ namespace Operations.PlanarFilling.Filling
 
         private int _triangleID;
         private IEnumerable<SurfaceTriangleContainer<T>> _fillings;
-        private ProtectedIndexedSurfaceTriangles _protectedIndexedSurfaceTriangles;
-        internal ProtectedIndexedSurfaceTriangles ProtectedIndexedSurfaceTriangles
-        {
-            get { return _protectedIndexedSurfaceTriangles; }
-        }
 
         public IEnumerable<SurfaceTriangleContainer<T>> Fillings
         {
@@ -55,7 +50,6 @@ namespace Operations.PlanarFilling.Filling
             {
                 _indexedFillTriangles.AddRange(planarLoopSet.FillTriangles);
             }
-            _protectedIndexedSurfaceTriangles = new ProtectedIndexedSurfaceTriangles(_indexedFillTriangles);
         }
 
         private void GetProtectedLoops()
@@ -80,7 +74,7 @@ namespace Operations.PlanarFilling.Filling
                     table[key] = new List<InternalPlanarLoopSet>();
                 }
                 table[key].Add(
-                        new InternalPlanarLoopSet(/*groupObject.Planar,*/ groupObject.Plane, groupObject.TestSegmentLength,
+                        new InternalPlanarLoopSet(groupObject.Plane, groupObject.TestSegmentLength,
                             _referenceArray, _perimeterIndexLoops[i], _triangleID)
                     );
                 table[key].Last().FillInteriorLoops = true;
@@ -124,7 +118,7 @@ namespace Operations.PlanarFilling.Filling
                 var newList = new List<InternalPlanarLoopSet>();
                 newTable[multiplePerimeterLoops.Key] = newList;
                 newList.Add(
-                    new InternalPlanarLoopSet(/*first.Planar,*/ first.Plane, first.TestSegmentLength,
+                    new InternalPlanarLoopSet(first.Plane, first.TestSegmentLength,
                     _referenceArray, outerMostLoops[0].IndexLoop.ToArray(), _triangleID));
                 newList[0].IndexLoops.AddRange(restOfLoops.Select(l => l.IndexLoop.ToArray()));
                 newList[0].FillInteriorLoops = false;

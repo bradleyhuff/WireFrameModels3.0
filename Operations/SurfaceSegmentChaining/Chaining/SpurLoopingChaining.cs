@@ -2,7 +2,7 @@
 using BasicObjects.MathExtensions;
 using Operations.Intermesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
-using Operations.SurfaceSegmentChaining.Chaining.Abstractions;
+using Operations.SurfaceSegmentChaining.Basics.Abstractions;
 using Operations.SurfaceSegmentChaining.Chaining.Extensions;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
@@ -19,7 +19,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         {
         }
 
-        private static List<InternalLinkedIndexSurfaceSegment<G, T>> GetLinkedIndexSurfaceSegments(ISurfaceSegmentChaining<G, T> input)
+        private static List<LinkedIndexSurfaceSegment<G, T>> GetLinkedIndexSurfaceSegments(ISurfaceSegmentChaining<G, T> input)
         {
             var output = SpurChaining.PullSegments(input).ToList();
 
@@ -29,11 +29,11 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             loops.AddRange(indexSpurredLoops);
 
             SpurChaining.GetSpurEndpoints(indexSpurredLoops, input, loops, (l) => new InternalLoopSegment(l),
-                out List<SpurChaining.SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints,
-                out List<SpurChaining.OpenSpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> openSpurs);
+                out List<SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints,
+                out List<OpenSpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> openSpurs);
 
             var spurEndpointTable = GetSpurEndpointTable(spurEndpoints);
-            var addedSegments = new List<InternalLinkedIndexSurfaceSegment<G, T>>();
+            var addedSegments = new List<LinkedIndexSurfaceSegment<G, T>>();
             var addedLineSegments = new List<LineSegment3D>();
 
             EndPointToEndPointTests(spurEndpoints, ref addedSegments, ref addedLineSegments);
@@ -54,7 +54,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
         public static bool ShowSpurChainingSegments { get; set; }
 
-        private static void EndPointToEndPointTests(IEnumerable<SpurChaining.SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints, ref List<InternalLinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
+        private static void EndPointToEndPointTests(IEnumerable<SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints, ref List<LinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
         {
             var spurEndpointsArray = spurEndpoints.ToArray();
             var segmentTable = new Combination2Dictionary<bool>();
@@ -70,7 +70,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                     if (Intersects(spurEndpointA, addedLineSegments, spurEndpointA.SpurredLoop[spurEndpointA.Index], spurEndpointB.SpurredLoop[spurEndpointB.Index])) { continue; }
 
                     addedLineSegments.Add(new LineSegment3D(spurEndpointA.ReferenceArray[spurEndpointA.SpurredLoop[spurEndpointA.Index]].Point, spurEndpointB.ReferenceArray[spurEndpointB.SpurredLoop[spurEndpointB.Index]].Point));
-                    output.Add(new InternalLinkedIndexSurfaceSegment<G, T>(spurEndpointA.GroupKey,
+                    output.Add(new LinkedIndexSurfaceSegment<G, T>(spurEndpointA.GroupKey,
                         spurEndpointA.Group, spurEndpointA.SpurredLoop[spurEndpointA.Index], spurEndpointB.SpurredLoop[spurEndpointB.Index], Rank.Dividing));
                     segmentTable[spurEndpointA.SpurredLoop[spurEndpointA.Index], spurEndpointB.SpurredLoop[spurEndpointB.Index]] = true;
                     spurEndpointA.Status.MatchScore += 1;
@@ -79,7 +79,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
         }
 
-        private static void EndPointToLoopPointsTests(IEnumerable<SpurChaining.SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints, Dictionary<int, bool> spurEndpointTable, ref List<InternalLinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
+        private static void EndPointToLoopPointsTests(IEnumerable<SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints, Dictionary<int, bool> spurEndpointTable, ref List<LinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
         {
             foreach (var spurEndpoint in spurEndpoints.Where(s => !s.Status.IsCompleted))
             {
@@ -92,14 +92,14 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 {
                     if (Intersects(spurEndpoint, addedLineSegments, spurEndpoint.SpurredLoop[spurEndpoint.Index], testPoint)) { continue; }
                     addedLineSegments.Add(new LineSegment3D(spurEndpoint.ReferenceArray[spurEndpoint.SpurredLoop[spurEndpoint.Index]].Point, spurEndpoint.ReferenceArray[testPoint].Point));
-                    output.Add(new InternalLinkedIndexSurfaceSegment<G, T>(spurEndpoint.GroupKey, spurEndpoint.Group, spurEndpoint.SpurredLoop[spurEndpoint.Index], testPoint, Rank.Dividing));
+                    output.Add(new LinkedIndexSurfaceSegment<G, T>(spurEndpoint.GroupKey, spurEndpoint.Group, spurEndpoint.SpurredLoop[spurEndpoint.Index], testPoint, Rank.Dividing));
                     spurEndpoint.Status.MatchScore += 2;
                     break;
                 }
             }
         }
 
-        private static void EndPointToSpurPointsTests(IEnumerable<SpurChaining.SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndPoints, ref List<InternalLinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
+        private static void EndPointToSpurPointsTests(IEnumerable<SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndPoints, ref List<LinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
         {
             if (spurEndPoints.Any(s => !s.Status.IsCompleted))
             {
@@ -107,7 +107,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
         }
 
-        private static Dictionary<int, bool> GetSpurEndpointTable(IEnumerable<SpurChaining.SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints)
+        private static Dictionary<int, bool> GetSpurEndpointTable(IEnumerable<SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints)
         {
             var result = new Dictionary<int, bool>();
             foreach (var spurEndpoint in spurEndpoints)
@@ -139,7 +139,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             public InternalLoopSegment(LineSegment3D segment) : base(segment) { }
         }
 
-        private static bool Intersects(SpurChaining.SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T> spurEndpoint, IEnumerable<LineSegment3D> addedSegments, int spurIndex, int testIndex)
+        private static bool Intersects(SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T> spurEndpoint, IEnumerable<LineSegment3D> addedSegments, int spurIndex, int testIndex)
         {
             var segment = new LineSegment3D(spurEndpoint.ReferenceArray[spurIndex].Point, spurEndpoint.ReferenceArray[testIndex].Point);
             var matches = spurEndpoint.Bucket.Fetch(new InternalLoopSegment(segment));

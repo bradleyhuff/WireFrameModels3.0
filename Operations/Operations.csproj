@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <Folder Include="Intermesh\ElasticIntermeshOperations\" />
-    <Folder Include="PlanarFilling\Interfaces\" />
+    <Folder Include="SurfaceSegmentChaining\Chaining\Internals\" />
   </ItemGroup>
 
   <ItemGroup>

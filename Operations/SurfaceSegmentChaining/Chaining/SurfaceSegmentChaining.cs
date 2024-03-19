@@ -22,8 +22,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         }
 
         private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
-        private List<InternalLinkedIndexSurfaceSegment<G, T>> _linkedSegments;
-        private List<InternalLinkedIndexSurfaceSegment<G, T>> _virtualLinkedSegments = new List<InternalLinkedIndexSurfaceSegment<G, T>>();
+        private List<LinkedIndexSurfaceSegment<G, T>> _linkedSegments;
+        private List<LinkedIndexSurfaceSegment<G, T>> _virtualLinkedSegments = new List<LinkedIndexSurfaceSegment<G, T>>();
 
         internal static ISurfaceSegmentChaining<G, T> Create(ISurfaceSegmentCollections<G, T> collections)
         {
@@ -33,10 +33,10 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         private SurfaceSegmentChaining(ISurfaceSegmentCollections<G, T> collections) : this(collections.ReferenceArray,
             ProtectedLinkedIndexSegments<G, T>.Create<InternalProtectedLinkedIndexSegments>(collections.ProtectedLinkedIndexSegments).
             GetLinkedIndexSegments().Where(l => l.IndexPointA != l.IndexPointB).
-            Select(l => new InternalLinkedIndexSurfaceSegment<G, T>(l.GroupKey, l.GroupObject, l.IndexPointA, l.IndexPointB, l.Rank)).ToList())
+            Select(l => new LinkedIndexSurfaceSegment<G, T>(l.GroupKey, l.GroupObject, l.IndexPointA, l.IndexPointB, l.Rank)).ToList())
         { }
 
-        internal SurfaceSegmentChaining(IReadOnlyList<SurfaceRayContainer<T>> referenceArray, List<InternalLinkedIndexSurfaceSegment<G, T>> linkedSegments)
+        internal SurfaceSegmentChaining(IReadOnlyList<SurfaceRayContainer<T>> referenceArray, List<LinkedIndexSurfaceSegment<G, T>> linkedSegments)
         {
             _referenceArray = referenceArray;
             _linkedSegments = linkedSegments;
@@ -54,14 +54,14 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             _protectedIndexedLoops = new ProtectedIndexedLoops(_perimeterIndexLoops, _indexLoops, _indexSpurredLoops, _indexSpurs);
         }
 
-        private Dictionary<int, List<InternalLinkedIndexSurfaceSegment<G, T>>> _indexAssociationTable = new Dictionary<int, List<InternalLinkedIndexSurfaceSegment<G, T>>>();
+        private Dictionary<int, List<LinkedIndexSurfaceSegment<G, T>>> _indexAssociationTable = new Dictionary<int, List<LinkedIndexSurfaceSegment<G, T>>>();
 
-        private void BuildAssociationTable(IEnumerable<InternalLinkedIndexSurfaceSegment<G, T>> linkedSegments)
+        private void BuildAssociationTable(IEnumerable<LinkedIndexSurfaceSegment<G, T>> linkedSegments)
         {
             foreach (var linkedSegment in linkedSegments)
             {
-                if (!_indexAssociationTable.ContainsKey(linkedSegment.IndexPointA)) { _indexAssociationTable[linkedSegment.IndexPointA] = new List<InternalLinkedIndexSurfaceSegment<G, T>>(); }
-                if (!_indexAssociationTable.ContainsKey(linkedSegment.IndexPointB)) { _indexAssociationTable[linkedSegment.IndexPointB] = new List<InternalLinkedIndexSurfaceSegment<G, T>>(); }
+                if (!_indexAssociationTable.ContainsKey(linkedSegment.IndexPointA)) { _indexAssociationTable[linkedSegment.IndexPointA] = new List<LinkedIndexSurfaceSegment<G, T>>(); }
+                if (!_indexAssociationTable.ContainsKey(linkedSegment.IndexPointB)) { _indexAssociationTable[linkedSegment.IndexPointB] = new List<LinkedIndexSurfaceSegment<G, T>>(); }
 
                 _indexAssociationTable[linkedSegment.IndexPointA].Add(linkedSegment);
                 _indexAssociationTable[linkedSegment.IndexPointB].Add(linkedSegment);
@@ -85,7 +85,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         private void PullFromPerimeters()
         {
             var perimeterSegments = _linkedSegments.Where(l => l.Rank == Rank.Perimeter).ToArray();
-            InternalLinkedIndexSurfaceSegment<G, T> segment;
+            LinkedIndexSurfaceSegment<G, T> segment;
             int index = 0;
             int count = 0;
 
@@ -103,7 +103,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
         }
 
-        private InternalLinkedIndexSurfaceSegment<G, T> GetNextStart(InternalLinkedIndexSurfaceSegment<G, T>[] array, ref int index, Func<InternalLinkedIndexSurfaceSegment<G, T>, bool> conditional)
+        private LinkedIndexSurfaceSegment<G, T> GetNextStart(LinkedIndexSurfaceSegment<G, T>[] array, ref int index, Func<LinkedIndexSurfaceSegment<G, T>, bool> conditional)
         {
             if (array.Length == 0) { return null; }
             int count = 0;
@@ -138,8 +138,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 _virtualPoints[virtualIndex] = rayOffset;
 
 
-                var segmentA = new InternalLinkedIndexSurfaceSegment<G, T>(endPointSegment.GroupKey, endPointSegment.GroupObject, endPointSegment.IndexPointA, virtualIndex, endPointSegment.Rank);
-                var segmentB = new InternalLinkedIndexSurfaceSegment<G, T>(endPointSegment.GroupKey, endPointSegment.GroupObject, virtualIndex, endPointSegment.IndexPointB, endPointSegment.Rank);
+                var segmentA = new LinkedIndexSurfaceSegment<G, T>(endPointSegment.GroupKey, endPointSegment.GroupObject, endPointSegment.IndexPointA, virtualIndex, endPointSegment.Rank);
+                var segmentB = new LinkedIndexSurfaceSegment<G, T>(endPointSegment.GroupKey, endPointSegment.GroupObject, virtualIndex, endPointSegment.IndexPointB, endPointSegment.Rank);
 
                 _virtualLinkedSegments.Add(segmentA);
                 _virtualLinkedSegments.Add(segmentB);
@@ -147,7 +147,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
         }
 
-        private void PrepassLoop(params InternalLinkedIndexSurfaceSegment<G, T>[] loopSegments)
+        private void PrepassLoop(params LinkedIndexSurfaceSegment<G, T>[] loopSegments)
         {
             for (int i = 0; i < loopSegments.Length; i++)
             {
@@ -159,7 +159,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         private void PullFromJunctions()
         {
             var junctionSegments = _linkedSegments.Where(j => (j.LinksA.Count > 1 || j.LinksB.Count > 1) && j.Passes < 2 && j.Rank == Rank.Dividing).ToArray();
-            InternalLinkedIndexSurfaceSegment<G, T> segment;
+            LinkedIndexSurfaceSegment<G, T> segment;
 
             int index = 0;
             int count = 0;
@@ -175,7 +175,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
         }
 
-        private void SetLoops(int[] indexChain, InternalLinkedIndexSurfaceSegment<G, T> segment)
+        private void SetLoops(int[] indexChain, LinkedIndexSurfaceSegment<G, T> segment)
         {
             if (indexChain.Any(i => i < 0))
             {
@@ -203,7 +203,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
         private void PullIsolatedLoops()
         {
-            InternalLinkedIndexSurfaceSegment<G, T> segment;
+            LinkedIndexSurfaceSegment<G, T> segment;
             var isolatedLoops = _linkedSegments.Where(j => j.Passes < 1).ToArray();
             int index = 0;
             int count = 0;
@@ -222,7 +222,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
         }
 
-        private IEnumerable<int> PullChainWithNoJunction(int startPoint, InternalLinkedIndexSurfaceSegment<G, T> startNode, Func<InternalLinkedIndexSurfaceSegment<G, T>, bool> linkConstraint)
+        private IEnumerable<int> PullChainWithNoJunction(int startPoint, LinkedIndexSurfaceSegment<G, T> startNode, Func<LinkedIndexSurfaceSegment<G, T>, bool> linkConstraint)
         {
             var firstPoint = startPoint;
             var firstSegment = startNode;
@@ -231,7 +231,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
             yield return currentPoint;
 
-            InternalLinkedIndexSurfaceSegment<G, T> nextSegment = null;
+            LinkedIndexSurfaceSegment<G, T> nextSegment = null;
             do
             {
                 var forwardLinks = currentSegment.GetLinksAtIndex(currentPoint).Where(l => linkConstraint(l));
@@ -255,7 +255,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             while (firstPoint != currentPoint);
         }
 
-        private IEnumerable<int> PullChain(int startPoint, InternalLinkedIndexSurfaceSegment<G, T> startNode, Func<InternalLinkedIndexSurfaceSegment<G, T>, bool> linkConstraint)
+        private IEnumerable<int> PullChain(int startPoint, LinkedIndexSurfaceSegment<G, T> startNode, Func<LinkedIndexSurfaceSegment<G, T>, bool> linkConstraint)
         {
             var firstPoint = startPoint;
             var firstSegment = startNode;
@@ -265,7 +265,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
             yield return currentPoint;
 
-            InternalLinkedIndexSurfaceSegment<G, T> nextSegment = null;
+            LinkedIndexSurfaceSegment<G, T> nextSegment = null;
             Traversal traversal = Traversal.NoSet;
             bool continueChain;
 
@@ -293,18 +293,18 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             while (continueChain);
         }
 
-        private InternalLinkedIndexSurfaceSegment<G, T> GetNextSegment(
-            InternalLinkedIndexSurfaceSegment<G, T> currentSegment,
+        private LinkedIndexSurfaceSegment<G, T> GetNextSegment(
+            LinkedIndexSurfaceSegment<G, T> currentSegment,
             int currentPoint, ref Traversal traversal,
-            Func<InternalLinkedIndexSurfaceSegment<G, T>, bool> linkConstraint, bool throwExceptions = true)
+            Func<LinkedIndexSurfaceSegment<G, T>, bool> linkConstraint, bool throwExceptions = true)
         {
             var forwardLinks = currentSegment.GetLinksAtIndex(currentPoint).Where(l => linkConstraint(l));
             var nextSegment = forwardLinks.First();
             if (forwardLinks.Count() > 1)
             {
                 Traversal nextTraversal = traversal;
-                InternalLinkedIndexSurfaceSegment<G, T> leftMostLink = null;
-                InternalLinkedIndexSurfaceSegment<G, T> rightMostLink = null;
+                LinkedIndexSurfaceSegment<G, T> leftMostLink = null;
+                LinkedIndexSurfaceSegment<G, T> rightMostLink = null;
 
                 GetDirectionalLinks(currentPoint, currentSegment, forwardLinks, out leftMostLink, out rightMostLink);
                 var leftLinkTraversed = currentSegment.WasTraversed(leftMostLink);
@@ -333,8 +333,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         }
 
         private bool ContinueChain(int firstPoint, int secondPoint, int currentPoint,
-            InternalLinkedIndexSurfaceSegment<G, T> currentSegment, Traversal traversal,
-            Func<InternalLinkedIndexSurfaceSegment<G, T>, bool> linkConstraint)
+            LinkedIndexSurfaceSegment<G, T> currentSegment, Traversal traversal,
+            Func<LinkedIndexSurfaceSegment<G, T>, bool> linkConstraint)
         {
             if (firstPoint != currentPoint) { return true; }
 
@@ -344,11 +344,11 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             return secondPoint != nextPoint;
         }
 
-        private void GetDirectionalLinks(int currentPoint, InternalLinkedIndexSurfaceSegment<G, T> current, IEnumerable<InternalLinkedIndexSurfaceSegment<G, T>> forwardLinks,
-            out InternalLinkedIndexSurfaceSegment<G, T> leftMostLink, out InternalLinkedIndexSurfaceSegment<G, T> rightMostLink)
+        private void GetDirectionalLinks(int currentPoint, LinkedIndexSurfaceSegment<G, T> current, IEnumerable<LinkedIndexSurfaceSegment<G, T>> forwardLinks,
+            out LinkedIndexSurfaceSegment<G, T> leftMostLink, out LinkedIndexSurfaceSegment<G, T> rightMostLink)
         {
-            InternalLinkedIndexSurfaceSegment<G, T> minOption = null;
-            InternalLinkedIndexSurfaceSegment<G, T> maxOption = null;
+            LinkedIndexSurfaceSegment<G, T> minOption = null;
+            LinkedIndexSurfaceSegment<G, T> maxOption = null;
             double minAngle = 2 * Math.PI;
             double maxAngle = 0;
 
@@ -404,7 +404,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
         }
 
-        private int GetOppositeIndex(InternalLinkedIndexSurfaceSegment<G, T> link, int headIndex)
+        private int GetOppositeIndex(LinkedIndexSurfaceSegment<G, T> link, int headIndex)
         {
             if (link.IndexPointA == headIndex)
             {
@@ -417,7 +417,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             throw new InvalidOperationException($"Opposite index of {headIndex} was not found.");
         }
 
-        private void SetJunctionAngle(InternalLinkedIndexSurfaceSegment<G, T> link, double angle, int headIndex)
+        private void SetJunctionAngle(LinkedIndexSurfaceSegment<G, T> link, double angle, int headIndex)
         {
             if (link.IndexPointA == headIndex)
             {

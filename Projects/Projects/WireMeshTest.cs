@@ -98,7 +98,7 @@ namespace Projects.Projects
             //var reflection = Transform.ShearXY(1, 1).Reflect(new Vector3D(1, 1, 1)).AtPoint(new Point3D(0.1, 0.1, 0.1));
             //wireMesh.Transformation(p => reflection.Apply(p));
             //var rotation = Transform.Rotation(new Vector3D(1, 1, 1), 0.1);
-            wireMesh.Transform(Transform.Rotation(new Vector3D(1, 1, 1), 0.1));
+            wireMesh.Apply(Transform.Rotation(new Vector3D(1, 1, 1), 0.1));
             Console.WriteLine($"Triangles {wireMesh.Triangles.Count} Positions {wireMesh.Positions.Count}");
             TableDisplays.ShowCountSpread("Position normal triangle counts", wireMesh.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", wireMesh.Positions, p => p.PositionNormals.Count);

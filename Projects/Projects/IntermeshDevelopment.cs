@@ -1,14 +1,9 @@
 ﻿using BaseObjects.Transformations;
 using BasicObjects;
+using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
 using FundamentalMeshes;
-using Operations.Intermesh;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WireFrameModels3._0;
 
 namespace Projects.Projects
@@ -24,14 +19,16 @@ namespace Projects.Projects
             var sphere5 = sphere.Clone();
             var sphere6 = sphere.Clone();
 
-            sphere.Transform(Transform.Scale(0.70));
-            sphere2.Transform(Transform.Scale(0.65));
-            sphere3.Transform(Transform.Scale(0.60));
-            sphere4.Transform(Transform.Scale(0.55));
-            sphere5.Transform(Transform.Scale(0.75));
-            sphere6.Transform(Transform.Scale(0.80));
+            sphere.Apply(Transform.Scale(0.70));
+            sphere2.Apply(Transform.Scale(0.65));
+            sphere3.Apply(Transform.Scale(0.60));
+            sphere4.Apply(Transform.Scale(0.55));
+            sphere5.Apply(Transform.Scale(0.75));
+            sphere6.Apply(Transform.Scale(0.80));
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
+            cube.Apply(Transform.Translation(new Point3D(0.1, 0.1, 0.1)));
+            cube.Apply(Transform.Rotation(Vector3D.BasisZ, 0.1));
 
             var spheres = sphere;
             spheres.AddGrid(sphere2);

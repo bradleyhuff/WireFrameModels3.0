@@ -158,7 +158,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return clones;
         }
 
-        public void Transform(ITransform transform)
+        public void Apply(ITransform transform)
         {
             foreach (var position in Positions)
             {

@@ -1,7 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets.Interfaces;
 
-namespace Operations.SurfaceSegmentChaining.Chaining.Abstractions
+namespace Operations.SurfaceSegmentChaining.Basics.Abstractions
 {
     public abstract class BaseSegment : IBox
     {

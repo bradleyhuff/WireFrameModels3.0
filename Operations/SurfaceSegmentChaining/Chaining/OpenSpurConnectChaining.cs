@@ -3,7 +3,7 @@ using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Operations.Intermesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
-using Operations.SurfaceSegmentChaining.Chaining.Abstractions;
+using Operations.SurfaceSegmentChaining.Basics.Abstractions;
 using Operations.SurfaceSegmentChaining.Chaining.Extensions;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
@@ -20,7 +20,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         {
         }
 
-        private static List<InternalLinkedIndexSurfaceSegment<G, T>> GetLinkedIndexSurfaceSegments(ISurfaceSegmentChaining<G, T> input)
+        private static List<LinkedIndexSurfaceSegment<G, T>> GetLinkedIndexSurfaceSegments(ISurfaceSegmentChaining<G, T> input)
         {
             var output = SpurChaining.PullSegments(input).ToList();
 
@@ -31,10 +31,10 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             var loops = protectedIndexLoops.GetIndexLoops().ToList();
             loops.AddRange(indexSpurredLoops);
 
-            SpurChaining.GetSpurEndpoints(indexSpurredLoops, input, loops, (l) => new InternalLoopSegment(l), out List<SpurChaining.SpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> spurEndpoints, out List<SpurChaining.OpenSpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> openSpurs);
+            SpurChaining.GetSpurEndpoints(indexSpurredLoops, input, loops, (l) => new InternalLoopSegment(l), out List<SpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> spurEndpoints, out List<OpenSpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> openSpurs);
             if (!openSpurs.Any()) { return output; }
 
-            var addedSegments = new List<InternalLinkedIndexSurfaceSegment<G, T>>();
+            var addedSegments = new List<LinkedIndexSurfaceSegment<G, T>>();
             var addedLineSegments = new List<LineSegment3D>();
 
             var testLoops = indexLoops;
@@ -56,7 +56,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
         public static bool ShowSpurChainingSegments { get; set; }
 
-        private static void NearestLoopPointConnectionTests(List<SpurChaining.OpenSpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> openSpurEndpoints, List<int[]> indexLoops, ref List<InternalLinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
+        private static void NearestLoopPointConnectionTests(List<OpenSpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> openSpurEndpoints, List<int[]> indexLoops, ref List<LinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
         {
             var testPoints = indexLoops.SelectMany(l => l).ToArray();
             foreach (var openSpurEndpoint in openSpurEndpoints)
@@ -72,12 +72,12 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 var nearest = sweep.MinBy(s => s.Distance);
 
                 addedLineSegments.Add(new LineSegment3D(openSpurEndpoint.ReferenceArray[nearest.IndexA].Point, openSpurEndpoint.ReferenceArray[nearest.IndexB].Point));
-                output.Add(new InternalLinkedIndexSurfaceSegment<G, T>(openSpurEndpoint.GroupKey, openSpurEndpoint.Group, nearest.IndexA, nearest.IndexB, Rank.Dividing));
+                output.Add(new LinkedIndexSurfaceSegment<G, T>(openSpurEndpoint.GroupKey, openSpurEndpoint.Group, nearest.IndexA, nearest.IndexB, Rank.Dividing));
                 openSpurEndpoint.Status.IsLinked = true;
             }
         }
 
-        private static void ConnectedOpenSpurToNearestOpenSpurConnectionTests(List<SpurChaining.OpenSpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> openSpurEndpoints, ref List<InternalLinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
+        private static void ConnectedOpenSpurToNearestOpenSpurConnectionTests(List<OpenSpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> openSpurEndpoints, ref List<LinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
         {
             if (openSpurEndpoints.All(s => !s.Status.IsLinked))
             {
@@ -87,11 +87,6 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             while (openSpurEndpoints.Any(s => !s.Status.IsLinked))
             {
                 throw new NotImplementedException("Connected open spur to nearest open spur connection tests not implemented.");
-                foreach (var connectedOpenSpurEndpoint in openSpurEndpoints.Where(s => s.Status.IsLinked))
-                {
-                    //
-                    //connectedOpenSpurEndpoint.IsLinked = true;
-                }
             }
         }
         private struct PointDistance

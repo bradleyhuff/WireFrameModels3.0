@@ -4,6 +4,9 @@ using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
 using FundamentalMeshes;
+using Operations.Groupings.Basics;
+using Operations.Groupings.FileExportImport;
+using Operations.Groupings.Types;
 using WireFrameModels3._0;
 
 namespace Projects.Projects
@@ -47,6 +50,10 @@ namespace Projects.Projects
             //
             var output = Operations.Intermesh.ElasticIntermeshOperations.Operations.Intermesh(intermesh);
 
+            //var grouping = new GroupingCollection(output.Triangles);
+            //var surfaces = grouping.ExtractSurfaces();
+            //Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count))}]");
+            WavefrontFileGroups.ExportBySurface(output, "Wavefront/Surfaces");
 
             //
             PntFile.Export(output, "Pnt/Intermesh");

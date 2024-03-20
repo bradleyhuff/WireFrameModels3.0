@@ -1,10 +1,9 @@
 ﻿using BasicObjects.GeometricObjects;
-using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshEdge : IBox
+    internal class IntermeshEdge
     {
         private static int _id = 0;
         internal IntermeshEdge(PositionNormal a, PositionNormal b, IEnumerable<IntermeshTriangle> adjacents)
@@ -75,20 +74,6 @@ namespace Operations.Intermesh.Basics
             {
                 if (A.Position is not null) yield return A.Position;
                 if (B.Position is not null) yield return B.Position;
-            }
-        }
-
-        private Rectangle3D _box = null;
-
-        public Rectangle3D? Box
-        {
-            get
-            {
-                if (_box is null)
-                {
-                    _box = Rectangle3D.Containing(A.Box, B.Box);
-                }
-                return _box;
             }
         }
 

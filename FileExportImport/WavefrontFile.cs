@@ -1,17 +1,19 @@
 ﻿using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using Console = BaseObjects.Console;
 
 namespace FileExportImport
 {
     public static class WavefrontFile
     {
+        public static void Export(IEnumerable<IWireFrameMesh> meshes, string fileName)
+        {
+            int count = 0;
+            foreach(var mesh in meshes)
+            {
+                Export(mesh, $"{fileName}-{count++}");
+            }
+        }
         public static void Export(IWireFrameMesh mesh, string fileName)
         {
             DateTime start = DateTime.Now;

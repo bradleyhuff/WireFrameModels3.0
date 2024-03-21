@@ -2,6 +2,7 @@
 using BasicObjects.GeometricObjects;
 using M = BasicObjects.Math;
 using Collections.Buckets;
+using Collections.WireFrameMesh.Interfaces;
 
 namespace Collections.WireFrameMesh.Basics
 {
@@ -211,6 +212,21 @@ namespace Collections.WireFrameMesh.Basics
                 yield return B.Position;
                 yield return C.Position;
             }
+        }
+
+        public void InvertNormals()
+        {
+            A.InvertNormal();
+            B.InvertNormal();
+            C.InvertNormal();
+        }
+
+        public void AddWireFrameTriangle(IWireFrameMesh mesh)
+        {
+            var a = mesh.AddPointNoRow(A.Position, A.Normal);
+            var b = mesh.AddPointNoRow(B.Position, B.Normal);
+            var c = mesh.AddPointNoRow(C.Position, C.Normal);
+            new PositionTriangle(a, b, c);
         }
     }
 }

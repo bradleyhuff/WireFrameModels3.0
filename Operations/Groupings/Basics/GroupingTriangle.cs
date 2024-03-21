@@ -1,16 +1,10 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
-using Operations.Intermesh.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Groupings.Basics
 {
-    public class GroupingTriangle
+    internal class GroupingTriangle
     {
         private static int _id = 0;
         private PositionTriangle _triangle;
@@ -30,6 +24,11 @@ namespace Operations.Groupings.Basics
         public PositionNormal A { get; private set; }
         public PositionNormal B { get; private set; }
         public PositionNormal C { get; private set; }
+
+        public PositionTriangle PositionTriangle
+        {
+            get { return _triangle; }
+        }
 
         public override int GetHashCode()
         {

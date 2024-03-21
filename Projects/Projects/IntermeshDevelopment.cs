@@ -7,6 +7,7 @@ using FundamentalMeshes;
 using Operations.Groupings.Basics;
 using Operations.Groupings.FileExportImport;
 using Operations.Groupings.Types;
+using Operations.SetOperators;
 using WireFrameModels3._0;
 
 namespace Projects.Projects
@@ -30,8 +31,9 @@ namespace Projects.Projects
             sphere6.Apply(Transform.Scale(0.80));
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
-            cube.Apply(Transform.Translation(new Point3D(0.1, 0.1, 0.1)));
-            cube.Apply(Transform.Rotation(Vector3D.BasisZ, 0.1));
+            cube.Apply(Transform.Translation(new Point3D(0.001, 0.001, 0.001)));
+            //cube.Apply(Transform.Translation(new Point3D(0.011, 0.021, 0.031)));
+            //cube.Apply(Transform.Rotation(Vector3D.BasisZ, 0.1));
 
             var spheres = sphere;
             spheres.AddGrid(sphere2);
@@ -40,24 +42,38 @@ namespace Projects.Projects
             spheres.AddGrid(sphere5);
             spheres.AddGrid(sphere6);
 
-            var intermesh = WireFrameMesh.CreateMesh();
-            intermesh.AddGrid(cube);
-            intermesh.AddGrid(spheres);
+            //var spheres2 = spheres.Clone();
+            //spheres2.Apply(Transform.Translation(new Point3D(1.005, 0.001, 0.02)));
 
-            TableDisplays.ShowCountSpread("Position normal triangle counts", intermesh.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", intermesh.Positions, p => p.PositionNormals.Count);
+            //var intermesh = WireFrameMesh.CreateMesh();
+            //intermesh.AddGrid(cube);
+            //intermesh.AddGrid(spheres);
+
+            //TableDisplays.ShowCountSpread("Position normal triangle counts", intermesh.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
+            //TableDisplays.ShowCountSpread("Position normal counts", intermesh.Positions, p => p.PositionNormals.Count);
 
             //
-            var output = Operations.Intermesh.ElasticIntermeshOperations.Operations.Intermesh(intermesh);
+            //var output = Operations.Intermesh.ElasticIntermeshOperations.Operations.Intermesh(intermesh);
+            var output = cube.Difference(spheres);
+            //spheres = spheres.Clone();
+            //spheres.Apply(Transform.Translation(new Point3D(1.11, 0, 0)));
+            //output = output.Difference(spheres2);
+            //var output = spheres.Union(cube);
+
+            TableDisplays.ShowCountSpread("Position normal triangle counts", output.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
+            TableDisplays.ShowCountSpread("Position normal counts", output.Positions, p => p.PositionNormals.Count);
+
+            Console.WriteLine($"Clusters {GroupingCollection.ExtractClusters(output.Triangles).Count()}");
+            Console.WriteLine();
 
             //var grouping = new GroupingCollection(output.Triangles);
             //var surfaces = grouping.ExtractSurfaces();
             //Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count))}]");
-            WavefrontFileGroups.ExportBySurface(output, "Wavefront/Surfaces");
+            //WavefrontFileGroups.ExportBySurface(output, "Wavefront/Surfaces");
 
             //
-            PntFile.Export(output, "Pnt/Intermesh");
-            WavefrontFile.Export(output, "Wavefront/Intermesh");
+            PntFile.Export(output, "Pnt/Sets");
+            WavefrontFile.Export(output, "Wavefront/Sets");
         }
     }
 }

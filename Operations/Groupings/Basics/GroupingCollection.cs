@@ -1,4 +1,7 @@
-﻿using Collections.WireFrameMesh.Basics;
+﻿using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Interface;
 using Operations.Groupings.Types;
 
@@ -17,7 +20,7 @@ namespace Operations.Groupings.Basics
             Id = _id++;
         }
 
-        public GroupingCollection(IEnumerable<GroupingTriangle> triangles)
+        internal GroupingCollection(IEnumerable<GroupingTriangle> triangles)
         {
             _triangles = triangles.ToList();
             Id = _id++;
@@ -37,7 +40,63 @@ namespace Operations.Groupings.Basics
             return Id == compare.Id;
         }
 
-        public IReadOnlyList<GroupingTriangle> Triangles
+        public static IEnumerable<GroupingCollection> ExtractSurfaces(IEnumerable<PositionTriangle> triangles)
+        {
+            var grouping = new GroupingCollection(triangles);
+            return grouping.ExtractSurfaces();
+        }
+        public static IEnumerable<GroupingCollection> ExtractSurfaces(GroupingCollection collection)
+        {
+            var grouping = new GroupingCollection(collection.GroupingTriangles);
+            return grouping.ExtractSurfaces();
+        }
+        public static IEnumerable<GroupingCollection> ExtractFaces(IEnumerable<PositionTriangle> triangles)
+        {
+            var grouping = new GroupingCollection(triangles);
+            return grouping.ExtractFaces();
+        }
+        public static IEnumerable<GroupingCollection> ExtractFaces(GroupingCollection collection)
+        {
+            var grouping = new GroupingCollection(collection.GroupingTriangles);
+            return grouping.ExtractFaces();
+        }
+        public static IEnumerable<GroupingCollection> ExtractClusters(IEnumerable<PositionTriangle> triangles)
+        {
+            var grouping = new GroupingCollection(triangles);
+            return grouping.ExtractClusters();
+        }
+        public static IEnumerable<GroupingCollection> ExtractClusters(GroupingCollection collection)
+        {
+            var grouping = new GroupingCollection(collection.GroupingTriangles);
+            return grouping.ExtractClusters();
+        }
+        public static IEnumerable<GroupingCollection> ExtractPlanars(IEnumerable<PositionTriangle> triangles)
+        {
+            var grouping = new GroupingCollection(triangles);
+            return grouping.ExtractPlanars();
+        }
+        public static IEnumerable<GroupingCollection> ExtractPlanars(GroupingCollection collection)
+        {
+            var grouping = new GroupingCollection(collection.GroupingTriangles);
+            return grouping.ExtractPlanars();
+        }
+
+        public IWireFrameMesh CreateMesh()
+        {
+            return CreateMesh(WireFrameMesh.CreateMesh());
+        }
+
+        public IWireFrameMesh CreateMesh(IWireFrameMesh mesh)
+        {
+            foreach (var triangle in GroupingTriangles)
+            {
+                triangle.AddWireFrameTriangle(mesh);
+
+            }
+            return mesh;
+        }
+
+        private IReadOnlyList<GroupingTriangle> GroupingTriangles
         {
             get
             {
@@ -46,6 +105,14 @@ namespace Operations.Groupings.Basics
                     _triangles = _gridTriangles.Select(GetTriangle).ToList();
                 }
                 return _triangles;
+            }
+        }
+
+        public IEnumerable<PositionTriangle> Triangles
+        {
+            get
+            {
+                return GroupingTriangles.Select(t => t.PositionTriangle);
             }
         }
 
@@ -65,8 +132,8 @@ namespace Operations.Groupings.Basics
 
         private IEnumerable<GroupEdge> GetPerimeterEdges()
         {
-            var table = Triangles.Select(v => new KeyValuePair<int, bool>(v.Id, true)).ToDictionary(p => p.Key, p => p.Value);
-            foreach (var triangle in Triangles)
+            var table = GroupingTriangles.Select(v => new KeyValuePair<int, bool>(v.Id, true)).ToDictionary(p => p.Key, p => p.Value);
+            foreach (var triangle in GroupingTriangles)
             {
                 if (!triangle.ABadjacents.Any() ||
                     triangle.ABadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.A, triangle.B); }
@@ -85,19 +152,19 @@ namespace Operations.Groupings.Basics
             return _lookup[triangle];
         }
 
-        public IEnumerable<GroupingCollection> ExtractSurfaces()
+        private IEnumerable<GroupingCollection> ExtractSurfaces()
         {
             return Extract(new Surface());
         }
-        public IEnumerable<GroupingCollection> ExtractFaces()
+        private IEnumerable<GroupingCollection> ExtractFaces()
         {
             return Extract(new Face());
         }
-        public IEnumerable<GroupingCollection> ExtractClusters()
+        private IEnumerable<GroupingCollection> ExtractClusters()
         {
             return Extract(new Cluster());
         }
-        public IEnumerable<GroupingCollection> ExtractPlanars()
+        private IEnumerable<GroupingCollection> ExtractPlanars()
         {
             return Extract(new Planar());
         }
@@ -127,8 +194,8 @@ namespace Operations.Groupings.Basics
 
         private GroupingTriangle[] GetSortedArray(IGrouping grouping)
         {
-            foreach (var element in Triangles) { grouping.SeedSet(element); }
-            return Triangles.OrderBy(e => e.Seed).ToArray();
+            foreach (var element in GroupingTriangles) { grouping.SeedSet(element); }
+            return GroupingTriangles.OrderBy(e => e.Seed).ToArray();
         }
 
         private GroupingTriangle GetStart(GroupingTriangle[] input, ref int index)

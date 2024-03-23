@@ -21,8 +21,13 @@ namespace Collections.WireFrameMesh.Basics
             C._triangles.Add(this);
             A.Mesh._triangles.Add(this);
         }
+        public PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace) : this(a, b, c)
+        {
+            Trace = trace;
+        }
 
         public int Id { get; }
+        public string Trace { get; set; }
 
         public override int GetHashCode()
         {

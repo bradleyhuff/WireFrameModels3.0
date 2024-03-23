@@ -31,14 +31,16 @@ namespace Operations.SetOperators
         private static IWireFrameMesh Run(IWireFrameMesh gridA, IWireFrameMesh gridB, Func<Region, Region, bool> includeGroup)
         {
             DateTime start = DateTime.Now;
-            var gridAClone = gridA.Clone();
-            var gridBClone = gridB.Clone();
-            var spaceA = new Space(gridAClone.Triangles.Select(t => t.Triangle).ToArray());
-            var spaceB = new Space(gridBClone.Triangles.Select(t => t.Triangle).ToArray());
+
+            foreach(var triangle in gridA.Triangles){ triangle.Trace = "A"; }
+            foreach (var triangle in gridB.Triangles) { triangle.Trace = "B"; }
+
+            var spaceA = new Space(gridA.Triangles.Select(t => t.Triangle).ToArray());
+            var spaceB = new Space(gridB.Triangles.Select(t => t.Triangle).ToArray());
 
             var result = gridA.CreateNewInstance();
-            result.AddGrid(gridAClone);
-            result.AddGrid(gridBClone);
+            result.AddGrid(gridA);
+            result.AddGrid(gridB);
 
             result = Intermesh.ElasticIntermeshOperations.Operations.Intermesh(result);
 
@@ -49,8 +51,11 @@ namespace Operations.SetOperators
             foreach (var groupGrid in groupGrids)
             {
                 var testPoint = GetInternalTestPoint(groupGrid.Grid);
-                var spaceARegion = spaceA.RegionOfPoint(testPoint);
-                var spaceBRegion = spaceB.RegionOfPoint(testPoint);
+                var spaceARegion = Region.OnBoundary;
+                var spaceBRegion = Region.OnBoundary;
+                var trace = groupGrid.Grid.Triangles.First().Trace;
+                if (trace == "A") { spaceBRegion = spaceB.RegionOfPoint(testPoint); }
+                if (trace == "B") { spaceARegion = spaceA.RegionOfPoint(testPoint); }
 
                 if (includeGroup(spaceARegion, spaceBRegion))
                 {
@@ -66,7 +71,7 @@ namespace Operations.SetOperators
                 var region = resultShell.RegionOfPoint(interiorTestPoint);
                 if (region == Region.Exterior)
                 {
-                    foreach (var triangle in group.Grid.Triangles) { triangle.InvertNormals(); }
+                    foreach (var triangle in group.Grid.Triangles) { triangle.InvertNormals(); } //Console.WriteLine("Group invert.");
                 }
             }
             result = result.CreateNewInstance();

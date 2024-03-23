@@ -1,15 +1,8 @@
 ﻿using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using BasicObjects.GeometricObjects;
-using E = BasicObjects.Math;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Collections.Buckets;
-using BaseObjects.Transformations;
 using BaseObjects.Transformations.Interfaces;
 
 namespace Collections.WireFrameMesh.BasicWireFrameMesh
@@ -91,7 +84,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         {
             EndGrid();
 
-            Dictionary<int, List<PositionNormal>> mapping = new Dictionary<int, List<PositionNormal>>();
+            Dictionary<int, Element> mapping = new Dictionary<int, Element>();
 
             foreach (var position in inputMesh.Positions)
             {
@@ -99,19 +92,19 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 {
                     foreach (var triangle in positionNormal.Triangles)
                     {
-                        if (!mapping.ContainsKey(triangle.Id)) { mapping[triangle.Id] = new List<PositionNormal>(3); }
-                        mapping[triangle.Id].Add(CloneAddOrExisting(positionNormal));
+                        if (!mapping.ContainsKey(triangle.Id)) { mapping[triangle.Id] = new Element(); }
+                        var element = mapping[triangle.Id];
+                        element.PositionNormals.Add(CloneAddOrExisting(positionNormal));
+                        element.Trace = triangle.Trace;
                     }
                 }
             }
-            foreach (var triangle in mapping.Values.Where(v => v.Count == 3))
+            foreach (var element in mapping.Values.Where(v => v.PositionNormals.Count == 3))
             {
-                new PositionTriangle(triangle[0], triangle[1], triangle[2]);
+                new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace);
             }
-
             EndGrid();
         }
-
         public void AddGrids(IEnumerable<IWireFrameMesh> grids)
         {
             foreach (var grid in grids)
@@ -119,12 +112,17 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 AddGrid(grid);
             }
         }
+        private class Element
+        {
+            public List<PositionNormal> PositionNormals { get; set; } = new List<PositionNormal>(3);
+            public string Trace { get; set; }
+        }
 
         public IWireFrameMesh Clone()
         {
             var clone = new WireFrameMesh();
 
-            Dictionary<int, List<PositionNormal>> mapping = new Dictionary<int, List<PositionNormal>>();
+            Dictionary<int, Element> mapping = new Dictionary<int, Element>();
 
             foreach (var position in Positions)
             {
@@ -132,15 +130,17 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 {
                     foreach (var triangle in positionNormal.Triangles)
                     {
-                        if (!mapping.ContainsKey(triangle.Id)) { mapping[triangle.Id] = new List<PositionNormal>(3); }
-                        mapping[triangle.Id].Add(clone.CloneAddOrExisting(positionNormal));
+                        if (!mapping.ContainsKey(triangle.Id)) { mapping[triangle.Id] = new Element(); }
+                        var element = mapping[triangle.Id];
+                        element.PositionNormals.Add(clone.CloneAddOrExisting(positionNormal));
+                        element.Trace = triangle.Trace;
                     }
                 }
             }
 
-            foreach (var triangle in mapping.Values.Where(v => v.Count == 3))
+            foreach (var element in mapping.Values.Where(v => v.PositionNormals.Count == 3))
             {
-                new PositionTriangle(triangle[0], triangle[1], triangle[2]);
+                new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace);
             }
 
             return clone;

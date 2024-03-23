@@ -16,10 +16,12 @@ namespace Operations.Groupings.Basics
             C = triangle.C;
             _triangle = triangle;
             _lookup = lookup;
+            Trace = triangle.Trace;
             Id = _id++;
         }
 
         public int Id { get; }
+        public string Trace { get; }
 
         public PositionNormal A { get; private set; }
         public PositionNormal B { get; private set; }
@@ -109,7 +111,7 @@ namespace Operations.Groupings.Basics
             var a = mesh.AddPointNoRow(A.Position, A.Normal);
             var b = mesh.AddPointNoRow(B.Position, B.Normal);
             var c = mesh.AddPointNoRow(C.Position, C.Normal);
-            new PositionTriangle(a, b, c);
+            new PositionTriangle(a, b, c, Trace);
         }
     }
 }

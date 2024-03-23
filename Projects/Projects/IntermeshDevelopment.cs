@@ -1,7 +1,9 @@
 ﻿using BaseObjects.Transformations;
 using BasicObjects;
 using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
+using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using FundamentalMeshes;
 using Operations.Groupings.Basics;
@@ -31,7 +33,7 @@ namespace Projects.Projects
             sphere6.Apply(Transform.Scale(0.80));
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
-            cube.Apply(Transform.Translation(new Point3D(0.001, 0.001, 0.001)));
+            //cube.Apply(Transform.Translation(new Point3D(0.001, 0.001, 0.001)));
             //cube.Apply(Transform.Translation(new Point3D(0.011, 0.021, 0.031)));
             //cube.Apply(Transform.Rotation(Vector3D.BasisZ, 0.1));
 
@@ -56,8 +58,9 @@ namespace Projects.Projects
             //var output = Operations.Intermesh.ElasticIntermeshOperations.Operations.Intermesh(intermesh);
             var output = cube.Difference(spheres);
             //spheres = spheres.Clone();
-            //spheres.Apply(Transform.Translation(new Point3D(1.11, 0, 0)));
-            //output = output.Difference(spheres2);
+            //spheres.Apply(Transform.Translation(new Point3D(1.01, 0.01, 0.01)));
+            spheres.Apply(Transform.Translation(new Point3D(1, 0, 0)));
+            output = output.Difference(spheres);
             //var output = spheres.Union(cube);
 
             TableDisplays.ShowCountSpread("Position normal triangle counts", output.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
@@ -74,6 +77,24 @@ namespace Projects.Projects
             //
             PntFile.Export(output, "Pnt/Sets");
             WavefrontFile.Export(output, "Wavefront/Sets");
+            //WavefrontFileGroups.ExportByCluster(output, "Wavefront/Clusters");
+            //WavefrontFile.Export(NormalOverlay(output, 0.01), "Wavefront/Normals");
+        }
+
+        private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)
+        {
+            var output = WireFrameMesh.CreateMesh();
+
+            foreach (var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
+            {
+                var pointA = output.AddPointNoRow(positionNormal.Position, Vector3D.Zero);
+                var pointB = output.AddPointNoRow(positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero);
+                var pointC = output.AddPointNoRow(positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
+                new PositionTriangle(pointA, pointB, pointC);
+
+            }
+
+            return output;
         }
     }
 }

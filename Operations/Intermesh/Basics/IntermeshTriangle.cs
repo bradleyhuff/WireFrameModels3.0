@@ -28,6 +28,8 @@ namespace Operations.Intermesh.Basics
 
         public int Id { get; }
 
+        public string Trace { get { return _triangle.Trace; } }
+
         public override int GetHashCode()
         {
             return Id;
@@ -295,7 +297,7 @@ namespace Operations.Intermesh.Basics
             var a = mesh.AddPointNoRow(A.Position, A.Normal);
             var b = mesh.AddPointNoRow(B.Position, B.Normal);
             var c = mesh.AddPointNoRow(C.Position, C.Normal);
-            new PositionTriangle(a, b, c);
+            new PositionTriangle(a, b, c, Trace);
         }
 
         public void ExportWithDivisions(IWireFrameMesh mesh)

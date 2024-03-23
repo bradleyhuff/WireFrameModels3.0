@@ -9,10 +9,10 @@ namespace Operations.Intermesh.Basics
     {
         private static int _id = 0;
         public FillTriangle(ElasticTriangle triangle, ElasticVertexCore pointA, ElasticVertexCore pointB, ElasticVertexCore pointC) :
-            this(pointA, triangle.NormalFromProjectedPoint(pointA.Point), pointB, triangle.NormalFromProjectedPoint(pointB.Point), pointC, triangle.NormalFromProjectedPoint(pointC.Point))
+            this(pointA, triangle.NormalFromProjectedPoint(pointA.Point), pointB, triangle.NormalFromProjectedPoint(pointB.Point), pointC, triangle.NormalFromProjectedPoint(pointC.Point), triangle.Trace)
         { }
-        public FillTriangle(ElasticTriangle node) : this(node.AnchorA, node.NormalA, node.AnchorB, node.NormalB, node.AnchorC, node.NormalC) { }
-        public FillTriangle(ElasticVertexCore pointA, Vector3D normalA, ElasticVertexCore pointB, Vector3D normalB, ElasticVertexCore pointC, Vector3D normalC)
+        public FillTriangle(ElasticTriangle node) : this(node.AnchorA, node.NormalA, node.AnchorB, node.NormalB, node.AnchorC, node.NormalC, node.Trace) { }
+        public FillTriangle(ElasticVertexCore pointA, Vector3D normalA, ElasticVertexCore pointB, Vector3D normalB, ElasticVertexCore pointC, Vector3D normalC, string trace)
         {
             Id = _id++;
             PointA = pointA;
@@ -21,9 +21,11 @@ namespace Operations.Intermesh.Basics
             NormalA = normalA;
             NormalB = normalB;
             NormalC = normalC;
+            Trace = trace;
         }
 
         public int Id { get; }
+        public string Trace { get; }
 
         public ElasticVertexCore PointA { get; }
         public Vector3D NormalA { get; }
@@ -47,7 +49,7 @@ namespace Operations.Intermesh.Basics
             var a = mesh.AddPointNoRow(PointA.Point, NormalA);
             var b = mesh.AddPointNoRow(PointB.Point, NormalB);
             var c = mesh.AddPointNoRow(PointC.Point, NormalC);
-            new PositionTriangle(a, b, c);
+            new PositionTriangle(a, b, c, Trace);
         }
     }
 }

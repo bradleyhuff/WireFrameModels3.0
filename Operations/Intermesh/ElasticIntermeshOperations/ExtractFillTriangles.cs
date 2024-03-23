@@ -204,7 +204,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             foreach (var filling in fillings)
             {
                 yield return new FillTriangle(lookup[filling.A.Reference], filling.A.Normal,
-                    lookup[filling.B.Reference], filling.B.Normal, lookup[filling.C.Reference], filling.C.Normal);
+                    lookup[filling.B.Reference], filling.B.Normal, lookup[filling.C.Reference], filling.C.Normal, triangle.Trace);
             }
 
             yield break;

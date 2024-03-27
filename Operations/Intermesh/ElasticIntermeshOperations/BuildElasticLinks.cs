@@ -1,4 +1,6 @@
 ﻿using BasicObjects.MathExtensions;
+using Collections.Buckets;
+using Collections.Buckets.Interfaces;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Console = BaseObjects.Console;
@@ -18,19 +20,35 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
             SetAllDivisions(intermeshTriangles, triangleTable, anchorTable, segmentTable, edgeTable);
             var containerTable = BuildContainerTable(intermeshTriangles, segmentTable);
-            LinkAllDivisions(intermeshTriangles, containerTable);
+
+            var anchorBucket = new BoxBucket<ElasticVertexAnchor>(anchorTable.Values);
+            LinkAllDivisions(intermeshTriangles, containerTable, anchorBucket);
 
             var elasticTriangles = GetAllTriangles(intermeshTriangles, triangleTable).ToArray();
             var verticies = elasticTriangles.SelectMany(t => t.Segments.SelectMany(s => s.VerticiesAB)).DistinctBy(v => v.Id).ToArray();
-            foreach (var vertex in verticies) { vertex.VertexFill(); }
+            foreach (var vertex in verticies) { vertex.VertexFill(anchorBucket); }
 
             SetPerimeterPoints(intermeshTriangles, triangleTable, containerTable);
-
+            SetAdjacents(intermeshTriangles, triangleTable);
             Console.WriteLine($"Build elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
-      
+
             //Notes.BuildElasticLinksNotes(elasticTriangles, verticies, anchorTable, segmentTable);
 
             return elasticTriangles;
+        }
+
+        private static void SetAdjacents(IEnumerable<IntermeshTriangle> triangles,
+            Dictionary<int, ElasticTriangle> triangleTable)
+        {
+            foreach (var triangle in triangles)
+            {
+                var elasticTriangle = triangleTable[triangle.Id];
+                var adjacentsAB = triangle.ABadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
+                var adjacentsBC = triangle.BCadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
+                var adjacentsCA = triangle.CAadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
+
+                elasticTriangle.SetAdjacents(adjacentsAB, adjacentsBC, adjacentsCA);
+            }
         }
 
         private static void SetAllDivisions(IEnumerable<IntermeshTriangle> triangles,
@@ -69,8 +87,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             return containerTable;
         }
 
-        private static void LinkAllDivisions(IEnumerable<IntermeshTriangle> triangles, 
-            Dictionary<int, ElasticVertexContainer> containerTable)
+        private static void LinkAllDivisions(IEnumerable<IntermeshTriangle> triangles,
+            Dictionary<int, ElasticVertexContainer> containerTable, IBoxBucket<ElasticVertexAnchor> anchors)
         {
             foreach (var triangle in triangles)
             {
@@ -78,22 +96,22 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 {
                     var containersA = division.VertexA?.Vertex?.DivisionContainers ?? Enumerable.Empty<DivisionVertexContainer>();
                     var elasticContainersA = containersA.Select(c => containerTable[c.Id]).ToArray();
-                    LinkContainers(elasticContainersA);
+                    LinkContainers(elasticContainersA, anchors);
 
                     var containersB = division.VertexB?.Vertex?.DivisionContainers ?? Enumerable.Empty<DivisionVertexContainer>();
                     var elasticContainersB = containersB.Select(c => containerTable[c.Id]).ToArray();
-                    LinkContainers(elasticContainersB);
+                    LinkContainers(elasticContainersB, anchors);
                 }
             }
         }
 
-        private static void LinkContainers(IEnumerable<ElasticVertexContainer> containers)
+        private static void LinkContainers(IEnumerable<ElasticVertexContainer> containers, IBoxBucket<ElasticVertexAnchor> anchors)
         {
             if (!containers.Any()) { return; }
             var first = containers.First();
             foreach (var container in containers.Skip(1))
             {
-                first.Link(container);
+                first.Link(container, anchors);
             }
         }
 
@@ -117,7 +135,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 var edgeBC = GetPerimeterEdge(anchors[1], anchors[2], edgeTable);
                 var edgeCA = GetPerimeterEdge(anchors[2], anchors[0], edgeTable);
                 triangleTable[triangle.Id] = new ElasticTriangle(
-                    anchors[0], triangle.A.Normal, anchors[1], triangle.B.Normal, anchors[2], triangle.C.Normal, 
+                    anchors[0], triangle.A.Normal, anchors[1], triangle.B.Normal, anchors[2], triangle.C.Normal,
                     edgeAB, edgeBC, edgeCA, triangle.Trace);
             }
             return triangleTable[triangle.Id];
@@ -127,8 +145,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
         {
             foreach (var vertex in triangle.Positions)
             {
-                if (!anchors.ContainsKey(vertex.Id)) { anchors[vertex.Id] = new ElasticVertexAnchor(vertex.Position); }
-                yield return anchors[vertex.Id];
+                if (!anchors.ContainsKey(vertex.PositionObject.Id)) { anchors[vertex.PositionObject.Id] = new ElasticVertexAnchor(vertex.Position); }
+                yield return anchors[vertex.PositionObject.Id];
             }
         }
 
@@ -169,7 +187,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 var perimeterCAsegments = elasticTriangle.PerimeterEdgeCA.Segments.Concat(collinearsCA).DistinctBy(s => s.Id).ToArray();
 
                 var intermeshPerimeterVerticiesAB = triangle.EdgeAB.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
-                var intermeshPerimeterVerticiesBC = triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex).ToArray();//
+                var intermeshPerimeterVerticiesBC = triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
                 var intermeshPerimeterVerticiesCA = triangle.EdgeCA.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
 
                 var elasticPerimeterVerticiesAB = SetPerimeterPoints(intermeshPerimeterVerticiesAB, containerTable).ToArray();
@@ -180,13 +198,16 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 var perimetersBC = elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Concat(elasticPerimeterVerticiesBC).DistinctBy(p => p.Id);
                 var perimetersCA = elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Concat(elasticPerimeterVerticiesCA).DistinctBy(p => p.Id);
 
+                var exclusiveA = triangle.AexclusiveVerticies;
+                var exclusiveB = triangle.BexclusiveVerticies;
+                var exclusiveC = triangle.CexclusiveVerticies;
+
                 elasticTriangle.PerimeterEdgeAB.SetPerimeterPoints(perimetersAB, perimeterABsegments);
                 elasticTriangle.PerimeterEdgeBC.SetPerimeterPoints(perimetersBC, perimeterBCsegments);
                 elasticTriangle.PerimeterEdgeCA.SetPerimeterPoints(perimetersCA, perimeterCAsegments);
 
             }
         }
-
 
         private static IEnumerable<ElasticVertexCore> SetPerimeterPoints(IEnumerable<VertexCore> input, Dictionary<int, ElasticVertexContainer> containerTable)
         {

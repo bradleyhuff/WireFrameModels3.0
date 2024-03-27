@@ -18,6 +18,7 @@ namespace FileExportImport
         {
             DateTime start = DateTime.Now;
             fileName = $"{fileName}.pnt";
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName));
             FileWrite(mesh, fileName);
             DateTime end = DateTime.Now;
             FileInfo info = new FileInfo(fileName);

@@ -80,8 +80,12 @@ namespace Operations.Intermesh.Elastics
             }
         }
 
+        public IReadOnlyList<ElasticTriangle> ABadjacents { get; private set; }
+        public IReadOnlyList<ElasticTriangle> BCadjacents { get; private set; }
+        public IReadOnlyList<ElasticTriangle> CAadjacents { get; private set; }
+
         private List<ElasticSegment> _segments = new List<ElasticSegment>();
-        private ElasticVertexLink[] _perimeterSegments;
+        private ElasticVertexLink[] _perimeterLinks;
         private ElasticVertexLink[] _dividingSegments;
 
         public IReadOnlyList<ElasticSegment> Segments { get { return _segments; } }
@@ -89,8 +93,15 @@ namespace Operations.Intermesh.Elastics
         public void SetSegments(IEnumerable<ElasticSegment> segments)
         {
             _segments = new List<ElasticSegment>(segments);
-            _perimeterSegments = null;
+            _perimeterLinks = null;
             _dividingSegments = null;
+        }
+
+        public void SetAdjacents(IEnumerable<ElasticTriangle> abAdjacents, IEnumerable<ElasticTriangle> bcAdjacents, IEnumerable<ElasticTriangle> caAdjacents)
+        {
+            ABadjacents = abAdjacents.ToList();
+            BCadjacents = bcAdjacents.ToList();
+            CAadjacents = caAdjacents.ToList();
         }
 
         public int SegmentsCount
@@ -115,16 +126,22 @@ namespace Operations.Intermesh.Elastics
             foreach (var segment in PerimeterEdgeCA.GetPerimeterLinks()) { yield return segment; }
         }
 
+        private IEnumerable<ElasticSegment> GetPerimeterSegments()
+        {
+            foreach (var segment in PerimeterEdgeAB.Segments) { yield return segment; }
+            foreach (var segment in PerimeterEdgeBC.Segments) { yield return segment; }
+            foreach (var segment in PerimeterEdgeCA.Segments) { yield return segment; }
+        }
+
         private void SetPerimeterLinks()
         {
-            if (_perimeterSegments is not null) { return; }
-            _perimeterSegments = GetPerimeterLinks().ToArray();
+            _perimeterLinks = GetPerimeterLinks().ToArray();
         }
 
         private void SetDividingLinks()
         {
-            if (_dividingSegments is not null) { return; }
-            _dividingSegments = Segments.Select(s => new ElasticVertexLink(s.VertexA.Vertex, s.VertexB.Vertex)).ToArray();
+            var perimeterSegments = GetPerimeterSegments().ToArray();
+            _dividingSegments = Segments.Where(s => !perimeterSegments.Any(p => p.Id == s.Id)).Select(s => new ElasticVertexLink(s.VertexA.Vertex, s.VertexB.Vertex)).ToArray();
         }
 
         public IEnumerable<SurfaceSegmentContainer<int>> GetDividingSurfaceSegments()
@@ -144,7 +161,7 @@ namespace Operations.Intermesh.Elastics
         {
             SetPerimeterLinks();
 
-            foreach (var segment in _perimeterSegments)
+            foreach (var segment in _perimeterLinks)
             {
                 yield return new SurfaceSegmentContainer<int>(
                     new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id),
@@ -196,7 +213,7 @@ namespace Operations.Intermesh.Elastics
             }
         }
 
-        public void Export(IWireFrameMesh mesh)
+        public void ExportWithSegments(IWireFrameMesh mesh)
         {
             var a = mesh.AddPointNoRow(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal);
             var b = mesh.AddPointNoRow(SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal);
@@ -206,11 +223,22 @@ namespace Operations.Intermesh.Elastics
 
             foreach(var segment in Segments)
             {
-                var aa = mesh.AddPointNoRow(segment.VertexA.Point, NormalFromProjectedPoint(segment.VertexA.Point));
-                var bb = mesh.AddPointNoRow(segment.VertexB.Point, NormalFromProjectedPoint(segment.VertexB.Point));
-                var mid = (segment.VertexA.Point + segment.VertexB.Point) / 2;
-                var cc = mesh.AddPointNoRow(mid, NormalFromProjectedPoint(mid));
-                new PositionTriangle(aa, bb, cc);
+                var normalA = NormalFromProjectedPoint(segment.VertexA.Point);
+                var normalB = NormalFromProjectedPoint(segment.VertexB.Point);
+                var height = 2e-4;
+
+                mesh.AddPoint(segment.VertexA.Point + -height * normalA, normalA);
+                mesh.AddPoint(segment.VertexB.Point + -height * normalB, normalB);
+                mesh.EndRow();
+
+                mesh.AddPoint(segment.VertexA.Point, normalA);
+                mesh.AddPoint(segment.VertexB.Point, normalB);
+                mesh.EndRow();
+
+                mesh.AddPoint(segment.VertexA.Point + height * normalA, normalA);
+                mesh.AddPoint(segment.VertexB.Point + height * normalB, normalB);
+                mesh.EndRow();
+                mesh.EndGrid();
             }
         }
     }

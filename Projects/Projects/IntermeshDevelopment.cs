@@ -34,7 +34,7 @@ namespace Projects.Projects
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
             //cube.Apply(Transform.Translation(new Point3D(0.001, 0.001, 0.001)));
-            //cube.Apply(Transform.Translation(new Point3D(0.011, 0.021, 0.031)));
+            cube.Apply(Transform.Translation(new Point3D(0.011, 0.021, 0.031)));
             //cube.Apply(Transform.Rotation(Vector3D.BasisZ, 0.1));
 
             var spheres = sphere;
@@ -58,8 +58,8 @@ namespace Projects.Projects
             //var output = Operations.Intermesh.ElasticIntermeshOperations.Operations.Intermesh(intermesh);
             var output = cube.Difference(spheres);
             //spheres = spheres.Clone();
-            //spheres.Apply(Transform.Translation(new Point3D(1.01, 0.01, 0.01)));
-            spheres.Apply(Transform.Translation(new Point3D(1, 0, 0)));
+            //spheres.Apply(Transform.Translation(new Point3D(1, 0, 0)));
+            spheres.Apply(Transform.Translation(new Point3D(1.05, 0.04, 0.06)));
             output = output.Difference(spheres);
             //var output = spheres.Union(cube);
 

@@ -31,6 +31,7 @@ namespace Operations.SetOperators
         private static IWireFrameMesh Run(IWireFrameMesh gridA, IWireFrameMesh gridB, Func<Region, Region, bool> includeGroup)
         {
             DateTime start = DateTime.Now;
+            gridB = gridB.Clone();
 
             foreach(var triangle in gridA.Triangles){ triangle.Trace = "A"; }
             foreach (var triangle in gridB.Triangles) { triangle.Trace = "B"; }

@@ -56,6 +56,11 @@ namespace BasicObjects.GeometricObjects
             return nearestPoint;
         }
 
+        public Rectangle3D Margin(double margin)
+        {
+            return new Rectangle3D(this + new Vector3D(-margin, -margin, -margin), this + new Vector3D(margin, margin, margin));
+        }
+
         public static bool AreCollinear(params Point3D[] points)
         {
             if (points.Length < 3) { throw new InvalidOperationException($"At least 3 points are required to check collinearity."); }

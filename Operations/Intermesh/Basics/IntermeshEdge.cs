@@ -11,7 +11,6 @@ namespace Operations.Intermesh.Basics
             A = a;
             B = b;
             _adjacents = adjacents;
-
             Id = _id++;
         }
 
@@ -97,6 +96,7 @@ namespace Operations.Intermesh.Basics
                 var intersections = point.Vertex.IntersectionContainers.Select(c => c.Intersection);
 
                 var allAdjacents = intersections.SelectMany(i => i.Intersectors).DistinctBy(t => t.Id);
+
                 var qualifyingAdjacents = _adjacents.Intersect(allAdjacents).DistinctBy(t => t.Id);
                 if (qualifyingAdjacents.Count() > 1) { yield return point; }
             }

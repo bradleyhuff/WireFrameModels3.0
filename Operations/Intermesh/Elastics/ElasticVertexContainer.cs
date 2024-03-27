@@ -1,9 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Collections.Buckets.Interfaces;
 
 namespace Operations.Intermesh.Elastics
 {
@@ -35,11 +31,11 @@ namespace Operations.Intermesh.Elastics
             }
         }
 
-        public void Link(ElasticVertexContainer b)
+        public void Link(ElasticVertexContainer b, IBoxBucket<ElasticVertexAnchor> anchors)
         {
             if (Vertex is null && b.Vertex is null)
             {
-                var vertex = new ElasticVertexCore(Point);
+                var vertex = ElasticVertexCore.Create(Point, anchors);
                 vertex.Link(this);
                 vertex.Link(b);
                 return;
@@ -67,10 +63,10 @@ namespace Operations.Intermesh.Elastics
             }
         }
 
-        public void VertexFill()
+        public void VertexFill(IBoxBucket<ElasticVertexAnchor> anchors)
         {
             if (Vertex is not null) { return; }
-            var vertex = new ElasticVertexCore(Point);
+            var vertex = ElasticVertexCore.Create(Point, anchors);
             vertex.Link(this);
         }
     }

@@ -14,7 +14,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             DateTime start = DateTime.Now;
             var divisionState = new DivisionState();
             var divisionIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
-            divisionIterator.Run<DivisionState, DivisionThread>(DivisionAction, divisionState);
+            divisionIterator.RunSingle<DivisionState, DivisionThread>(DivisionAction, divisionState);
             Console.WriteLine($"Calculate divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {divisionState.Threads}", ConsoleColor.Yellow);
             //Notes.CalculateDivisionNotes(intermeshTriangles);
             var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);

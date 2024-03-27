@@ -20,27 +20,73 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
             var perimeterTable = GetPerimeterTable(elasticTriangles);
 
-            foreach(var elasticTriangle in elasticTriangles)
+            foreach (var elasticTriangle in elasticTriangles)
             {
-                foreach (var perimeter in elasticTriangle.PerimeterEdges.SelectMany(p => p.PerimeterPoints))
+                var perimeterPoints = elasticTriangle.PerimeterEdges.SelectMany(p => p.PerimeterPoints).ToArray();
+                foreach (var perimeter in perimeterPoints)
                 {
                     if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorA.Point) < 3e-9)
                     {
                         AnchorPull(elasticTriangle.AnchorA, elasticTriangle.PerimeterEdgeAB, perimeter, perimeterTable);
+                        AnchorPull(elasticTriangle.AnchorA, elasticTriangle.PerimeterEdgeCA, perimeter, perimeterTable);
                         pulls++;
                     }
                     if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorB.Point) < 3e-9)
                     {
                         AnchorPull(elasticTriangle.AnchorB, elasticTriangle.PerimeterEdgeBC, perimeter, perimeterTable);
+                        AnchorPull(elasticTriangle.AnchorB, elasticTriangle.PerimeterEdgeAB, perimeter, perimeterTable);
                         pulls++;
                     }
                     if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorC.Point) < 3e-9)
                     {
                         AnchorPull(elasticTriangle.AnchorC, elasticTriangle.PerimeterEdgeCA, perimeter, perimeterTable);
+                        AnchorPull(elasticTriangle.AnchorC, elasticTriangle.PerimeterEdgeBC, perimeter, perimeterTable);
                         pulls++;
                     }
                 }
             }
+
+            foreach (var elasticTriangle in elasticTriangles)
+            {
+                var segmentPoints = elasticTriangle.Segments.SelectMany(ps => ps.VerticiesAB).ToArray();
+
+                var notMatchedPointsA = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorA.Point && p.Vertex.Id != elasticTriangle.AnchorA.Id &&
+                    !elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
+                    !elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
+
+                foreach (var point in notMatchedPointsA)
+                {
+                    point.Vertex.Delink(point);
+                    elasticTriangle.AnchorA.Link(point);
+                }
+
+                if (notMatchedPointsA.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points A {notMatchedPointsA.Count()}"); }
+
+                var notMatchedPointsB = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorB.Point && p.Vertex.Id != elasticTriangle.AnchorB.Id &&
+                    !elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
+                    !elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
+
+                foreach (var point in notMatchedPointsB)
+                {
+                    point.Vertex.Delink(point);
+                    elasticTriangle.AnchorB.Link(point);
+                }
+
+                if (notMatchedPointsB.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points B {notMatchedPointsB.Count()}"); }
+
+                var notMatchedPointsC = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorC.Point && p.Vertex.Id != elasticTriangle.AnchorC.Id &&
+                    !elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
+                    !elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
+
+                foreach (var point in notMatchedPointsC)
+                {
+                    point.Vertex.Delink(point);
+                    elasticTriangle.AnchorC.Link(point);
+                }
+
+                if (notMatchedPointsC.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points C {notMatchedPointsC.Count()}"); }
+            }
+
             Console.WriteLine($"Anchor pulls {pulls}");
         }
 

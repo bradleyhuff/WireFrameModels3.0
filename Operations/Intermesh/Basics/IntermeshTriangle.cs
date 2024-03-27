@@ -1,12 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets.Interfaces;
-using Collections.Buckets;
 using Collections.WireFrameMesh.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Collections.WireFrameMesh.Interfaces;
 
 namespace Operations.Intermesh.Basics
@@ -83,7 +77,11 @@ namespace Operations.Intermesh.Basics
         private IReadOnlyList<IntermeshTriangle> _aVerticies;
         private IReadOnlyList<IntermeshTriangle> _bVerticies;
         private IReadOnlyList<IntermeshTriangle> _cVerticies;
+        private IReadOnlyList<IntermeshTriangle> _aExclusiveVerticies;
+        private IReadOnlyList<IntermeshTriangle> _bExclusiveVerticies;
+        private IReadOnlyList<IntermeshTriangle> _cExclusiveVerticies;
         private IReadOnlyList<IntermeshTriangle> _adjacents;
+        private IReadOnlyList<IntermeshTriangle> _exclusives;
 
         public IReadOnlyList<IntermeshTriangle> ABadjacents
         {
@@ -157,6 +155,45 @@ namespace Operations.Intermesh.Basics
             }
         }
 
+        public IReadOnlyList<IntermeshTriangle> AexclusiveVerticies
+        {
+            get
+            {
+                if (_aExclusiveVerticies is null)
+                {
+                    _aExclusiveVerticies = _triangle.AexclusiveVerticies.Select(t => _lookup[t]).ToList();
+
+                }
+                return _aExclusiveVerticies;
+            }
+        }
+
+        public IReadOnlyList<IntermeshTriangle> BexclusiveVerticies
+        {
+            get
+            {
+                if (_bExclusiveVerticies is null)
+                {
+                    _bExclusiveVerticies = _triangle.BexclusiveVerticies.Select(t => _lookup[t]).ToList();
+                }
+                return _bExclusiveVerticies;
+            }
+        }
+
+        public IReadOnlyList<IntermeshTriangle> CexclusiveVerticies
+        {
+            get
+            {
+                if (_cExclusiveVerticies is null)
+                {
+                    _cExclusiveVerticies = _triangle.CexclusiveVerticies.Select(t => _lookup[t]).ToList();
+                }
+                return _cExclusiveVerticies;
+            }
+        }
+
+
+
         public IReadOnlyList<IntermeshTriangle> AdjacentTriangles
         {
             get
@@ -166,6 +203,18 @@ namespace Operations.Intermesh.Basics
                     _adjacents = Averticies.Concat(Bverticies).Concat(Cverticies).DistinctBy(t => t.Id).ToList();
                 }
                 return _adjacents;
+            }
+        }
+
+        public IReadOnlyList<IntermeshTriangle> ExclusiveTriangles
+        {
+            get
+            {
+                if (_exclusives is null)
+                {
+                    _exclusives = AexclusiveVerticies.Concat(BexclusiveVerticies).Concat(CexclusiveVerticies).DistinctBy(t => t.Id).ToList();
+                }
+                return _exclusives;
             }
         }
 

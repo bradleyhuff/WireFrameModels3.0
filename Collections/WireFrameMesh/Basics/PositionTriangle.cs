@@ -76,7 +76,9 @@ namespace Collections.WireFrameMesh.Basics
         private IReadOnlyList<PositionTriangle> _aVerticies;
         private IReadOnlyList<PositionTriangle> _bVerticies;
         private IReadOnlyList<PositionTriangle> _cVerticies;
-
+        private IReadOnlyList<PositionTriangle> _aExclusiveVerticies;
+        private IReadOnlyList<PositionTriangle> _bExclusiveVerticies;
+        private IReadOnlyList<PositionTriangle> _cExclusiveVerticies;
         private void ClearStates()
         {
             _abAdjacents = null;
@@ -85,6 +87,9 @@ namespace Collections.WireFrameMesh.Basics
             _aVerticies = null;
             _bVerticies = null;
             _cVerticies = null;
+            _aExclusiveVerticies = null;
+            _bExclusiveVerticies = null;
+            _cExclusiveVerticies = null;
         }
 
         public IReadOnlyList<PositionTriangle> ABadjacents
@@ -159,6 +164,48 @@ namespace Collections.WireFrameMesh.Basics
                     _cVerticies = C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
                 }
                 return _cVerticies;
+            }
+        }
+
+        public IReadOnlyList<PositionTriangle> AexclusiveVerticies
+        {
+            get
+            {
+                if (_aExclusiveVerticies is null)
+                {
+                    _aExclusiveVerticies = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id && 
+                        !ABadjacents.Any(a => a.Id == t.Id) && !CAadjacents.Any(a => a.Id == t.Id)).ToList();
+
+                }
+                return _aExclusiveVerticies;
+            }
+        }
+
+        public IReadOnlyList<PositionTriangle> BexclusiveVerticies
+        {
+            get
+            {
+                if (_bExclusiveVerticies is null)
+                {
+                    _bExclusiveVerticies = B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
+                        !ABadjacents.Any(a => a.Id == t.Id) && !BCadjacents.Any(a => a.Id == t.Id)).ToList();
+
+                }
+                return _bExclusiveVerticies;
+            }
+        }
+
+        public IReadOnlyList<PositionTriangle> CexclusiveVerticies
+        {
+            get
+            {
+                if (_cExclusiveVerticies is null)
+                {
+                    _cExclusiveVerticies = C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
+                        !BCadjacents.Any(a => a.Id == t.Id) && !CAadjacents.Any(a => a.Id == t.Id)).ToList();
+
+                }
+                return _cExclusiveVerticies;
             }
         }
 

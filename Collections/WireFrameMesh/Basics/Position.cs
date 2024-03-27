@@ -1,6 +1,6 @@
 ﻿using Collections.Buckets.Interfaces;
 using BasicObjects.GeometricObjects;
-using M = BasicObjects.Math;
+using Collections.Buckets;
 
 namespace Collections.WireFrameMesh.Basics
 {
@@ -54,7 +54,7 @@ namespace Collections.WireFrameMesh.Basics
             {
                 if (_box is null && _position is not null)
                 {
-                    _box = new Rectangle3D(_position, M.Double.DifferenceError);
+                    _box = new Rectangle3D(_position, BoxBucket.MARGINS);
                 }
                 return _box;
             }

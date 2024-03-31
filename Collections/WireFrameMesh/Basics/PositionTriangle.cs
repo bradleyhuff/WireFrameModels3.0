@@ -1,8 +1,8 @@
 ﻿using Collections.Buckets.Interfaces;
 using BasicObjects.GeometricObjects;
-using M = BasicObjects.Math;
 using Collections.Buckets;
 using Collections.WireFrameMesh.Interfaces;
+using BasicObjects.MathExtensions;
 
 namespace Collections.WireFrameMesh.Basics
 {
@@ -14,12 +14,15 @@ namespace Collections.WireFrameMesh.Basics
             A = a;
             B = b;
             C = c;
+            Key = new Combination3(a.PositionObject.Id, b.PositionObject.Id, c.PositionObject.Id);
             Id = _id++;
             if (a.Position == b.Position || a.Position == c.Position || b.Position == c.Position) { return; }
+            if (A.Mesh._keys.ContainsKey(Key)) { return; }
             A._triangles.Add(this);
             B._triangles.Add(this);
             C._triangles.Add(this);
             A.Mesh._triangles.Add(this);
+            A.Mesh._keys[Key] = true;
         }
         public PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace) : this(a, b, c)
         {
@@ -28,6 +31,8 @@ namespace Collections.WireFrameMesh.Basics
 
         public int Id { get; }
         public string Trace { get; set; }
+
+        public Combination3 Key { get; }
 
         public override int GetHashCode()
         {

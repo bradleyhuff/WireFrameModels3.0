@@ -87,13 +87,13 @@ namespace Projects.Projects
             //var grouping = new GroupingCollection(output.Triangles);
             //var surfaces = grouping.ExtractSurfaces();
             //Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count))}]");
-            //WavefrontFileGroups.ExportBySurface(output, "Wavefront/Surfaces");
+            //WavefrontFileGroups.ExportBySurfaces(output, "Wavefront/Surfaces");
 
             //
             PntFile.Export(output, "Pnt/Sets");
             WavefrontFile.Export(output, "Wavefront/Sets");
-            //WavefrontFileGroups.ExportByCluster(output, "Wavefront/Clusters");
-            //WavefrontFileGroups.ExportByCluster(output, o => NormalOverlay(o, 0.01), "Wavefront/Normals");
+            //WavefrontFileGroups.ExportByClusters(output, "Wavefront/Clusters");
+            //WavefrontFileGroups.ExportByClusters(output, o => NormalOverlay(o, 0.003), "Wavefront/Normals");
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

@@ -1,6 +1,6 @@
 ﻿using Collections.WireFrameMesh.Basics;
 using BasicObjects.GeometricObjects;
-using Collections.WireFrameMesh.Interfaces;
+using BasicObjects.MathExtensions;
 
 namespace Collections.WireFrameMesh.BasicWireFrameMesh
 {
@@ -10,6 +10,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         private List<PositionNormal> _rowA = new List<PositionNormal>();
         private List<PositionNormal> _rowB = new List<PositionNormal>();
         internal List<PositionTriangle> _triangles = new List<PositionTriangle>();
+        internal Combination3Dictionary<bool> _keys = new Combination3Dictionary<bool>();
 
         public IReadOnlyList<PositionTriangle> Triangles { get { return _triangles; } }
 

@@ -10,17 +10,17 @@ namespace Operations.SetOperators
     {
         public static IWireFrameMesh Difference(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
-            return Run(gridA, gridB, (a, b) => a == Region.OnBoundary && b == Region.Exterior || a == Region.Interior && b == Region.OnBoundary);
+            return Run(gridA, gridB, (a, b) => a == Region.OnBoundary && b != Region.Interior || a != Region.Exterior && b == Region.OnBoundary);
         }
 
         public static IWireFrameMesh Intersection(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
-            return Run(gridA, gridB, (a, b) => (a == Region.OnBoundary && b == Region.Interior) || (a == Region.Interior && b == Region.OnBoundary));
+            return Run(gridA, gridB, (a, b) => (a == Region.OnBoundary && b != Region.Exterior) || (a != Region.Exterior && b == Region.OnBoundary));
         }
 
         public static IWireFrameMesh Union(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
-            return Run(gridA, gridB, (a, b) => (a == Region.OnBoundary && b == Region.Exterior) || (a == Region.Exterior && b == Region.OnBoundary));
+            return Run(gridA, gridB, (a, b) => (a == Region.OnBoundary && b != Region.Interior) || (a != Region.Interior && b == Region.OnBoundary));
         }
 
         public static IWireFrameMesh All(this IWireFrameMesh gridA, IWireFrameMesh gridB)

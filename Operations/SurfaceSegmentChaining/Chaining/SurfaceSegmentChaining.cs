@@ -1,6 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Operations.SurfaceSegmentChaining.Basics;
+using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Chaining
@@ -91,6 +92,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
             while ((segment = GetNextStart(perimeterSegments, ref index, (l) => l.Rank == Rank.Perimeter && l.Passes < 1)) is not null)
             {
+                _loggingElement.Start = segment.IndexPointB;
+                _loggingElement.Note = "Pull from perimeters";
                 var indexChain = PullChainWithNoJunction(segment.IndexPointA, segment, (l) => l.Rank == Rank.Perimeter && l.Passes < 1 && l.GroupKey == segment.GroupKey).ToArray();
                 _perimeterIndexLoops.Add(indexChain);
                 _perimeterLoopGroupKeys.Add(segment.GroupKey);
@@ -98,7 +101,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 count++;
                 if (count > _linkedSegments.Count)
                 {
-                    throw new InvalidOperationException($"Non terminating  perimeter loop pull.");
+                    _loggingElements.Add(_loggingElement);
+                    throw new ChainingException<T>($"Non terminating  perimeter loop pull.", _loggingElements, _referenceArray);
                 }
             }
         }
@@ -165,12 +169,15 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             int count = 0;
             while ((segment = GetNextStart(junctionSegments, ref index, (l) => (l.LinksA.Count > 1 || l.LinksB.Count > 1) && l.Passes < 2 && l.Rank == Rank.Dividing)) is not null)
             {
+                _loggingElement.Start = segment.GetOppositeJunctionPoint();
+                _loggingElement.Note = "Pull from junctions";
                 var indexChain = PullChain(segment.GetAJunctionPoint(), segment, (l) => l.GroupKey == segment.GroupKey).ToArray();
                 SetLoops(indexChain, segment);
                 count++;
                 if (count > _linkedSegments.Count)
                 {
-                    throw new InvalidOperationException($"Non terminating junction chain pull.");
+                    _loggingElements.Add(_loggingElement);
+                    throw new ChainingException<T>($"Non terminating junction chain pull.", _loggingElements, _referenceArray);
                 }
             }
         }
@@ -209,6 +216,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             int count = 0;
             while ((segment = GetNextStart(isolatedLoops, ref index, (l) => l.Passes < 1)) is not null)
             {
+                _loggingElement.Start = segment.IndexPointB;
+                _loggingElement.Note = "Pull isolated loops";
                 var indexChain = PullChainWithNoJunction(segment.IndexPointA, segment, (l) => l.Passes < 1 && l.GroupKey == segment.GroupKey).ToArray();
                 if (indexChain.Length == 1 && indexChain[0] == segment.IndexPointA) { return; }
                 _indexLoops.Add(indexChain);
@@ -217,7 +226,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 count++;
                 if (count > _linkedSegments.Count)
                 {
-                    throw new InvalidOperationException($"Non terminating isolated loop pull.");
+                    _loggingElements.Add(_loggingElement);
+                    throw new ChainingException<T>($"Non terminating isolated loop pull.", _loggingElements, _referenceArray);
                 }
             }
         }
@@ -229,6 +239,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             var currentSegment = firstSegment;
             var currentPoint = firstPoint;
 
+            _loggingElement.Chaining.Add(currentPoint);
             yield return currentPoint;
 
             LinkedIndexSurfaceSegment<G, T> nextSegment = null;
@@ -241,18 +252,23 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 var nextPoint = GetOppositeIndex(nextSegment, currentPoint);
                 if (currentPoint == nextPoint)
                 {
-                    throw new InvalidOperationException($"Non-terminating no junction chain pull.");
+                    _loggingElements.Add(_loggingElement);
+                    throw new ChainingException<T>($"Non terminating no junction chain pull.", _loggingElements, _referenceArray);
                 }
                 currentPoint = nextPoint;
                 nextSegment.Passes++;
                 if (firstPoint != currentPoint)
                 {
+                    _loggingElement.Chaining.Add(currentPoint);
                     yield return currentPoint;
                 }
                 currentSegment.AddTraversalPair(nextSegment);
                 currentSegment = nextSegment;
             }
             while (firstPoint != currentPoint);
+
+            _loggingElements.Add(_loggingElement);
+            _loggingElement = new LoggingElement();
         }
 
         private IEnumerable<int> PullChain(int startPoint, LinkedIndexSurfaceSegment<G, T> startNode, Func<LinkedIndexSurfaceSegment<G, T>, bool> linkConstraint)
@@ -263,6 +279,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             var currentSegment = firstSegment;
             var currentPoint = firstPoint;
 
+            _loggingElement.Chaining.Add(currentPoint);
             yield return currentPoint;
 
             LinkedIndexSurfaceSegment<G, T> nextSegment = null;
@@ -278,7 +295,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 if (secondPoint < 0) { secondPoint = nextPoint; }
                 if (currentPoint == nextPoint)
                 {
-                    throw new InvalidOperationException($"Non-terminating chain pull.");
+                    throw new ChainingException<T>($"Non terminating chain pull.", _loggingElements, _referenceArray);
                 }
                 currentPoint = nextPoint;
                 nextSegment.Passes++;
@@ -287,10 +304,14 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 continueChain = ContinueChain(firstPoint, secondPoint, currentPoint, currentSegment, traversal, linkConstraint);
                 if (continueChain)
                 {
+                    _loggingElement.Chaining.Add(currentPoint);
                     yield return currentPoint;
                 }
             }
             while (continueChain);
+
+            _loggingElements.Add(_loggingElement);
+            _loggingElement = new LoggingElement();
         }
 
         private LinkedIndexSurfaceSegment<G, T> GetNextSegment(
@@ -313,7 +334,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 if (leftLinkTraversed && rightLinkTraversed)
                 {
                     if (!throwExceptions) { return null; }
-                    throw new InvalidOperationException("Both left and right sides have already been traversed.");
+                    _loggingElements.Add(_loggingElement);
+                    throw new ChainingException<T>($"Both left and right sides have already been traversed.", _loggingElements, _referenceArray);
                 }
 
                 if (rightLinkTraversed) { nextTraversal = Traversal.LeftSide; }
@@ -322,7 +344,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 if (traversal != nextTraversal && nextTraversal != Traversal.NoSet && traversal != Traversal.NoSet)
                 {
                     if (!throwExceptions) { return null; }
-                    throw new InvalidOperationException($"Traversal {traversal} -> next traversal {nextTraversal}.  Both traversals must equal.");
+                    _loggingElements.Add(_loggingElement);
+                    throw new ChainingException<T>($"Traversal {traversal} -> next traversal {nextTraversal}.  Both traversals must equal.", _loggingElements, _referenceArray);
                 }
                 if (nextTraversal == Traversal.NoSet) { nextTraversal = Traversal.RightSide; }
                 traversal = nextTraversal;
@@ -414,7 +437,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             {
                 return link.IndexPointA;
             }
-            throw new InvalidOperationException($"Opposite index of {headIndex} was not found.");
+            _loggingElements.Add(_loggingElement);
+            throw new ChainingException<T>($"Opposite index of {headIndex} was not found.", _loggingElements, _referenceArray);
         }
 
         private void SetJunctionAngle(LinkedIndexSurfaceSegment<G, T> link, double angle, int headIndex)
@@ -456,6 +480,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         private List<int[]> _indexLoops = new List<int[]>();
         private List<int[]> _indexSpurredLoops = new List<int[]>();
         private List<int[]> _indexSpurs = new List<int[]>();
+        private List<LoggingElement> _loggingElements = new List<LoggingElement>();
+        private LoggingElement _loggingElement = new LoggingElement();
 
         private List<SurfaceRayContainer<T>[]> _perimeterLoops;
         private List<SurfaceRayContainer<T>[]> _loops;

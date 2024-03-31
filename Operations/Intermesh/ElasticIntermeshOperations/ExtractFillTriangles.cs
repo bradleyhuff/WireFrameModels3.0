@@ -5,6 +5,7 @@ using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Operations.PlanarFilling.Filling;
 using Operations.SurfaceSegmentChaining.Chaining;
+using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
 using Operations.SurfaceSegmentChaining.Interfaces;
 using Console = BaseObjects.Console;
 
@@ -176,14 +177,22 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             {
                 chain = SurfaceSegmentChaining<TriangleFillingGroup, int>.Create(collection);
             }
+            catch (ChainingException<int> e)
+            {
+                Console.WriteLine($"Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                {
+                    var test = WireFrameMesh.CreateMesh();
+                    triangle.ExportWithSegments(test);
+                    WavefrontFile.ErrorExport(test, $"Wavefront/ChainingError-{triangle.Id}");
+                }
+
+                WavefrontFileChaining.Export(e, $"Wavefront/ChainingError-{triangle.Id}");
+                LoopError++;
+                yield break;
+            }
             catch (Exception e)
             {
                 Console.WriteLine($"Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-
-                var test = WireFrameMesh.CreateMesh();
-                triangle.ExportWithSegments(test);
-                WavefrontFile.ErrorExport(test, $"Wavefront/ChainingError-{triangle.Id}");
-
                 LoopError++;
                 yield break;
             }

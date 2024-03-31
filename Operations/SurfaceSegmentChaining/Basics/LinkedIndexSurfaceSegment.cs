@@ -93,6 +93,13 @@ namespace Operations.SurfaceSegmentChaining.Basics
             if (LinksB.Count > 1) { return IndexPointB; }
             throw new InvalidOperationException($"Junction point can't be found in this segment.");
         }
+
+        public int GetOppositeJunctionPoint()
+        {
+            if (LinksA.Count > 1) { return IndexPointB; }
+            if (LinksB.Count > 1) { return IndexPointA; }
+            throw new InvalidOperationException($"Junction point can't be found in this segment.");
+        }
     }
 
     internal class LinkedIndexSurfaceSegment<G> where G : class

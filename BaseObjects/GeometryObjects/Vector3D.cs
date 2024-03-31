@@ -110,8 +110,8 @@ namespace BasicObjects.GeometricObjects
 
         public override string ToString()
         {
-            return $"[ X: {X.ToString("##0.0000000000000")} Y: {Y.ToString("##0.0000000000000")} Z: {Z.ToString("##0.0000000000000")} ]";
-            //return $"[ X: {X.ToString("##0.000000")} Y: {Y.ToString("##0.000000")} Z: {Z.ToString("##0.000000")} ]";
+            //return $"[ X: {X.ToString("##0.0000000000000")} Y: {Y.ToString("##0.0000000000000")} Z: {Z.ToString("##0.0000000000000")} ]";
+            return $"[ X: {X.ToString("##0.000000")} Y: {Y.ToString("##0.000000")} Z: {Z.ToString("##0.000000")} ]";
         }
 
         public static Vector3D Zero { get; } = new Vector3D(0, 0, 0);

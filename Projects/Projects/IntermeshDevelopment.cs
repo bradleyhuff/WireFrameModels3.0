@@ -34,7 +34,7 @@ namespace Projects.Projects
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
             //cube.Apply(Transform.Translation(new Point3D(0.001, 0.001, 0.001)));
-            cube.Apply(Transform.Translation(new Point3D(0.011, 0.021, 0.031)));
+            //cube.Apply(Transform.Translation(new Point3D(0.011, 0.021, 0.031)));
             //cube.Apply(Transform.Rotation(Vector3D.BasisZ, 0.1));
 
             var spheres = sphere;
@@ -57,11 +57,26 @@ namespace Projects.Projects
             //
             //var output = Operations.Intermesh.ElasticIntermeshOperations.Operations.Intermesh(intermesh);
             var output = cube.Difference(spheres);
-            //spheres = spheres.Clone();
-            //spheres.Apply(Transform.Translation(new Point3D(1, 0, 0)));
-            spheres.Apply(Transform.Translation(new Point3D(1.05, 0.04, 0.06)));
-            output = output.Difference(spheres);
+            var spheres2 = spheres.Clone();
+            spheres2.Apply(Transform.Translation(new Point3D(1.0001, 0.0001, 0.0001)));
+            //spheres2.Apply(Transform.Translation(new Point3D(1.000001, 0.000001, 0.000001)));
+            //spheres2.Apply(Transform.Translation(new Point3D(1, 0, 0)));
+            //spheres2.Apply(Transform.Translation(new Point3D(1.05, 0.04, 0.06)));
+            output = output.Difference(spheres2);
             //var output = spheres.Union(cube);
+
+            //var spheres3 = spheres.Clone();
+            //spheres3.Apply(Transform.Translation(new Point3D(0, 1, 0)));
+            //output = output.Difference(spheres3);
+
+            //var spheres4 = spheres.Clone();
+            //spheres4.Apply(Transform.Translation(new Point3D(0, 0, 1)));
+            //output = output.Difference(spheres4);
+
+            //var spheres5 = spheres.Clone();
+            //spheres5.Apply(Transform.Translation(new Point3D(0, 1, 1)));
+            //output = output.Difference(spheres5);
+
 
             TableDisplays.ShowCountSpread("Position normal triangle counts", output.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", output.Positions, p => p.PositionNormals.Count);
@@ -78,7 +93,7 @@ namespace Projects.Projects
             PntFile.Export(output, "Pnt/Sets");
             WavefrontFile.Export(output, "Wavefront/Sets");
             //WavefrontFileGroups.ExportByCluster(output, "Wavefront/Clusters");
-            //WavefrontFile.Export(NormalOverlay(output, 0.01), "Wavefront/Normals");
+            //WavefrontFileGroups.ExportByCluster(output, o => NormalOverlay(o, 0.01), "Wavefront/Normals");
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

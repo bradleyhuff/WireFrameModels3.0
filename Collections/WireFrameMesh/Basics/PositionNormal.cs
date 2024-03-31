@@ -57,11 +57,7 @@ namespace Collections.WireFrameMesh.Basics
         public Vector3D Normal
         {
             get { return _normal; }
-            set
-            {
-                _normal = value;
-                _wasInverted = false;
-            }
+            set { _normal = value; }
         }
 
         public static Ray3D GetRay(PositionNormal element)
@@ -81,20 +77,6 @@ namespace Collections.WireFrameMesh.Basics
             if(PositionObject is null) { return; }
             PositionObject._positionNormals.Remove(this);
             PositionObject = null;
-        }
-
-        private bool _wasInverted = false;
-
-        public void InvertNormal()
-        {
-            if (_wasInverted || _normal is null) { return; }
-            Normal = -Normal;
-            _wasInverted = true;
-        }
-
-        public void CommitInvert()
-        {
-            _wasInverted = false;
         }
 
         public override int GetHashCode()

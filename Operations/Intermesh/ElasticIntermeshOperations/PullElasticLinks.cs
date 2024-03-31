@@ -46,47 +46,51 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 }
             }
 
-            foreach (var elasticTriangle in elasticTriangles)
-            {
-                var segmentPoints = elasticTriangle.Segments.SelectMany(ps => ps.VerticiesAB).ToArray();
+            //int blindPulls = 0;
+            //foreach (var elasticTriangle in elasticTriangles)
+            //{
+            //    var segmentPoints = elasticTriangle.Segments.SelectMany(ps => ps.VerticiesAB).ToArray();
 
-                var notMatchedPointsA = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorA.Point && p.Vertex.Id != elasticTriangle.AnchorA.Id &&
-                    !elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
-                    !elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
+            //    var notMatchedPointsA = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorA.Point && p.Vertex.Id != elasticTriangle.AnchorA.Id &&
+            //        !elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
+            //        !elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
 
-                foreach (var point in notMatchedPointsA)
-                {
-                    point.Vertex.Delink(point);
-                    elasticTriangle.AnchorA.Link(point);
-                }
+            //    foreach (var point in notMatchedPointsA)
+            //    {
+            //        point.Vertex.Delink(point);
+            //        elasticTriangle.AnchorA.Link(point);
+            //        blindPulls++;
+            //    }
 
-                if (notMatchedPointsA.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points A {notMatchedPointsA.Count()}"); }
+            //    if (notMatchedPointsA.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points A {notMatchedPointsA.Count()}"); }
 
-                var notMatchedPointsB = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorB.Point && p.Vertex.Id != elasticTriangle.AnchorB.Id &&
-                    !elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
-                    !elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
+            //    var notMatchedPointsB = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorB.Point && p.Vertex.Id != elasticTriangle.AnchorB.Id &&
+            //        !elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
+            //        !elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
 
-                foreach (var point in notMatchedPointsB)
-                {
-                    point.Vertex.Delink(point);
-                    elasticTriangle.AnchorB.Link(point);
-                }
+            //    foreach (var point in notMatchedPointsB)
+            //    {
+            //        point.Vertex.Delink(point);
+            //        elasticTriangle.AnchorB.Link(point);
+            //        blindPulls++;
+            //    }
 
-                if (notMatchedPointsB.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points B {notMatchedPointsB.Count()}"); }
+            //    if (notMatchedPointsB.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points B {notMatchedPointsB.Count()}"); }
 
-                var notMatchedPointsC = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorC.Point && p.Vertex.Id != elasticTriangle.AnchorC.Id &&
-                    !elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
-                    !elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
+            //    var notMatchedPointsC = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorC.Point && p.Vertex.Id != elasticTriangle.AnchorC.Id &&
+            //        !elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
+            //        !elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
 
-                foreach (var point in notMatchedPointsC)
-                {
-                    point.Vertex.Delink(point);
-                    elasticTriangle.AnchorC.Link(point);
-                }
+            //    foreach (var point in notMatchedPointsC)
+            //    {
+            //        point.Vertex.Delink(point);
+            //        elasticTriangle.AnchorC.Link(point);
+            //        blindPulls++;
+            //    }
 
-                if (notMatchedPointsC.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points C {notMatchedPointsC.Count()}"); }
-            }
-
+            //    if (notMatchedPointsC.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points C {notMatchedPointsC.Count()}"); }
+            //}
+            //Console.WriteLine($"Anchor pulls {pulls} Blind vertex pulls {blindPulls}");
             Console.WriteLine($"Anchor pulls {pulls}");
         }
 

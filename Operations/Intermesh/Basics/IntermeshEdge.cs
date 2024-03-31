@@ -83,10 +83,20 @@ namespace Operations.Intermesh.Basics
 
         internal IEnumerable<IntersectionVertexContainer> GetPerimeterPoints()
         {
-            foreach (var point in GetPerimeterPointsFreePoints().DistinctBy(p => p.Vertex.Id)) { yield return point; }
-            foreach (var point in GetPerimeterPointsLinkedPoints().DistinctBy(p => p.Vertex.Id)) { yield return point; }
+            foreach (var point in GetNearbyPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
+            foreach (var point in GetLinkedPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
         }
-        private IEnumerable<IntersectionVertexContainer> GetPerimeterPointsLinkedPoints()
+
+        internal IEnumerable<IntersectionVertexContainer> GetLinkedPerimeterPoints()
+        {
+            foreach (var point in GetLinkedPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
+        }
+        internal IEnumerable<IntersectionVertexContainer> GetNearbyPerimeterPoints()
+        {
+            foreach (var point in GetNearbyPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
+        }
+
+        private IEnumerable<IntersectionVertexContainer> GetLinkedPerimeterPointsIterate()
         {
             if (_adjacents.Count() < 2) { yield break; }
             var points = _adjacents.SelectMany(t => t.GetIntersectionPoints()).DistinctBy(v => v.Id).ToArray();
@@ -102,7 +112,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private IEnumerable<IntersectionVertexContainer> GetPerimeterPointsFreePoints()
+        private IEnumerable<IntersectionVertexContainer> GetNearbyPerimeterPointsIterate()
         {
             foreach (var triangle in _adjacents)
             {
@@ -110,7 +120,7 @@ namespace Operations.Intermesh.Basics
                 foreach (var point in points.Where(p => p.Vertex is not null && p.Vertex.DivisionContainers.Count() < 2))
                 {
                     var distance = Point3D.Distance(point.Point, Segment.LineExtension.Projection(point.Point));
-                    if (Point3D.Distance(point.Point, Segment.Projection(point.Point)) < 5e-9) { yield return point; }
+                    if (Point3D.Distance(point.Point, Segment.Projection(point.Point)) < 3e-9) { yield return point; }
                 }
             }
         }

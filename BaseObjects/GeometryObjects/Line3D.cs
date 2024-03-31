@@ -25,8 +25,6 @@ namespace BasicObjects.GeometricObjects
             {
                 if (_vector is null)
                 {
-                    //Matricies.Normalize3D(End.X - Start.X, End.Y - Start.Y, End.Z - Start.Z, out double v0, out double v1, out double v2);
-                    //_vector = new Vector3D(v0, v1, v2);
                     _vector = new Vector3D(End.X - Start.X, End.Y - Start.Y, End.Z - Start.Z).Direction;
                 }
                 return _vector;
@@ -111,14 +109,7 @@ namespace BasicObjects.GeometricObjects
 
         public double Distance(Point3D p)
         {
-            Vector3D vector = Vector;
-            if (vector.Magnitude < E.Double.DifferenceError) { return double.PositiveInfinity; }
-            Point3D start = Start;
-            double distance = vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z;
-            double α = (vector.X * (p.X - start.X) + vector.Y * (p.Y - start.Y) + vector.Z * (p.Z - start.Z)) /
-                distance;
-
-            return System.Math.Abs(α) * System.Math.Sqrt(distance);
+            return Point3D.Distance(p, Projection(p));
         }
 
         public bool PointIsOnLine(Point3D point, double error = E.Double.DifferenceError)
@@ -236,11 +227,8 @@ namespace BasicObjects.GeometricObjects
 
         private static Point3D MidPointIntersection(Point3D aStart, Vector3D aVector, Point3D bStart, Vector3D bVector, out double gap)
         {
-            // cross of lines a and b
-
             var aVectorNormal = aVector.Direction;
             var bVectorNormal = bVector.Direction;
-            //Matricies.Cross3D(aVectorNormal.X, aVectorNormal.Y, aVectorNormal.Z, bVectorNormal.X, bVectorNormal.Y, bVectorNormal.Z, out double c0, out double c1, out double c2);
             var direction = Vector3D.Cross(aVectorNormal, bVectorNormal);
 
             if (E.Double.IsZero(direction.X) && E.Double.IsZero(direction.Y) && E.Double.IsZero(direction.Z)) { gap = double.NaN; return null; }

@@ -266,19 +266,17 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
-        public void InvertNormals()
-        {
-            A.InvertNormal();
-            B.InvertNormal();
-            C.InvertNormal();
-        }
 
-        public void AddWireFrameTriangle(IWireFrameMesh mesh)
+        public void ExportWithCenterNormal(IWireFrameMesh mesh)
         {
             var a = mesh.AddPointNoRow(A.Position, A.Normal);
             var b = mesh.AddPointNoRow(B.Position, B.Normal);
             var c = mesh.AddPointNoRow(C.Position, C.Normal);
             new PositionTriangle(a, b, c);
+            var center = mesh.AddPointNoRow(Triangle.Center, Vector3D.Zero);
+            var normalMiddle = mesh.AddPointNoRow(Triangle.Center + 0.005 * Triangle.Normal.Direction, Vector3D.Zero);
+            var normalEnd = mesh.AddPointNoRow(Triangle.Center + 0.01 * Triangle.Normal.Direction, Vector3D.Zero);
+            new PositionTriangle(center, normalMiddle, normalEnd);
         }
     }
 }

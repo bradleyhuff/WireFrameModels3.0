@@ -1,4 +1,6 @@
 ﻿
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using FileExportImport;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Operations.PlanarFilling.Filling;
@@ -177,6 +179,11 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             catch (Exception e)
             {
                 Console.WriteLine($"Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+
+                var test = WireFrameMesh.CreateMesh();
+                triangle.ExportWithSegments(test);
+                WavefrontFile.ErrorExport(test, $"Wavefront/ChainingError-{triangle.Id}");
+
                 LoopError++;
                 yield break;
             }
@@ -192,6 +199,11 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 catch (Exception e)
                 {
                     Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+
+                    var test = WireFrameMesh.CreateMesh();
+                    triangle.ExportWithSegments(test);
+                    WavefrontFile.ErrorExport(test, $"Wavefront/SpurChainingError-{triangle.Id}");
+
                     SpurredLoopError++;
                     yield break;
                 }

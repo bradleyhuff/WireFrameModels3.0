@@ -27,6 +27,21 @@ namespace FileExportImport
             Console.WriteLine($"Elapsed time: {(end - start).TotalMilliseconds.ToString("#,##0")} milliseconds. File size: {info.DisplayFileSize()}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
         }
+
+        public static void ErrorExport(IWireFrameMesh mesh, string fileName)
+        {
+            DateTime start = DateTime.Now;
+            fileName = $"{fileName}.obj";
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+            FileWrite(mesh, fileName);
+            DateTime end = DateTime.Now;
+            FileInfo info = new FileInfo(fileName);
+            Console.WriteLine($"Exported .OBJ Wavefront File: {fileName}", ConsoleColor.Magenta, ConsoleColor.DarkRed);
+            Console.WriteLine($"Positions: {mesh.Positions.Count.ToString("#,##0")} PositionNormals: {mesh.Positions.Sum(p => p.PositionNormals.Count)} Triangles: {mesh.Triangles.Count.ToString("#,##0")}", ConsoleColor.Magenta, ConsoleColor.DarkRed);
+            Console.WriteLine($"Elapsed time: {(end - start).TotalMilliseconds.ToString("#,##0")} milliseconds. File size: {info.DisplayFileSize()}", ConsoleColor.Magenta, ConsoleColor.DarkRed);
+            Console.WriteLine();
+        }
+
         private static void FileWrite(IWireFrameMesh mesh, string fileName)
         {
             using (StreamWriter file = new StreamWriter(fileName))

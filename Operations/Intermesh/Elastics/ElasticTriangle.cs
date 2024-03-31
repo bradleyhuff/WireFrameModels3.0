@@ -10,10 +10,12 @@ namespace Operations.Intermesh.Elastics
     internal class ElasticTriangle
     {
         private static int _id = 0;
-        public ElasticTriangle(ElasticVertexAnchor anchorA, Vector3D normalA, ElasticVertexAnchor anchorB, Vector3D normalB, ElasticVertexAnchor anchorC, Vector3D normalC,
+        public ElasticTriangle(IntermeshTriangle triangle, ElasticVertexAnchor anchorA, Vector3D normalA, ElasticVertexAnchor anchorB, Vector3D normalB, ElasticVertexAnchor anchorC, Vector3D normalC,
             ElasticEdge perimeterEdgeAB, ElasticEdge perimeterEdgeBC, ElasticEdge perimeterEdgeCA, string trace)
         {
             Id = _id++;
+
+            Triangle = triangle;
 
             AnchorA = anchorA;
             AnchorB = anchorB;
@@ -38,6 +40,8 @@ namespace Operations.Intermesh.Elastics
 
         public int Id { get; }
         public string Trace { get; }
+
+        public IntermeshTriangle Triangle { get; }
 
         public SurfaceTriangle SurfaceTriangle { get; }
 

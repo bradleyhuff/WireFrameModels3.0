@@ -1,5 +1,4 @@
 ﻿using BasicObjects.GeometricObjects;
-using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Basics;
 using Operations.Regions;
@@ -51,7 +50,7 @@ namespace Operations.SetOperators
             var includedGroupGrids = new List<(int Id, IWireFrameMesh Grid)>();
             foreach (var groupGrid in groupGrids)
             {
-                var testPoint = GetInternalTestPoint(groupGrid.Grid);
+                var testPoint = GetTestPoint(groupGrid.Grid);
                 var spaceARegion = Region.OnBoundary;
                 var spaceBRegion = Region.OnBoundary;
                 var trace = groupGrid.Grid.Triangles.First().Trace;
@@ -65,14 +64,33 @@ namespace Operations.SetOperators
             }
 
             var resultShell = new Space(includedGroupGrids.SelectMany(t => t.Grid.Triangles.Select(t => t.Triangle)).ToArray());
+            var inverted = new Dictionary<int, bool>();
             foreach (var group in includedGroupGrids)
             {
-                var testRay = GetInternalTestRay(group.Grid);
-                var interiorTestPoint = testRay.Point + -1e-4 * testRay.Normal.Direction;
+                var interiorTestPoint = GetInternalTestPoint(group.Grid);
                 var region = resultShell.RegionOfPoint(interiorTestPoint);
                 if (region == Region.Exterior)
                 {
-                    foreach (var triangle in group.Grid.Triangles) { triangle.InvertNormals(); } //Console.WriteLine("Group invert.");
+                    foreach (var triangle in group.Grid.Triangles)
+                    {
+                        if (!inverted.ContainsKey(triangle.A.Id))
+                        {
+                            triangle.A.Normal = -triangle.A.Normal;
+                            inverted[triangle.A.Id] = true;
+                        }
+                        
+                        if (!inverted.ContainsKey(triangle.B.Id))
+                        {
+                            triangle.B.Normal = -triangle.B.Normal;
+                            inverted[triangle.B.Id] = true;
+                        }
+                        
+                        if (!inverted.ContainsKey(triangle.C.Id))
+                        {
+                            triangle.C.Normal = -triangle.C.Normal;
+                            inverted[triangle.C.Id] = true;
+                        }                        
+                    }
                 }
             }
             result = result.CreateNewInstance();
@@ -82,18 +100,18 @@ namespace Operations.SetOperators
             return result;
         }
 
-        private static Point3D GetInternalTestPoint(IWireFrameMesh mesh)
+        private static Point3D GetTestPoint(IWireFrameMesh mesh)
         {
-            var internalTriangle = mesh.Triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).FirstOrDefault() ?? mesh.Triangles.First();
+            var internalTriangle = mesh.Triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
             return internalTriangle.Triangle.Center;
         }
 
-        private static Ray3D GetInternalTestRay(IWireFrameMesh mesh)
+        private static Point3D GetInternalTestPoint(IWireFrameMesh mesh)
         {
-            var internalTriangle = mesh.Triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).FirstOrDefault() ?? mesh.Triangles.First();
-            var c = internalTriangle.Triangle.GetBarycentricCoordinate(internalTriangle.Triangle.Center);
-            Vector3D normal = (c.λ1 * internalTriangle.A.Normal + c.λ2 * internalTriangle.B.Normal + c.λ3 * internalTriangle.C.Normal).Direction;
-            return new Ray3D(internalTriangle.Triangle.Center, normal);
+            var triangle = mesh.Triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
+
+            var direction = Vector3D.Average([triangle.A.Normal, triangle.B.Normal, triangle.C.Normal]);
+            return triangle.Triangle.Center + -1e-4 * direction;
         }
     }
 }

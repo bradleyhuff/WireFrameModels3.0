@@ -1,9 +1,11 @@
-﻿using BasicObjects.MathExtensions;
+﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Console = BaseObjects.Console;
+using Double = BasicObjects.Math.Double;
 
 namespace Operations.Intermesh.ElasticIntermeshOperations
 {
@@ -134,7 +136,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 var edgeAB = GetPerimeterEdge(anchors[0], anchors[1], edgeTable);
                 var edgeBC = GetPerimeterEdge(anchors[1], anchors[2], edgeTable);
                 var edgeCA = GetPerimeterEdge(anchors[2], anchors[0], edgeTable);
-                triangleTable[triangle.Id] = new ElasticTriangle(
+                triangleTable[triangle.Id] = new ElasticTriangle(triangle,
                     anchors[0], triangle.A.Normal, anchors[1], triangle.B.Normal, anchors[2], triangle.C.Normal,
                     edgeAB, edgeBC, edgeCA, triangle.Trace);
             }
@@ -174,39 +176,93 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             {
                 var elasticTriangle = triangleTable[triangle.Id];
 
+                var elasticPerimeterVerticiesAB = SetPerimeterPoints(triangle.EdgeAB.GetPerimeterPoints().Select(c => c.Vertex), containerTable).ToList();
+                var elasticPerimeterVerticiesBC = SetPerimeterPoints(triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex), containerTable).ToList();
+                var elasticPerimeterVerticiesCA = SetPerimeterPoints(triangle.EdgeCA.GetPerimeterPoints().Select(c => c.Vertex), containerTable).ToList();
+
                 var lineAB = elasticTriangle.SurfaceTriangle.Triangle.EdgeAB.LineExtension;
                 var lineBC = elasticTriangle.SurfaceTriangle.Triangle.EdgeBC.LineExtension;
                 var lineCA = elasticTriangle.SurfaceTriangle.Triangle.EdgeCA.LineExtension;
 
-                var collinearsAB = elasticTriangle.Segments.Where(s => lineAB.SegmentIsOnLine(s.Segment, 3e-9)).ToArray();
-                var collinearsBC = elasticTriangle.Segments.Where(s => lineBC.SegmentIsOnLine(s.Segment, 3e-9)).ToArray();
-                var collinearsCA = elasticTriangle.Segments.Where(s => lineCA.SegmentIsOnLine(s.Segment, 3e-9)).ToArray();
+                var collinearsAB = elasticTriangle.Segments.Where(s => lineAB.SegmentIsOnLine(s.Segment, 5e-9)).ToArray();
+                var collinearsBC = elasticTriangle.Segments.Where(s => lineBC.SegmentIsOnLine(s.Segment, 5e-9)).ToArray();
+                var collinearsCA = elasticTriangle.Segments.Where(s => lineCA.SegmentIsOnLine(s.Segment, 5e-9)).ToArray();
 
-                var perimeterABsegments = elasticTriangle.PerimeterEdgeAB.Segments.Concat(collinearsAB).DistinctBy(s => s.Id).ToArray();
-                var perimeterBCsegments = elasticTriangle.PerimeterEdgeBC.Segments.Concat(collinearsBC).DistinctBy(s => s.Id).ToArray();
-                var perimeterCAsegments = elasticTriangle.PerimeterEdgeCA.Segments.Concat(collinearsCA).DistinctBy(s => s.Id).ToArray();
+                var perimeterABsegments = elasticTriangle.PerimeterEdgeAB.Segments.ToList();
+                var perimeterBCsegments = elasticTriangle.PerimeterEdgeBC.Segments.ToList();
+                var perimeterCAsegments = elasticTriangle.PerimeterEdgeCA.Segments.ToList();
 
-                var intermeshPerimeterVerticiesAB = triangle.EdgeAB.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
-                var intermeshPerimeterVerticiesBC = triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
-                var intermeshPerimeterVerticiesCA = triangle.EdgeCA.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
+                var collinears = collinearsAB.Concat(collinearsBC).Concat(collinearsCA).DistinctBy(s => s.Id).ToArray();
+                foreach (var collinear in collinears)
+                {
+                    var nearestLineA = NearestLine(collinear.VertexA.Point, lineAB, lineBC, lineCA);
+                    var nearestLineB = NearestLine(collinear.VertexB.Point, lineAB, lineBC, lineCA);
 
-                var elasticPerimeterVerticiesAB = SetPerimeterPoints(intermeshPerimeterVerticiesAB, containerTable).ToArray();
-                var elasticPerimeterVerticiesBC = SetPerimeterPoints(intermeshPerimeterVerticiesBC, containerTable).ToArray();
-                var elasticPerimeterVerticiesCA = SetPerimeterPoints(intermeshPerimeterVerticiesCA, containerTable).ToArray();
+                    if (LineCheck.HasAB(nearestLineA) && LineCheck.HasAB(nearestLineB)) { perimeterABsegments.Add(collinear); }
+                    if (LineCheck.HasBC(nearestLineA) && LineCheck.HasBC(nearestLineB)) { perimeterBCsegments.Add(collinear); }
+                    if (LineCheck.HasCA(nearestLineA) && LineCheck.HasCA(nearestLineB)) { perimeterCAsegments.Add(collinear); }
+
+                    if (LineCheck.HasAB(nearestLineA)) { elasticPerimeterVerticiesAB.Add(collinear.VertexA.Vertex); }
+                    if (LineCheck.HasBC(nearestLineA)) { elasticPerimeterVerticiesBC.Add(collinear.VertexA.Vertex); }
+                    if (LineCheck.HasCA(nearestLineA)) { elasticPerimeterVerticiesCA.Add(collinear.VertexA.Vertex); }
+
+                    if (LineCheck.HasAB(nearestLineB)) { elasticPerimeterVerticiesAB.Add(collinear.VertexB.Vertex); }
+                    if (LineCheck.HasBC(nearestLineB)) { elasticPerimeterVerticiesBC.Add(collinear.VertexB.Vertex); }
+                    if (LineCheck.HasCA(nearestLineB)) { elasticPerimeterVerticiesCA.Add(collinear.VertexB.Vertex); }
+
+                }
 
                 var perimetersAB = elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Concat(elasticPerimeterVerticiesAB).DistinctBy(p => p.Id);
                 var perimetersBC = elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Concat(elasticPerimeterVerticiesBC).DistinctBy(p => p.Id);
                 var perimetersCA = elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Concat(elasticPerimeterVerticiesCA).DistinctBy(p => p.Id);
 
-                var exclusiveA = triangle.AexclusiveVerticies;
-                var exclusiveB = triangle.BexclusiveVerticies;
-                var exclusiveC = triangle.CexclusiveVerticies;
-
                 elasticTriangle.PerimeterEdgeAB.SetPerimeterPoints(perimetersAB, perimeterABsegments);
                 elasticTriangle.PerimeterEdgeBC.SetPerimeterPoints(perimetersBC, perimeterBCsegments);
                 elasticTriangle.PerimeterEdgeCA.SetPerimeterPoints(perimetersCA, perimeterCAsegments);
-
             }
+        }
+
+        private enum Line
+        {
+            LineAB,
+            LineBC,
+            LineCA,
+            LineABBC,
+            LineABCA,
+            LineBCCA
+        }
+        private static class LineCheck
+        {
+            public static bool HasAB(Line line)
+            {
+                return line == Line.LineAB || line == Line.LineABBC || line == Line.LineABCA;
+            }
+            public static bool HasBC(Line line)
+            {
+                return line == Line.LineBC || line == Line.LineABBC || line == Line.LineBCCA;
+            }
+            public static bool HasCA(Line line)
+            {
+                return line == Line.LineCA || line == Line.LineBCCA || line == Line.LineABCA;
+            }
+        }
+
+        private static Line NearestLine(Point3D point, Line3D lineAB, Line3D lineBC, Line3D lineCA)
+        {
+            double distanceAB = lineAB.Distance(point);
+            double distanceBC = lineBC.Distance(point);
+            double distanceCA = lineCA.Distance(point);
+            if (distanceAB < Double.DifferenceError && distanceBC < Double.DifferenceError && distanceCA < Double.DifferenceError) {
+                throw new InvalidOperationException($"Invalid distance matches.");
+            }
+            if (distanceAB < Double.DifferenceError && distanceBC < Double.DifferenceError) { return Line.LineABBC; }
+            if (distanceAB < Double.DifferenceError && distanceCA < Double.DifferenceError) { return Line.LineABCA; }
+            if (distanceBC < Double.DifferenceError && distanceCA < Double.DifferenceError) { return Line.LineBCCA; }
+
+            if (distanceAB < distanceBC && distanceAB < distanceCA) { return Line.LineAB; }
+            if (distanceBC < distanceAB && distanceBC < distanceCA) { return Line.LineBC; }
+            if (distanceCA < distanceAB && distanceCA < distanceBC) { return Line.LineCA; }
+            throw new InvalidOperationException($"Invalid distance matches.");
         }
 
         private static IEnumerable<ElasticVertexCore> SetPerimeterPoints(IEnumerable<VertexCore> input, Dictionary<int, ElasticVertexContainer> containerTable)

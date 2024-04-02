@@ -37,7 +37,6 @@ namespace BasicObjects.GeometricObjects
 
         public static double Dot(Vector3D a, Vector3D b)
         {
-            //return Matricies.Dot3D(a.X, a.Y, a.Z, b.X, b.Y, b.Z);
             return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
         }
         public static Vector3D Cross(Vector3D a, Vector3D b)
@@ -46,18 +45,12 @@ namespace BasicObjects.GeometricObjects
         }
         public static Vector3D Cross(double aX, double aY, double aZ, double bX, double bY, double bZ)
         {
-            //Matricies.Cross3D(a.X, a.Y, a.Z, b.X, b.Y, b.Z, out double c0, out double c1, out double c2);
-            //return new Vector3D(c0, c1, c2);
             return new Vector3D(
                 aY * bZ - aZ * bY,
                 aZ * bX - aX * bZ,
                 aX * bY - aY * bX
                 );
         }
-
-        //            c0 = a1 * b2 - a2 * b1;
-        //            c1 = a2 * b0 - a0 * b2;
-        //            c2 = a0 * b1 - a1 * b0;
 
         public static Vector3D Average(IEnumerable<Vector3D> source)
         {
@@ -138,6 +131,11 @@ namespace BasicObjects.GeometricObjects
             var cross = Cross(b, a);
             var dot = Dot(cross, n);
             var sign = System.Math.Sign(dot);
+            if (sign == 0)
+            {
+                if (System.Math.Sign(Dot(a, b)) == 1) { return 0; }
+                return System.Math.PI;
+            }
             return sign * angle;
         }
     }

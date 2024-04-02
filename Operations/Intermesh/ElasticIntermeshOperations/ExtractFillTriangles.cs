@@ -180,13 +180,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             catch (ChainingException<int> e)
             {
                 Console.WriteLine($"Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-                {
-                    var test = WireFrameMesh.CreateMesh();
-                    triangle.ExportWithSegments(test);
-                    WavefrontFile.ErrorExport(test, $"Wavefront/ChainingError-{triangle.Id}");
-                }
-
-                WavefrontFileChaining.Export(e, $"Wavefront/ChainingError-{triangle.Id}");
+                WavefrontFileChaining.Export(triangle, e, $"Wavefront/SurfaceChainingError");
                 LoopError++;
                 yield break;
             }

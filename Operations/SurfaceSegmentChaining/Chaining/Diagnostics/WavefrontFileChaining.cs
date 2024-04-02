@@ -1,14 +1,21 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
+using Operations.Intermesh.Elastics;
 
 namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
 {
     internal static class WavefrontFileChaining
     {
-        public static void Export<T>(ChainingException<T> e, string fileName, double height = 0.01)
+        public static void Export<T>(ElasticTriangle triangle, ChainingException<T> e, string fileName, double height = 0.01)
         {
-            foreach(var record in e.Logs.Select((r, i) => new { Value = r, Index = i }))
+            {
+                var mesh = WireFrameMesh.CreateMesh();
+                triangle.ExportWithSegments(mesh);
+                WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}");
+            }
+
+            foreach (var record in e.Logs.Select((r, i) => new { Value = r, Index = i }))
             {
                 {
                     var mesh = WireFrameMesh.CreateMesh();
@@ -29,7 +36,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                     }
                     mesh.EndRow();
                     mesh.EndGrid();
-                    WavefrontFile.ErrorExport(mesh, $"{fileName}/Chains-Start-{record.Index} ");
+                    WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/Chains-Start-{record.Index} ");
                 }
                 {
                     var mesh = WireFrameMesh.CreateMesh();
@@ -61,7 +68,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                         mesh.EndGrid();
                     }
 
-                    WavefrontFile.ErrorExport(mesh, $"{fileName}/Chains-Loop-{record.Index} ");
+                    WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/Chains-Loop-{record.Index} ");
                 }
             }
         }

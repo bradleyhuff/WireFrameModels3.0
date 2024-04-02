@@ -394,6 +394,12 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 }
             }
 
+            if(minOption.Key == maxOption.Key)
+            {
+                _loggingElements.Add(_loggingElement);
+                throw new ChainingException<T>($"Forward link options are matching. {minOption.Key}", _loggingElements, _referenceArray);
+            }
+
             leftMostLink = maxOption;
             rightMostLink = minOption;
         }

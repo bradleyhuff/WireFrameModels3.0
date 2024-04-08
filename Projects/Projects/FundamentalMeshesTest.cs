@@ -112,11 +112,7 @@ namespace Projects.Projects
 
             foreach(var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
             {
-                var pointA = output.AddPointNoRow(positionNormal.Position, Vector3D.Zero);
-                var pointB = output.AddPointNoRow(positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero);
-                var pointC = output.AddPointNoRow(positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
-                new PositionTriangle(pointA, pointB, pointC);
-
+                output.AddTriangle(positionNormal.Position, Vector3D.Zero, positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero, positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
             }
 
             return output;

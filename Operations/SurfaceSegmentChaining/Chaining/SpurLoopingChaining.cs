@@ -3,6 +3,7 @@ using BasicObjects.MathExtensions;
 using Operations.Intermesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Basics.Abstractions;
+using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
 using Operations.SurfaceSegmentChaining.Chaining.Extensions;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
@@ -12,14 +13,25 @@ namespace Operations.SurfaceSegmentChaining.Chaining
     {
         public static ISurfaceSegmentChaining<G, T> Create(ISurfaceSegmentChaining<G, T> input)
         {
-            return new SpurLoopingChaining<G, T>(input);
+            var chaining = new SpurLoopingChaining<G, T>();
+            try
+            {                
+                chaining.Run(input);
+                return chaining;
+            }
+            catch (ChainingException<T> e)
+            {
+                throw new SpurLoopChainingException<G, T>(e.Message, chaining._spurConnectingSegments, input);
+            }
         }
 
-        protected SpurLoopingChaining(ISurfaceSegmentChaining<G, T> input) : base(input.ReferenceArray, GetLinkedIndexSurfaceSegments(input))
+        protected void Run(ISurfaceSegmentChaining<G, T> input)
         {
+            var linkedSegments = GetLinkedIndexSurfaceSegments(input);
+            base.Run(input.ReferenceArray, linkedSegments);
         }
 
-        private static List<LinkedIndexSurfaceSegment<G, T>> GetLinkedIndexSurfaceSegments(ISurfaceSegmentChaining<G, T> input)
+        private List<LinkedIndexSurfaceSegment<G, T>> GetLinkedIndexSurfaceSegments(ISurfaceSegmentChaining<G, T> input)
         {
             var output = SpurChaining.PullSegments(input).ToList();
 
@@ -40,19 +52,13 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             EndPointToLoopPointsTests(spurEndpoints, spurEndpointTable, ref addedSegments, ref addedLineSegments);
             EndPointToSpurPointsTests(spurEndpoints, ref addedSegments, ref addedLineSegments);
 
-            //if (ShowSpurChainingSegments)
-            //{
-            //    var testMesh = WireFrameMeshFactory.Create();
-            //    Debugging.ShowDividingSegments(addedLineSegments, input.PerimeterLoopGroupObjects.First().Plane.Normal, testMesh);
-            //    Wavefront.Export(testMesh, $"Wavefront/SpurChainingSegments");
-            //}
-
             output.AddRange(addedSegments);
+            _spurConnectingSegments = addedSegments;
 
             return output;
         }
 
-        public static bool ShowSpurChainingSegments { get; set; }
+        private List<LinkedIndexSurfaceSegment<G, T>> _spurConnectingSegments;
 
         private static void EndPointToEndPointTests(IEnumerable<SpurEndpoint<G, InternalLoopSegment, SpurEndpointStatus, T>> spurEndpoints, ref List<LinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
         {

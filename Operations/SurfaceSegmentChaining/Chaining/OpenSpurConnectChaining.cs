@@ -13,14 +13,18 @@ namespace Operations.SurfaceSegmentChaining.Chaining
     {
         public static ISurfaceSegmentChaining<G, T> Create(ISurfaceSegmentChaining<G, T> input)
         {
-            return new OpenSpurConnectChaining<G, T>(input);
+            var chaining = new OpenSpurConnectChaining<G, T>();
+            chaining.Run(input);
+            return chaining;
         }
 
-        protected OpenSpurConnectChaining(ISurfaceSegmentChaining<G, T> input) : base(input.ReferenceArray, GetLinkedIndexSurfaceSegments(input))
+        protected void Run(ISurfaceSegmentChaining<G, T> input)
         {
+            var linkedSegments = GetLinkedIndexSurfaceSegments(input);
+            base.Run(input.ReferenceArray, linkedSegments);
         }
 
-        private static List<LinkedIndexSurfaceSegment<G, T>> GetLinkedIndexSurfaceSegments(ISurfaceSegmentChaining<G, T> input)
+        private List<LinkedIndexSurfaceSegment<G, T>> GetLinkedIndexSurfaceSegments(ISurfaceSegmentChaining<G, T> input)
         {
             var output = SpurChaining.PullSegments(input).ToList();
 
@@ -42,19 +46,10 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             NearestLoopPointConnectionTests(openSpurs, testLoops, ref addedSegments, ref addedLineSegments);
             ConnectedOpenSpurToNearestOpenSpurConnectionTests(openSpurs, ref addedSegments, ref addedLineSegments);
 
-            //if (ShowSpurChainingSegments)
-            //{
-            //    var testMesh = WireFrameMeshFactory.Create();
-            //    Debugging.ShowDividingSegments(addedLineSegments, input.PerimeterLoopGroupObjects.First().Plane.Normal, testMesh);
-            //    Wavefront.Export(testMesh, $"Wavefront/OpenSpurChainingSegments");
-            //}
-
             output.AddRange(addedSegments);
 
             return output;
         }
-
-        public static bool ShowSpurChainingSegments { get; set; }
 
         private static void NearestLoopPointConnectionTests(List<OpenSpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> openSpurEndpoints, List<int[]> indexLoops, ref List<LinkedIndexSurfaceSegment<G, T>> output, ref List<LineSegment3D> addedLineSegments)
         {

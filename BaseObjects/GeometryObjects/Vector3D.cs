@@ -126,8 +126,6 @@ namespace BasicObjects.GeometricObjects
         public static double SignedAngle(Vector3D n, Vector3D a, Vector3D b)
         {
             var angle = Angle(a, b);
-            if (E.Double.IsEqual(angle, 0, E.Double.RadianDifferenceError)) { return 0; }
-            if (E.Double.IsEqual(angle, System.Math.PI, E.Double.RadianDifferenceError)) { return System.Math.PI; }
             var cross = Cross(b, a);
             var dot = Dot(cross, n);
             var sign = System.Math.Sign(dot);

@@ -83,7 +83,6 @@ namespace Operations.Intermesh.Basics
 
         internal IEnumerable<IntersectionVertexContainer> GetPerimeterPoints()
         {
-            foreach (var point in GetNearbyPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
             foreach (var point in GetLinkedPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
         }
 
@@ -91,11 +90,6 @@ namespace Operations.Intermesh.Basics
         {
             foreach (var point in GetLinkedPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
         }
-        internal IEnumerable<IntersectionVertexContainer> GetNearbyPerimeterPoints()
-        {
-            foreach (var point in GetNearbyPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
-        }
-
         private IEnumerable<IntersectionVertexContainer> GetLinkedPerimeterPointsIterate()
         {
             if (_adjacents.Count() < 2) { yield break; }
@@ -109,19 +103,6 @@ namespace Operations.Intermesh.Basics
 
                 var qualifyingAdjacents = _adjacents.Intersect(allAdjacents).DistinctBy(t => t.Id);
                 if (qualifyingAdjacents.Count() > 1) { yield return point; }
-            }
-        }
-
-        private IEnumerable<IntersectionVertexContainer> GetNearbyPerimeterPointsIterate()
-        {
-            foreach (var triangle in _adjacents)
-            {
-                var points = triangle.GetIntersectionPoints().DistinctBy(v => v.Id);
-                foreach (var point in points.Where(p => p.Vertex is not null && p.Vertex.DivisionContainers.Count() < 2))
-                {
-                    var distance = Point3D.Distance(point.Point, Segment.LineExtension.Projection(point.Point));
-                    if (Point3D.Distance(point.Point, Segment.Projection(point.Point)) < 3e-9) { yield return point; }
-                }
             }
         }
     }

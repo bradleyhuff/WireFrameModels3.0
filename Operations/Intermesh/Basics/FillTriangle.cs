@@ -46,10 +46,7 @@ namespace Operations.Intermesh.Basics
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            var a = mesh.AddPointNoRow(PointA.Point, NormalA);
-            var b = mesh.AddPointNoRow(PointB.Point, NormalB);
-            var c = mesh.AddPointNoRow(PointC.Point, NormalC);
-            new PositionTriangle(a, b, c, Trace);
+            mesh.AddTriangle(PointA.Point, NormalA, PointB.Point, NormalB, PointC.Point, NormalC, Trace);
         }
     }
 }

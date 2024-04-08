@@ -28,16 +28,18 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
         internal static ISurfaceSegmentChaining<G, T> Create(ISurfaceSegmentCollections<G, T> collections)
         {
-            return new SurfaceSegmentChaining<G, T>(collections);
+            var linkedSegments = ProtectedLinkedIndexSegments<G, T>.Create<InternalProtectedLinkedIndexSegments>(collections.ProtectedLinkedIndexSegments).
+                GetLinkedIndexSegments().Where(l => l.IndexPointA != l.IndexPointB).
+                Select(l => new LinkedIndexSurfaceSegment<G, T>(l.GroupKey, l.GroupObject, l.IndexPointA, l.IndexPointB, l.Rank)).ToList();
+
+            var chaining = new SurfaceSegmentChaining<G, T>();
+            chaining.Run(collections.ReferenceArray, linkedSegments);
+            return chaining;
         }
 
-        private SurfaceSegmentChaining(ISurfaceSegmentCollections<G, T> collections) : this(collections.ReferenceArray,
-            ProtectedLinkedIndexSegments<G, T>.Create<InternalProtectedLinkedIndexSegments>(collections.ProtectedLinkedIndexSegments).
-            GetLinkedIndexSegments().Where(l => l.IndexPointA != l.IndexPointB).
-            Select(l => new LinkedIndexSurfaceSegment<G, T>(l.GroupKey, l.GroupObject, l.IndexPointA, l.IndexPointB, l.Rank)).ToList())
-        { }
+        protected SurfaceSegmentChaining() { }
 
-        internal SurfaceSegmentChaining(IReadOnlyList<SurfaceRayContainer<T>> referenceArray, List<LinkedIndexSurfaceSegment<G, T>> linkedSegments)
+        protected virtual void Run(IReadOnlyList<SurfaceRayContainer<T>> referenceArray, List<LinkedIndexSurfaceSegment<G, T>> linkedSegments)
         {
             _referenceArray = referenceArray;
             _linkedSegments = linkedSegments;
@@ -46,7 +48,6 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             BuildAssociationTable(_virtualLinkedSegments);
             BuildLinks();
             _linkedSegments.AddRange(_virtualLinkedSegments);
-            SetJunctionAngles();
 
             PullFromPerimeters();
             PullFromJunctions();
@@ -324,10 +325,9 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             if (forwardLinks.Count() > 1)
             {
                 Traversal nextTraversal = traversal;
-                LinkedIndexSurfaceSegment<G, T> leftMostLink = null;
-                LinkedIndexSurfaceSegment<G, T> rightMostLink = null;
 
-                GetDirectionalLinks(currentPoint, currentSegment, forwardLinks, out leftMostLink, out rightMostLink);
+                GetDirectionalLinks(currentPoint, currentSegment, forwardLinks,
+                    out LinkedIndexSurfaceSegment<G, T> leftMostLink, out LinkedIndexSurfaceSegment<G, T> rightMostLink);
                 var leftLinkTraversed = currentSegment.WasTraversed(leftMostLink);
                 var rightLinkTraversed = currentSegment.WasTraversed(rightMostLink);
 
@@ -375,11 +375,23 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             double minAngle = 2 * Math.PI;
             double maxAngle = 0;
 
-            double controlAngle = current.GetJunctionAngleAtIndex(currentPoint) ?? 0;
+            Ray3D head = _referenceArray.ElementAtOrDefault(currentPoint) ?? _virtualPoints[currentPoint];
+            Plane plane = new Plane(head);
+            Point3D headPoint = head.Point;
+            int tailIndex = current.Opposite(currentPoint);
+            Ray3D tail = _referenceArray.ElementAtOrDefault(tailIndex) ?? _virtualPoints[tailIndex];
+            Point3D tailPoint = plane.Projection(tail.Point);
+            Vector3D tailDirection = (tailPoint - headPoint).Direction;
 
             foreach (var forwardLink in forwardLinks)
             {
-                var angle = (forwardLink.GetJunctionAngleAtIndex(currentPoint) ?? 0) - controlAngle;
+                var forwardLinkIndex = forwardLink.Opposite(currentPoint);
+                Ray3D link = _referenceArray.ElementAtOrDefault(forwardLinkIndex) ?? _virtualPoints[forwardLinkIndex];
+                Point3D linkPoint = plane.Projection(link.Point);
+                Vector3D linkDirection = (linkPoint - headPoint).Direction;
+
+                var angle = Vector3D.SignedAngle(head.Normal, tailDirection, linkDirection);
+
                 if (angle < 0) { angle += 2 * Math.PI; }
 
                 if (angle < minAngle)
@@ -394,7 +406,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 }
             }
 
-            if(minOption.Key == maxOption.Key)
+            if (minOption.Key == maxOption.Key)
             {
                 _loggingElements.Add(_loggingElement);
                 throw new ChainingException<T>($"Forward link options are matching. {minOption.Key}", _loggingElements, _referenceArray);
@@ -402,35 +414,6 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
             leftMostLink = maxOption;
             rightMostLink = minOption;
-        }
-
-        private void SetJunctionAngles()
-        {
-            foreach (var segment in _linkedSegments)
-            {
-                if (segment.LinksA.Count > 1 && segment.JunctionAngleA is null)
-                {
-                    var trailingLinkIndicies = segment.LinksA.Select(l => GetOppositeIndex(l, segment.IndexPointA)).ToArray();
-                    var angles = CalculateLinkAngles(segment.IndexPointA, segment.IndexPointB, trailingLinkIndicies).ToArray();
-
-                    for (int i = 0; i < segment.LinksA.Count; i++)
-                    {
-                        SetJunctionAngle(segment.LinksA[i], angles[i], segment.IndexPointA);
-                    }
-                    segment.JunctionAngleA = 0;
-                }
-                if (segment.LinksB.Count > 1 && segment.JunctionAngleB is null)
-                {
-                    var trailingLinkIndicies = segment.LinksB.Select(l => GetOppositeIndex(l, segment.IndexPointB)).ToArray();
-                    var angles = CalculateLinkAngles(segment.IndexPointB, segment.IndexPointA, trailingLinkIndicies).ToArray();
-
-                    for (int i = 0; i < segment.LinksB.Count; i++)
-                    {
-                        SetJunctionAngle(segment.LinksB[i], angles[i], segment.IndexPointB);
-                    }
-                    segment.JunctionAngleB = 0;
-                }
-            }
         }
 
         private int GetOppositeIndex(LinkedIndexSurfaceSegment<G, T> link, int headIndex)
@@ -445,41 +428,6 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
             _loggingElements.Add(_loggingElement);
             throw new ChainingException<T>($"Opposite index of {headIndex} was not found.", _loggingElements, _referenceArray);
-        }
-
-        private void SetJunctionAngle(LinkedIndexSurfaceSegment<G, T> link, double angle, int headIndex)
-        {
-            if (link.IndexPointA == headIndex)
-            {
-                if (link.JunctionAngleA != null) { Console.WriteLine($"Angle A was already set. Before {link.JunctionAngleA} After {angle}"); }
-                link.JunctionAngleA = angle;
-            }
-            if (link.IndexPointB == headIndex)
-            {
-                if (link.JunctionAngleB != null) { Console.WriteLine($"Angle B was already set. Before {link.JunctionAngleB} After {angle}"); }
-                link.JunctionAngleB = angle;
-            }
-        }
-
-        private IEnumerable<double> CalculateLinkAngles(int headLinkIndex, int tailLinkIndex, int[] trailingLinkIndicies)
-        {
-            Ray3D head = _referenceArray.ElementAtOrDefault(headLinkIndex) ?? _virtualPoints[headLinkIndex];
-            Plane plane = new Plane(head);
-            Point3D headPoint = head.Point;
-            Vector3D headDirection = head.Normal;
-
-            Ray3D tail = _referenceArray.ElementAtOrDefault(tailLinkIndex) ?? _virtualPoints[tailLinkIndex];
-            Point3D tailPoint = plane.Projection(tail.Point);
-            Vector3D tailDirection = (tailPoint - headPoint).Direction;
-            for (int i = 0; i < trailingLinkIndicies.Length; i++)
-            {
-                Ray3D link = _referenceArray.ElementAtOrDefault(trailingLinkIndicies[i]) ?? _virtualPoints[trailingLinkIndicies[i]];
-                Point3D linkPoint = plane.Projection(link.Point);
-                Vector3D linkDirection = (linkPoint - headPoint).Direction;
-                double angle = Vector3D.SignedAngle(headDirection, tailDirection, linkDirection);
-                if (angle < 0) { angle += 2 * Math.PI; }
-                yield return angle;
-            }
         }
 
         private List<int[]> _perimeterIndexLoops = new List<int[]>();

@@ -56,13 +56,23 @@ namespace BasicObjects.GeometricObjects
 
         public bool PointIsFrontOfPlane(Point3D point)
         {
-            var vector = (point - Projection(point)).Direction;
-            return Vector3D.Dot(Normal, vector) > 0;
+            var projection = Projection(point);
+            var vector = point - projection;
+            if (vector.Magnitude == 0 && point == projection) { return false; }
+            return Vector3D.Dot(Normal, vector.Direction) > 0;
+        }
+
+        public double FrontageDistance(Point3D point)
+        {
+            var projection = Projection(point);
+            var vector = point - projection;
+            if(vector.Magnitude == 0 && point == projection) { return 0; }
+            return Distance(point) * System.Math.Sign(Vector3D.Dot(Normal, vector.Direction));
         }
 
         public bool PointIsOnPlane(Point3D point)
         {
-            return Distance(point) < 5 * E.Double.DifferenceError;
+            return Distance(point) < E.Double.DifferenceError;
         }
 
         public bool LineIsOnPlane(Line3D line)
@@ -137,8 +147,6 @@ namespace BasicObjects.GeometricObjects
         public static Line3D Intersection(Plane aa, Plane bb)
         {
             // cross of plane and other plane to give the normal plane.
-            //Matricies.Cross3D(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C, out double a, out double b, out double c);
-            //var vector = new Vector3D(a, b, c);
             var vector = Vector3D.Cross(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C);
             if (vector.Magnitude < E.Double.DifferenceError) { return null; }
 

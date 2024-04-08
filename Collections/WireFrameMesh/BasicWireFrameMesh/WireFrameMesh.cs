@@ -17,8 +17,12 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         private List<Position> _positions = new List<Position>();
         private BoxBucket<Position> _bucket = new BoxBucket<Position>(Enumerable.Empty<Position>());
 
-        public IReadOnlyList<Position> Positions { get; }//re-evaluate normals if transform was used in adding points.
+        public IReadOnlyList<Position> Positions { get; }
 
+        public PositionNormal AddPoint(Point3D position)
+        {
+            return AddPoint(position, Vector3D.Zero);
+        }
         public PositionNormal AddPoint(Point3D position, Vector3D normal)
         {
             var positionNormal = AddPointNoRow(position, normal);
@@ -31,7 +35,20 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return AddPoint(transform.Apply(position), transform.Apply(position, normal));
         }
 
-        public PositionNormal AddPointNoRow(Point3D position, Vector3D normal)
+        public PositionTriangle AddTriangle(Point3D a, Point3D b, Point3D c, string trace = "")
+        {
+            return AddTriangle(a, Vector3D.Zero, b, Vector3D.Zero, c, Vector3D.Zero, trace);
+        }
+
+        public PositionTriangle AddTriangle(Point3D a, Vector3D aN, Point3D b, Vector3D bN, Point3D c, Vector3D cN, string trace = "")
+        {
+            var aa = AddPointNoRow(a, aN);
+            var bb = AddPointNoRow(b, bN);
+            var cc = AddPointNoRow(c, cN);
+            return new PositionTriangle(aa, bb, cc, trace);
+        }
+
+        private PositionNormal AddPointNoRow(Point3D position, Vector3D normal)
         {
             var positionObject = _bucket.Fetch(new Rectangle3D(position, BoxBucket.MARGINS)).SingleOrDefault(p => p.Point == position);
             if (positionObject is null)
@@ -51,11 +68,6 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 positionNormal.LinkPosition(positionObject);
                 return positionNormal;
             }
-        }
-
-        public PositionNormal AddPointNoRow(Point3D position, Vector3D normal, ITransform transform)
-        {
-            return AddPointNoRow(transform.Apply(position), transform.Apply(position, normal));
         }
 
         private PositionNormal CloneAddOrExisting(PositionNormal positionNormal)

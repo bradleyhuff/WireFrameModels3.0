@@ -9,7 +9,7 @@ namespace Collections.WireFrameMesh.Basics
     public class PositionTriangle : IBox
     {
         private static int _id = 0;
-        public PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c)
+        internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c)
         {
             A = a;
             B = b;
@@ -24,7 +24,7 @@ namespace Collections.WireFrameMesh.Basics
             A.Mesh._triangles.Add(this);
             A.Mesh._keys[Key] = true;
         }
-        public PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace) : this(a, b, c)
+        internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace) : this(a, b, c)
         {
             Trace = trace;
         }
@@ -274,14 +274,8 @@ namespace Collections.WireFrameMesh.Basics
 
         public void ExportWithCenterNormal(IWireFrameMesh mesh)
         {
-            var a = mesh.AddPointNoRow(A.Position, A.Normal);
-            var b = mesh.AddPointNoRow(B.Position, B.Normal);
-            var c = mesh.AddPointNoRow(C.Position, C.Normal);
-            new PositionTriangle(a, b, c);
-            var center = mesh.AddPointNoRow(Triangle.Center, Vector3D.Zero);
-            var normalMiddle = mesh.AddPointNoRow(Triangle.Center + 0.005 * Triangle.Normal.Direction, Vector3D.Zero);
-            var normalEnd = mesh.AddPointNoRow(Triangle.Center + 0.01 * Triangle.Normal.Direction, Vector3D.Zero);
-            new PositionTriangle(center, normalMiddle, normalEnd);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal);
+            mesh.AddTriangle(Triangle.Center, Vector3D.Zero, Triangle.Center + 0.005 * Triangle.Normal.Direction, Vector3D.Zero, Triangle.Center + 0.01 * Triangle.Normal.Direction, Vector3D.Zero);
         }
     }
 }

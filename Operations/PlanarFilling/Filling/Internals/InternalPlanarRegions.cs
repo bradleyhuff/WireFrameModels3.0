@@ -11,7 +11,7 @@ namespace Operations.PlanarFilling.Filling
         private class InternalPlanarRegions
         {
             private double _testSegmentLength = 0;
-            private IEnumerable<InternalPlanarSegment> _segmentNodes;
+            private IEnumerable<InternalPlanarSegment> _segments;
             private Plane _plane;
 
             public InternalPlanarRegions(Plane plane, double testSegmentLength)
@@ -28,15 +28,15 @@ namespace Operations.PlanarFilling.Filling
                 {
                     if (_bucket is null)
                     {
-                        _bucket = new BoxBucket<InternalPlanarSegment>(_segmentNodes.ToArray());
+                        _bucket = new BoxBucket<InternalPlanarSegment>(_segments.ToArray());
                     }
                     return _bucket;
                 }
             }
 
-            public void Load(IEnumerable<InternalPlanarSegment> segmentNodes)
+            public void Load(IEnumerable<InternalPlanarSegment> segments)
             {
-                _segmentNodes = segmentNodes;
+                _segments = segments;
                 _bucket = null;
             }
 

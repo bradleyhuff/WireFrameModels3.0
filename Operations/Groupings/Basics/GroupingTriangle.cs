@@ -108,10 +108,7 @@ namespace Operations.Groupings.Basics
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            var a = mesh.AddPointNoRow(A.Position, A.Normal);
-            var b = mesh.AddPointNoRow(B.Position, B.Normal);
-            var c = mesh.AddPointNoRow(C.Position, C.Normal);
-            new PositionTriangle(a, b, c, Trace);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, Trace);
         }
     }
 }

@@ -343,45 +343,30 @@ namespace Operations.Intermesh.Basics
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            var a = mesh.AddPointNoRow(A.Position, A.Normal);
-            var b = mesh.AddPointNoRow(B.Position, B.Normal);
-            var c = mesh.AddPointNoRow(C.Position, C.Normal);
-            new PositionTriangle(a, b, c, Trace);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, Trace);
         }
 
         public void ExportWithDivisions(IWireFrameMesh mesh)
         {
-            var a = mesh.AddPointNoRow(A.Position, A.Normal);
-            var b = mesh.AddPointNoRow(B.Position, B.Normal);
-            var c = mesh.AddPointNoRow(C.Position, C.Normal);
-
-            new PositionTriangle(a, b, c);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal);
 
             foreach (var division in Divisions)
             {
-                var aa = mesh.AddPointNoRow(division.VertexA.Point, Triangle.Normal);
-                var bb = mesh.AddPointNoRow(division.VertexB.Point, Triangle.Normal);
                 var mid = (division.VertexA.Point + division.VertexB.Point) / 2;
-                var cc = mesh.AddPointNoRow(mid, Triangle.Normal);
-                new PositionTriangle(aa, bb, cc);
+
+                mesh.AddTriangle(division.VertexA.Point, Triangle.Normal, division.VertexB.Point, Triangle.Normal, mid, Triangle.Normal);
             }
         }
 
         public void ExportWithIntersections(IWireFrameMesh mesh)
         {
-            var a = mesh.AddPointNoRow(A.Position, A.Normal);
-            var b = mesh.AddPointNoRow(B.Position, B.Normal);
-            var c = mesh.AddPointNoRow(C.Position, C.Normal);
-
-            new PositionTriangle(a, b, c);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal);
 
             foreach (var intersection in Intersections)
             {
-                var aa = mesh.AddPointNoRow(intersection.VertexA.Point, Triangle.Normal);
-                var bb = mesh.AddPointNoRow(intersection.VertexB.Point, Triangle.Normal);
                 var mid = (intersection.VertexA.Point + intersection.VertexB.Point) / 2;
-                var cc = mesh.AddPointNoRow(mid, Triangle.Normal);
-                new PositionTriangle(aa, bb, cc);
+
+                mesh.AddTriangle(intersection.VertexA.Point, Triangle.Normal, intersection.VertexB.Point, Triangle.Normal, mid, Triangle.Normal);
             }
         }
     }

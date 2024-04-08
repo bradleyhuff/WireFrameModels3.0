@@ -41,8 +41,6 @@ namespace Operations.SurfaceSegmentChaining.Basics
         public List<LinkedIndexSurfaceSegment<G, T>> LinksA { get; set; } = new List<LinkedIndexSurfaceSegment<G, T>>();
         public List<LinkedIndexSurfaceSegment<G, T>> LinksB { get; set; } = new List<LinkedIndexSurfaceSegment<G, T>>();
         public List<LinkedIndexSurfaceSegment<G, T>> Traversals { get; set; } = new List<LinkedIndexSurfaceSegment<G, T>>();
-        public double? JunctionAngleA { get; set; }
-        public double? JunctionAngleB { get; set; }
         private int _passes;
         public int Passes
         {
@@ -61,12 +59,6 @@ namespace Operations.SurfaceSegmentChaining.Basics
             throw new InvalidOperationException($"Index could not be found in segment [{IndexPointA}, {IndexPointB}]");
         }
 
-        public double? GetJunctionAngleAtIndex(int index)
-        {
-            if (IndexPointA == index) { return JunctionAngleA; }
-            if (IndexPointB == index) { return JunctionAngleB; }
-            throw new InvalidOperationException($"Index could not be found in segment [{IndexPointA}, {IndexPointB}]");
-        }
 
         public void AddTraversalPair(LinkedIndexSurfaceSegment<G, T> traversal)
         {
@@ -99,6 +91,13 @@ namespace Operations.SurfaceSegmentChaining.Basics
             if (LinksA.Count > 1) { return IndexPointB; }
             if (LinksB.Count > 1) { return IndexPointA; }
             throw new InvalidOperationException($"Junction point can't be found in this segment.");
+        }
+
+        public int Opposite(int index)
+        {
+            if (index == IndexPointA) { return IndexPointB; }
+            if (index == IndexPointB) { return IndexPointA; }
+            throw new InvalidOperationException($"Opposite of {index} can't be found in this segment.");
         }
     }
 

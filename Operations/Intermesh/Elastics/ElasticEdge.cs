@@ -1,9 +1,4 @@
 ﻿using BasicObjects.GeometricObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Elastics
 {
@@ -26,6 +21,11 @@ namespace Operations.Intermesh.Elastics
         {
             Segments = perimeterSegments.ToList();
             var allPoints = perimeterPoints.Concat(perimeterSegments.SelectMany(p => p.VerticiesAB).Select(v => v.Vertex)).DistinctBy(v => v.Id);
+            PerimeterPoints = allPoints.OrderBy(p => Point3D.Distance(p.Point, AnchorA.Point)).ToList();
+        }
+        internal void AddPerimeterPoints(IEnumerable<ElasticVertexCore> input)
+        {
+            var allPoints = input.Concat(PerimeterPoints).DistinctBy(v => v.Id);
             PerimeterPoints = allPoints.OrderBy(p => Point3D.Distance(p.Point, AnchorA.Point)).ToList();
         }
         internal void RemovePerimeterPoint(ElasticVertexCore perimeterPoint)

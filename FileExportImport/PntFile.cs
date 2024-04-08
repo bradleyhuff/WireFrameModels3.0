@@ -1,12 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Console = BaseObjects.Console;
 
 
@@ -34,7 +28,9 @@ namespace FileExportImport
             fileName = $"{fileName}.pnt";
             int index = 0;
             Point3D activePosition = null;
-            Dictionary<int, PositionNormal> indexTable = new Dictionary<int, PositionNormal>();
+
+            Dictionary<int, Point3D> positions = new Dictionary<int, Point3D>();
+            Dictionary<int, Vector3D> normals = new Dictionary<int, Vector3D>();
             T mesh = createMesh();
 
             FileStream fileStream = new FileStream(fileName, FileMode.Open);
@@ -55,12 +51,16 @@ namespace FileExportImport
                     }
                     if (parts[0] == "n" && activePosition is not null)
                     {
-                        var positionNormal = mesh.AddPointNoRow(activePosition, new Vector3D(double.Parse(parts[1]), double.Parse(parts[2]), double.Parse(parts[3])));
-                        indexTable[index] = positionNormal;
+                        positions[index] = activePosition;
+                        normals[index] = new Vector3D(double.Parse(parts[1]), double.Parse(parts[2]), double.Parse(parts[3]));
                     }
                     if (parts[0] == "t")
                     {
-                        new PositionTriangle(indexTable[int.Parse(parts[1])], indexTable[int.Parse(parts[2])], indexTable[int.Parse(parts[3])]);
+                        var x = int.Parse(parts[1]);
+                        var y = int.Parse(parts[2]);
+                        var z = int.Parse(parts[3]);
+
+                        mesh.AddTriangle(positions[x], normals[x], positions[y], normals[y], positions[z], normals[z]);
                     }
                 }
             }
@@ -85,7 +85,7 @@ namespace FileExportImport
                 {
                     ++index;
                     file.WriteLine($"p {position.Point.X.ToString("0.000000000")} {position.Point.Y.ToString("0.000000000")} {position.Point.Z.ToString("0.000000000")}");
-                    foreach(var normal in position.PositionNormals)
+                    foreach (var normal in position.PositionNormals)
                     {
                         indexTable[normal] = ++index;
                         file.WriteLine($"n {normal.Normal.X.ToString("0.000000")} {normal.Normal.Y.ToString("0.000000")} {normal.Normal.Z.ToString("0.000000")}");

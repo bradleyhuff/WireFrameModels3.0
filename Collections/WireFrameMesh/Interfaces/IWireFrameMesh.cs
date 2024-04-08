@@ -10,10 +10,11 @@ namespace Collections.WireFrameMesh.Interfaces
     {
         public IReadOnlyList<Position> Positions { get; }
         public IReadOnlyList<PositionTriangle> Triangles { get; }
-        public PositionNormal AddPointNoRow(Point3D? position, Vector3D? normal);
-        public PositionNormal AddPointNoRow(Point3D position, Vector3D normal, ITransform transform);
+        public PositionNormal AddPoint(Point3D? position);
         public PositionNormal AddPoint(Point3D? position, Vector3D? normal);
         public PositionNormal AddPoint(Point3D position, Vector3D normal, ITransform transform);
+        public PositionTriangle AddTriangle(Point3D a, Point3D b, Point3D c, string trace = "");
+        public PositionTriangle AddTriangle(Point3D a, Vector3D aN, Point3D b, Vector3D bN, Point3D c, Vector3D cN, string trace = "");
         public void EndRow();
         public void EndGrid();
         public void AddGrid(IWireFrameMesh inputMesh);

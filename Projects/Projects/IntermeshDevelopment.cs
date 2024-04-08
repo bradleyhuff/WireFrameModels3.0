@@ -58,8 +58,8 @@ namespace Projects.Projects
             //var output = Operations.Intermesh.ElasticIntermeshOperations.Operations.Intermesh(intermesh);
             var output = cube.Difference(spheres);
             var spheres2 = spheres.Clone();
-            spheres2.Apply(Transform.Translation(new Point3D(1.0001, 0.0001, 0.0001)));
-            //spheres2.Apply(Transform.Translation(new Point3D(1.000001, 0.000001, 0.000001)));
+            //spheres2.Apply(Transform.Translation(new Point3D(1.0001, 0.0001, 0.0001)));
+            spheres2.Apply(Transform.Translation(new Point3D(1.000001, 0.000001, 0.000001)));
             //spheres2.Apply(Transform.Translation(new Point3D(1, 0, 0)));
             //spheres2.Apply(Transform.Translation(new Point3D(1.05, 0.04, 0.06)));
             output = output.Difference(spheres2);
@@ -102,11 +102,7 @@ namespace Projects.Projects
 
             foreach (var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
             {
-                var pointA = output.AddPointNoRow(positionNormal.Position, Vector3D.Zero);
-                var pointB = output.AddPointNoRow(positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero);
-                var pointC = output.AddPointNoRow(positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
-                new PositionTriangle(pointA, pointB, pointC);
-
+                output.AddTriangle(positionNormal.Position, Vector3D.Zero, positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero, positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
             }
 
             return output;

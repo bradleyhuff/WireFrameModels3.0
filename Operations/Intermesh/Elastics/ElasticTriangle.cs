@@ -1,9 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
-using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
-using System.Xml.Linq;
 
 namespace Operations.Intermesh.Elastics
 {
@@ -217,19 +215,14 @@ namespace Operations.Intermesh.Elastics
             }
         }
 
-        public void ExportWithSegments(IWireFrameMesh mesh)
+        public void ExportWithSegments(IWireFrameMesh mesh, double height = 2e-4)
         {
-            var a = mesh.AddPointNoRow(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal);
-            var b = mesh.AddPointNoRow(SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal);
-            var c = mesh.AddPointNoRow(SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal);
-
-            new PositionTriangle(a, b, c);
+            mesh.AddTriangle(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal, SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal, SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal);
 
             foreach(var segment in Segments)
             {
                 var normalA = NormalFromProjectedPoint(segment.VertexA.Point);
                 var normalB = NormalFromProjectedPoint(segment.VertexB.Point);
-                var height = 2e-4;
 
                 mesh.AddPoint(segment.VertexA.Point + -height * normalA, normalA);
                 mesh.AddPoint(segment.VertexB.Point + -height * normalB, normalB);

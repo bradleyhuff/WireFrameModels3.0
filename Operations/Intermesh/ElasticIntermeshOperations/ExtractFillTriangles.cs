@@ -179,18 +179,17 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             }
             catch (ChainingException<int> e)
             {
-                Console.WriteLine($"Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
                 WavefrontFileChaining.Export(triangle, e, $"Wavefront/SurfaceChainingError");
                 LoopError++;
                 yield break;
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
                 LoopError++;
                 yield break;
             }
-
 
             if (chain.SpurredLoops.Any())
             {
@@ -199,14 +198,16 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                     chain = OpenSpurConnectChaining<TriangleFillingGroup, int>.Create(chain);
                     chain = SpurLoopingChaining<TriangleFillingGroup, int>.Create(chain);
                 }
+                catch (SpurLoopChainingException<TriangleFillingGroup, int> e)
+                {
+                    Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                    WavefrontFileChaining.Export(triangle, e, $"Wavefront/SpurLoopingChainingError", 5e-4);
+                    SpurredLoopError++;
+                    yield break;
+                }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-
-                    var test = WireFrameMesh.CreateMesh();
-                    triangle.ExportWithSegments(test);
-                    WavefrontFile.ErrorExport(test, $"Wavefront/SpurChainingError-{triangle.Id}");
-
                     SpurredLoopError++;
                     yield break;
                 }

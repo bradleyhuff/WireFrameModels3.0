@@ -17,14 +17,16 @@ namespace Operations.Intermesh.Elastics
         public ElasticVertexAnchor AnchorA { get; }
         public ElasticVertexAnchor AnchorB { get; }
 
-        internal void SetPerimeterPoints(IEnumerable<ElasticVertexCore> perimeterPoints, IEnumerable<ElasticSegment> perimeterSegments)
+        internal void AddPerimeterPoints(IEnumerable<ElasticVertexCore> perimeterPoints, IEnumerable<ElasticSegment> perimeterSegments)
         {
-            Segments = perimeterSegments.ToList();
-            var allPoints = perimeterPoints.Concat(perimeterSegments.SelectMany(p => p.VerticiesAB).Select(v => v.Vertex)).DistinctBy(v => v.Id);
+            Segments = Segments.Concat(perimeterSegments).ToList();
+            var allPoints = PerimeterPoints.Concat(perimeterPoints.Concat(perimeterSegments.SelectMany(p => p.VerticiesAB).Select(v => v.Vertex))).DistinctBy(v => v.Id);
             PerimeterPoints = allPoints.OrderBy(p => Point3D.Distance(p.Point, AnchorA.Point)).ToList();
         }
+
         internal void AddPerimeterPoints(IEnumerable<ElasticVertexCore> input)
         {
+            if (!input.Any()) { return; }
             var allPoints = input.Concat(PerimeterPoints).DistinctBy(v => v.Id);
             PerimeterPoints = allPoints.OrderBy(p => Point3D.Distance(p.Point, AnchorA.Point)).ToList();
         }

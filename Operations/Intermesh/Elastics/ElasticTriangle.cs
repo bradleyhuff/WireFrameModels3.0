@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
@@ -137,7 +138,8 @@ namespace Operations.Intermesh.Elastics
 
         private void SetPerimeterLinks()
         {
-            _perimeterLinks = GetPerimeterLinks().ToArray();
+            var groups = GetPerimeterLinks().GroupBy(x => x.Key, new Combination2Comparer());
+            _perimeterLinks = groups.Where(g => g.Count() == 1).Select(g => g.First()).ToArray();// Remove pinched perimeter segments
         }
 
         private void SetDividingLinks()

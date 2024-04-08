@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 
 namespace Operations.Intermesh.Elastics
 {
@@ -16,6 +17,21 @@ namespace Operations.Intermesh.Elastics
 
         public ElasticVertexCore PointA { get; }
         public ElasticVertexCore PointB { get; }
+
+        private Combination2 _key;
+        private bool _keyIsAssigned = false;
+        public Combination2 Key
+        {
+            get
+            {
+                if (!_keyIsAssigned)
+                {
+                    _key = new Combination2(PointA.Id, PointB.Id);
+                    _keyIsAssigned = true;
+                }
+                return _key;
+            }
+        }
 
         public LineSegment3D Segment
         {

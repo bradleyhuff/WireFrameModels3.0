@@ -60,6 +60,7 @@ namespace Projects.Projects
             var spheres2 = spheres.Clone();
             //spheres2.Apply(Transform.Translation(new Point3D(1.0001, 0.0001, 0.0001)));
             spheres2.Apply(Transform.Translation(new Point3D(1.000001, 0.000001, 0.000001)));
+            //spheres2.Apply(Transform.Translation(new Point3D(1.00000001, 0.00000001, 0.00000001)));
             //spheres2.Apply(Transform.Translation(new Point3D(1, 0, 0)));
             //spheres2.Apply(Transform.Translation(new Point3D(1.05, 0.04, 0.06)));
             output = output.Difference(spheres2);

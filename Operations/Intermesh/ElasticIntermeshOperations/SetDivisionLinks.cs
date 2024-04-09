@@ -19,9 +19,10 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             SamePointDisableAndRemoval(intersections);
 
             var disabledNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id).SelectMany(i => i.Divisions).Where(d => d.Disabled).ToArray();
-            var verticies = intersections.SelectMany(i => i.Divisions.SelectMany(d => d.VerticiesAB)).Where(v => v.Vertex is not null).Select(v => v.Vertex).DistinctBy(v => v.Id);            
-            Console.WriteLine($"Set division links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
-            Console.WriteLine();
+            var verticies = intersections.SelectMany(i => i.Divisions.SelectMany(d => d.VerticiesAB)).Where(v => v.Vertex is not null).Select(v => v.Vertex).DistinctBy(v => v.Id);
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Set division links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
+            //Console.WriteLine();
             //Notes.SetDivisionLinksNotes(intermeshTriangles, intersectionNodes, verticies, disabledNodes);
         }
 
@@ -37,7 +38,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             int disabledCount = intersectionNodes.Sum(i => i.Divisions.Count(d => d.Disabled));
 
             intersectionNodes.ClearDisabledDivisions();
-            Console.WriteLine($"Step 1 Division node removal {disabledCount}");
+            //Console.WriteLine($"Step 1 Division node removal {disabledCount}");
         }
 
         private static void SamePointDisableAndRemoval(IntermeshIntersection[] intersectionNodes)
@@ -53,7 +54,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             }
             int disabledCount = intersectionNodes.Sum(i => i.Divisions.Count(d => d.Disabled));
             intersectionNodes.ClearDisabledDivisions();
-            Console.WriteLine($"Step 5 Same point intersection removal {disabledCount}");
+            //Console.WriteLine($"Step 5 Same point intersection removal {disabledCount}");
         }
 
         private static void ClearDisabledDivisions(this IEnumerable<IntermeshIntersection> list)
@@ -70,7 +71,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 VertexCore.Link(intersectionNode.VertexB, intersectionNode.Divisions.Last().VertexB);
                 count++;
             }
-            Console.WriteLine($"Step 2 Division end links {count}");
+            //Console.WriteLine($"Step 2 Division end links {count}");
         }
 
         private static void DivisionInterlinks(IntermeshIntersection[] intersectionNodes)
@@ -90,7 +91,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                     count++;
                 }
             }
-            Console.WriteLine($"Step 3 Division interlinks {count}");
+            //Console.WriteLine($"Step 3 Division interlinks {count}");
         }
 
         private static void AllCheckRadiusLinking(IEnumerable<IntermeshTriangle> intermeshTriangles)
@@ -124,8 +125,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 }
             }
 
-            Console.WriteLine($"A count {aCount} B count {bCount} AB count {abCount} Div count {divCount} Grouping count {count} Average neighbor {totalNeighbors / (double)count} Average group {totalGroups / (double)count} Tree sum {treeSum}");
-            Console.WriteLine($"Step 4 All check radius linking {count}");
+            //Console.WriteLine($"A count {aCount} B count {bCount} AB count {abCount} Div count {divCount} Grouping count {count} Average neighbor {totalNeighbors / (double)count} Average group {totalGroups / (double)count} Tree sum {treeSum}");
+            //Console.WriteLine($"Step 4 All check radius linking {count}");
         }
         private static int count = 0;
         private static int totalNeighbors = 0;
@@ -219,17 +220,5 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             VertexCore.Link(a, b);
             divCount++;
         }
-
-        //private static void ShowTriangle(IntermeshTriangleNode triangle, Point3D point)
-        //{
-        //    Console.WriteLine($"Triangle {triangle.Id} Divisions {string.Join("\n", triangle.Divisions.Select(i => $"{i.Id} {i.Division}"))}");
-
-        //    var test = new WireFrameMeshBuilder();
-        //    Debugging.PlotTriangle(test, triangle.Triangle);
-        //    Debugging.ShowDividingSegments(triangle.Intersections.Select(i => i.Intersection), Vector3D.BasisZ, test);
-        //    //Debugging.ShowDividingSegments(triangle.Divisions.Select(i => i.Division), Vector3D.BasisZ, test);
-        //    Debugging.PlotPointCube(test, point);
-        //    Wavefront.Export(test, $"Wavefront/IntermeshTriangle-{triangle.Id}");
-        //}
     }
 }

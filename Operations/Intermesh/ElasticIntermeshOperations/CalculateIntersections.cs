@@ -14,12 +14,13 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var intersectionIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             intersectionIterator.RunSingle<IntersectionState, IntersectionThread>(IntersectionAction, intersectionState);
             foreach (var triangle in intermeshTriangles) { triangle.ClearNullIntersections(); }
-            Console.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {intersectionState.Threads}", ConsoleColor.Yellow);
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {intersectionState.Threads}", ConsoleColor.Magenta);
 
-            Console.WriteLine($"Non distinct intersections {intermeshTriangles.SelectMany(t => t.Intersections).Count()}");
-            var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);
-            Console.WriteLine($"Gatherings {intersectionState.Gatherings} Intersections {intersectionNodes.Count()}:{intersectionState.Intersections}");
-            Console.WriteLine();
+            //Console.WriteLine($"Non distinct intersections {intermeshTriangles.SelectMany(t => t.Intersections).Count()}");
+            //var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);
+            //Console.WriteLine($"Gatherings {intersectionState.Gatherings} Intersections {intersectionNodes.Count()}:{intersectionState.Intersections}");
+            //Console.WriteLine();
         }
         private static void IntersectionAction(IntermeshTriangle node, IntersectionThread threadState, IntersectionState state)
         {

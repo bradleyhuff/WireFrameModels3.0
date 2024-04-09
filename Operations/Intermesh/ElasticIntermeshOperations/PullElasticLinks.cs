@@ -10,8 +10,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
         {
             var start = DateTime.Now;
             AnchorPull(elasticTriangles);
-
-            Console.WriteLine($"Pull elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Pull elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
         }
 
         private static void AnchorPull(IEnumerable<ElasticTriangle> elasticTriangles)
@@ -91,7 +91,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             //    if (notMatchedPointsC.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points C {notMatchedPointsC.Count()}"); }
             //}
             //Console.WriteLine($"Anchor pulls {pulls} Blind vertex pulls {blindPulls}");
-            Console.WriteLine($"Anchor pulls {pulls}");
+            //Console.WriteLine($"Anchor pulls {pulls}");
         }
 
         private static Dictionary<int, List<ElasticEdge>> GetPerimeterTable(IEnumerable<ElasticTriangle> elasticTriangles)

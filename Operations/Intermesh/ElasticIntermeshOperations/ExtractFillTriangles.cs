@@ -19,21 +19,22 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
             var fillTriangles = GetFillTriangles(elasticTriangles).ToArray();
 
-            Console.WriteLine($"Fill triangles {fillTriangles.Length}");
+            //Console.WriteLine($"Fill triangles {fillTriangles.Length}");
             //Console.WriteLine($"Loop error {LoopError} Spurred loop error {SpurredLoopError} Fill error {InternalLoop.FillLoopError}");
-            Console.WriteLine($"Extract fill triangles. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
-            Console.WriteLine();
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Extract fill triangles. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
+            //Console.WriteLine();
             return fillTriangles;
         }
 
         private static IEnumerable<FillTriangle> GetFillTriangles(IEnumerable<ElasticTriangle> elasticTriangles)
         {
-            int simpleTriangles0 = 0;
-            int simpleTriangles1 = 0;
-            int simpleTriangles2 = 0;
-            int simpleTriangles3 = 0;
-            int complexTriangles = 0;
-            int needComplexFill = 0;
+            //int simpleTriangles0 = 0;
+            //int simpleTriangles1 = 0;
+            //int simpleTriangles2 = 0;
+            //int simpleTriangles3 = 0;
+            //int complexTriangles = 0;
+            //int needComplexFill = 0;
             foreach (var triangle in elasticTriangles)
             {
                 var segments = triangle.SegmentsCount;
@@ -42,33 +43,33 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                     case 0:
                         {
                             var fills = NoSegmentFills(triangle);
-                            if (fills.Any()) { simpleTriangles0++; foreach (var fill in fills) { yield return fill; } break; }
+                            if (fills.Any()) { /*simpleTriangles0++;*/ foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     case 1:
                         {
                             var fills = SingleSegmentFills(triangle);
-                            if (fills.Any()) { simpleTriangles1++; foreach (var fill in fills) { yield return fill; } break; }
+                            if (fills.Any()) { /*simpleTriangles1++;*/ foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     case 2:
                         {
                             var fills = DoubleSegmentFills(triangle);
-                            if (fills.Any()) { simpleTriangles2++; foreach (var fill in fills) { yield return fill; } break; }
+                            if (fills.Any()) { /*simpleTriangles2++;*/ foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     default:
                         {
-                            needComplexFill++;
+                            //needComplexFill++;
                             var fills = ComplexSegmentFills(triangle).ToArray();
                             if (fills.Any())
-                            { complexTriangles++; foreach (var fill in fills) { yield return fill; } }
+                            { /*complexTriangles++;*/ foreach (var fill in fills) { yield return fill; } }
                         }
                         break;
                 }
             }
-            Console.WriteLine($"Needs complex fill {needComplexFill}");
-            Console.WriteLine($"Simple triangles0 {simpleTriangles0} Simple triangles1 {simpleTriangles1} Simple triangles2 {simpleTriangles2}  Simple triangles3 {simpleTriangles3} Complex triangles {complexTriangles}");
+            //Console.WriteLine($"Needs complex fill {needComplexFill}");
+            //Console.WriteLine($"Simple triangles0 {simpleTriangles0} Simple triangles1 {simpleTriangles1} Simple triangles2 {simpleTriangles2}  Simple triangles3 {simpleTriangles3} Complex triangles {complexTriangles}");
         }
 
         private static IEnumerable<FillTriangle> NoSegmentFills(ElasticTriangle triangle)

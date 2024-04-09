@@ -32,7 +32,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
             SetPerimeterPoints(intermeshTriangles, triangleTable, containerTable);
             SetAdjacents(intermeshTriangles, triangleTable);
-            Console.WriteLine($"Build elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Build elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
 
             //Notes.BuildElasticLinksNotes(elasticTriangles, verticies, anchorTable, segmentTable);
 

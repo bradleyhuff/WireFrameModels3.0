@@ -1,6 +1,8 @@
 ﻿using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
+using System.Xml;
+using Console = BaseObjects.Console;
 
 namespace Operations.Intermesh.ElasticIntermeshOperations
 {
@@ -8,15 +10,12 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
     {
         public static IWireFrameMesh Intermesh(IWireFrameMesh mesh)
         {
+            DateTime start = DateTime.Now;
             var collections = new IntermeshCollection(mesh);
 
             TriangleGathering.Action(collections.Triangles);
             CalculateIntersections.Action(collections.Triangles);
-
-            var processTriangles = collections.Triangles.Where(t => t.Intersections.Any()).ToList();
-            var byPassTriangles = collections.Triangles.Where(t => !t.Intersections.Any()).ToList();
-            Console.WriteLine($"Process triangles {processTriangles.Count} ByPass triangles {byPassTriangles.Count}");
-
+            SeparateProcesses(collections, out List<IntermeshTriangle> byPassTriangles, out List<IntermeshTriangle> processTriangles);
             CalculateDivisions.Action(processTriangles);
 
             SetIntersectionLinks.Action(processTriangles);
@@ -24,9 +23,26 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var elasticLinks = BuildElasticLinks.Action(processTriangles);
             PullElasticLinks.Action(elasticLinks);
             var fillTriangles = ExtractFillTriangles.Action(elasticLinks);
+            var output = BuildResultGrid(byPassTriangles, fillTriangles);
+ 
+            Console.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Cyan);
+            return output;
+        }
 
+        private static void SeparateProcesses(IntermeshCollection collections, out List<IntermeshTriangle> byPassTriangles, out List<IntermeshTriangle> processTriangles)
+        {
+            var start = DateTime.Now;
+            processTriangles = collections.Triangles.Where(t => t.Intersections.Any()).ToList();
+            byPassTriangles = collections.Triangles.Where(t => !t.Intersections.Any()).ToList();
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Separate processes: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
+        }
+
+        private static IWireFrameMesh BuildResultGrid(IEnumerable<IntermeshTriangle> byPassTriangles, IEnumerable<FillTriangle> fillTriangles)
+        {
+            var start = DateTime.Now;
             var output = WireFrameMesh.CreateMesh();
-            foreach(var triangle in byPassTriangles)
+            foreach (var triangle in byPassTriangles)
             {
                 triangle.AddWireFrameTriangle(output);
             }
@@ -34,6 +50,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             {
                 triangle.AddWireFrameTriangle(output);
             }
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Build result grid: Bypasses {byPassTriangles.Count()} Fills {fillTriangles.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
             return output;
         }
     }

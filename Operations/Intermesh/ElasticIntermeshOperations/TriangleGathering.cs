@@ -16,12 +16,13 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.Run<GatheringState, GatheringThread>(GatheringAction, gatheringState);
             AssignIntersectionNodes(intermeshTriangles);
-            Console.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}", ConsoleColor.Yellow);
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}", ConsoleColor.Magenta);
 
             var totalMatches = intermeshTriangles.Sum(t => t.Gathering.Count());
             var maxMatches = intermeshTriangles.Max(t => t.Gathering.Count());
-            Console.WriteLine($"Total matches {totalMatches} Average {totalMatches / intermeshTriangles.Count()} Max {maxMatches}");
-            TableDisplays.ShowCountSpread("Gathering", intermeshTriangles, t => t.Gathering.Count());
+            //Console.WriteLine($"Total matches {totalMatches} Average {totalMatches / intermeshTriangles.Count()} Max {maxMatches}");
+            //TableDisplays.ShowCountSpread("Gathering", intermeshTriangles, t => t.Gathering.Count());
         }
 
         private static void GatheringAction(IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)

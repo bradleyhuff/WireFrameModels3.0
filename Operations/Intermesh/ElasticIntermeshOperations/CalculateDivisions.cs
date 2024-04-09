@@ -15,23 +15,16 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var divisionState = new DivisionState();
             var divisionIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             divisionIterator.RunSingle<DivisionState, DivisionThread>(DivisionAction, divisionState);
-            Console.WriteLine($"Calculate divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {divisionState.Threads}", ConsoleColor.Yellow);
-            //Notes.CalculateDivisionNotes(intermeshTriangles);
-            var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);
-            //var divisionsNotZeroAndBordered = intersectionNodes.SelectMany(i => i.DivisionFilter());
-            var divisionNodes = intersectionNodes.SelectMany(i => i.Divisions);
-            //Console.WriteLine($"Divisions not zero and bordered {divisionsNotZeroAndBordered.Count()}");
-            Console.WriteLine($"Divisions {divisionNodes.Count()}");
-            TableDisplays.ShowCountSpreadWithSum("Divisions", intersectionNodes, e => e.Divisions.Count);
+            Console.Write("Intermesh: ", ConsoleColor.Cyan);
+            Console.WriteLine($"Calculate divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {divisionState.Threads}", ConsoleColor.Magenta);
+            ////Notes.CalculateDivisionNotes(intermeshTriangles);
+            //var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);
+            ////var divisionsNotZeroAndBordered = intersectionNodes.SelectMany(i => i.DivisionFilter());
+            //var divisionNodes = intersectionNodes.SelectMany(i => i.Divisions);
+            ////Console.WriteLine($"Divisions not zero and bordered {divisionsNotZeroAndBordered.Count()}");
+            //Console.WriteLine($"Divisions {divisionNodes.Count()}");
+            //TableDisplays.ShowCountSpreadWithSum("Divisions", intersectionNodes, e => e.Divisions.Count);
         }
-
-        //private static IEnumerable<IntermeshDivision> DivisionFilter(this IntermeshIntersection intersection)
-        //{
-        //    var borders = intersection.IntersectorA.Edges.Concat(intersection.IntersectorB.Edges);
-        //    return intersection.Divisions.Where(d => !(d.Division.Length < 1e-12
-        //        && borders.Any(b => b.Segment.Contains(d.Division))
-        //    ));
-        //}
 
         private static void DivisionAction(IntermeshTriangle node, DivisionThread threadState, DivisionState state)
         {

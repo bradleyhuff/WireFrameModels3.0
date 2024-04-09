@@ -85,10 +85,12 @@ namespace FileExportImport
                 {
                     ++index;
                     file.WriteLine($"p {position.Point.X.ToString("0.000000000")} {position.Point.Y.ToString("0.000000000")} {position.Point.Z.ToString("0.000000000")}");
+                    //file.WriteLine($"p {position.Point.X.ToString("0.000000000000000")} {position.Point.Y.ToString("0.000000000000000")} {position.Point.Z.ToString("0.000000000000000")}");
                     foreach (var normal in position.PositionNormals)
                     {
                         indexTable[normal] = ++index;
                         file.WriteLine($"n {normal.Normal.X.ToString("0.000000")} {normal.Normal.Y.ToString("0.000000")} {normal.Normal.Z.ToString("0.000000")}");
+                        //file.WriteLine($"n {normal.Normal.X.ToString("0.000000000")} {normal.Normal.Y.ToString("0.000000000")} {normal.Normal.Z.ToString("0.000000000")}");
                     }
                 }
                 foreach (var triangle in mesh.Triangles)

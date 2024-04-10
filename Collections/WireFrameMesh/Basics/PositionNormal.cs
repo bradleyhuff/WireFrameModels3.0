@@ -27,12 +27,18 @@ namespace Collections.WireFrameMesh.Basics
         {
             get { return _triangles; }
         }
-
+        private Rectangle3D _box;
         public Rectangle3D Box
         {
             get
             {
-                if (PositionObject is null) { return new Rectangle3D(_position, BoxBucket.MARGINS); }
+                if (PositionObject is null) {
+                    if(_box is null)
+                    {
+                        _box = new Rectangle3D(_position, BoxBucket.MARGINS);
+                    }
+                    return _box; 
+                }
                 return PositionObject.Box;
             }
         }
@@ -51,6 +57,7 @@ namespace Collections.WireFrameMesh.Basics
             {
                 if (PositionObject is not null) { PositionObject.Point = value; }
                 _position = value;
+                _box = null;
             }
         }
 

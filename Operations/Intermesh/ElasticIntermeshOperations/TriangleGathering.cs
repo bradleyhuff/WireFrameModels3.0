@@ -1,4 +1,4 @@
-﻿using BasicObjects;
+﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Collections.Threading;
@@ -16,8 +16,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.Run<GatheringState, GatheringThread>(GatheringAction, gatheringState);
             AssignIntersectionNodes(intermeshTriangles);
-            Console.Write("Intermesh: ", ConsoleColor.Cyan);
-            Console.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}", ConsoleColor.Magenta);
+            ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
 
             var totalMatches = intermeshTriangles.Sum(t => t.Gathering.Count());
             var maxMatches = intermeshTriangles.Max(t => t.Gathering.Count());
@@ -28,7 +27,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
         private static void GatheringAction(IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)
         {
             var boxMatches = state.Bucket.Fetch(triangle).Where(m => m.Id != triangle.Id && !m.AdjacentTriangles.Any(t => t.Id == triangle.Id));
-            var planarMatches = boxMatches.Where(b => triangle.Triangle.Plane.Intersects(b.Box.Margin(1e-6)));
+            var planarMatches = boxMatches.Where(b => triangle.Triangle.Plane.Intersects(b.Box.Margin(BoxBucket.MARGINS)));
             var marginMatches = MarginMatches(triangle, planarMatches);
 
             triangle.Gathering.AddRange(marginMatches);
@@ -49,7 +48,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
         private static IEnumerable<IntermeshTriangle> MarginMatches(IntermeshTriangle node, IEnumerable<IntermeshTriangle> matches)
         {
-            var triangle = node.Triangle.Margin(1e-6);
+            var triangle = node.Triangle.Margin(BoxBucket.MARGINS);
             var plane = triangle.Plane;
 
             foreach (var match in matches)

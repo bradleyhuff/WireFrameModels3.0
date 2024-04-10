@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
@@ -32,8 +33,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
             SetPerimeterPoints(intermeshTriangles, triangleTable, containerTable);
             SetAdjacents(intermeshTriangles, triangleTable);
-            Console.Write("Intermesh: ", ConsoleColor.Cyan);
-            Console.WriteLine($"Build elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
+            ConsoleLog.WriteLine($"Build elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
             //Notes.BuildElasticLinksNotes(elasticTriangles, verticies, anchorTable, segmentTable);
 

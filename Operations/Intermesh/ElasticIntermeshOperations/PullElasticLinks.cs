@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using Operations.Intermesh.Elastics;
 using Console = BaseObjects.Console;
 
@@ -10,8 +11,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
         {
             var start = DateTime.Now;
             AnchorPull(elasticTriangles);
-            Console.Write("Intermesh: ", ConsoleColor.Cyan);
-            Console.WriteLine($"Pull elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
+            ConsoleLog.WriteLine($"Pull elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static void AnchorPull(IEnumerable<ElasticTriangle> elasticTriangles)

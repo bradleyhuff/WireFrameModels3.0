@@ -18,7 +18,7 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
-            //CubeSphereTestOne();
+            CubeSphereTestOne();
             CubeSphereTestTwo();
         }
 
@@ -66,17 +66,17 @@ namespace Projects.Projects
             spheres5.Apply(Transform.Translation(new Point3D(0, 1, 1)));
             output = output.Difference(spheres5);
 
-            var spheres6 = spheres.Clone();
-            spheres6.Apply(Transform.Translation(new Point3D(1, 0, 1)));
-            output = output.Difference(spheres6);
+            //var spheres6 = spheres.Clone();
+            //spheres6.Apply(Transform.Translation(new Point3D(1, 0, 1)));
+            //output = output.Difference(spheres6);
 
-            var spheres7 = spheres.Clone();
-            spheres7.Apply(Transform.Translation(new Point3D(1, 1, 0)));
-            output = output.Difference(spheres7);
+            //var spheres7 = spheres.Clone();
+            //spheres7.Apply(Transform.Translation(new Point3D(1, 1, 0)));
+            //output = output.Difference(spheres7);
 
-            var spheres8 = spheres.Clone();
-            spheres8.Apply(Transform.Translation(new Point3D(1, 1, 1)));
-            output = output.Difference(spheres8);
+            //var spheres8 = spheres.Clone();
+            //spheres8.Apply(Transform.Translation(new Point3D(1, 1, 1)));
+            //output = output.Difference(spheres8);
 
 
             //TableDisplays.ShowCountSpread("Position normal triangle counts", output.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
@@ -87,7 +87,7 @@ namespace Projects.Projects
 
             PntFile.Export(output, "Pnt/SphereDifference5");
             WavefrontFile.Export(output, "Wavefront/SphereDifference5");
-            //WavefrontFileGroups.ExportByClusters(output, "Wavefront/Clusters");
+            //WavefrontFileGroups.ExportByClusters(output, "Wavefront/SphereDifference5");
             //WavefrontFileGroups.ExportByClusters(output, o => NormalOverlay(o, 0.003), "Wavefront/Normals");
         }
 

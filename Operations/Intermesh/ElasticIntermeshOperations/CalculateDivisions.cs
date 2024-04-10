@@ -1,4 +1,4 @@
-﻿using BasicObjects;
+﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Collections.Threading;
@@ -15,8 +15,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var divisionState = new DivisionState();
             var divisionIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             divisionIterator.RunSingle<DivisionState, DivisionThread>(DivisionAction, divisionState);
-            Console.Write("Intermesh: ", ConsoleColor.Cyan);
-            Console.WriteLine($"Calculate divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {divisionState.Threads}", ConsoleColor.Magenta);
+            ConsoleLog.WriteLine($"Calculate divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {divisionState.Threads}");
             ////Notes.CalculateDivisionNotes(intermeshTriangles);
             //var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);
             ////var divisionsNotZeroAndBordered = intersectionNodes.SelectMany(i => i.DivisionFilter());

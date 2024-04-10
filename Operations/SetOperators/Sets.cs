@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Basics;
 using Operations.Regions;
@@ -30,19 +31,20 @@ namespace Operations.SetOperators
         private static IWireFrameMesh Run(string note, IWireFrameMesh gridA, IWireFrameMesh gridB, Func<Region, Region, bool> includeGroup)
         {
             DateTime start = DateTime.Now;
-
-            var sum = CloneAndMark(note, gridA, gridB, out Space spaceA, out Space spaceB);
+            ConsoleLog.Push(note);
+            var sum = CloneAndMark(gridA, gridB, out Space spaceA, out Space spaceB);
             var intermesh = Intermesh.ElasticIntermeshOperations.Operations.Intermesh(sum);
-            var groups = GroupExtraction(note, intermesh);
-            var includedGroupGrids = TestAndIncludeGroups(note, groups, spaceA, spaceB, includeGroup);
-            IncludedGroupInverts(note, includedGroupGrids);
-            var result = BuildResultGrid(note, intermesh, includedGroupGrids);
+            var groups = GroupExtraction(intermesh);
+            var includedGroupGrids = TestAndIncludeGroups(groups, spaceA, spaceB, includeGroup);
+            IncludedGroupInverts(includedGroupGrids);
+            var result = BuildResultGrid(intermesh, includedGroupGrids);
 
-            Console.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n", ConsoleColor.Yellow);
+            ConsoleLog.Pop();
+            ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
             return result;
         }
 
-        private static IWireFrameMesh CloneAndMark(string note, IWireFrameMesh gridA, IWireFrameMesh gridB, out Space spaceA, out Space spaceB)
+        private static IWireFrameMesh CloneAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space spaceA, out Space spaceB)
         {
             var start = DateTime.Now;
             gridB = gridB.Clone();
@@ -56,21 +58,19 @@ namespace Operations.SetOperators
             var result = gridA.CreateNewInstance();
             result.AddGrid(gridA);
             result.AddGrid(gridB);
-            Console.Write($"{note}: ", ConsoleColor.Yellow);
-            Console.WriteLine($"Clone and mark: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.", ConsoleColor.Cyan);
+            ConsoleLog.WriteLine($"Clone and mark: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return result;
         }
 
-        private static GroupingCollection[] GroupExtraction(string note, IWireFrameMesh intermesh)
+        private static GroupingCollection[] GroupExtraction(IWireFrameMesh intermesh)
         {
             var start = DateTime.Now;
             var groups = GroupingCollection.ExtractSurfaces(intermesh.Triangles).ToArray();
-            Console.Write($"{note}: ", ConsoleColor.Yellow);
-            Console.WriteLine($"Group extraction: Groups {groups.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.", ConsoleColor.Cyan);
+            ConsoleLog.WriteLine($"Group extraction: Groups {groups.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return groups;
         }
 
-        private static List<(int Id, IWireFrameMesh Grid)> TestAndIncludeGroups(string note, GroupingCollection[] groups, Space spaceA, Space spaceB, Func<Region, Region, bool> includeGroup)
+        private static List<(int Id, IWireFrameMesh Grid)> TestAndIncludeGroups(GroupingCollection[] groups, Space spaceA, Space spaceB, Func<Region, Region, bool> includeGroup)
         {
             var start = DateTime.Now;
             var groupGrids = groups.Select(g => new { g.Id, Grid = g.CreateMesh() });
@@ -89,12 +89,11 @@ namespace Operations.SetOperators
                     includedGroupGrids.Add((groupGrid.Id, groupGrid.Grid));
                 }
             }
-            Console.Write($"{note}: ", ConsoleColor.Yellow);
-            Console.WriteLine($"Test and include groups: Included groups {includedGroupGrids.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.", ConsoleColor.Cyan);
+            ConsoleLog.WriteLine($"Test and include groups: Included groups {includedGroupGrids.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return includedGroupGrids;
         }
 
-        private static void IncludedGroupInverts(string note, List<(int Id, IWireFrameMesh Grid)> includedGroupGrids)
+        private static void IncludedGroupInverts(List<(int Id, IWireFrameMesh Grid)> includedGroupGrids)
         {
             var start = DateTime.Now;
             var resultShell = new Space(includedGroupGrids.SelectMany(t => t.Grid.Triangles.Select(t => t.Triangle)).ToArray());
@@ -127,17 +126,15 @@ namespace Operations.SetOperators
                     }
                 }
             }
-            Console.Write($"{note}: ", ConsoleColor.Yellow);
-            Console.WriteLine($"Included group and invert: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.", ConsoleColor.Cyan);
+            ConsoleLog.WriteLine($"Included group and invert: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
-        private static IWireFrameMesh BuildResultGrid(string note, IWireFrameMesh intermesh, List<(int Id, IWireFrameMesh Grid)> includedGroupGrids)
+        private static IWireFrameMesh BuildResultGrid(IWireFrameMesh intermesh, List<(int Id, IWireFrameMesh Grid)> includedGroupGrids)
         {
             var start = DateTime.Now;
             var result = intermesh.CreateNewInstance();
             result.AddGrids(includedGroupGrids.Select(g => g.Grid));
-            Console.Write($"{note}: ", ConsoleColor.Yellow);
-            Console.WriteLine($"Build result grid: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.", ConsoleColor.Cyan);
+            ConsoleLog.WriteLine($"Build result grid: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return result;
         }
 

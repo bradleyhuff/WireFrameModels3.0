@@ -2,6 +2,7 @@
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Console = BaseObjects.Console;
+using BaseObjects;
 
 
 namespace FileExportImport
@@ -16,7 +17,7 @@ namespace FileExportImport
             FileWrite(mesh, fileName);
             DateTime end = DateTime.Now;
             FileInfo info = new FileInfo(fileName);
-            Console.WriteLine($"Exported .PNT: Pnt File {fileName}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            Console.WriteLine($"Exported .PNT Pnt File: {fileName}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine($"Positions: {mesh.Positions.Count.ToString("#,##0")} PositionNormals: {mesh.Positions.Sum(p => p.PositionNormals.Count)} Triangles: {mesh.Triangles.Count.ToString("#,##0")}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine($"Elapsed time: {(end - start).TotalMilliseconds.ToString("#,##0")} milliseconds. File size: {info.DisplayFileSize()}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
@@ -76,6 +77,9 @@ namespace FileExportImport
 
         private static void FileWrite(IWireFrameMesh mesh, string fileName)
         {
+            var templateP = $"0.{"0".Repeat(12)}";
+            var templateN = $"0.{"0".Repeat(9)}";
+
             using (StreamWriter file = new StreamWriter(fileName))
             {
                 Dictionary<PositionNormal, int> indexTable = new Dictionary<PositionNormal, int>();
@@ -84,13 +88,11 @@ namespace FileExportImport
                 foreach (var position in mesh.Positions)
                 {
                     ++index;
-                    file.WriteLine($"p {position.Point.X.ToString("0.000000000")} {position.Point.Y.ToString("0.000000000")} {position.Point.Z.ToString("0.000000000")}");
-                    //file.WriteLine($"p {position.Point.X.ToString("0.000000000000000")} {position.Point.Y.ToString("0.000000000000000")} {position.Point.Z.ToString("0.000000000000000")}");
+                    file.WriteLine($"p {position.Point.X.ToString(templateP)} {position.Point.Y.ToString(templateP)} {position.Point.Z.ToString(templateP)}");
                     foreach (var normal in position.PositionNormals)
                     {
                         indexTable[normal] = ++index;
-                        file.WriteLine($"n {normal.Normal.X.ToString("0.000000")} {normal.Normal.Y.ToString("0.000000")} {normal.Normal.Z.ToString("0.000000")}");
-                        //file.WriteLine($"n {normal.Normal.X.ToString("0.000000000")} {normal.Normal.Y.ToString("0.000000000")} {normal.Normal.Z.ToString("0.000000000")}");
+                        file.WriteLine($"n {normal.Normal.X.ToString(templateN)} {normal.Normal.Y.ToString(templateN)} {normal.Normal.Z.ToString(templateN)}");
                     }
                 }
                 foreach (var triangle in mesh.Triangles)

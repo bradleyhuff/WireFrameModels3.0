@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using Collections.Threading;
 using Operations.Intermesh.Basics;
 using Console = BaseObjects.Console;
@@ -14,8 +15,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var intersectionIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             intersectionIterator.RunSingle<IntersectionState, IntersectionThread>(IntersectionAction, intersectionState);
             foreach (var triangle in intermeshTriangles) { triangle.ClearNullIntersections(); }
-            Console.Write("Intermesh: ", ConsoleColor.Cyan);
-            Console.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {intersectionState.Threads}", ConsoleColor.Magenta);
+            ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {intersectionState.Threads}");
 
             //Console.WriteLine($"Non distinct intersections {intermeshTriangles.SelectMany(t => t.Intersections).Count()}");
             //var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);

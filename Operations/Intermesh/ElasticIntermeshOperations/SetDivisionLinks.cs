@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using Operations.Intermesh.Basics;
 using Console = BaseObjects.Console;
 
@@ -20,8 +21,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
             var disabledNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id).SelectMany(i => i.Divisions).Where(d => d.Disabled).ToArray();
             var verticies = intersections.SelectMany(i => i.Divisions.SelectMany(d => d.VerticiesAB)).Where(v => v.Vertex is not null).Select(v => v.Vertex).DistinctBy(v => v.Id);
-            Console.Write("Intermesh: ", ConsoleColor.Cyan);
-            Console.WriteLine($"Set division links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
+            ConsoleLog.WriteLine($"Set division links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
             //Console.WriteLine();
             //Notes.SetDivisionLinksNotes(intermeshTriangles, intersectionNodes, verticies, disabledNodes);
         }

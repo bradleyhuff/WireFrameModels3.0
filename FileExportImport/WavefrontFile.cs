@@ -1,6 +1,7 @@
 ﻿using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Console = BaseObjects.Console;
+using BaseObjects;
 
 namespace FileExportImport
 {
@@ -44,6 +45,9 @@ namespace FileExportImport
 
         private static void FileWrite(IWireFrameMesh mesh, string fileName)
         {
+            var templateP = $"0.{"0".Repeat(9)}";
+            var templateN = $"0.{"0".Repeat(6)}";
+
             using (StreamWriter file = new StreamWriter(fileName))
             {
                 Dictionary<PositionNormal, int> indexTable = new Dictionary<PositionNormal, int>();
@@ -60,11 +64,11 @@ namespace FileExportImport
 
                 foreach (var positionNormal in positionNormals)
                 {
-                    file.WriteLine($"v {positionNormal.Position.X.ToString("0.000000000")} {positionNormal.Position.Y.ToString("0.000000000")} {positionNormal.Position.Z.ToString("0.000000000")}");
+                    file.WriteLine($"v {positionNormal.Position.X.ToString(templateP)} {positionNormal.Position.Y.ToString(templateP)} {positionNormal.Position.Z.ToString(templateP)}");
                 }
                 foreach (var positionNormal in positionNormals)
                 {
-                    file.WriteLine($"vn {positionNormal.Normal.X.ToString("0.000000")} {positionNormal.Normal.Y.ToString("0.000000")} {positionNormal.Normal.Z.ToString("0.000000")}");
+                    file.WriteLine($"vn {positionNormal.Normal.X.ToString(templateN)} {positionNormal.Normal.Y.ToString(templateN)} {positionNormal.Normal.Z.ToString(templateN)}");
                 }
                 foreach (var triangle in mesh.Triangles)
                 {

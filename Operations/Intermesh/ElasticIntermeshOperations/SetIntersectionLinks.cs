@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Operations.Intermesh.Basics;
 using Console = BaseObjects.Console;
@@ -29,8 +30,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             SamePointDisableAndRemoval(intersectionNodes);
 
             foreach (var triangle in intermeshTriangles) { triangle.ClearDisabledIntersections(); }
-            Console.Write("Intermesh: ", ConsoleColor.Cyan);
-            Console.WriteLine($"Set intersection links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
+            ConsoleLog.WriteLine($"Set intersection links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
             //Console.WriteLine();
         }
 

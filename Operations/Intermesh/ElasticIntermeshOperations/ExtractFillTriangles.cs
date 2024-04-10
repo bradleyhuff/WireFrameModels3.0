@@ -1,6 +1,5 @@
 ﻿
-using Collections.WireFrameMesh.BasicWireFrameMesh;
-using FileExportImport;
+using BaseObjects;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Operations.PlanarFilling.Filling;
@@ -21,8 +20,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
             //Console.WriteLine($"Fill triangles {fillTriangles.Length}");
             //Console.WriteLine($"Loop error {LoopError} Spurred loop error {SpurredLoopError} Fill error {InternalLoop.FillLoopError}");
-            Console.Write("Intermesh: ", ConsoleColor.Cyan);
-            Console.WriteLine($"Extract fill triangles. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Magenta);
+            ConsoleLog.WriteLine($"Extract fill triangles. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
             //Console.WriteLine();
             return fillTriangles;
         }

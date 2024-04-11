@@ -23,7 +23,7 @@ namespace FundamentalMeshes
             var pathNormals = new Vector3D[minorCircumferenceSteps + 1];
 
             var generatorPoint = new Point3D(minorRadius, 0, 0);
-            var radiusTranslation = new Point3D(majorRadius, 0, 0);
+            var radiusTranslation = new Vector3D(majorRadius, 0, 0);
             var translate = Transform.Translation(radiusTranslation);
 
             for (int i = 0; i <= minorCircumferenceSteps; i++)
@@ -31,7 +31,7 @@ namespace FundamentalMeshes
                 var theta = i * minorDelta;
                 var transform = Transform.Rotation(Vector3D.BasisZ, theta);
                 var pathPoint = transform.Apply(generatorPoint);
-                pathNormals[i] = transform.Apply(Point3D.Zero, Vector3D.BasisX);
+                pathNormals[i] = transform.Apply(Vector3D.BasisX);
                 pathPoints[i] = translate.Apply(pathPoint);
             }
 

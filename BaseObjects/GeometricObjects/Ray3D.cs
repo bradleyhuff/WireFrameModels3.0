@@ -1,7 +1,9 @@
 ﻿
+using BaseObjects.Transformations.Interfaces;
+
 namespace BasicObjects.GeometricObjects
 {
-    public class Ray3D
+    public class Ray3D : IShape3D<Ray3D>
     {
         public Ray3D(Point3D point, Vector3D normal)
         {
@@ -37,6 +39,13 @@ namespace BasicObjects.GeometricObjects
                 }
                 return _line;
             }
+        }
+
+        public Point3D[] CardinalPoints { get { return [Point]; } }
+        public Vector3D[] CardinalNormals { get { return [Normal]; } }
+        public Ray3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return new Ray3D(cardinalPoints[0], cardinalNormals[0]);
         }
 
         public static Ray3D Average(IEnumerable<Ray3D> source)

@@ -1,8 +1,9 @@
-﻿using E = BasicObjects.Math;
+﻿using BaseObjects.Transformations.Interfaces;
+using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
 {
-    public class LineSegment3D
+    public class LineSegment3D : IShape3D<LineSegment3D>
     {
         public LineSegment3D(Point3D start, Point3D end)
         {
@@ -71,6 +72,13 @@ namespace BasicObjects.GeometricObjects
                 }
                 return _lineExtension;
             }
+        }
+
+        public Point3D[] CardinalPoints { get { return [Start, End]; } }
+        public Vector3D[] CardinalNormals { get { return []; } }
+        public LineSegment3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return new LineSegment3D(cardinalPoints[0], cardinalPoints[1]);
         }
 
         public LineSegment3D Orient(Point3D center)

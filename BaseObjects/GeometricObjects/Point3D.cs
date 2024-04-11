@@ -1,8 +1,9 @@
-﻿using Double = BasicObjects.Math.Double;
+﻿using BaseObjects.Transformations.Interfaces;
+using Double = BasicObjects.Math.Double;
 
 namespace BasicObjects.GeometricObjects
 {
-    public class Point3D
+    public class Point3D : IShape3D<Point3D>
     {
         public Point3D(double x, double y, double z)
         {
@@ -14,6 +15,13 @@ namespace BasicObjects.GeometricObjects
         public double X { get; }
         public double Y { get; }
         public double Z { get; }
+
+        public Point3D[] CardinalPoints { get { return [this]; } }
+        public Vector3D[] CardinalNormals { get { return []; } }
+        public Point3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return cardinalPoints[0];
+        }
 
         public override bool Equals(object? obj)
         {

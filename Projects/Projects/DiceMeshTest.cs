@@ -26,18 +26,18 @@ namespace Projects.Projects
 
             var spheres = sphere.Clones(9).ToArray();
 
-            spheres[0].Apply(Transform.Translation(new Point3D(0.50000111, 0.50000111, 0)));
-            spheres[1].Apply(Transform.Translation(new Point3D(0.52000001, 0.52000001, 0)));
+            spheres[0].Apply(Transform.Translation(new Vector3D(0.50000111, 0.50000111, 0)));
+            spheres[1].Apply(Transform.Translation(new Vector3D(0.52000001, 0.52000001, 0)));
             //Transformations.Translation(spheres[0], new Vector3D(0.50000111, 0.50000111, 0));
             //Transformations.Translation(spheres[1], new Vector3D(0.52000001, 0.52000001, 0));
 
-            spheres[2].Apply(Transform.Translation(new Point3D(0.93, 0.75, 0)));
-            spheres[7].Apply(Transform.Translation(new Point3D(0.95, 0.73, 0)));
-            spheres[8].Apply(Transform.Translation(new Point3D(0.928, 0.73, 0)));
-            spheres[6].Apply(Transform.Translation(new Point3D(0.0178, 0.0178, 0.0178)));
-            spheres[3].Apply(Transform.Translation(new Point3D(0.90, 0.80, 0)));
-            spheres[4].Apply(Transform.Translation(new Point3D(0.7500001, 0.75, 0)));
-            spheres[5].Apply(Transform.Translation(new Point3D(0.7600001, 0.76, 0)));
+            spheres[2].Apply(Transform.Translation(new Vector3D(0.93, 0.75, 0)));
+            spheres[7].Apply(Transform.Translation(new Vector3D(0.95, 0.73, 0)));
+            spheres[8].Apply(Transform.Translation(new Vector3D(0.928, 0.73, 0)));
+            spheres[6].Apply(Transform.Translation(new Vector3D(0.0178, 0.0178, 0.0178)));
+            spheres[3].Apply(Transform.Translation(new Vector3D(0.90, 0.80, 0)));
+            spheres[4].Apply(Transform.Translation(new Vector3D(0.7500001, 0.75, 0)));
+            spheres[5].Apply(Transform.Translation(new Vector3D(0.7600001, 0.76, 0)));
 
             //Transformations.Translation(spheres[2], new Vector3D(0.93, 0.75, 0));
             //Transformations.Translation(spheres[7], new Vector3D(0.95, 0.73, 0));

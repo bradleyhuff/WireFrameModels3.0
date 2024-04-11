@@ -14,7 +14,7 @@ namespace BaseObjects.Transformations
             for (int i = 0; i <= steps; i++)
             {
                 double stepAngle = angle * i / steps;
-                yield return Transform.Rotation(cross, stepAngle).Apply(Point3D.Zero, start);
+                yield return Transform.Rotation(cross, stepAngle).Apply(start);
             }
 
         }
@@ -28,7 +28,7 @@ namespace BaseObjects.Transformations
             for (int i = 0; i <= steps; i++)
             {
                 double stepAngle = angle * i / steps;
-                yield return Transform.Rotation(cross, stepAngle).Apply(Point3D.Zero, start);
+                yield return Transform.Rotation(cross, stepAngle).Apply(start);
             }
         }
 

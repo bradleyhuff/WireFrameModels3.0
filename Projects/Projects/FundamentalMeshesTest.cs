@@ -87,7 +87,7 @@ namespace Projects.Projects
 
         private void TorusTest()
         {
-            var shape = Torus.Create(4, 2, 8, 128);
+            var shape = Torus.Create(4, 2, 64, 128);
             //var shape = Cuboid.Create(1, 1, 1, 1, 1, 1);
             //var squash = Transform.Scale(1, 0.25, 2);
             //var squash = Transform.ShearXZ(2, 1);

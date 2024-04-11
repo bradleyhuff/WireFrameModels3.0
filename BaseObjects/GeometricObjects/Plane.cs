@@ -1,9 +1,10 @@
-﻿using E = BasicObjects.Math;
+﻿using BaseObjects.Transformations.Interfaces;
+using E = BasicObjects.Math;
 using SMath = System.Math;
 
 namespace BasicObjects.GeometricObjects
 {
-    public class Plane
+    public class Plane : IShape3D<Plane>
     {
         public Plane(Point3D P, Point3D Q, Point3D R) : this(P, Q - P, R - P) { }
 
@@ -39,6 +40,13 @@ namespace BasicObjects.GeometricObjects
                 }
                 return _normal;
             }
+        }
+
+        public Point3D[] CardinalPoints { get { return [Center]; } }
+        public Vector3D[] CardinalNormals { get { return [Normal]; } }
+        public Plane Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return new Plane(cardinalPoints[0], cardinalNormals[0]);
         }
 
         public Point3D Projection(Point3D point)

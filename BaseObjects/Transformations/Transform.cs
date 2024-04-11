@@ -47,7 +47,7 @@ namespace BaseObjects.Transformations
             return new Point3D(x, y, z);
         }
 
-        public Vector3D Apply(Point3D point, Vector3D normal)
+        public Vector3D Apply(Vector3D normal)
         {
             double x = n00 * normal.X + n01 * normal.Y + n02 * normal.Z;
             double y = n10 * normal.X + n11 * normal.Y + n12 * normal.Z;
@@ -76,9 +76,9 @@ namespace BaseObjects.Transformations
         {
             return ShearXZ(x, z) * this;
         }
-        public Transform Translate(Point3D point)
+        public Transform Translate(Vector3D vector)
         {
-            return Translation(point) * this;
+            return Translation(vector) * this;
         }
         public Transform AtScale(double size)
         {
@@ -89,9 +89,9 @@ namespace BaseObjects.Transformations
             return Scale(x, y, z) * this;
         }
 
-        public Transform AtPoint(Point3D point)
+        public Transform AtVector(Vector3D vector)
         {
-            return Translation(point) * this * Translation(-1 * point);
+            return Translation(vector) * this * Translation(-1 * vector);
         }
         public Transform AtAxis(Vector3D axis, double angle)
         {
@@ -379,23 +379,23 @@ namespace BaseObjects.Transformations
             return t;
         }
 
-        public static Transform Translation(Point3D point)
+        public static Transform Translation(Vector3D vector)
         {
             Transform t = new Transform();
             t.p00 = 1;
             t.p01 = 0;
             t.p02 = 0;
-            t.p03 = point.X;
+            t.p03 = vector.X;
 
             t.p10 = 0;
             t.p11 = 1;
             t.p12 = 0;
-            t.p13 = point.Y;
+            t.p13 = vector.Y;
 
             t.p20 = 0;
             t.p21 = 0;
             t.p22 = 1;
-            t.p23 = point.Z;
+            t.p23 = vector.Z;
 
             t.p30 = 0;
             t.p31 = 0;

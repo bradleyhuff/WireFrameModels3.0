@@ -1,7 +1,9 @@
 ﻿
+using BaseObjects.Transformations.Interfaces;
+
 namespace BasicObjects.GeometricObjects
 {
-    public class SurfaceTriangle
+    public class SurfaceTriangle : IShape3D<SurfaceTriangle>
     {
         public SurfaceTriangle(Ray3D a, Ray3D b, Ray3D c)
         {
@@ -34,11 +36,11 @@ namespace BasicObjects.GeometricObjects
             return new Ray3D(projection, (c.λ1 * A.Normal + c.λ2 * B.Normal + c.λ3 * C.Normal).Direction);
         }
 
-        public void InvertNormals()
+        public Point3D[] CardinalPoints { get { return [A.Point, B.Point, C.Point]; } }
+        public Vector3D[] CardinalNormals { get { return [A.Normal, B.Normal, C.Normal]; } }
+        public SurfaceTriangle Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
         {
-            A.InvertNormal();
-            B.InvertNormal();
-            C.InvertNormal();
+            return new SurfaceTriangle(new Ray3D(cardinalPoints[0], cardinalNormals[0]), new Ray3D(cardinalPoints[1], cardinalNormals[1]), new Ray3D(cardinalPoints[2], cardinalNormals[2]));
         }
 
         public override string ToString()

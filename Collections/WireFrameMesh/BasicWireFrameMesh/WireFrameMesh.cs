@@ -32,12 +32,17 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
 
         public PositionNormal AddPoint(Point3D position, Vector3D normal, ITransform transform)
         {
-            return AddPoint(transform.Apply(position), transform.Apply(position, normal));
+            return AddPoint(transform.Apply(position), transform.Apply(normal));
         }
 
         public PositionTriangle AddTriangle(Point3D a, Point3D b, Point3D c, string trace = "")
         {
             return AddTriangle(a, Vector3D.Zero, b, Vector3D.Zero, c, Vector3D.Zero, trace);
+        }
+
+        public PositionTriangle AddTriangle(Triangle3D triangle, string trace = "")
+        {
+            return AddTriangle(triangle.A, triangle.B, triangle.C, trace);
         }
 
         public PositionTriangle AddTriangle(Point3D a, Vector3D aN, Point3D b, Vector3D bN, Point3D c, Vector3D cN, string trace = "")
@@ -174,11 +179,10 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         {
             foreach (var position in Positions)
             {
-                var oldPoint = position.Point;
                 position.Point = transform.Apply(position.Point);
                 foreach (var positionNormal in position.PositionNormals)
                 {
-                    positionNormal.Normal = transform.Apply(oldPoint, positionNormal.Normal);
+                    positionNormal.Normal = transform.Apply(positionNormal.Normal);
                 }
             }
             _bucket = new BoxBucket<Position>(Positions);

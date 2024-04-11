@@ -1,11 +1,12 @@
 ﻿
+using BaseObjects.Transformations.Interfaces;
 using BasicObjects.Math;
 using Double = BasicObjects.Math.Double;
 using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
 {
-    public class Triangle3D
+    public class Triangle3D : IShape3D<Triangle3D>
     {
         public Triangle3D(Point3D A, Point3D B, Point3D C)
         {
@@ -356,6 +357,16 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        public Point3D[] CardinalPoints
+        {
+            get { return [A, B, C]; }
+        }
+        public Vector3D[] CardinalNormals { get { return []; } }
+        public Triangle3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return new Triangle3D(cardinalPoints[0], cardinalPoints[1], cardinalPoints[2]);
+        }
+
         public static bool AreCoplanar(Triangle3D a, Triangle3D b)
         {
             return a.Plane.PointIsOnPlane(b.A) && a.Plane.PointIsOnPlane(b.B) && a.Plane.PointIsOnPlane(b.C);
@@ -394,19 +405,19 @@ namespace BasicObjects.GeometricObjects
             var commonVerticies = CommonVerticies(a, b).ToArray();
             if (commonVerticies.Length > 1) { yield return new LineSegment3D(commonVerticies[0], commonVerticies[1]); yield break; }
 
-            if (AreCoplanar(a, b))
-            {
-                //
+            //if (AreCoplanar(a, b))
+            //{
+            //    //
 
 
-                yield break;
-            }
+            //    yield break;
+            //}
 
             Line3D line = Plane.Intersection(a.Plane, b.Plane);
-            if (line is null) 
-            { 
+            if (line is null)
+            {
 
-                yield break; 
+                yield break;
             }
 
             if (commonVerticies.Length == 1)
@@ -525,6 +536,5 @@ namespace BasicObjects.GeometricObjects
         {
             return $"Triangle A: {A} B: {B} C: {C}";
         }
-
     }
 }

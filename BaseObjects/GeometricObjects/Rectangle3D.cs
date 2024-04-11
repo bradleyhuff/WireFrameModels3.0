@@ -1,8 +1,9 @@
-﻿using E = BasicObjects.Math;
+﻿using BaseObjects.Transformations.Interfaces;
+using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
 {
-    public class Rectangle3D
+    public class Rectangle3D : IShape3D<Rectangle3D>
     {
         public Rectangle3D(Point3D point, double margin) : this(
          point.X - margin, point.X + margin,
@@ -24,6 +25,16 @@ namespace BasicObjects.GeometricObjects
         {
             MinPoint = new Point3D(minX, minY, minZ);
             MaxPoint = new Point3D(maxX, maxY, maxZ);
+        }
+
+        public Point3D[] CardinalPoints
+        {
+            get { return [MinPoint, MaxPoint]; }
+        }
+        public Vector3D[] CardinalNormals { get { return []; } }
+        public Rectangle3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return new Rectangle3D(cardinalPoints[0], cardinalPoints[1]);
         }
 
         public Rectangle3D Margin(double margin)

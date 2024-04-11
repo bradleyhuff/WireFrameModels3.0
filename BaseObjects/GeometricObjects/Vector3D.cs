@@ -1,14 +1,22 @@
-﻿using E = BasicObjects.Math;
+﻿using BaseObjects.Transformations.Interfaces;
+using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
 {
-    public class Vector3D
+    public class Vector3D : IShape3D<Vector3D>
     {
         public Vector3D(double x, double y, double z) { X = x; Y = y; Z = z; }
 
         public double X { get; }
         public double Y { get; }
         public double Z { get; }
+
+        public Point3D[] CardinalPoints { get { return []; } }
+        public Vector3D[] CardinalNormals { get { return [this]; } }
+        public Vector3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return cardinalNormals[0];
+        }
 
         public static Vector3D operator -(Vector3D vector)
         {

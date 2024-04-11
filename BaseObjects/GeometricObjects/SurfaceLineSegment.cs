@@ -1,7 +1,9 @@
 ﻿
+using BaseObjects.Transformations.Interfaces;
+
 namespace BasicObjects.GeometricObjects
 {
-    public class SurfaceLineSegment
+    public class SurfaceLineSegment : IShape3D<SurfaceLineSegment>
     {
         public SurfaceLineSegment(Ray3D a, Ray3D b)
         {
@@ -35,6 +37,13 @@ namespace BasicObjects.GeometricObjects
                 }
                 return _center;
             }
+        }
+
+        public Point3D[] CardinalPoints { get { return [A.Point, B.Point]; } }
+        public Vector3D[] CardinalNormals { get { return [A.Normal, B.Normal]; } }
+        public SurfaceLineSegment Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return new SurfaceLineSegment(new Ray3D(cardinalPoints[0], cardinalNormals[0]), new Ray3D(cardinalPoints[1], cardinalNormals[1]));
         }
 
         public bool RayIsAtAnEndpoint(Ray3D p)

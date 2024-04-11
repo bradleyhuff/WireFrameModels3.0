@@ -1,8 +1,9 @@
-﻿using E = BasicObjects.Math;
+﻿using BaseObjects.Transformations.Interfaces;
+using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
 {
-    public class Line3D
+    public class Line3D : IShape3D<Line3D>
     {
         public Line3D(Point3D point, Vector3D vector)
         {
@@ -17,6 +18,13 @@ namespace BasicObjects.GeometricObjects
         }
         internal protected Point3D Start { get; }
         internal protected Point3D End { get; }
+
+        public Point3D[] CardinalPoints { get { return [Start, End]; } }
+        public Vector3D[] CardinalNormals { get { return []; } }
+        public Line3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        {
+            return new Line3D(cardinalPoints[0], cardinalPoints[1]);
+        }
 
         private Vector3D _vector = null;
         public Vector3D Vector

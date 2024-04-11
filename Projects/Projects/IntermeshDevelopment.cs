@@ -32,16 +32,16 @@ namespace Projects.Projects
             //spheres2.Apply(Transform.Translation(new Point3D(1.0001, 0.0001, 0.0001)));
             //spheres2.Apply(Transform.Translation(new Point3D(1.000001, 0.000001, 0.000001)));
             //spheres2.Apply(Transform.Translation(new Point3D(1.00000001, 0.00000001, 0.00000001)));
-            spheres2.Apply(Transform.Translation(new Point3D(1, 0, 0)));
+            spheres2.Apply(Transform.Translation(new Vector3D(1, 0, 0)));
             //spheres2.Apply(Transform.Translation(new Point3D(1.05, 0.04, 0.06)));
             output = output.Difference(spheres2);
 
             var spheres3 = spheres.Clone();
-            spheres3.Apply(Transform.Translation(new Point3D(0, 1, 0)));
+            spheres3.Apply(Transform.Translation(new Vector3D(0, 1, 0)));
             output = output.Difference(spheres3);
 
             var spheres4 = spheres.Clone();
-            spheres4.Apply(Transform.Translation(new Point3D(0, 0, 1)));
+            spheres4.Apply(Transform.Translation(new Vector3D(0, 0, 1)));
             output = output.Difference(spheres4);
 
             //TableDisplays.ShowCountSpread("Position normal triangle counts", output.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
@@ -63,19 +63,19 @@ namespace Projects.Projects
             var spheres = CreateTestSpheres();
 
             var spheres5 = spheres.Clone();
-            spheres5.Apply(Transform.Translation(new Point3D(0, 1, 1)));
+            spheres5.Apply(Transform.Translation(new Vector3D(0, 1, 1)));
             output = output.Difference(spheres5);
 
             //var spheres6 = spheres.Clone();
-            //spheres6.Apply(Transform.Translation(new Point3D(1, 0, 1)));
+            //spheres6.Apply(Transform.Translation(new Vector3D(1, 0, 1)));
             //output = output.Difference(spheres6);
 
             //var spheres7 = spheres.Clone();
-            //spheres7.Apply(Transform.Translation(new Point3D(1, 1, 0)));
+            //spheres7.Apply(Transform.Translation(new Vector3D(1, 1, 0)));
             //output = output.Difference(spheres7);
 
             //var spheres8 = spheres.Clone();
-            //spheres8.Apply(Transform.Translation(new Point3D(1, 1, 1)));
+            //spheres8.Apply(Transform.Translation(new Vector3D(1, 1, 1)));
             //output = output.Difference(spheres8);
 
 

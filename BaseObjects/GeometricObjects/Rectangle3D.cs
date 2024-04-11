@@ -31,8 +31,8 @@ namespace BasicObjects.GeometricObjects
         {
             get { return [MinPoint, MaxPoint]; }
         }
-        public Vector3D[] CardinalNormals { get { return []; } }
-        public Rectangle3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return []; } }
+        public Rectangle3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
             return new Rectangle3D(cardinalPoints[0], cardinalPoints[1]);
         }

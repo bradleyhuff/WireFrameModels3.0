@@ -75,8 +75,8 @@ namespace BasicObjects.GeometricObjects
         }
 
         public Point3D[] CardinalPoints { get { return [Start, End]; } }
-        public Vector3D[] CardinalNormals { get { return []; } }
-        public LineSegment3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return []; } }
+        public LineSegment3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
             return new LineSegment3D(cardinalPoints[0], cardinalPoints[1]);
         }

@@ -20,8 +20,8 @@ namespace BasicObjects.GeometricObjects
         internal protected Point3D End { get; }
 
         public Point3D[] CardinalPoints { get { return [Start, End]; } }
-        public Vector3D[] CardinalNormals { get { return []; } }
-        public Line3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return []; } }
+        public Line3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
             return new Line3D(cardinalPoints[0], cardinalPoints[1]);
         }

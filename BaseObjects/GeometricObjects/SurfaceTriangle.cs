@@ -37,10 +37,10 @@ namespace BasicObjects.GeometricObjects
         }
 
         public Point3D[] CardinalPoints { get { return [A.Point, B.Point, C.Point]; } }
-        public Vector3D[] CardinalNormals { get { return [A.Normal, B.Normal, C.Normal]; } }
-        public SurfaceTriangle Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return [A.Normal, B.Normal, C.Normal]; } }
+        public SurfaceTriangle Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
-            return new SurfaceTriangle(new Ray3D(cardinalPoints[0], cardinalNormals[0]), new Ray3D(cardinalPoints[1], cardinalNormals[1]), new Ray3D(cardinalPoints[2], cardinalNormals[2]));
+            return new SurfaceTriangle(new Ray3D(cardinalPoints[0], cardinalVectors[0]), new Ray3D(cardinalPoints[1], cardinalVectors[1]), new Ray3D(cardinalPoints[2], cardinalVectors[2]));
         }
 
         public override string ToString()

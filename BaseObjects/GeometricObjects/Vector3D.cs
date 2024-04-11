@@ -12,10 +12,10 @@ namespace BasicObjects.GeometricObjects
         public double Z { get; }
 
         public Point3D[] CardinalPoints { get { return []; } }
-        public Vector3D[] CardinalNormals { get { return [this]; } }
-        public Vector3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return [this]; } }
+        public Vector3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
-            return cardinalNormals[0];
+            return cardinalVectors[0];
         }
 
         public static Vector3D operator -(Vector3D vector)

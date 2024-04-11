@@ -361,8 +361,8 @@ namespace BasicObjects.GeometricObjects
         {
             get { return [A, B, C]; }
         }
-        public Vector3D[] CardinalNormals { get { return []; } }
-        public Triangle3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return []; } }
+        public Triangle3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
             return new Triangle3D(cardinalPoints[0], cardinalPoints[1], cardinalPoints[2]);
         }

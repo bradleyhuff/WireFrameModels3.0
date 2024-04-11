@@ -17,8 +17,8 @@ namespace BasicObjects.GeometricObjects
         public double Z { get; }
 
         public Point3D[] CardinalPoints { get { return [this]; } }
-        public Vector3D[] CardinalNormals { get { return []; } }
-        public Point3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return []; } }
+        public Point3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
             return cardinalPoints[0];
         }

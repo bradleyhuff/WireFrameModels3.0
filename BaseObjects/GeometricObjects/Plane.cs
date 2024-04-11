@@ -43,10 +43,10 @@ namespace BasicObjects.GeometricObjects
         }
 
         public Point3D[] CardinalPoints { get { return [Center]; } }
-        public Vector3D[] CardinalNormals { get { return [Normal]; } }
-        public Plane Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return [Normal]; } }
+        public Plane Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
-            return new Plane(cardinalPoints[0], cardinalNormals[0]);
+            return new Plane(cardinalPoints[0], cardinalVectors[0]);
         }
 
         public Point3D Projection(Point3D point)

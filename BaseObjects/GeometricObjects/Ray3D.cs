@@ -42,10 +42,10 @@ namespace BasicObjects.GeometricObjects
         }
 
         public Point3D[] CardinalPoints { get { return [Point]; } }
-        public Vector3D[] CardinalNormals { get { return [Normal]; } }
-        public Ray3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return [Normal]; } }
+        public Ray3D Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
-            return new Ray3D(cardinalPoints[0], cardinalNormals[0]);
+            return new Ray3D(cardinalPoints[0], cardinalVectors[0]);
         }
 
         public static Ray3D Average(IEnumerable<Ray3D> source)

@@ -40,10 +40,10 @@ namespace BasicObjects.GeometricObjects
         }
 
         public Point3D[] CardinalPoints { get { return [A.Point, B.Point]; } }
-        public Vector3D[] CardinalNormals { get { return [A.Normal, B.Normal]; } }
-        public SurfaceLineSegment Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalNormals)
+        public Vector3D[] CardinalVectors { get { return [A.Normal, B.Normal]; } }
+        public SurfaceLineSegment Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)
         {
-            return new SurfaceLineSegment(new Ray3D(cardinalPoints[0], cardinalNormals[0]), new Ray3D(cardinalPoints[1], cardinalNormals[1]));
+            return new SurfaceLineSegment(new Ray3D(cardinalPoints[0], cardinalVectors[0]), new Ray3D(cardinalPoints[1], cardinalVectors[1]));
         }
 
         public bool RayIsAtAnEndpoint(Ray3D p)

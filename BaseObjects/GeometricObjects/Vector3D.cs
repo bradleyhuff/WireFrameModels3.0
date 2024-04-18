@@ -105,8 +105,8 @@ namespace BasicObjects.GeometricObjects
 
         public static bool DirectionsEqual(Vector3D a, Vector3D b, double ε = E.Double.RadianDifferenceError)
         {
-            var cross = Cross(a, b) / (a.Magnitude * b.Magnitude);
-            return cross.Magnitude < ε && System.Math.Sign(Dot(a,b)) == 1;
+            var cross = Cross(a.Direction, b.Direction);
+            return cross.Magnitude < ε && System.Math.Sign(Dot(a.Direction,b.Direction)) == 1;
         }
 
         public override string ToString()

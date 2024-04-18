@@ -50,7 +50,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
         {
             foreach (var match in matches)
             {
-                var point = Line3D.PointIntersection(segment.Intersection, match.Intersection);
+                var point = LineSegment3D.PointIntersection(segment.Intersection, match.Intersection);
                 if (point is not null) { yield return new IntermeshDivision() { RootIntersection = segment, Point = point, PointIntersection = match }; }
             }
         }

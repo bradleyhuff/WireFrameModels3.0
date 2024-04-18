@@ -48,6 +48,11 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        public bool IsDegenerate
+        {
+            get { return Length < E.Double.ProximityError; }
+        }
+
         private Point3D _center = null;
         public Point3D Center
         {
@@ -115,56 +120,9 @@ namespace BasicObjects.GeometricObjects
             return $"[{Start}, {End}] {Length}";
         }
 
-        public Point3D Projection(Point3D p)
-        {
-            if (p is null) { return null; }
-            Vector3D vector = Vector;
-            if (vector.Magnitude < E.Double.DifferenceError) { return null; }
-            Point3D start = Start;
-            double α = (vector.X * (p.X - start.X) + vector.Y * (p.Y - start.Y) + vector.Z * (p.Z - start.Z)) /
-                (vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
-
-            Point3D projection = new Point3D(start.X + α * vector.X, start.Y + α * vector.Y, start.Z + α * vector.Z);
-            var totalDistance = Point3D.Distance(Start, projection) + Point3D.Distance(End, projection);
-            var gap = System.Math.Abs(totalDistance - Length);
-            if (gap > E.Double.DifferenceError) { return null; }
-            return projection;
-        }
-
-        public Point3D Projection(Point3D p, out double gap)
-        {
-            Point3D projection = Projection(p);
-            if (projection is null) { gap = double.NaN; return null; }
-            gap = System.Math.Sqrt(E.Math.Square(p.X - projection.X) + E.Math.Square(p.Y - projection.Y) + E.Math.Square(p.Z - projection.Z));
-            return projection;
-        }
-
         public bool PointIsAtAnEndpoint(Point3D p)
         {
             return Start == p || End == p;
-        }
-
-        public bool PointIsOnLineSegment(Point3D p, double error = E.Double.DifferenceError)
-        {
-            if (PointIsAtAnEndpoint(p)) { return true; }
-            var projection = Projection(p);
-            if (projection is null) { return false; }
-            var distance = Point3D.Distance(projection, p);
-            return distance < error;
-        }
-
-        public bool PointIsOnLineSegmentAndBetweenEnds(Point3D p, double error = E.Double.DifferenceError)
-        {
-            if (PointIsAtAnEndpoint(p)) { return false; }
-            var projection = Projection(p);
-            if (projection is null) { return false; }
-            var distance = Point3D.Distance(projection, p);
-            return distance < error;
-        }
-
-        public bool Contains(LineSegment3D segment)
-        {
-            return PointIsOnLineSegment(segment.Start) && PointIsOnLineSegment(segment.End);
         }
 
         public Point3D OppositePoint(Point3D p)
@@ -174,68 +132,12 @@ namespace BasicObjects.GeometricObjects
             return null;
         }
 
-        public LineSegment3D StartMargin(double margin)
-        {
-            var vectorMargin = margin * Vector.Direction;
-            return new LineSegment3D(Start + -vectorMargin, End);
-        }
-
-        public LineSegment3D EndMargin(double margin)
-        {
-            var vectorMargin = margin * Vector.Direction;
-            return new LineSegment3D(Start, End + vectorMargin);
-        }
-
         public LineSegment3D Margins(double margin)
         {
             var vectorMargin = margin * Vector.Direction;
             return new LineSegment3D(Start + -vectorMargin, End + vectorMargin);
         }
 
-        public static bool SegmentsOverlap(LineSegment3D a, LineSegment3D b)
-        {
-            return SegmentIntersection(a, b) is not null;
-        }
-
-        public static bool SegmentsAreStrictlyDisjoint(LineSegment3D a, LineSegment3D b, double maxError = E.Double.DifferenceError)
-        {
-            var intersection = SegmentIntersection(a, b, maxError);
-            return intersection is null || intersection.Length < E.Double.DifferenceError;
-        }
-
-        public static LineSegment3D SegmentIntersection(LineSegment3D a, LineSegment3D b, double maxError = E.Double.DifferenceError)
-        {
-            Point3D projection1 = a.Projection(b.Start);
-            Point3D projection2 = a.Projection(b.End);
-            Point3D projection3 = b.Projection(a.Start);
-            Point3D projection4 = b.Projection(a.End);
-
-            int digit1 = (projection1 is null || Point3D.Distance(projection1, b.Start) > maxError) ? 0 : 1;
-            int digit2 = (projection2 is null || Point3D.Distance(projection2, b.End) > maxError) ? 0 : 1;
-            int digit3 = (projection3 is null || Point3D.Distance(projection3, a.Start) > maxError) ? 0 : 1;
-            int digit4 = (projection4 is null || Point3D.Distance(projection4, a.End) > maxError) ? 0 : 1;
-
-            int caseNumber = digit4 << 3 | digit3 << 2 | digit2 << 1 | digit1;
-
-            switch (caseNumber)
-            {
-                case 3: return new LineSegment3D(Point3D.MidPoint(projection1, b.Start), Point3D.MidPoint(projection2, b.End));
-                case 5: return new LineSegment3D(Point3D.MidPoint(projection1, b.Start), Point3D.MidPoint(projection3, a.Start));
-                case 6: return new LineSegment3D(Point3D.MidPoint(projection2, b.End), Point3D.MidPoint(projection3, a.Start));
-                case 7://a -> b.start, a -> b.end and b -> a.start
-                    return new LineSegment3D(b.Start, b.End);
-                case 9: return new LineSegment3D(Point3D.MidPoint(projection1, b.Start), Point3D.MidPoint(projection4, a.End));
-                case 10: return new LineSegment3D(Point3D.MidPoint(projection2, b.End), Point3D.MidPoint(projection4, a.End));
-                case 11://a -> b.start, a -> b.end and b -> a.end
-                    return new LineSegment3D(b.Start, b.End);
-                case 12: return new LineSegment3D(Point3D.MidPoint(projection3, a.Start), Point3D.MidPoint(projection4, a.End));
-                case 13://b -> a.start, b -> a.end and a -> b.start
-                case 14://b -> a.start, b -> a.end and a -> b.end
-                case 15: return new LineSegment3D(a.Start, a.End);
-            }
-
-            return null;
-        }
         public static Point3D LinkingPoint(LineSegment3D a, LineSegment3D b)
         {
             if (a.Start == b.Start || a.Start == b.End) { return a.Start; }
@@ -246,6 +148,93 @@ namespace BasicObjects.GeometricObjects
         public static bool IsNonLinking(LineSegment3D a, LineSegment3D b)
         {
             return LinkingPoint(a, b) is null;
+        }
+
+        public static LineSegment3D LineSegmentIntersection(LineSegment3D a, LineSegment3D b)
+        {
+            if (a is null || b is null) { return null; }
+            if (a.IsDegenerate && b.IsDegenerate) { return null; }
+
+            bool aStartEqualsbStart = a.Start == b.Start;
+            bool aStartEqualsbEnd = a.Start == b.End;
+            bool aEndEqualsbStart = a.End == b.Start;
+            bool aEndEqualsbEnd = a.End == b.End;
+            bool anEndPointMatches = aStartEqualsbStart || aStartEqualsbEnd || aEndEqualsbStart || aEndEqualsbEnd;
+
+            if (a.IsDegenerate && anEndPointMatches) { return null; }
+            if (b.IsDegenerate && anEndPointMatches) { return null; }
+            if (aStartEqualsbStart && aEndEqualsbEnd) { return a; }
+            if (aStartEqualsbEnd && aEndEqualsbStart) { return a; }
+
+            if (a.Length > b.Length)
+            {
+                return LineSegmentIntersectionMatch(a, b);
+            }
+            else
+            {
+                return LineSegmentIntersectionMatch(b, a);
+            }
+        }
+
+        private static LineSegment3D LineSegmentIntersectionMatch(LineSegment3D a, LineSegment3D b)
+        {
+            var line = a.LineExtension;
+            if (!line.SegmentIsOnLine(b)) { return null; }
+
+            double aStartbStart = Point3D.Distance(a.Start, b.Start);
+            double aStartbEnd = Point3D.Distance(a.Start, b.End);
+            double aEndbStart = Point3D.Distance(a.End, b.Start);
+            double aEndbEnd = Point3D.Distance(a.End, b.End);
+
+            bool bStartIsBetween = aStartbStart < a.Length && aEndbStart < a.Length;
+            bool bEndIsBetween = aStartbEnd < a.Length && aEndbEnd < a.Length;
+
+            if (bStartIsBetween && bEndIsBetween) { return b; }
+            if (bStartIsBetween && aEndbEnd < aStartbEnd) { return new LineSegment3D(b.Start, a.End); }
+            if (bStartIsBetween && aStartbEnd < aEndbEnd) { return new LineSegment3D(a.Start, b.Start); }
+            if (bEndIsBetween && aEndbStart < aStartbStart) { return new LineSegment3D(a.End, b.End); }
+            if (bEndIsBetween && aStartbStart < aEndbStart) { return new LineSegment3D(a.Start, b.End); }
+            return null;
+        }
+
+        public static Point3D PointIntersection(LineSegment3D a, LineSegment3D b)
+        {
+            if (a.IsDegenerate && b.IsDegenerate) { return null; }
+
+            bool aStartEqualsbStart = a.Start == b.Start;
+            bool aStartEqualsbEnd = a.Start == b.End;
+            bool aEndEqualsbStart = a.End == b.Start;
+            bool aEndEqualsbEnd = a.End == b.End;
+
+            bool anEndPointMatches = aStartEqualsbStart || aStartEqualsbEnd || aEndEqualsbStart || aEndEqualsbEnd;
+
+            if (a.IsDegenerate && anEndPointMatches) { return a.Center; }
+            if (b.IsDegenerate && anEndPointMatches) { return b.Center; }
+            if (aStartEqualsbStart && aEndEqualsbEnd) { return null; }
+            if (aStartEqualsbEnd && aEndEqualsbStart) { return null; }
+            if (aStartEqualsbStart || aStartEqualsbStart) { return a.Start; }
+            if (aEndEqualsbStart || aEndEqualsbEnd) { return a.End; }
+
+            if (a.Length > b.Length)
+            {
+                return PointIntersectionMatch(a, b);
+            }
+            else
+            {
+                return PointIntersectionMatch(b, a);
+            }
+        }
+
+        private static Point3D PointIntersectionMatch(LineSegment3D a, LineSegment3D b)
+        {
+            var line = a.LineExtension;
+            if (line.SegmentIsOnLine(b)) { return null; }
+
+            var point = Line3D.MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out double gap);
+            if (gap > E.Double.ProximityError) { return null; }
+            var isBetweenA = Point3D.Distance(a.Start, point) < a.Length + E.Double.DifferenceError && Point3D.Distance(a.End, point) < a.Length + E.Double.DifferenceError;
+            var isBetweenB = Point3D.Distance(b.Start, point) < b.Length + E.Double.DifferenceError && Point3D.Distance(b.End, point) < b.Length + E.Double.DifferenceError;
+            return isBetweenA && isBetweenB ? point: null;
         }
     }
 }

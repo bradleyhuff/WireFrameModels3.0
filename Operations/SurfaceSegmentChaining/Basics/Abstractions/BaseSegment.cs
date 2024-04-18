@@ -6,7 +6,7 @@ namespace Operations.SurfaceSegmentChaining.Basics.Abstractions
     public abstract class BaseSegment : IBox
     {
         private static int _id = 0;
-        public BaseSegment(LineSegment3D segment, double margin = BasicObjects.Math.Double.DifferenceError)
+        public BaseSegment(LineSegment3D segment, double margin = BasicObjects.Math.Double.ProximityError)
         {
             Segment = segment;
 

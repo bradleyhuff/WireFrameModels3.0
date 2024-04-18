@@ -113,7 +113,7 @@ namespace Operations.PlanarFilling.Filling
             private IEnumerable<Point3D> GetCrossingIntersections(InternalPlanarSegment testSegment, IEnumerable<InternalPlanarSegment> matches)
             {
                 var pointSegments = matches.Select(m =>
-                        new { Intersection = Line3D.PointIntersection(testSegment.Segment, m.Segment), Segment = m.Segment }).
+                        new { Intersection = LineSegment3D.PointIntersection(testSegment.Segment, m.Segment), Segment = m.Segment }).
                         Where(a => a.Intersection is not null);
 
                 var orientedSegments = new List<LineSegment3D>();
@@ -130,7 +130,7 @@ namespace Operations.PlanarFilling.Filling
                 }
 
                 var crossingPoints = PointOppositeSegments(orientedSegments).
-                    Where(s => s.Item2.Any(c => Line3D.PointIntersection(c, testSegment.Segment) is not null)).Select(s => s.Item1);
+                    Where(s => s.Item2.Any(c => LineSegment3D.PointIntersection(c, testSegment.Segment) is not null)).Select(s => s.Item1);
                 foreach (var crossingPoint in crossingPoints)
                 {
                     yield return crossingPoint;
@@ -165,8 +165,8 @@ namespace Operations.PlanarFilling.Filling
                 var nonLinkingSegments = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment);
                 var intersectionDistances = nonLinkingSegments.Select(m => new
                 {
-                    Distance = Point3D.Distance(testSegment.Segment.Start, Line3D.PointIntersection(m.Segment, testSegment.Segment))
-                }).Where(d => Double.IsValid(d.Distance) && d.Distance > Double.DifferenceError);
+                    Distance = Point3D.Distance(testSegment.Segment.Start, LineSegment3D.PointIntersection(m.Segment, testSegment.Segment))
+                }).Where(d => Double.IsValid(d.Distance) && d.Distance > Double.ProximityError);
                 return intersectionDistances.Any();
             }
 
@@ -177,8 +177,8 @@ namespace Operations.PlanarFilling.Filling
                 var intersectionDistances = nonLinkingSegments.Select(m => new
                 {
                     Segment = m,
-                    Distance = Point3D.Distance(testSegment.Segment.Start, Line3D.PointIntersection(m.Segment, testSegment.Segment))
-                }).Where(d => Double.IsValid(d.Distance) && d.Distance > Double.DifferenceError);
+                    Distance = Point3D.Distance(testSegment.Segment.Start, LineSegment3D.PointIntersection(m.Segment, testSegment.Segment))
+                }).Where(d => Double.IsValid(d.Distance) && d.Distance > Double.ProximityError);
 
                 if (!intersectionDistances.Any()) { return null; }
 

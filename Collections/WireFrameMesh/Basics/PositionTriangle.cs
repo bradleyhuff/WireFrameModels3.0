@@ -237,6 +237,16 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
+        public IEnumerable<PositionNormal[]> Edges
+        {
+            get
+            {
+                yield return [A, B];
+                yield return [B, C];
+                yield return [C, A];
+            }
+        }
+
         private Triangle3D _triangle = null;
         public Triangle3D Triangle
         {

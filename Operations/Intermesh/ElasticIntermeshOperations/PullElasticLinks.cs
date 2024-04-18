@@ -1,5 +1,6 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
+using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Console = BaseObjects.Console;
 
@@ -12,6 +13,15 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var start = DateTime.Now;
             AnchorPull(elasticTriangles);
             ConsoleLog.WriteLine($"Pull elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+
+            var elasticSegments = elasticTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
+            ConsoleLog.WriteNextLine($"Total elastic segments {elasticSegments.Length}");
+            //TableDisplays.ShowCountSpread("Elastic segment length counts", elasticSegments, p => (int)Math.Floor(Math.Log10(p.Length)));
+            var groups = elasticSegments.GroupBy(p => (int)Math.Floor(3 * Math.Log10(p.Length))).OrderBy(g => g.Key).ToArray();
+            foreach (var group in groups)
+            {
+                Console.WriteLine($"{Math.Pow(10, group.Key / 3.0).ToString("E2")}  {group.Count()}");
+            }
         }
 
         private static void AnchorPull(IEnumerable<ElasticTriangle> elasticTriangles)
@@ -25,19 +35,19 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 var perimeterPoints = elasticTriangle.PerimeterEdges.SelectMany(p => p.PerimeterPoints).ToArray();
                 foreach (var perimeter in perimeterPoints)
                 {
-                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorA.Point) < 3e-9)
+                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorA.Point) < GapConstants.Filler)
                     {
                         AnchorPull(elasticTriangle.AnchorA, elasticTriangle.PerimeterEdgeAB, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorA, elasticTriangle.PerimeterEdgeCA, perimeter, perimeterTable);
                         pulls++;
                     }
-                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorB.Point) < 3e-9)
+                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorB.Point) < GapConstants.Filler)
                     {
                         AnchorPull(elasticTriangle.AnchorB, elasticTriangle.PerimeterEdgeBC, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorB, elasticTriangle.PerimeterEdgeAB, perimeter, perimeterTable);
                         pulls++;
                     }
-                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorC.Point) < 3e-9)
+                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorC.Point) < GapConstants.Filler)
                     {
                         AnchorPull(elasticTriangle.AnchorC, elasticTriangle.PerimeterEdgeCA, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorC, elasticTriangle.PerimeterEdgeBC, perimeter, perimeterTable);
@@ -45,52 +55,6 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                     }
                 }
             }
-
-            //int blindPulls = 0;
-            //foreach (var elasticTriangle in elasticTriangles)
-            //{
-            //    var segmentPoints = elasticTriangle.Segments.SelectMany(ps => ps.VerticiesAB).ToArray();
-
-            //    var notMatchedPointsA = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorA.Point && p.Vertex.Id != elasticTriangle.AnchorA.Id &&
-            //        !elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
-            //        !elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
-
-            //    foreach (var point in notMatchedPointsA)
-            //    {
-            //        point.Vertex.Delink(point);
-            //        elasticTriangle.AnchorA.Link(point);
-            //        blindPulls++;
-            //    }
-
-            //    if (notMatchedPointsA.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points A {notMatchedPointsA.Count()}"); }
-
-            //    var notMatchedPointsB = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorB.Point && p.Vertex.Id != elasticTriangle.AnchorB.Id &&
-            //        !elasticTriangle.PerimeterEdgeAB.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
-            //        !elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
-
-            //    foreach (var point in notMatchedPointsB)
-            //    {
-            //        point.Vertex.Delink(point);
-            //        elasticTriangle.AnchorB.Link(point);
-            //        blindPulls++;
-            //    }
-
-            //    if (notMatchedPointsB.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points B {notMatchedPointsB.Count()}"); }
-
-            //    var notMatchedPointsC = segmentPoints.Where(p => p.Vertex.Point == elasticTriangle.AnchorC.Point && p.Vertex.Id != elasticTriangle.AnchorC.Id &&
-            //        !elasticTriangle.PerimeterEdgeBC.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id) &&
-            //        !elasticTriangle.PerimeterEdgeCA.PerimeterPoints.Any(ab => ab.Id == p.Vertex.Id));
-
-            //    foreach (var point in notMatchedPointsC)
-            //    {
-            //        point.Vertex.Delink(point);
-            //        elasticTriangle.AnchorC.Link(point);
-            //        blindPulls++;
-            //    }
-
-            //    if (notMatchedPointsC.Any()) { Console.WriteLine($"{elasticTriangle.Id} Not matched points C {notMatchedPointsC.Count()}"); }
-            //}
-            //Console.WriteLine($"Anchor pulls {pulls} Blind vertex pulls {blindPulls}");
             //Console.WriteLine($"Anchor pulls {pulls}");
         }
 

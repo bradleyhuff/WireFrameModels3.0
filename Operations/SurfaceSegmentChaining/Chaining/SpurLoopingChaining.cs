@@ -151,13 +151,13 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             var matches = spurEndpoint.Bucket.Fetch(new InternalLoopSegment(segment));
             foreach (var match in matches.Select(m => m.Segment).Where(m => LineSegment3D.IsNonLinking(m, segment)))
             {
-                var intersection = Line3D.PointIntersection(segment, match);
-                if (Line3D.PointIntersection(segment, match) is not null) { return true; }
+                var intersection = LineSegment3D.PointIntersection(segment, match);
+                if (LineSegment3D.PointIntersection(segment, match) is not null) { return true; }
             }
             foreach (var match in addedSegments.Where(m => LineSegment3D.IsNonLinking(m, segment)))
             {
-                var intersection = Line3D.PointIntersection(segment, match);
-                if (Line3D.PointIntersection(segment, match) is not null) { return true; }
+                var intersection = LineSegment3D.PointIntersection(segment, match);
+                if (LineSegment3D.PointIntersection(segment, match) is not null) { return true; }
             }
             return false;
         }

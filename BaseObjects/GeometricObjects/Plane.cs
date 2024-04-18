@@ -80,7 +80,7 @@ namespace BasicObjects.GeometricObjects
 
         public bool PointIsOnPlane(Point3D point)
         {
-            return Distance(point) < E.Double.DifferenceError;
+            return Distance(point) < E.Double.ProximityError;
         }
 
         public bool LineIsOnPlane(Line3D line)
@@ -108,7 +108,7 @@ namespace BasicObjects.GeometricObjects
             var line = Intersection(this, triangle.Plane);
             if (line is null) { return null; }
 
-            return triangle.SegmentIntersection(line);
+            return triangle.LineSegmentIntersection(line);
         }
 
         public Point3D Intersection(LineSegment3D line)
@@ -156,7 +156,7 @@ namespace BasicObjects.GeometricObjects
         {
             // cross of plane and other plane to give the normal plane.
             var vector = Vector3D.Cross(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C);
-            if (vector.Magnitude < E.Double.DifferenceError) { return null; }
+            if (vector.Magnitude < E.Double.ProximityError) { return null; }
 
             // solves for a point in line which is intersection between given planes and the normal plane.
             E.LinearSystems.Solve3x3(

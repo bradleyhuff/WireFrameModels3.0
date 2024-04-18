@@ -24,7 +24,7 @@ namespace FileExportImport
             DateTime end = DateTime.Now;
             FileInfo info = new FileInfo(fileName);
             Console.WriteLine($"Exported .OBJ Wavefront File: {fileName}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
-            Console.WriteLine($"Positions: {mesh.Positions.Count.ToString("#,##0")} PositionNormals: {mesh.Positions.Sum(p => p.PositionNormals.Count)} Triangles: {mesh.Triangles.Count.ToString("#,##0")}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            Console.WriteLine($"Positions: {mesh.Positions.Count.ToString("#,##0")} PositionNormals: {mesh.Positions.Sum(p => p.PositionNormals.Count).ToString("#,##0")} Triangles: {mesh.Triangles.Count.ToString("#,##0")}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine($"Elapsed time: {(end - start).TotalMilliseconds.ToString("#,##0")} milliseconds. File size: {info.DisplayFileSize()}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
         }

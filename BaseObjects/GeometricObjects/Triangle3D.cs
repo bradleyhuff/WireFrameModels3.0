@@ -1,5 +1,4 @@
-﻿
-using BaseObjects.Transformations.Interfaces;
+﻿using BaseObjects.Transformations.Interfaces;
 using BasicObjects.Math;
 using Double = BasicObjects.Math.Double;
 using E = BasicObjects.Math;
@@ -208,14 +207,32 @@ namespace BasicObjects.GeometricObjects
 
         public bool IsCollinear
         {
-            get { return HeightAtoBC < Double.DifferenceError || HeightBtoCA < Double.DifferenceError || HeightCtoAB < Double.DifferenceError; }
+            get { return HeightAtoBC < Double.ProximityError || HeightBtoCA < Double.ProximityError || HeightCtoAB < Double.ProximityError; }
+        }
+        private LineSegment3D _longestEdge = null;
+        public LineSegment3D LongestEdge
+        {
+            get
+            {
+                if (_longestEdge is null)
+                {
+                    _longestEdge = GetLongestEdge();
+                }
+                return _longestEdge;
+            }
         }
 
-        public double AngleAtPoint(Point3D point)
+        private LineSegment3D GetLongestEdge()
         {
-            if (point == A) { return AngleAtA; }
-            if (point == B) { return AngleAtB; }
-            return AngleAtC;
+            if (EdgeAB.Length > EdgeBC.Length && EdgeAB.Length > EdgeCA.Length)
+            {
+                return EdgeAB;
+            }
+            if (EdgeBC.Length > EdgeAB.Length && EdgeBC.Length > EdgeCA.Length)
+            {
+                return EdgeBC;
+            }
+            return EdgeCA;
         }
 
         private double _angleAtA = 0;
@@ -372,136 +389,9 @@ namespace BasicObjects.GeometricObjects
             return a.Plane.PointIsOnPlane(b.A) && a.Plane.PointIsOnPlane(b.B) && a.Plane.PointIsOnPlane(b.C);
         }
 
-        public LineSegment3D SegmentIntersection(Line3D line)
-        {
-            Point3D ab = Line3D.PointIntersection(EdgeAB, line);
-            Point3D bc = Line3D.PointIntersection(EdgeBC, line);
-            if (ab is null && bc is null) { return null; } //There can be no intersection if 2 of the sides don't intersect.
-            Point3D ca = Line3D.PointIntersection(EdgeCA, line);
-
-            int digit1 = (ab is null) ? 0 : 1;
-            int digit2 = (bc is null) ? 0 : 1;
-            int digit3 = (ca is null) ? 0 : 1;
-
-            int caseNumber = digit3 << 2 | digit2 << 1 | digit1;
-
-            switch (caseNumber)
-            {
-                case 3: return new LineSegment3D(ab, bc);
-                case 5: return new LineSegment3D(ab, ca);
-                case 6: return new LineSegment3D(bc, ca);
-                case 7:
-                    if (ab == bc) { return new LineSegment3D(ab, ca); }
-                    if (bc == ca) { return new LineSegment3D(ab, bc); }
-                    if (ca == ab) { return new LineSegment3D(ab, bc); }
-                    return null;
-            }
-
-            return null;
-        }
-
-        public static IEnumerable<LineSegment3D> SegmentIntersections(Triangle3D a, Triangle3D b)
-        {
-            var commonVerticies = CommonVerticies(a, b).ToArray();
-            if (commonVerticies.Length > 1) { yield return new LineSegment3D(commonVerticies[0], commonVerticies[1]); yield break; }
-
-            //if (AreCoplanar(a, b))
-            //{
-            //    //
-
-
-            //    yield break;
-            //}
-
-            Line3D line = Plane.Intersection(a.Plane, b.Plane);
-            if (line is null)
-            {
-
-                yield break;
-            }
-
-            if (commonVerticies.Length == 1)
-            {
-                var aDisjoints = a.DisjointVerticies(b).ToArray();
-
-                LineSegment3D ab1 = new LineSegment3D(aDisjoints[0], aDisjoints[1]);
-
-                Point3D p1 = Line3D.PointIntersection(ab1, line);
-                if (p1 is null) { yield break; }
-
-                var bDisjoints = b.DisjointVerticies(a).ToArray();
-                LineSegment3D ab2 = new LineSegment3D(bDisjoints[0], bDisjoints[1]);
-                Point3D p2 = Line3D.PointIntersection(ab2, line);
-                if (p2 is null) { yield break; }
-
-                Point3D c = commonVerticies[0];//common point
-                LineSegment3D ac1 = new LineSegment3D(p1, c);
-                LineSegment3D ac2 = new LineSegment3D(p2, c);
-
-                yield return LineSegment3D.SegmentIntersection(ac1, ac2);
-                yield break;
-            }
-
-            LineSegment3D segmentA = a.SegmentIntersection(line);
-            if (segmentA is null) { yield break; }
-            LineSegment3D segmentB = b.SegmentIntersection(line);
-            if (segmentB is null) { yield break; }
-
-            yield return LineSegment3D.SegmentIntersection(segmentA, segmentB);
-        }
-
-
-        public static LineSegment3D SegmentIntersection(Triangle3D a, Triangle3D b)
-        {
-            var commonVerticies = CommonVerticies(a, b).ToArray();
-            if (commonVerticies.Length > 1) { return new LineSegment3D(commonVerticies[0], commonVerticies[1]); }
-
-            Line3D line = Plane.Intersection(a.Plane, b.Plane);
-            if (line is null) { return null; }
-            if (commonVerticies.Length == 1)
-            {
-                var aDisjoints = a.DisjointVerticies(b).ToArray();
-
-                LineSegment3D ab1 = new LineSegment3D(aDisjoints[0], aDisjoints[1]);
-
-                Point3D p1 = Line3D.PointIntersection(ab1, line);
-                if (p1 is null) { return null; }
-
-                var bDisjoints = b.DisjointVerticies(a).ToArray();
-                LineSegment3D ab2 = new LineSegment3D(bDisjoints[0], bDisjoints[1]);
-                Point3D p2 = Line3D.PointIntersection(ab2, line);
-                if (p2 is null) { return null; }
-
-                Point3D c = commonVerticies[0];//common point
-                LineSegment3D ac1 = new LineSegment3D(p1, c);
-                LineSegment3D ac2 = new LineSegment3D(p2, c);
-
-                return LineSegment3D.SegmentIntersection(ac1, ac2);
-            }
-
-            LineSegment3D segmentA = a.SegmentIntersection(line);
-            if (segmentA is null) { return null; }
-            LineSegment3D segmentB = b.SegmentIntersection(line);
-            if (segmentB is null) { return null; }
-
-            return LineSegment3D.SegmentIntersection(segmentA, segmentB);
-        }
-
         public bool PointIsIn(Point3D point)
         {
             return Plane.PointIsOnPlane(point) && GetBarycentricCoordinate(point).IsInUnitInterval();
-        }
-
-        public bool OutsideLineSegmentMatchesOneVertex(LineSegment3D segment)
-        {
-            if (segment.Start == A && !PointIsOn(segment.End)) { return true; }
-            if (segment.End == A && !PointIsOn(segment.Start)) { return true; }
-            if (segment.Start == B && !PointIsOn(segment.End)) { return true; }
-            if (segment.End == B && !PointIsOn(segment.Start)) { return true; }
-            if (segment.Start == C && !PointIsOn(segment.End)) { return true; }
-            if (segment.End == C && !PointIsOn(segment.Start)) { return true; }
-
-            return false;
         }
 
         public bool PointIsOn(Point3D point)
@@ -527,14 +417,104 @@ namespace BasicObjects.GeometricObjects
             return new λ(λ1, λ2, λ3);
         }
 
-        public bool HasVertex(Point3D point)
-        {
-            return A.Equals(point) || B.Equals(point) || C.Equals(point);
-        }
-
         public override string ToString()
         {
             return $"Triangle A: {A} B: {B} C: {C}";
         }
+
+
+        public static IEnumerable<LineSegment3D> LineSegmentIntersections(Triangle3D a, Triangle3D b)
+        {
+            if (a.IsCollinear && b.IsCollinear)
+            {
+                yield return LineSegment3D.LineSegmentIntersection(a.LongestEdge, b.LongestEdge);
+                yield break;
+            }
+            if (a.IsCollinear)
+            {
+                var match = b.Edges.SingleOrDefault(e => LineSegment3D.LineSegmentIntersection(e, a.LongestEdge) is not null);
+                if (match is not null) { yield return match; }
+                yield break;
+            }
+            if (b.IsCollinear)
+            {
+                var match = a.Edges.SingleOrDefault(e => LineSegment3D.LineSegmentIntersection(e, b.LongestEdge) is not null);
+                if (match is not null) { yield return match; }
+                yield break;
+            }
+
+            foreach (var edge in a.Edges)
+            {
+                var match = b.Edges.SingleOrDefault(e => LineSegment3D.LineSegmentIntersection(e, edge) is not null);
+                if (match is not null) { yield return match; yield break; }
+            }
+
+            if (AreCoplanar(a, b))
+            {
+                // Add method to return all intersecting segments of the coplanar triangles.
+                yield break;
+            }
+
+            foreach (var edge in a.Edges)
+            {
+                var match = b.LineSegmentIntersection(edge);
+                if (match is not null) { yield return match; yield break; }
+            }
+
+            foreach (var edge in b.Edges)
+            {
+                var match = a.LineSegmentIntersection(edge);
+                if (match is not null) { yield return match; yield break; }
+            }
+
+            Line3D line = Plane.Intersection(a.Plane, b.Plane);
+            if (line is null) { yield break; }
+
+            var segmentA = a.LineSegmentIntersection(line);
+            var segmentB = b.LineSegmentIntersection(line);
+            {
+                var match = LineSegment3D.LineSegmentIntersection(segmentA, segmentB);
+                if (match is not null) { yield return match; }
+            }
+
+            yield break;
+        }
+
+        public LineSegment3D LineSegmentIntersection(Line3D line)
+        {
+            Point3D ab = Line3D.PointIntersection(EdgeAB, line);
+            Point3D bc = Line3D.PointIntersection(EdgeBC, line);
+            Point3D ca = Line3D.PointIntersection(EdgeCA, line);
+
+            if (ab is null && bc is not null && ca is not null) { return ReturnLineSegment(new LineSegment3D(bc, ca)); }//Check that these points lie within edge segment.
+            if (bc is null && ab is not null && ca is not null) { return ReturnLineSegment(new LineSegment3D(ab, ca)); }
+            if (ca is null && ab is not null && bc is not null) { return ReturnLineSegment(new LineSegment3D(ab, bc)); }
+
+            if (ab is not null && bc is null && ca is null) { return ReturnLineSegment(new LineSegment3D(C, ab)); }
+            if (ab is null && bc is not null && ca is null) { return ReturnLineSegment(new LineSegment3D(A, bc)); }
+            if (ab is null && bc is null && ca is not null) { return ReturnLineSegment(new LineSegment3D(B, ca)); }
+            if(ab is not null && bc is not null && ca is not null)
+            {
+                if (ab == A || ca == A) { return ReturnLineSegment(new LineSegment3D(A, bc)); }
+                if (ab == B || bc == B) { return ReturnLineSegment(new LineSegment3D(B, ca)); }
+                if (bc == C || ca == C) { return ReturnLineSegment(new LineSegment3D(C, ab)); }
+                Console.WriteLine($"Line segment intersection error.");
+            }
+
+            return null;
+        }
+
+        private LineSegment3D ReturnLineSegment(LineSegment3D segment)
+        {
+            return segment is not null && !segment.IsDegenerate ? segment : null;
+        }
+
+        public LineSegment3D LineSegmentIntersection(LineSegment3D segment)
+        {
+            var match = LineSegmentIntersection(segment.LineExtension);
+            if (match is null) { return null; }
+            return LineSegment3D.LineSegmentIntersection(match, segment);
+        }
+
     }
 }

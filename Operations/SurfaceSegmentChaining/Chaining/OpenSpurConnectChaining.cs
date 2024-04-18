@@ -1,5 +1,4 @@
 ﻿using BasicObjects.GeometricObjects;
-using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Operations.Intermesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
@@ -107,36 +106,17 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             var matches = bucket.Fetch(new InternalLoopSegment(segment));
             foreach (var match in matches.Select(m => m.Segment).Where(m => LineSegment3D.IsNonLinking(m, segment)))
             {
-                var intersection = Line3D.PointIntersection(segment, match);
-                if (Line3D.PointIntersection(segment, match) is not null) { return true; }
+                var intersection = LineSegment3D.PointIntersection(segment, match);
+                if (LineSegment3D.PointIntersection(segment, match) is not null) { return true; }
             }
             foreach (var match in addedSegments.Where(m => LineSegment3D.IsNonLinking(m, segment)))
             {
-                var intersection = Line3D.PointIntersection(segment, match);
-                if (Line3D.PointIntersection(segment, match) is not null) { return true; }
+                var intersection = LineSegment3D.PointIntersection(segment, match);
+                if (LineSegment3D.PointIntersection(segment, match) is not null) { return true; }
             }
             return false;
         }
 
-        private static int[] ReturnOpenSpur(int[] indexSpurredLoop)
-        {
-            var endpoints = GetEndpoints(indexSpurredLoop).ToArray();
-            if (endpoints.Length != 2) { return null; }
-
-            var segmentA = indexSpurredLoop.RotateToFirst((v, i) => v == endpoints[0]).TakeWhileIncluding((v, i) => v == endpoints[1]).ToArray();
-            var segmentB = indexSpurredLoop.RotateToFirst((v, i) => v == endpoints[1]).TakeWhileIncluding((v, i) => v == endpoints[0]).Reverse().ToArray();
-            if (!segmentA.IsEqualTo(segmentB)) { return null; }
-
-            return segmentA;
-        }
-
-        private static IEnumerable<int> GetEndpoints(int[] indexSpurredLoop)
-        {
-            for (int i = 0; i < indexSpurredLoop.Length; i++)
-            {
-                if (SpurChaining.IsSpurEndpoint(indexSpurredLoop, i)) { yield return indexSpurredLoop[i]; }
-            }
-        }
         private class OpenSpurStatus
         {
             public bool IsLinked { get; set; }

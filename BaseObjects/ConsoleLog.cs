@@ -6,7 +6,7 @@ namespace BaseObjects
     public static class ConsoleLog
     {
         private static Stack<string> stack = new Stack<string>();
-        private static ConsoleColor[] colors = [ConsoleColor.Yellow, ConsoleColor.Cyan, ConsoleColor.Magenta, ConsoleColor.Gray];
+        private static ConsoleColor[] colors = [ConsoleColor.Green, ConsoleColor.Cyan, ConsoleColor.Gray];
 
         public static void Push(string parent)
         {
@@ -21,9 +21,9 @@ namespace BaseObjects
         {
             foreach (var element in stack.Reverse().Select((s, i) => new { Message = s, Index = i }))
             {
-                Console.Write($"{element.Message} > ", colors[Math.Min(element.Index, colors.Length - 1)]);
+                Console.Write($"{element.Message} > ", colors[element.Index % colors.Length]);
             }
-            Console.WriteLine(message, colors[Math.Min(stack.Count, colors.Length - 1)]);
+            Console.WriteLine(message, colors[stack.Count % colors.Length]);
         }
         public static void WriteNextLine(string message)
         {
@@ -31,7 +31,7 @@ namespace BaseObjects
             {
                 Console.Write($"{" ".Repeat(element.Message.Length)}   ");
             }
-            Console.WriteLine(message, colors[Math.Min(stack.Count, colors.Length - 1)]);
+            Console.WriteLine(message, colors[stack.Count % colors.Length]);
         }
         public static void WriteNextLine(string message, ConsoleColor color)
         {

@@ -32,7 +32,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             {
                 foreach (var division in intersection.Divisions)
                 {
-                    if (division.Length < 1e-9) { division.Disabled = true; }
+                    if (division.Length < GapConstants.Resolution) { division.Disabled = true; }
                 }
             }
             int disabledCount = intersectionNodes.Sum(i => i.Divisions.Count(d => d.Disabled));
@@ -110,16 +110,16 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
                         if (i == 0)
                         {
-                            var vertexPath = element.VertexA.GetTreeUntil(v => Point3D.Distance(v.Point, element.VertexA.Point) > 4e-9).ToArray();
-                            var containers = vertexContainers.Where(c => c.Id != element.VertexA.Id && c.Division.Length > 3e-9);
+                            var vertexPath = element.VertexA.GetTreeUntil(v => Point3D.Distance(v.Point, element.VertexA.Point) > GapConstants.Filler).ToArray();
+                            var containers = vertexContainers.Where(c => c.Id != element.VertexA.Id && c.Division.Length > GapConstants.Filler);
                             containers = containers.ExceptBy(vertexPath.Select(t => t.Id), c => c.Id);
-                            AllCheckRadiusLinking(element.VertexA, 3e-9, containers);
+                            AllCheckRadiusLinking(element.VertexA, GapConstants.Filler, containers);
                         }
                         {
-                            var vertexPath = element.VertexB.GetTreeUntil(v => Point3D.Distance(v.Point, element.VertexB.Point) > 4e-9).ToArray();
-                            var containers = vertexContainers.Where(c => c.Id != element.VertexB.Id && c.Division.Length > 3e-9);
+                            var vertexPath = element.VertexB.GetTreeUntil(v => Point3D.Distance(v.Point, element.VertexB.Point) > GapConstants.Filler).ToArray();
+                            var containers = vertexContainers.Where(c => c.Id != element.VertexB.Id && c.Division.Length > GapConstants.Filler);
                             containers = containers.ExceptBy(vertexPath.Select(t => t.Id), c => c.Id);
-                            AllCheckRadiusLinking(element.VertexB, 3e-9, containers);
+                            AllCheckRadiusLinking(element.VertexB, GapConstants.Filler, containers);
                         }
                     }
                 }
@@ -140,8 +140,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             while (ungroupedNeighbors.Any())
             {
                 var first = ungroupedNeighbors.First();
-                var neighborhoodA = first.GetTreeUntil(v => Point3D.Distance(v.Point, first.Point) > 8e-9).ToArray();
-                var neighborhoodB = first.Opposite.GetTreeUntil(v => Point3D.Distance(v.Point, first.Opposite.Point) > 8e-9).ToArray();
+                var neighborhoodA = first.GetTreeUntil(v => Point3D.Distance(v.Point, first.Point) > GapConstants.Proximity).ToArray();
+                var neighborhoodB = first.Opposite.GetTreeUntil(v => Point3D.Distance(v.Point, first.Opposite.Point) > GapConstants.Proximity).ToArray();
                 var neighborhood = neighborhoodA.Concat(neighborhoodB).ToArray();
                 treeSum += neighborhood.Length;
 

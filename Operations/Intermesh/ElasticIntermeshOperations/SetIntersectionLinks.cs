@@ -38,7 +38,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
         {
             foreach (var intersectionNode in intersectionNodes)
             {
-                if (intersectionNode.Intersection.Length < 1e-9) { intersectionNode.Disabled = true; }
+                if (intersectionNode.Intersection.Length < GapConstants.Resolution) { intersectionNode.Disabled = true; }
             }
 
             //Console.WriteLine($"Before removing multiples {intersectionNodes.Count(i => !i.Disabled)}");
@@ -88,8 +88,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
         private static void SegmentLengthNearestCheckLinking(IntersectionVertexContainer vertex, BoxBucket<IntermeshIntersection> bucket)
         {
-            var unlinkedNeighbors = GetNeighbors(vertex, 3e-9, bucket).Where(n => n.Vertex is null);
-            SegmentLengthNearestCheckLinking(vertex, 3e-9, unlinkedNeighbors);
+            var unlinkedNeighbors = GetNeighbors(vertex, GapConstants.Filler, bucket).Where(n => n.Vertex is null);
+            SegmentLengthNearestCheckLinking(vertex, GapConstants.Filler, unlinkedNeighbors);
         }
 
         private static void BidirectionRadiusNearestCheckLinking(ref List<IntersectionVertexContainer> unlinkedVerticies, BoxBucket<IntermeshIntersection> bucket)
@@ -108,11 +108,11 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
         private static bool BidirectionRadiusNearestCheckLinking(IntersectionVertexContainer vertex, BoxBucket<IntermeshIntersection> bucket)
         {
-            var unlinkedNeighbors = GetNeighbors(vertex, 3e-9, bucket).Where(n => n.Vertex is null);
+            var unlinkedNeighbors = GetNeighbors(vertex, GapConstants.Filler, bucket).Where(n => n.Vertex is null);
             var nearestNeighbor = GetNearestNeighbor(vertex, unlinkedNeighbors);
             if (nearestNeighbor is null) { return false; }
 
-            var unlinkedNeighbors2 = GetNeighbors(nearestNeighbor, 3e-9, bucket).Where(n => n.Vertex is null);
+            var unlinkedNeighbors2 = GetNeighbors(nearestNeighbor, GapConstants.Filler, bucket).Where(n => n.Vertex is null);
             var nearestNeighbor2 = GetNearestNeighbor(nearestNeighbor, unlinkedNeighbors2);
 
             if (vertex.Id == nearestNeighbor2.Id)
@@ -132,9 +132,9 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
 
         private static void MonodirectionalRadiusNearestCheckLinking(IntersectionVertexContainer vertex, BoxBucket<IntermeshIntersection> bucket)
         {
-            var vertexPath = vertex.GetTreeUntil(v => Point3D.Distance(v.Point, vertex.Point) > 4e-9).ToArray();
+            var vertexPath = vertex.GetTreeUntil(v => Point3D.Distance(v.Point, vertex.Point) > GapConstants.Filler).ToArray();
 
-            var neighbors = GetNeighbors(vertex, 3e-9, bucket);
+            var neighbors = GetNeighbors(vertex, GapConstants.Filler, bucket);
             neighbors = neighbors.ExceptBy(vertexPath.Select(t => t.Id), c => c.Id);
             var nearestNeighbor = GetNearestNeighbor(vertex, neighbors);
             if (nearestNeighbor is null) { return; }
@@ -152,8 +152,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
         {
             if (vertex.Vertex is null) { Console.WriteLine($"Null vertex {vertex.Id}"); return; }
 
-            var vertexPath = vertex.GetTreeUntil(v => Point3D.Distance(v.Point, vertex.Point) > 4e-9).ToArray();
-            var neighbors = GetNeighbors(vertex, 3e-9, bucket);
+            var vertexPath = vertex.GetTreeUntil(v => Point3D.Distance(v.Point, vertex.Point) > GapConstants.Filler).ToArray();
+            var neighbors = GetNeighbors(vertex, GapConstants.Filler, bucket);
             neighbors = neighbors.ExceptBy(vertexPath.Select(t => t.Id), c => c.Id);
 
             var neighborhoods = NeighborhoodGrouping(neighbors);
@@ -171,8 +171,8 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             while (ungroupedNeighbors.Any())
             {
                 var first = ungroupedNeighbors.First();
-                var neighborhood = first.GetTreeUntil(v => Point3D.Distance(v.Point, first.Point) > 8e-9).ToList();
-                var neighborhoodOpposite = first.GetTreeUntil(v => Point3D.Distance(v.Point, first.Opposite.Point) > 8e-9);
+                var neighborhood = first.GetTreeUntil(v => Point3D.Distance(v.Point, first.Point) > GapConstants.Proximity).ToList();
+                var neighborhoodOpposite = first.GetTreeUntil(v => Point3D.Distance(v.Point, first.Opposite.Point) > GapConstants.Proximity);
                 neighborhood.AddRange(neighborhoodOpposite);
                 var group = ungroupedNeighbors.IntersectBy(neighborhood.Select(n => n.Id), v => v.Id);
                 ungroupedNeighbors = ungroupedNeighbors.ExceptBy(group.Select(n => n.Id), v => v.Id).ToList();

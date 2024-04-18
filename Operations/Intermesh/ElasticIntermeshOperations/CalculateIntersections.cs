@@ -29,7 +29,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 var intersectionNode = node.IntersectionTable[gathering.Id];
                 if (intersectionNode.IsSet) { continue; }
 
-                var intersection = Triangle3D.SegmentIntersection(node.Triangle, gathering.Triangle);
+                var intersection = Triangle3D.LineSegmentIntersections(node.Triangle, gathering.Triangle).FirstOrDefault();
 
                 lock (node)
                 {

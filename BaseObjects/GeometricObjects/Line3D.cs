@@ -106,7 +106,7 @@ namespace BasicObjects.GeometricObjects
         public Point3D Projection(Point3D p)
         {
             Vector3D vector = Vector;
-            if (vector.Magnitude < E.Double.DifferenceError) { return null; }
+            if (vector.Magnitude < E.Double.ProximityError) { return null; }
             Point3D start = Start;
             double α = (vector.X * (p.X - start.X) + vector.Y * (p.Y - start.Y) + vector.Z * (p.Z - start.Z)) /
                 (vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
@@ -120,126 +120,24 @@ namespace BasicObjects.GeometricObjects
             return Point3D.Distance(p, Projection(p));
         }
 
-        public bool PointIsOnLine(Point3D point, double error = E.Double.DifferenceError)
+        public bool PointIsOnLine(Point3D point, double error = E.Double.ProximityError)
         {
             return Point3D.Distance(point, Projection(point)) < error;
         }
 
-        public bool SegmentIsOnLine(LineSegment3D segment, double error = E.Double.DifferenceError)
+        public bool SegmentIsOnLine(LineSegment3D segment, double error = E.Double.ProximityError)
         {
             return PointIsOnLine(segment.Start, error) && PointIsOnLine(segment.End, error);
         }
 
-        public Point3D Projection(Point3D p, out double gap)
-        {
-            Point3D projection = Projection(p);
-            gap = System.Math.Sqrt(E.Math.Square(p.X - projection.X) + E.Math.Square(p.Y - projection.Y) + E.Math.Square(p.Z - projection.Z));
-            return projection;
-        }
 
-        public static Point3D PointIntersection(Line3D a, Line3D b)
-        {
-            double gap;
-            var point = MidPointIntersection(a, b, out gap);
-            return gap < E.Double.DifferenceError ? point : null;
-        }
 
-        public static Point3D MidPointIntersection(Line3D a, Line3D b, out double gap)
-        {
-            return MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out gap);
-        }
-
-        public static IEnumerable<Point3D> PointIntersections(LineSegment3D segment, IEnumerable<LineSegment3D> matches)
-        {
-            foreach (var match in matches)
-            {
-                var point = PointIntersection(segment, match);
-                if (point is not null) { yield return point; }
-            }
-        }
-
-        private static IEnumerable<Point3D> PointIntersectionsFullSegment(LineSegment3D segment, IEnumerable<LineSegment3D> matches)
-        {
-            yield return segment.Start;
-
-            foreach (var match in matches)
-            {
-                var point = PointIntersection(segment, match);
-                if (point is not null) { yield return point; }
-            }
-
-            yield return segment.End;
-        }
-
-        private static IEnumerable<Point3D> PointIntersectionsFullSegment(LineSegment3D segment, IEnumerable<Point3D> points)
-        {
-            yield return segment.Start;
-
-            foreach (var point in points.Where(p => segment.PointIsOnLineSegment(p)))
-            {
-                yield return point;
-            }
-
-            yield return segment.End;
-        }
-
-        private static IEnumerable<Point3D> PointIntersectionsOrderedPointsFullSegment(LineSegment3D segment, IEnumerable<LineSegment3D> matches)
-        {
-            return PointIntersectionsFullSegment(segment, matches).OrderBy(p => Point3D.Distance(segment.Start, p));
-        }
-
-        private static IEnumerable<Point3D> PointIntersectionsOrderedPointsFullSegment(LineSegment3D segment, IEnumerable<Point3D> points)
-        {
-            return PointIntersectionsFullSegment(segment, points).OrderBy(p => Point3D.Distance(segment.Start, p));
-        }
-
-        public static IEnumerable<LineSegment3D> PointIntersectionDivisions(LineSegment3D segment, IEnumerable<LineSegment3D> matches)
-        {
-            var array = PointIntersectionsOrderedPointsFullSegment(segment, matches).ToArray();
-
-            for (int i = 0; i < array.Length - 1; i++)
-            {
-                var division = new LineSegment3D(array[i], array[i + 1]);
-                if (division.Length < E.Double.DifferenceError) { continue; }
-                yield return division;
-            }
-        }
-
-        public static IEnumerable<LineSegment3D> PointIntersectionDivisions(LineSegment3D segment, IEnumerable<Point3D> points)
-        {
-            var array = PointIntersectionsOrderedPointsFullSegment(segment, points).ToArray();
-
-            for (int i = 0; i < array.Length - 1; i++)
-            {
-                var division = new LineSegment3D(array[i], array[i + 1]);
-                if (division.Length < E.Double.DifferenceError) { continue; }
-                yield return division;
-            }
-        }
-
-        public static Point3D PointIntersection(LineSegment3D a, LineSegment3D b)
-        {
-            double gap;
-            var point = MidPointIntersection(a, b, out gap);
-            return gap < E.Double.DifferenceError ? point : null;
-        }
-
-        private static Point3D MidPointIntersection(LineSegment3D a, LineSegment3D b, out double gap)
-        {
-            var intersection = MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out gap);
-            if (intersection is null) { return null; }
-            if (a is not null && !a.PointIsOnLineSegment(intersection)) { return null; }
-            if (b is not null && !b.PointIsOnLineSegment(intersection)) { return null; }
-            return intersection;
-        }
-
-        private static Point3D MidPointIntersection(Point3D aStart, Vector3D aVector, Point3D bStart, Vector3D bVector, out double gap)
+        internal static Point3D MidPointIntersection(Point3D aStart, Vector3D aVector, Point3D bStart, Vector3D bVector, out double gap)
         {
             var aVectorNormal = aVector.Direction;
             var bVectorNormal = bVector.Direction;
             var direction = Vector3D.Cross(aVectorNormal, bVectorNormal);
-
-            if (E.Double.IsZero(direction.X) && E.Double.IsZero(direction.Y) && E.Double.IsZero(direction.Z)) { gap = double.NaN; return null; }
+            if (direction.Magnitude < E.Double.ProximityError) { gap = double.NaN; return null; }// take out later
 
             E.LinearSystems.Solve3x3(
                 aVector.X, -bVector.X, direction.X, aVector.Y,
@@ -260,29 +158,14 @@ namespace BasicObjects.GeometricObjects
             return new Point3D((ia0 + ib0) * 0.5, (ia1 + ib1) * 0.5, (ia2 + ib2) * 0.5);
         }
 
-        public static Point3D PointIntersection(Line3D a, LineSegment3D b)
-        {
-            double gap;
-            var point = MidPointIntersection(a, b, out gap);
-            return gap < E.Double.DifferenceError ? point : null;
-        }
-
         public static Point3D PointIntersection(LineSegment3D a, Line3D b)
         {
-            double gap;
-            var point = MidPointIntersection(b, a, out gap);
-            return gap < E.Double.DifferenceError ? point : null;
-        }
+            var intersection = MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out double gap);
+            if (gap > E.Double.ProximityError) { return null; }
 
-        public static Point3D MidPointIntersection(LineSegment3D a, Line3D b, out double gap)
-        {
-            return MidPointIntersection(b, a, out gap);
-        }
-        public static Point3D MidPointIntersection(Line3D a, LineSegment3D b, out double gap)
-        {
-            var intersection = MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out gap);
-            if (b is not null && intersection is not null && !b.PointIsOnLineSegment(intersection)) { return null; }
-            return intersection;
+            bool isBetween = Point3D.Distance(a.Start, intersection) < a.Length + E.Double.DifferenceError && Point3D.Distance(a.End, intersection) < a.Length + E.Double.DifferenceError;
+            if (isBetween) { return intersection; }
+            return null;
         }
 
     }

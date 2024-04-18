@@ -209,9 +209,9 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var lineBC = triangle.SurfaceTriangle.Triangle.EdgeBC.LineExtension;
             var lineCA = triangle.SurfaceTriangle.Triangle.EdgeCA.LineExtension;
 
-            var collinearsAB = triangle.Segments.Where(s => lineAB.SegmentIsOnLine(s.Segment, 5e-9)).ToArray();
-            var collinearsBC = triangle.Segments.Where(s => lineBC.SegmentIsOnLine(s.Segment, 5e-9)).ToArray();
-            var collinearsCA = triangle.Segments.Where(s => lineCA.SegmentIsOnLine(s.Segment, 5e-9)).ToArray();
+            var collinearsAB = triangle.Segments.Where(s => lineAB.SegmentIsOnLine(s.Segment, GapConstants.Proximity)).ToArray();
+            var collinearsBC = triangle.Segments.Where(s => lineBC.SegmentIsOnLine(s.Segment, GapConstants.Proximity)).ToArray();
+            var collinearsCA = triangle.Segments.Where(s => lineCA.SegmentIsOnLine(s.Segment, GapConstants.Proximity)).ToArray();
 
             var collinears = collinearsAB.Concat(collinearsBC).Concat(collinearsCA).DistinctBy(s => s.Id).ToArray();
             foreach (var collinear in collinears)
@@ -243,7 +243,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var lineCA = triangle.SurfaceTriangle.Triangle.EdgeCA.LineExtension;
 
             var freePoints = triangle.Segments.SelectMany(s => s.VerticiesAB)
-                .Where(v => lineAB.PointIsOnLine(v.Vertex.Point, 5e-9) || lineBC.PointIsOnLine(v.Vertex.Point, 5e-9) || lineCA.PointIsOnLine(v.Vertex.Point, 5e-9))
+                .Where(v => lineAB.PointIsOnLine(v.Vertex.Point, GapConstants.Proximity) || lineBC.PointIsOnLine(v.Vertex.Point, GapConstants.Proximity) || lineCA.PointIsOnLine(v.Vertex.Point, GapConstants.Proximity))
                 .Where(v => !triangle.PerimeterEdgeAB.PerimeterPoints.Any(e => e.Id == v.Vertex.Id) &&
                     !triangle.PerimeterEdgeBC.PerimeterPoints.Any(e => e.Id == v.Vertex.Id) &&
                     !triangle.PerimeterEdgeCA.PerimeterPoints.Any(e => e.Id == v.Vertex.Id)).Select(v => v.Vertex).DistinctBy(v => v.Id).ToArray();

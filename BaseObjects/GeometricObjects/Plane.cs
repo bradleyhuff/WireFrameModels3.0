@@ -74,7 +74,7 @@ namespace BasicObjects.GeometricObjects
         {
             var projection = Projection(point);
             var vector = point - projection;
-            if(vector.Magnitude == 0 && point == projection) { return 0; }
+            if (vector.Magnitude == 0 && point == projection) { return 0; }
             return Distance(point) * System.Math.Sign(Vector3D.Dot(Normal, vector.Direction));
         }
 
@@ -116,8 +116,8 @@ namespace BasicObjects.GeometricObjects
             Point3D Q = line.Start;
             Vector3D V = line.Vector;
             double α = (D - A * Q.X - B * Q.Y - C * Q.Z) / (A * V.X + B * V.Y + C * V.Z);
-            if (!E.Double.IsBetweenZeroAndOne(α)) { return null; }
-            return new Point3D(Q.X + α * V.X, Q.Y + α * V.Y, Q.Z + α * V.Z);
+            var result = new Point3D(Q.X + α * V.X, Q.Y + α * V.Y, Q.Z + α * V.Z);
+            return line.PointIsAtOrBetweenEndpoints(result) ? result : null;
         }
 
         public Line3D Projection(Line3D line)

@@ -57,11 +57,11 @@ namespace Projects.Projects
             allSpheres.AddGrid(spheres[6]);
             allSpheres.AddGrid(spheres[7]);
             allSpheres.AddGrid(spheres[8]);
-            var grid = WireFrameMesh.CreateMesh();
-            grid = cube.Difference(allSpheres);
+
+            var grid = cube.Difference(allSpheres);
 
             WavefrontFile.Export(grid, "Wavefront/Dice");
-            //WavefrontFileGroups.ExportByFaces(grid, "Wavefront/Dice");
+            //WavefrontFileGroups.ExportBySurfaces(grid, "Wavefront/Dice");
             WavefrontFile.Export(NormalOverlay(grid, 0.003), "Wavefront/DiceNormals");
         }
 

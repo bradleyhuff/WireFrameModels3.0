@@ -162,10 +162,7 @@ namespace BasicObjects.GeometricObjects
         {
             var intersection = MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out double gap);
             if (gap > E.Double.ProximityError) { return null; }
-
-            bool isBetween = Point3D.Distance(a.Start, intersection) < a.Length + E.Double.DifferenceError && Point3D.Distance(a.End, intersection) < a.Length + E.Double.DifferenceError;
-            if (isBetween) { return intersection; }
-            return null;
+            return a.PointIsAtOrBetweenEndpoints(intersection) ? intersection : null;
         }
 
     }

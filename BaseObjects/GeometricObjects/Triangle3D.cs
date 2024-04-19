@@ -391,12 +391,19 @@ namespace BasicObjects.GeometricObjects
 
         public bool PointIsIn(Point3D point)
         {
-            return Plane.PointIsOnPlane(point) && GetBarycentricCoordinate(point).IsInUnitInterval();
+            return Plane.PointIsOnPlane(point) && !PointIsOnPerimeter(point) && GetBarycentricCoordinate(point).IsInUnitInterval();
         }
 
         public bool PointIsOn(Point3D point)
         {
-            return Plane.PointIsOnPlane(point) && GetBarycentricCoordinate(point).IsOnUnitInterval();
+            return Plane.PointIsOnPlane(point) && (PointIsOnPerimeter(point) || GetBarycentricCoordinate(point).IsOnUnitInterval());
+        }
+
+        public bool PointIsOnPerimeter(Point3D point)
+        {
+            return (EdgeAB.LineExtension.PointIsOnLine(point) && EdgeAB.PointIsAtOrBetweenEndpoints(point)) || 
+                (EdgeBC.LineExtension.PointIsOnLine(point) && EdgeBC.PointIsAtOrBetweenEndpoints(point)) || 
+                (EdgeCA.LineExtension.PointIsOnLine(point) && EdgeCA.PointIsAtOrBetweenEndpoints(point));
         }
 
         public bool IsOnPlane(Plane plane)
@@ -415,6 +422,11 @@ namespace BasicObjects.GeometricObjects
                 point.X - r4.X, point.Y - r4.Y, point.Z - r4.Z,
                 out double λ1, out double λ2, out double λ3);
             return new λ(λ1, λ2, λ3);
+        }
+
+        public Point3D GetPointFromBarycentricCoordinate(λ coordinate)
+        {
+            return coordinate.λ1 * A + coordinate.λ2 * B + coordinate.λ3 * C;
         }
 
         public override string ToString()

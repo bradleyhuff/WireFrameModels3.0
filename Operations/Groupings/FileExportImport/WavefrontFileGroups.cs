@@ -15,12 +15,12 @@ namespace Operations.Groupings.FileExportImport
 
         public static void ExportByFaces(IWireFrameMesh mesh, Func<IWireFrameMesh, IWireFrameMesh> overlay, string fileName)
         {
-            var clusters = GroupingCollection.ExtractFaces(mesh.Triangles).ToArray();
+            var faces = GroupingCollection.ExtractFaces(mesh.Triangles).ToArray();
 
             Console.WriteLine();
-            Console.WriteLine($"Faces {clusters.Count()} [{string.Join(",", clusters.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            Console.WriteLine($"Faces {faces.Count()} [{string.Join(",", faces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
-            var meshes = clusters.Select(s => s.CreateMesh());
+            var meshes = faces.Select(s => s.CreateMesh());
             WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
         }
 
@@ -31,12 +31,12 @@ namespace Operations.Groupings.FileExportImport
 
         public static void ExportBySurfaces(IWireFrameMesh mesh, Func<IWireFrameMesh, IWireFrameMesh> overlay, string fileName)
         {
-            var clusters = GroupingCollection.ExtractSurfaces(mesh.Triangles).ToArray();
+            var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles).ToArray();
 
             Console.WriteLine();
-            Console.WriteLine($"Surfaces {clusters.Count()} [{string.Join(",", clusters.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
-            var meshes = clusters.Select(s => s.CreateMesh());
+            var meshes = surfaces.Select(s => s.CreateMesh());
             WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
         }
 

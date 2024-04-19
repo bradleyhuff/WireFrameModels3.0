@@ -11,9 +11,9 @@ namespace Operations.Regions
             public Triangle3DNodeX(Triangle3D triangle)
             {
                 Triangle = triangle;
-                Box = new Rectangle3D(0, BoxBucket.MARGINS,
-                    triangle.Box.MinPoint.Y, triangle.Box.MaxPoint.Y + BoxBucket.MARGINS,
-                    triangle.Box.MinPoint.Z, triangle.Box.MaxPoint.Z + BoxBucket.MARGINS);
+                Box = new Rectangle3D(0, 0,
+                    triangle.Box.MinPoint.Y, triangle.Box.MaxPoint.Y,
+                    triangle.Box.MinPoint.Z, triangle.Box.MaxPoint.Z).Margin(BoxBucket.MARGINS);
             }
 
             public Triangle3D Triangle { get; }
@@ -25,9 +25,9 @@ namespace Operations.Regions
             public Triangle3DNodeY(Triangle3D triangle)
             {
                 Triangle = triangle;
-                Box = new Rectangle3D(triangle.Box.MinPoint.X, triangle.Box.MaxPoint.X + BoxBucket.MARGINS,
-                    0, BoxBucket.MARGINS,
-                    triangle.Box.MinPoint.Z, triangle.Box.MaxPoint.Z + BoxBucket.MARGINS);
+                Box = new Rectangle3D(triangle.Box.MinPoint.X, triangle.Box.MaxPoint.X,
+                    0, 0,
+                    triangle.Box.MinPoint.Z, triangle.Box.MaxPoint.Z).Margin(BoxBucket.MARGINS);
             }
 
             public Triangle3D Triangle { get; }
@@ -39,9 +39,9 @@ namespace Operations.Regions
             public Triangle3DNodeZ(Triangle3D triangle)
             {
                 Triangle = triangle;
-                Box = new Rectangle3D(triangle.Box.MinPoint.X, triangle.Box.MaxPoint.X + BoxBucket.MARGINS,
-                    triangle.Box.MinPoint.Y, triangle.Box.MaxPoint.Y + BoxBucket.MARGINS,
-                    0, BoxBucket.MARGINS);
+                Box = new Rectangle3D(triangle.Box.MinPoint.X, triangle.Box.MaxPoint.X,
+                    triangle.Box.MinPoint.Y, triangle.Box.MaxPoint.Y,
+                    0, 0).Margin(BoxBucket.MARGINS);
             }
 
             public Triangle3D Triangle { get; }
@@ -122,7 +122,6 @@ namespace Operations.Regions
 
             {
                 var matches = _bucketX.Fetch(new Point3DNodeX(point));
-                //Console.WriteLine($"Matches X {matches.Count()}");
                 var intersections = GetIntersections(lineX, matches).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
                 if (region == Region.Interior) { voteForInterior++; }
@@ -131,7 +130,6 @@ namespace Operations.Regions
             }
             {
                 var matches = _bucketY.Fetch(new Point3DNodeY(point));
-                //Console.WriteLine($"Matches Y {matches.Count()}");
                 var intersections = GetIntersections(lineY, matches).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
                 if (region == Region.Interior) { voteForInterior++; }
@@ -142,7 +140,6 @@ namespace Operations.Regions
             if (voteForExterior >= 2) { return Region.Exterior; }
             {
                 var matches = _bucketZ.Fetch(new Point3DNodeZ(point));
-                //Console.WriteLine($"Matches Z {matches.Count()}");
                 var intersections = GetIntersections(lineZ, matches).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
                 if (region == Region.Interior) { voteForInterior++; }

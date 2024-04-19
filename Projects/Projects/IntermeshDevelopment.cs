@@ -18,7 +18,7 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
-            CubeSphereTestOne(128);
+            CubeSphereTestOne(99);
             //CubeSphereTestTwo(64);
         }
 

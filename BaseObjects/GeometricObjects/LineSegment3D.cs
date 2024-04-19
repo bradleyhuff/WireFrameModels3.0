@@ -58,7 +58,7 @@ namespace BasicObjects.GeometricObjects
         {
             get
             {
-                if(_center is null)
+                if (_center is null)
                 {
                     _center = new Point3D((Start.X + End.X) * 0.5, (Start.Y + End.Y) * 0.5, (Start.Z + End.Z) * 0.5);
                 }
@@ -232,9 +232,16 @@ namespace BasicObjects.GeometricObjects
 
             var point = Line3D.MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out double gap);
             if (gap > E.Double.ProximityError) { return null; }
-            var isBetweenA = Point3D.Distance(a.Start, point) < a.Length + E.Double.DifferenceError && Point3D.Distance(a.End, point) < a.Length + E.Double.DifferenceError;
-            var isBetweenB = Point3D.Distance(b.Start, point) < b.Length + E.Double.DifferenceError && Point3D.Distance(b.End, point) < b.Length + E.Double.DifferenceError;
-            return isBetweenA && isBetweenB ? point: null;
+            return a.PointIsAtOrBetweenEndpoints(point) && b.PointIsAtOrBetweenEndpoints(point) ? point : null;
+        }
+
+        public bool PointIsAtOrBetweenEndpoints(Point3D point)
+        {
+            double distanceStart = Point3D.Distance(Start, point);
+            double distanceEnd = Point3D.Distance(End, point);
+            return distanceStart < E.Double.DifferenceError ||
+                distanceEnd < E.Double.DifferenceError ||
+                (distanceStart < Length && distanceEnd < Length);
         }
     }
 }

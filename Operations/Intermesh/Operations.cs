@@ -56,7 +56,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             ConsoleLog.WriteLine($"Build result grid: Bypasses {byPassTriangles.Count()} Fills {fillTriangles.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
             var edges = output.Triangles.SelectMany(t => t.Edges).DistinctBy(s => new Combination2(s[0].PositionObject.Id, s[1].PositionObject.Id), new Combination2Comparer()).ToArray();
-            ConsoleLog.WriteNextLine($"Total edges {edges.Length}");
+            Console.WriteLine($"Total edges {edges.Length} Collinears {output.Triangles.Count(t => t.Triangle.IsCollinear)}");
             //TableDisplays.ShowCountSpread("Edge length counts", edges, p => (int)Math.Floor(Math.Log10(Point3D.Distance(p[0].Position, p[1].Position))));
             var groups = edges.GroupBy(p => (int)Math.Floor(3 * Math.Log10(Point3D.Distance(p[0].Position, p[1].Position)))).OrderBy(g => g.Key).ToArray();
             foreach (var group in groups)

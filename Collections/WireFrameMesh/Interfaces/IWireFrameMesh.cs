@@ -1,6 +1,5 @@
 ﻿using Collections.WireFrameMesh.Basics;
 using BasicObjects.GeometricObjects;
-using BaseObjects.Transformations;
 using BaseObjects.Transformations.Interfaces;
 
 
@@ -17,6 +16,10 @@ namespace Collections.WireFrameMesh.Interfaces
         public PositionTriangle AddTriangle(Triangle3D triangle, string trace = "");
         public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<Triangle3D> triangles, string trace = "");
         public PositionTriangle AddTriangle(Point3D a, Vector3D aN, Point3D b, Vector3D bN, Point3D c, Vector3D cN, string trace = "");
+        public bool RemoveTriangle(Point3D a, Point3D b, Point3D c);
+        public bool RemoveTriangle(PositionNormal a, PositionNormal b, PositionNormal c);
+        public bool RemoveTriangle(PositionTriangle removalTriangle);
+        public int RemoveAllTriangles(IEnumerable<PositionTriangle> removalTriangles);
         public void EndRow();
         public void EndGrid();
         public void AddGrid(IWireFrameMesh inputMesh);

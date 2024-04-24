@@ -13,15 +13,6 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var start = DateTime.Now;
             AnchorPull(elasticTriangles);
             ConsoleLog.WriteLine($"Pull elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
-
-            var elasticSegments = elasticTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
-            ConsoleLog.WriteNextLine($"Total elastic segments {elasticSegments.Length}");
-            //TableDisplays.ShowCountSpread("Elastic segment length counts", elasticSegments, p => (int)Math.Floor(Math.Log10(p.Length)));
-            var groups = elasticSegments.GroupBy(p => (int)Math.Floor(3 * Math.Log10(p.Length))).OrderBy(g => g.Key).ToArray();
-            foreach (var group in groups)
-            {
-                Console.WriteLine($"{Math.Pow(10, group.Key / 3.0).ToString("E2")}  {group.Count()}");
-            }
         }
 
         private static void AnchorPull(IEnumerable<ElasticTriangle> elasticTriangles)

@@ -1,9 +1,4 @@
 ﻿using BasicObjects.GeometricObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
@@ -58,6 +53,10 @@ namespace Operations.Intermesh.Basics
             get { return Point3D.Distance(VertexA.Point, VertexB.Point); }
         }
 
-        public bool Disabled { get; set; }
+        public void Disable()
+        {
+            Disabled = true;
+        }
+        public bool Disabled { get; private set; }
     }
 }

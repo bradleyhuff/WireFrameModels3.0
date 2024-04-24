@@ -15,7 +15,7 @@ namespace Operations.Intermesh.Elastics
 
         public int Id { get; }
 
-        public Point3D Point { get; internal set; }
+        public Point3D Point { get; private set; }
 
         private List<ElasticVertexContainer> _segmentContainers = new List<ElasticVertexContainer>();
         public IReadOnlyList<ElasticVertexContainer> SegmentContainers { get { return _segmentContainers; } }
@@ -36,13 +36,13 @@ namespace Operations.Intermesh.Elastics
         public void Link(ElasticVertexContainer container)
         {
             container.Vertex = this;
-            if (_segmentContainers.Any(c => c.Id == container.Vertex.Id)) { return; }
+            if (_segmentContainers.Any(c => c.Id == container.Id)) { return; }
             _segmentContainers.Add(container);
         }
 
         public void Delink(ElasticVertexContainer container)
         {
-            _segmentContainers.RemoveAll(c => c.Vertex.Id == container.Vertex.Id);
+            _segmentContainers.RemoveAll(c => c.Id == container.Id);
             container.Vertex = null;
         }
 

@@ -59,5 +59,7 @@ namespace Collections.WireFrameMesh.Basics
                 return _box;
             }
         }
+
+        internal bool Disabled { get; set; }
     }
 }

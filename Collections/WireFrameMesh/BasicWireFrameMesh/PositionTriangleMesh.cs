@@ -10,7 +10,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         private List<PositionNormal> _rowA = new List<PositionNormal>();
         private List<PositionNormal> _rowB = new List<PositionNormal>();
         internal List<PositionTriangle> _triangles = new List<PositionTriangle>();
-        internal Combination3Dictionary<bool> _keys = new Combination3Dictionary<bool>();
+        internal Combination3Dictionary<PositionTriangle> _keys = new Combination3Dictionary<PositionTriangle>();
 
         public IReadOnlyList<PositionTriangle> Triangles { get { return _triangles; } }
 

@@ -4,6 +4,7 @@ using BasicObjects.GeometricObjects;
 using System.Collections.ObjectModel;
 using Collections.Buckets;
 using BaseObjects.Transformations.Interfaces;
+using BasicObjects.MathExtensions;
 
 namespace Collections.WireFrameMesh.BasicWireFrameMesh
 {
@@ -47,7 +48,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
 
         public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<Triangle3D> triangles, string trace = "")
         {
-            return AddRangeTrianglesIterate(triangles, trace).ToList();
+            return AddRangeTrianglesIterate(triangles, trace).ToArray();
         }
 
         private IEnumerable<PositionTriangle> AddRangeTrianglesIterate(IEnumerable<Triangle3D> triangles, string trace = "")
@@ -58,13 +59,86 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             }
         }
 
-
         public PositionTriangle AddTriangle(Point3D a, Vector3D aN, Point3D b, Vector3D bN, Point3D c, Vector3D cN, string trace = "")
         {
             var aa = AddPointNoRow(a, aN);
             var bb = AddPointNoRow(b, bN);
             var cc = AddPointNoRow(c, cN);
             return new PositionTriangle(aa, bb, cc, trace);
+        }
+
+        public PositionTriangle AddTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace = "")
+        {
+            return new PositionTriangle(a, b, c, trace);
+        }
+
+        public bool RemoveTriangle(Point3D a, Point3D b, Point3D c)
+        {
+            var aa = _bucket.Fetch(new Rectangle3D(a, BoxBucket.MARGINS)).SingleOrDefault(p => !p.Disabled && p.Point == a);
+            var bb = _bucket.Fetch(new Rectangle3D(b, BoxBucket.MARGINS)).SingleOrDefault(p => !p.Disabled && p.Point == b);
+            var cc = _bucket.Fetch(new Rectangle3D(c, BoxBucket.MARGINS)).SingleOrDefault(p => !p.Disabled && p.Point == c);
+
+            if (aa is null || bb is null || cc is null) { return false; }
+            var key = new Combination3(aa.Id, bb.Id, cc.Id);
+            if (!_keys.ContainsKey(key)) { return false; }
+            var removalTriangle = _keys[key];
+            RemoveTriangle(removalTriangle);
+            return true;
+        }
+
+        public bool RemoveTriangle(PositionNormal a, PositionNormal b, PositionNormal c)
+        {
+            var aa = a.PositionObject;
+            var bb = b.PositionObject;
+            var cc = c.PositionObject;
+            var key = new Combination3(aa.Id, bb.Id, cc.Id);
+            if (!_keys.ContainsKey(key)) { return false; }
+            var removalTriangle = _keys[key];
+            RemoveTriangle(removalTriangle);
+            return true;
+        }
+
+        public bool RemoveTriangle(PositionTriangle removalTriangle)
+        {
+            var result = _keys.Remove(removalTriangle.Key);
+            if (!result) { 
+                return false; 
+            }
+            var aa = removalTriangle.A.PositionObject;
+            var bb = removalTriangle.B.PositionObject;
+            var cc = removalTriangle.C.PositionObject;
+
+            removalTriangle.DelinkPositionNormals();
+            if (removalTriangle.A is not null && !removalTriangle.A._triangles.Any()) { removalTriangle.A.DelinkPosition(); }
+            if (removalTriangle.B is not null && !removalTriangle.B._triangles.Any()) { removalTriangle.B.DelinkPosition(); }
+            if (removalTriangle.C is not null && !removalTriangle.C._triangles.Any()) { removalTriangle.C.DelinkPosition(); }
+
+            if (!aa.PositionNormals.Any())
+            {
+                _positions.Remove(aa);
+                aa.Disabled = true;
+            }
+            if (!bb.PositionNormals.Any())
+            {
+                _positions.Remove(bb);
+                bb.Disabled = true;
+            }
+            if (!cc.PositionNormals.Any())
+            {
+                _positions.Remove(cc);
+                cc.Disabled = true;
+            }
+            return true;
+        }
+
+        public int RemoveAllTriangles(IEnumerable<PositionTriangle> removalTriangles)
+        {
+            int count = 0;
+            foreach(var triangle in removalTriangles.ToArray())
+            {
+                count += RemoveTriangle(triangle)? 1: 0;
+            }
+            return count;
         }
 
         private PositionNormal AddPointNoRow(Point3D position, Vector3D normal)
@@ -78,6 +152,12 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 _bucket.Add(positionObject);
                 _positions.Add(positionObject);
                 return positionNormal;
+            }
+
+            if (positionObject.Disabled)
+            {
+                positionObject.Disabled = false;
+                _positions.Add(positionObject);
             }
 
             var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.DirectionsEqual(pn.Normal, normal));
@@ -100,6 +180,12 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 _bucket.Add(positionObject);
                 _positions.Add(positionObject);
                 return clone;
+            }
+
+            if (positionObject.Disabled)
+            {
+                positionObject.Disabled = false;
+                _positions.Add(positionObject);
             }
 
             var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.DirectionsEqual(pn.Normal, positionNormal.Normal));

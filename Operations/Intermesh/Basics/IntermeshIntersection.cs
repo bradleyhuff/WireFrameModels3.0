@@ -13,7 +13,12 @@ namespace Operations.Intermesh.Basics
         }
         public int Id { get; }
         public bool IsSet { get; set; }
-        public bool Disabled { get; set; }
+
+        public void Disable()
+        {
+            Disabled = true;
+        }
+        public bool Disabled { get; private set; }
 
         private LineSegment3D _intersection;
         public LineSegment3D Intersection
@@ -138,17 +143,5 @@ namespace Operations.Intermesh.Basics
         {
             _divisions = _divisions.Where(x => !x.Disabled).ToList();
         }
-
-        //internal IEnumerable<DivisionVertexContainer> DivisionPoints
-        //{
-        //    get
-        //    {
-        //        yield return Divisions[0].VertexA;
-        //        for (int i = 0; i < Divisions.Count; i++)
-        //        {
-        //            yield return Divisions[i].VertexB;
-        //        }
-        //    }
-        //}
     }
 }

@@ -73,8 +73,9 @@ namespace BasicObjects.GeometricObjects
         public double FrontageDistance(Point3D point)
         {
             var projection = Projection(point);
+            if (point == projection) { return 0; }
             var vector = point - projection;
-            if (vector.Magnitude == 0 && point == projection) { return 0; }
+            
             return Distance(point) * System.Math.Sign(Vector3D.Dot(Normal, vector.Direction));
         }
 

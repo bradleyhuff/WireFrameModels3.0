@@ -1,5 +1,4 @@
-﻿
-using BaseObjects;
+﻿using BaseObjects;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Operations.PlanarFilling.Filling;

@@ -1,9 +1,4 @@
 ﻿using BasicObjects.GeometricObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Elastics
 {
@@ -53,7 +48,7 @@ namespace Operations.Intermesh.Elastics
         {
             get
             {
-                return new LineSegment3D(_pointA, _pointB);
+                return new LineSegment3D(VertexA.Point, VertexB.Point);
             }
         }
 
@@ -61,7 +56,5 @@ namespace Operations.Intermesh.Elastics
         {
             get { return Point3D.Distance(VertexA.Point, VertexB.Point); }
         }
-
-        public bool Disabled { get; set; }
     }
 }

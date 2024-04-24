@@ -32,7 +32,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             {
                 foreach (var division in intersection.Divisions)
                 {
-                    if (division.Length < GapConstants.Resolution) { division.Disabled = true; }
+                    if (division.Length < GapConstants.Resolution) { division.Disable(); }
                 }
             }
             int disabledCount = intersectionNodes.Sum(i => i.Divisions.Count(d => d.Disabled));
@@ -49,7 +49,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 if (!samePointDivisions.Any()) { continue; }
                 if (intersectionNode.Divisions.Count > 1)
                 {
-                    foreach (var samePointDivision in samePointDivisions) { samePointDivision.Disabled = true; samePointDivision.VertexA.Delink(); samePointDivision.VertexB.Delink(); }
+                    foreach (var samePointDivision in samePointDivisions) { samePointDivision.Disable(); samePointDivision.VertexA.Delink(); samePointDivision.VertexB.Delink(); }
                 }
             }
             int disabledCount = intersectionNodes.Sum(i => i.Divisions.Count(d => d.Disabled));

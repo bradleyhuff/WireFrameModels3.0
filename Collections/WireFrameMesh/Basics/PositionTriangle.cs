@@ -22,7 +22,7 @@ namespace Collections.WireFrameMesh.Basics
             B._triangles.Add(this);
             C._triangles.Add(this);
             A.Mesh._triangles.Add(this);
-            A.Mesh._keys[Key] = true;
+            A.Mesh._keys[Key] = this;
         }
         internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace) : this(a, b, c)
         {
@@ -50,28 +50,12 @@ namespace Collections.WireFrameMesh.Basics
         public PositionNormal B { get; private set; }
         public PositionNormal C { get; private set; }
 
-        public void LinkPositionNormals(PositionNormal a, PositionNormal b, PositionNormal c)
-        {
-            DelinkPositionNormals();
-
-            A = a;
-            B = b;
-            C = c;
-            A._triangles.Add(this);
-            B._triangles.Add(this);
-            C._triangles.Add(this);
-            A.Mesh._triangles.Add(this);
-        }
-
         public void DelinkPositionNormals()
         {
-            A?._triangles.Remove(this);
-            B?._triangles.Remove(this);
-            C?._triangles.Remove(this);
-            A?.Mesh._triangles.Remove(this);
-            A = null;
-            B = null;
-            C = null;
+            A._triangles.Remove(this);
+            B._triangles.Remove(this);
+            C._triangles.Remove(this);
+            A.Mesh._triangles.Remove(this);
             ClearStates();
         }
 

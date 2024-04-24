@@ -21,18 +21,18 @@ namespace Operations.Intermesh.Elastics
         {
             Segments = Segments.Concat(perimeterSegments).ToList();
             var allPoints = PerimeterPoints.Concat(perimeterPoints.Concat(perimeterSegments.SelectMany(p => p.VerticiesAB).Select(v => v.Vertex))).DistinctBy(v => v.Id);
-            PerimeterPoints = allPoints.OrderBy(p => Point3D.Distance(p.Point, AnchorA.Point)).ToList();
+            _perimeterPoints = allPoints.OrderBy(p => Point3D.Distance(p.Point, AnchorA.Point)).ToList();
         }
 
         internal void AddPerimeterPoints(IEnumerable<ElasticVertexCore> input)
         {
             if (!input.Any()) { return; }
             var allPoints = input.Concat(PerimeterPoints).DistinctBy(v => v.Id);
-            PerimeterPoints = allPoints.OrderBy(p => Point3D.Distance(p.Point, AnchorA.Point)).ToList();
+            _perimeterPoints = allPoints.OrderBy(p => Point3D.Distance(p.Point, AnchorA.Point)).ToList();
         }
         internal void RemovePerimeterPoint(ElasticVertexCore perimeterPoint)
         {
-            PerimeterPoints = PerimeterPoints.Where(p => p.Id != perimeterPoint.Id).ToList();
+            _perimeterPoints = PerimeterPoints.Where(p => p.Id != perimeterPoint.Id).ToList();
         }
 
         internal void ReplacePerimeterPoint(ElasticVertexCore perimeterPoint, ElasticVertexCore newPoint)
@@ -41,10 +41,10 @@ namespace Operations.Intermesh.Elastics
             var index = points.IndexOf(perimeterPoint);
             if (index == -1) { return; }
             points[index] = newPoint;
-            PerimeterPoints = points;
+            _perimeterPoints = points;
         }
-
-        public IReadOnlyList<ElasticVertexCore> PerimeterPoints { get; private set; } = new List<ElasticVertexCore>();
+        private List<ElasticVertexCore> _perimeterPoints = new List<ElasticVertexCore>();
+        public IReadOnlyList<ElasticVertexCore> PerimeterPoints { get { return _perimeterPoints; } }
         public IReadOnlyList<ElasticSegment> Segments { get; private set; } = new List<ElasticSegment>();
 
         public IEnumerable<ElasticVertexLink> GetPerimeterLinks()

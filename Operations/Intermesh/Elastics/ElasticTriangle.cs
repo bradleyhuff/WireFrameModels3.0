@@ -109,12 +109,12 @@ namespace Operations.Intermesh.Elastics
 
         public int SegmentsCount
         {
-            get { return Segments.Count; }
+            get { return Segments.Count(); }
         }
 
         public int PerimeterPointsCount
         {
-            get { return PerimeterEdgeAB.PerimeterPoints.Count + PerimeterEdgeBC.PerimeterPoints.Count + PerimeterEdgeCA.PerimeterPoints.Count; }
+            get { return PerimeterEdgeAB.PerimeterPoints.Count() + PerimeterEdgeBC.PerimeterPoints.Count() + PerimeterEdgeCA.PerimeterPoints.Count(); }
         }
 
         public int VertexPointsCount

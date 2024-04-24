@@ -38,7 +38,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
         {
             foreach (var intersectionNode in intersectionNodes)
             {
-                if (intersectionNode.Intersection.Length < GapConstants.Resolution) { intersectionNode.Disabled = true; }
+                if (intersectionNode.Intersection.Length < GapConstants.Resolution) { intersectionNode.Disable(); }
             }
 
             //Console.WriteLine($"Before removing multiples {intersectionNodes.Count(i => !i.Disabled)}");
@@ -58,7 +58,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 if (intersectionNode.Disabled) { continue; }
                 foreach (var multiple in intersectionNode.Multiples)
                 {
-                    multiple.Disabled = true;
+                    multiple.Disable();
                 }
             }
 
@@ -72,7 +72,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 i.VertexA.Vertex is not null && i.VertexB.Vertex is not null &&
                 i.VertexA.Vertex.Id == i.VertexB.Vertex.Id))
             {
-                intersectionNode.Disabled = true; intersectionNode.VertexA.Delink(); intersectionNode.VertexB.Delink();
+                intersectionNode.Disable(); intersectionNode.VertexA.Delink(); intersectionNode.VertexB.Delink();
 
                 count++;
             }

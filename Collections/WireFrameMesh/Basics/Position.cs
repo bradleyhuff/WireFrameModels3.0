@@ -38,6 +38,11 @@ namespace Collections.WireFrameMesh.Basics
             get { return _positionNormals; }
         }
 
+        public int Cardinality
+        {
+            get { return _positionNormals.Count; }
+        }
+
         public Point3D Point
         {
             get { return _position; }

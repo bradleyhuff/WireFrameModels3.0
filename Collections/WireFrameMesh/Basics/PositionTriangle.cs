@@ -50,12 +50,22 @@ namespace Collections.WireFrameMesh.Basics
         public PositionNormal B { get; private set; }
         public PositionNormal C { get; private set; }
 
-        public void DelinkPositionNormals()
+        public bool Disabled { get; private set; }
+        public void Disable()
         {
+            Disabled = true;
+        }
+
+        internal void DelinkPositionNormals()
+        {
+            foreach (var triangle in A._triangles) { triangle.ClearStates(); }
+            foreach (var triangle in B._triangles) { triangle.ClearStates(); }
+            foreach (var triangle in C._triangles) { triangle.ClearStates(); }
+
             A._triangles.Remove(this);
             B._triangles.Remove(this);
             C._triangles.Remove(this);
-            A.Mesh._triangles.Remove(this);
+            Disable();
             ClearStates();
         }
 
@@ -85,7 +95,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if(_abAdjacents is null)
+                if (_abAdjacents is null)
                 {
                     _abAdjacents = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
                         Intersect(B.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
@@ -124,7 +134,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if(_aVerticies is null)
+                if (_aVerticies is null)
                 {
                     _aVerticies = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
                 }
@@ -162,7 +172,7 @@ namespace Collections.WireFrameMesh.Basics
             {
                 if (_aExclusiveVerticies is null)
                 {
-                    _aExclusiveVerticies = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id && 
+                    _aExclusiveVerticies = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
                         !ABadjacents.Any(a => a.Id == t.Id) && !CAadjacents.Any(a => a.Id == t.Id)).ToList();
 
                 }

@@ -1,5 +1,6 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Basics;
 using Operations.Regions;
@@ -35,13 +36,12 @@ namespace Operations.SetOperators
             var sum = CloneAndMark(gridA, gridB, out Space spaceA, out Space spaceB);
             var intermesh = Intermesh.ElasticIntermeshOperations.Operations.Intermesh(sum);
             var groups = GroupExtraction(intermesh);
-            var includedGroupGrids = TestAndIncludeGroups(groups, spaceA, spaceB, includeGroup);
-            IncludedGroupInverts(includedGroupGrids);
-            var result = BuildResultGrid(intermesh, includedGroupGrids);
+            var remainingGroups = TestAndRemoveGroups(intermesh, groups, spaceA, spaceB, includeGroup);
+            IncludedGroupInverts(remainingGroups);
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
-            return result;
+            return intermesh;
         }
 
         private static IWireFrameMesh CloneAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space spaceA, out Space spaceB)
@@ -70,41 +70,42 @@ namespace Operations.SetOperators
             return groups;
         }
 
-        private static List<(int Id, IWireFrameMesh Grid)> TestAndIncludeGroups(GroupingCollection[] groups, Space spaceA, Space spaceB, Func<Region, Region, bool> includeGroup)
+        private static List<GroupingCollection> TestAndRemoveGroups(IWireFrameMesh grid, GroupingCollection[] groups, Space spaceA, Space spaceB, Func<Region, Region, bool> includeGroup)
         {
-            var start = DateTime.Now;
-            var groupGrids = groups.Select(g => new { g.Id, Grid = g.CreateMesh() });
-            var includedGroupGrids = new List<(int Id, IWireFrameMesh Grid)>();
-            foreach (var groupGrid in groupGrids)
+            var remainingGroups = new List<GroupingCollection>();
+            foreach (var group in groups)
             {
-                var testPoint = GetTestPoint(groupGrid.Grid);
-                var spaceARegion = Region.OnBoundary;
-                var spaceBRegion = Region.OnBoundary;
-                var trace = groupGrid.Grid.Triangles.First().Trace;
-                if (trace == "A") { spaceBRegion = spaceB.RegionOfPoint(testPoint); }
-                if (trace == "B") { spaceARegion = spaceA.RegionOfPoint(testPoint); }
-
-                if (includeGroup(spaceARegion, spaceBRegion))
+                var triangles = group.Triangles.ToArray();
+                var testPoint = GetTestPoint(triangles);
+                var spaceAregion = Region.OnBoundary;
+                var spaceBregion = Region.OnBoundary;
+                var trace = triangles.First().Trace;
+                if (trace == "A") { spaceBregion = spaceB.RegionOfPoint(testPoint); }
+                if (trace == "B") { spaceAregion = spaceA.RegionOfPoint(testPoint); }
+                if (!includeGroup(spaceAregion, spaceBregion))
                 {
-                    includedGroupGrids.Add((groupGrid.Id, groupGrid.Grid));
+                    grid.RemoveAllTriangles(triangles);
+                }
+                else
+                {
+                    remainingGroups.Add(group);
                 }
             }
-            ConsoleLog.WriteLine($"Test and include groups: Included groups {includedGroupGrids.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
-            return includedGroupGrids;
+            return remainingGroups;
         }
 
-        private static void IncludedGroupInverts(List<(int Id, IWireFrameMesh Grid)> includedGroupGrids)
+        private static void IncludedGroupInverts(List<GroupingCollection> remainingGroups)
         {
             var start = DateTime.Now;
-            var resultShell = new Space(includedGroupGrids.SelectMany(t => t.Grid.Triangles.Select(t => t.Triangle)).ToArray());
+            var resultShell = new Space(remainingGroups.SelectMany(g => g.Triangles.Select(t => t.Triangle)).ToArray());
             var inverted = new Dictionary<int, bool>();
-            foreach (var group in includedGroupGrids)
+            foreach (var group in remainingGroups)
             {
-                var interiorTestPoint = GetInternalTestPoint(group.Grid);
+                var interiorTestPoint = GetInternalTestPoint(group.Triangles);
                 var region = resultShell.RegionOfPoint(interiorTestPoint);
                 if (region == Region.Exterior)
                 {
-                    foreach (var triangle in group.Grid.Triangles)
+                    foreach (var triangle in group.Triangles)
                     {
                         if (!inverted.ContainsKey(triangle.A.Id))
                         {
@@ -129,24 +130,15 @@ namespace Operations.SetOperators
             ConsoleLog.WriteLine($"Included group and invert: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
-        private static IWireFrameMesh BuildResultGrid(IWireFrameMesh intermesh, List<(int Id, IWireFrameMesh Grid)> includedGroupGrids)
+        private static Point3D GetTestPoint(IEnumerable<PositionTriangle> triangles)
         {
-            var start = DateTime.Now;
-            var result = intermesh.CreateNewInstance();
-            result.AddGrids(includedGroupGrids.Select(g => g.Grid));
-            ConsoleLog.WriteLine($"Build result grid: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
-            return result;
-        }
-
-        private static Point3D GetTestPoint(IWireFrameMesh mesh)
-        {
-            var internalTriangle = mesh.Triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
+            var internalTriangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
             return internalTriangle.Triangle.Center;
         }
 
-        private static Point3D GetInternalTestPoint(IWireFrameMesh mesh)
+        private static Point3D GetInternalTestPoint(IEnumerable<PositionTriangle> triangles)
         {
-            var triangle = mesh.Triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
+            var triangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
 
             var direction = Vector3D.Average([triangle.A.Normal, triangle.B.Normal, triangle.C.Normal]);
             return triangle.Triangle.Center + -1e-4 * direction;

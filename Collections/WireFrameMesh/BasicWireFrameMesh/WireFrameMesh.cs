@@ -10,15 +10,27 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
 {
     public class WireFrameMesh : PositionTriangleMesh, IWireFrameMesh
     {
-        internal WireFrameMesh()
-        {
-            Positions = new ReadOnlyCollection<Position>(_positions);
-        }
+        internal WireFrameMesh() { }
 
         private List<Position> _positions = new List<Position>();
         private BoxBucket<Position> _bucket = new BoxBucket<Position>(Enumerable.Empty<Position>());
 
-        public IReadOnlyList<Position> Positions { get; }
+        public IReadOnlyList<Position> Positions
+        {
+            get
+            {
+                if (_positionWasRemoved) { _positions = _positions.Where(p => !p.Disabled).ToList();  _positionWasRemoved = false; }
+                return _positions;
+            }
+        }
+
+        public IReadOnlyList<PositionTriangle> Triangles { 
+            get 
+            {
+                if (_triangleWasRemoved) { _triangles = _triangles.Where(p => !p.Disabled).ToList(); _triangleWasRemoved = false; }
+                return _triangles; 
+            } 
+        }
 
         public PositionNormal AddPoint(Point3D position)
         {
@@ -98,6 +110,9 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return true;
         }
 
+        private bool _triangleWasRemoved = false;
+        private bool _positionWasRemoved = false;
+
         public bool RemoveTriangle(PositionTriangle removalTriangle)
         {
             var result = _keys.Remove(removalTriangle.Key);
@@ -109,24 +124,25 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             var cc = removalTriangle.C.PositionObject;
 
             removalTriangle.DelinkPositionNormals();
-            if (removalTriangle.A is not null && !removalTriangle.A._triangles.Any()) { removalTriangle.A.DelinkPosition(); }
-            if (removalTriangle.B is not null && !removalTriangle.B._triangles.Any()) { removalTriangle.B.DelinkPosition(); }
-            if (removalTriangle.C is not null && !removalTriangle.C._triangles.Any()) { removalTriangle.C.DelinkPosition(); }
+            _triangleWasRemoved = true;
+            if (!removalTriangle.A._triangles.Any()) { removalTriangle.A.DelinkPosition(); }
+            if (!removalTriangle.B._triangles.Any()) { removalTriangle.B.DelinkPosition(); }
+            if (!removalTriangle.C._triangles.Any()) { removalTriangle.C.DelinkPosition(); }
 
             if (!aa.PositionNormals.Any())
             {
-                _positions.Remove(aa);
                 aa.Disabled = true;
+                _positionWasRemoved = true;
             }
             if (!bb.PositionNormals.Any())
             {
-                _positions.Remove(bb);
                 bb.Disabled = true;
+                _positionWasRemoved = true;
             }
             if (!cc.PositionNormals.Any())
             {
-                _positions.Remove(cc);
                 cc.Disabled = true;
+                _positionWasRemoved = true;
             }
             return true;
         }

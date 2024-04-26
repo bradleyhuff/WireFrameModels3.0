@@ -39,31 +39,31 @@ namespace Projects.Projects
             //var isRemoved = output.RemoveTriangle(output.Triangles.First());
             //Console.WriteLine($"Triangle removed {isRemoved}");
             Console.WriteLine($"Output triangles {output.Triangles.Count()}");
-            Console.WriteLine($"Triangles removed {output.RemoveAllTriangles(output.Triangles.Take(0))}");
+            //Console.WriteLine($"Triangles removed {output.RemoveAllTriangles(output.Triangles.Take(16384))}");
 
-            //var spheres3 = spheres.Clone();
-            //spheres3.Apply(Transform.Translation(new Vector3D(0, 1, 0)));
-            //output = output.Difference(spheres3);
+            var spheres3 = spheres.Clone();
+            spheres3.Apply(Transform.Translation(new Vector3D(0, 1, 0)));
+            output = output.Difference(spheres3);
 
-            //var spheres4 = spheres.Clone();
-            //spheres4.Apply(Transform.Translation(new Vector3D(0, 0, 1)));
-            //output = output.Difference(spheres4);
+            var spheres4 = spheres.Clone();
+            spheres4.Apply(Transform.Translation(new Vector3D(0, 0, 1)));
+            output = output.Difference(spheres4);
 
-            //var spheres5 = spheres.Clone();
-            //spheres5.Apply(Transform.Translation(new Vector3D(0, 1, 1)));
-            //output = output.Difference(spheres5);
+            var spheres5 = spheres.Clone();
+            spheres5.Apply(Transform.Translation(new Vector3D(0, 1, 1)));
+            output = output.Difference(spheres5);
 
-            //var spheres6 = spheres.Clone();
-            //spheres6.Apply(Transform.Translation(new Vector3D(1, 0, 1)));
-            //output = output.Difference(spheres6);
+            var spheres6 = spheres.Clone();
+            spheres6.Apply(Transform.Translation(new Vector3D(1, 0, 1)));
+            output = output.Difference(spheres6);
 
-            //var spheres7 = spheres.Clone();
-            //spheres7.Apply(Transform.Translation(new Vector3D(1, 1, 0)));
-            //output = output.Difference(spheres7);
+            var spheres7 = spheres.Clone();
+            spheres7.Apply(Transform.Translation(new Vector3D(1, 1, 0)));
+            output = output.Difference(spheres7);
 
-            //var spheres8 = spheres.Clone();
-            //spheres8.Apply(Transform.Translation(new Vector3D(1, 1, 1)));
-            //output = output.Difference(spheres8);
+            var spheres8 = spheres.Clone();
+            spheres8.Apply(Transform.Translation(new Vector3D(1, 1, 1)));
+            output = output.Difference(spheres8);
 
             //TableDisplays.ShowCountSpread("Position normal triangle counts", output.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             //TableDisplays.ShowCountSpread("Position normal counts", output.Positions, p => p.PositionNormals.Count);
@@ -71,8 +71,8 @@ namespace Projects.Projects
             Console.WriteLine($"Clusters {GroupingCollection.ExtractClusters(output.Triangles).Count()}");
             Console.WriteLine();
 
-            PntFile.Export(output, $"Pnt/SphereDifference2 {resolution}");
-            WavefrontFile.Export(output, $"Wavefront/SphereDifference2 {resolution}");
+            PntFile.Export(output, $"Pnt/SphereDifference8 {resolution}");
+            WavefrontFile.Export(output, $"Wavefront/SphereDifference8 {resolution}");
             //WavefrontFile.Export(spheres3A, $"Wavefront/Sphere3 {resolution}");
             //WavefrontFileGroups.ExportByClusters(output, "Wavefront/Clusters");
             //WavefrontFileGroups.ExportByClusters(output, o => NormalOverlay(o, 0.003), "Wavefront/Normals");

@@ -12,8 +12,6 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         internal List<PositionTriangle> _triangles = new List<PositionTriangle>();
         internal Combination3Dictionary<PositionTriangle> _keys = new Combination3Dictionary<PositionTriangle>();
 
-        public IReadOnlyList<PositionTriangle> Triangles { get { return _triangles; } }
-
         protected void AddPoint(PositionNormal element)
         {
             List<PositionNormal> row;

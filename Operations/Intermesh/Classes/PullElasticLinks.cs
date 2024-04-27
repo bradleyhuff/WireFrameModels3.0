@@ -4,7 +4,7 @@ using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Console = BaseObjects.Console;
 
-namespace Operations.Intermesh.ElasticIntermeshOperations
+namespace Operations.Intermesh.Classes
 {
     internal static class PullElasticLinks
     {

@@ -33,21 +33,20 @@ namespace Operations.SetOperators
         {
             DateTime start = DateTime.Now;
             ConsoleLog.Push(note);
-            var sum = CloneAndMark(gridA, gridB, out Space spaceA, out Space spaceB);
-            var intermesh = Intermesh.ElasticIntermeshOperations.Operations.Intermesh(sum);
-            var groups = GroupExtraction(intermesh);
-            var remainingGroups = TestAndRemoveGroups(intermesh, groups, spaceA, spaceB, includeGroup);
+            var sum = CombineAndMark(gridA, gridB, out Space spaceA, out Space spaceB);
+            IntermeshOperation.Run(sum);
+            var groups = GroupExtraction(sum);
+            var remainingGroups = TestAndRemoveGroups(sum, groups, spaceA, spaceB, includeGroup);
             IncludedGroupInverts(remainingGroups);
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
-            return intermesh;
+            return sum;
         }
 
-        private static IWireFrameMesh CloneAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space spaceA, out Space spaceB)
+        private static IWireFrameMesh CombineAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space spaceA, out Space spaceB)
         {
             var start = DateTime.Now;
-            gridB = gridB.Clone();
 
             foreach (var triangle in gridA.Triangles) { triangle.Trace = "A"; }
             foreach (var triangle in gridB.Triangles) { triangle.Trace = "B"; }
@@ -55,10 +54,9 @@ namespace Operations.SetOperators
             spaceA = new Space(gridA.Triangles.Select(t => t.Triangle).ToArray());
             spaceB = new Space(gridB.Triangles.Select(t => t.Triangle).ToArray());
 
-            var result = gridA.CreateNewInstance();
-            result.AddGrid(gridA);
+            var result = gridA.Clone();
             result.AddGrid(gridB);
-            ConsoleLog.WriteLine($"Clone and mark: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            ConsoleLog.WriteLine($"Combine and mark: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return result;
         }
 

@@ -8,7 +8,7 @@ using Operations.Intermesh.Elastics;
 using Console = BaseObjects.Console;
 using Double = BasicObjects.Math.Double;
 
-namespace Operations.Intermesh.ElasticIntermeshOperations
+namespace Operations.Intermesh.Classes
 {
     internal static class BuildElasticLinks
     {

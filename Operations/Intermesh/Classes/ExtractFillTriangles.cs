@@ -7,7 +7,7 @@ using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
 using Operations.SurfaceSegmentChaining.Interfaces;
 using Console = BaseObjects.Console;
 
-namespace Operations.Intermesh.ElasticIntermeshOperations
+namespace Operations.Intermesh.Classes
 {
     internal static class ExtractFillTriangles
     {

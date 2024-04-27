@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Intermesh\ElasticIntermeshOperations\" />
+    <Folder Include="Intermesh\Classes\" />
   </ItemGroup>
 
   <ItemGroup>

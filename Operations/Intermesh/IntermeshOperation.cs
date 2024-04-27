@@ -3,13 +3,14 @@ using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
+using Operations.Intermesh.Classes;
 using Console = BaseObjects.Console;
 
-namespace Operations.Intermesh.ElasticIntermeshOperations
+namespace Operations
 {
-    public static class Operations
+    public static partial class IntermeshOperation
     {
-        public static IWireFrameMesh Intermesh(IWireFrameMesh mesh)
+        public static void Run(IWireFrameMesh mesh)
         {
             DateTime start = DateTime.Now;
             ConsoleLog.Push("Intermesh");
@@ -25,11 +26,10 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             var elasticLinks = BuildElasticLinks.Action(processTriangles);
             PullElasticLinks.Action(elasticLinks);
             var fillTriangles = ExtractFillTriangles.Action(elasticLinks);
-            var output = BuildResultGrid(mesh, processTriangles, fillTriangles);
+            UpdateResultGrid(mesh, processTriangles, fillTriangles);
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
-            return output;
         }
 
         private static void SeparateProcesses(IntermeshCollection collections, out List<IntermeshTriangle> processTriangles)
@@ -39,7 +39,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             ConsoleLog.WriteLine($"Separate processes: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
-        private static IWireFrameMesh BuildResultGrid(IWireFrameMesh mesh, IEnumerable<IntermeshTriangle> processTriangles, IEnumerable<FillTriangle> fillTriangles)
+        private static void UpdateResultGrid(IWireFrameMesh mesh, IEnumerable<IntermeshTriangle> processTriangles, IEnumerable<FillTriangle> fillTriangles)
         {
             var start = DateTime.Now;
 
@@ -49,7 +49,7 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
             {
                 triangle.AddWireFrameTriangle(mesh);
             }
-            ConsoleLog.WriteLine($"Build result grid: Triangle removals {removalCount} Fills {fillTriangles.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            ConsoleLog.WriteLine($"Update result grid: Triangle removals {removalCount} Fills {fillTriangles.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
             var edges = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => new Combination2(s[0].PositionObject.Id, s[1].PositionObject.Id), new Combination2Comparer()).ToArray();
             var groups = edges.GroupBy(p => (int)Math.Floor(3 * Math.Log10(Point3D.Distance(p[0].Position, p[1].Position)))).OrderBy(g => g.Key).ToArray();
@@ -59,7 +59,6 @@ namespace Operations.Intermesh.ElasticIntermeshOperations
                 Console.WriteLine($"{Math.Pow(10, group.Key / 3.0).ToString("E2")}  {group.Count()}");
             }
             Console.WriteLine();
-            return mesh;
         }
     }
 }

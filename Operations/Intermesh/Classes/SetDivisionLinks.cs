@@ -3,7 +3,7 @@ using BasicObjects.GeometricObjects;
 using Operations.Intermesh.Basics;
 using Console = BaseObjects.Console;
 
-namespace Operations.Intermesh.ElasticIntermeshOperations
+namespace Operations.Intermesh.Classes
 {
     internal static class SetDivisionLinks
     {

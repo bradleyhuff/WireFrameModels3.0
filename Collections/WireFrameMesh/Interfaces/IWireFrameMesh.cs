@@ -7,6 +7,7 @@ namespace Collections.WireFrameMesh.Interfaces
 {
     public interface IWireFrameMesh
     {
+        public int Id { get; }
         public IReadOnlyList<Position> Positions { get; }
         public IReadOnlyList<PositionTriangle> Triangles { get; }
         public PositionNormal AddPoint(Point3D? position);

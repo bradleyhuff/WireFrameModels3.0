@@ -17,12 +17,10 @@ namespace Collections.WireFrameMesh.Basics
             Key = new Combination3(a.PositionObject.Id, b.PositionObject.Id, c.PositionObject.Id);
             Id = _id++;
             if (a.Position == b.Position || a.Position == c.Position || b.Position == c.Position) { return; }
-            if (A.Mesh._keys.ContainsKey(Key)) { return; }
+            if (!A.Mesh.AddNewTriangle(this)) { return; }
             A._triangles.Add(this);
             B._triangles.Add(this);
             C._triangles.Add(this);
-            A.Mesh._triangles.Add(this);
-            A.Mesh._keys[Key] = this;
         }
         internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace) : this(a, b, c)
         {

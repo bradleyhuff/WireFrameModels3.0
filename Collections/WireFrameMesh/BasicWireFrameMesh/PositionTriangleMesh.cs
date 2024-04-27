@@ -1,6 +1,5 @@
 ﻿using Collections.WireFrameMesh.Basics;
 using BasicObjects.GeometricObjects;
-using BasicObjects.MathExtensions;
 
 namespace Collections.WireFrameMesh.BasicWireFrameMesh
 {
@@ -9,8 +8,39 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         private int _rowIndex = 0;
         private List<PositionNormal> _rowA = new List<PositionNormal>();
         private List<PositionNormal> _rowB = new List<PositionNormal>();
-        internal List<PositionTriangle> _triangles = new List<PositionTriangle>();
-        internal Combination3Dictionary<PositionTriangle> _keys = new Combination3Dictionary<PositionTriangle>();
+        
+
+        protected class DisabledPositions
+        {
+            List<Position> _list;
+
+            public DisabledPositions(List<Position> list)
+            {
+                _list = list;
+            }
+
+            public List<Position> Get(ref bool wasChanged)
+            {
+                if (wasChanged) { _list = _list.Where(e => !e.Disabled).ToList(); wasChanged = false; }
+                return _list;
+            }
+        }
+
+        protected class DisabledPositionTriangles
+        {
+            List<PositionTriangle> _list;
+
+            public DisabledPositionTriangles(List<PositionTriangle> list)
+            {
+                _list = list;
+            }
+
+            public List<PositionTriangle> Get(ref bool wasChanged)
+            {
+                if (wasChanged) { _list = _list.Where(e => !e.Disabled).ToList(); wasChanged = false; }
+                return _list;
+            }
+        }
 
         protected void AddPoint(PositionNormal element)
         {

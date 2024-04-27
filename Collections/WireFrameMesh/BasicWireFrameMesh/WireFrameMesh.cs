@@ -1,35 +1,47 @@
 ﻿using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using BasicObjects.GeometricObjects;
-using System.Collections.ObjectModel;
 using Collections.Buckets;
 using BaseObjects.Transformations.Interfaces;
 using BasicObjects.MathExtensions;
 
 namespace Collections.WireFrameMesh.BasicWireFrameMesh
 {
-    public class WireFrameMesh : PositionTriangleMesh, IWireFrameMesh
+    public class WireFrameMesh : PositionTriangleMesh, IWireFrameMesh, IWireFrameMeshInternal
     {
-        internal WireFrameMesh() { }
+        private static int _id = 0;
+        internal WireFrameMesh() { Id = _id++; }
 
-        private List<Position> _positions = new List<Position>();
+        private bool _triangleWasRemoved = false;
+        private bool _positionWasRemoved = false;
+        private DisabledPositions _positions = new DisabledPositions(new List<Position>());
+        private DisabledPositionTriangles _triangles = new DisabledPositionTriangles(new List<PositionTriangle>());
+        private Combination3Dictionary<PositionTriangle> _keys = new Combination3Dictionary<PositionTriangle>();
         private BoxBucket<Position> _bucket = new BoxBucket<Position>(Enumerable.Empty<Position>());
+
+        public int Id { get; }
 
         public IReadOnlyList<Position> Positions
         {
             get
             {
-                if (_positionWasRemoved) { _positions = _positions.Where(p => !p.Disabled).ToList();  _positionWasRemoved = false; }
-                return _positions;
+                return _positions.Get(ref _positionWasRemoved);
             }
         }
 
         public IReadOnlyList<PositionTriangle> Triangles { 
             get 
             {
-                if (_triangleWasRemoved) { _triangles = _triangles.Where(p => !p.Disabled).ToList(); _triangleWasRemoved = false; }
-                return _triangles; 
+                return _triangles.Get(ref _triangleWasRemoved);
             } 
+        }
+
+        public bool AddNewTriangle(PositionTriangle triangle)
+        {
+            if (_keys.ContainsKey(triangle.Key)) { return false; }
+            _triangles.Get(ref _triangleWasRemoved).Add(triangle);
+            _keys[triangle.Key] = triangle;
+            return true;
         }
 
         public PositionNormal AddPoint(Point3D position)
@@ -110,9 +122,6 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return true;
         }
 
-        private bool _triangleWasRemoved = false;
-        private bool _positionWasRemoved = false;
-
         public bool RemoveTriangle(PositionTriangle removalTriangle)
         {
             var result = _keys.Remove(removalTriangle.Key);
@@ -166,14 +175,14 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 positionObject = new Position(position);
                 positionNormal.LinkPosition(positionObject);
                 _bucket.Add(positionObject);
-                _positions.Add(positionObject);
+                _positions.Get(ref _positionWasRemoved).Add(positionObject);
                 return positionNormal;
             }
 
             if (positionObject.Disabled)
             {
+                _positions.Get(ref _positionWasRemoved).Add(positionObject);
                 positionObject.Disabled = false;
-                _positions.Add(positionObject);
             }
 
             var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.DirectionsEqual(pn.Normal, normal));
@@ -194,14 +203,14 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 positionObject = new Position(positionNormal.Position);
                 clone.LinkPosition(positionObject);
                 _bucket.Add(positionObject);
-                _positions.Add(positionObject);
+                _positions.Get(ref _positionWasRemoved).Add(positionObject);
                 return clone;
             }
 
             if (positionObject.Disabled)
-            {
+            {               
+                _positions.Get(ref _positionWasRemoved).Add(positionObject);
                 positionObject.Disabled = false;
-                _positions.Add(positionObject);
             }
 
             var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.DirectionsEqual(pn.Normal, positionNormal.Normal));

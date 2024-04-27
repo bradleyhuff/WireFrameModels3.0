@@ -21,6 +21,7 @@ namespace Operations.Intermesh.Basics
         }
 
         public int Id { get; }
+        public PositionTriangle PositionTriangle { get { return _triangle; } }
 
         public string Trace { get { return _triangle.Trace; } }
 

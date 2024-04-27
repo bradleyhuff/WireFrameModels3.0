@@ -38,7 +38,7 @@ namespace Projects.Projects
             //var removalTriangle = output.Triangles.First();
             //var isRemoved = output.RemoveTriangle(output.Triangles.First());
             //Console.WriteLine($"Triangle removed {isRemoved}");
-            Console.WriteLine($"Output triangles {output.Triangles.Count()}");
+            //Console.WriteLine($"Output triangles {output.Triangles.Count()}");
             //Console.WriteLine($"Triangles removed {output.RemoveAllTriangles(output.Triangles.Take(16384))}");
 
             var spheres3 = spheres.Clone();

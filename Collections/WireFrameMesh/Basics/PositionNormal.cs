@@ -2,6 +2,7 @@
 using BasicObjects.GeometricObjects;
 using M = BasicObjects.Math;
 using Collections.Buckets;
+using Collections.WireFrameMesh.Interfaces;
 
 namespace Collections.WireFrameMesh.Basics
 {
@@ -9,7 +10,7 @@ namespace Collections.WireFrameMesh.Basics
     {
         private static int _id = 0;
 
-        internal PositionNormal(Point3D position, Vector3D normal, BasicWireFrameMesh.WireFrameMesh mesh)
+        internal PositionNormal(Point3D position, Vector3D normal, IWireFrameMeshInternal mesh)
         {
             _position = position;
             _normal = normal;
@@ -18,7 +19,7 @@ namespace Collections.WireFrameMesh.Basics
         }
 
         public int Id { get; }
-        internal BasicWireFrameMesh.WireFrameMesh Mesh { get; }
+        internal IWireFrameMeshInternal Mesh { get; }
         public Position? PositionObject { get; private set; }
 
         internal List<PositionTriangle> _triangles = new List<PositionTriangle>();

@@ -1,7 +1,6 @@
 ﻿using Collections.Buckets.Interfaces;
 using BasicObjects.GeometricObjects;
 using Collections.Buckets;
-
 namespace Collections.WireFrameMesh.Basics
 {
     public class Position : IBox

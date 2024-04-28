@@ -52,5 +52,10 @@ namespace Operations.Filling.Planar
         {
             _regionInternal = null;
         }
+
+        protected override bool OutLineContainsPoint(Point3D testPoint)
+        {
+            return RegionOutLines.IsInInterior(testPoint);
+        }
     }
 }

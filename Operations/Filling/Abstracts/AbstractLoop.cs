@@ -76,11 +76,6 @@ namespace Operations.Filling.Abstracts
         protected abstract IFillingRegions RegionOutLines { get; }
         protected abstract IFillingRegions RegionInternal { get; }
 
-        private Region OutLineRegionOfPoint(Point3D point)
-        {
-            return RegionOutLines.RegionOfAppliedPoint(point);
-        }
-
         public List<IFillingLoop> InternalLoops
         {
             get { return _internalLoops; }
@@ -99,8 +94,10 @@ namespace Operations.Filling.Abstracts
             if (!difference.Any()) { return false; }
             var testPoint = _referenceArray[difference.First()].Point;
 
-            return OutLineRegionOfPoint(testPoint) == Region.Interior;
+            return OutLineContainsPoint(testPoint);
         }
+
+        protected abstract bool OutLineContainsPoint(Point3D testPoint);
 
         public IReadOnlyList<IndexSurfaceTriangle> FillTriangles
         {

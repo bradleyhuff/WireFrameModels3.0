@@ -73,7 +73,7 @@ namespace Operations.Filling.Prefilled
             _segments = segments;
         }
 
-        public Region RegionOfAppliedPoint(Point3D point)
+        public bool IsInInterior(Point3D point)
         {
             throw new NotImplementedException();
         }

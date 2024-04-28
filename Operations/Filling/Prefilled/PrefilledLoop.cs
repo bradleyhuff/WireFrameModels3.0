@@ -51,5 +51,10 @@ namespace Operations.Filling.Prefilled
         {
             _regionInternal = null;
         }
+
+        protected override bool OutLineContainsPoint(Point3D testPoint)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

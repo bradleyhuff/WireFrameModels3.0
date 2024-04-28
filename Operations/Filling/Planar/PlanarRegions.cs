@@ -50,7 +50,12 @@ namespace Operations.Filling.Planar
             return RegionOfAppliedPoint(testPoint) == Region.OnBoundary;
         }
 
-        public Region RegionOfAppliedPoint(Point3D point)
+        public bool IsInInterior(Point3D point)
+        {
+            return RegionOfAppliedPoint(point) == Region.Interior;
+        }
+
+        private Region RegionOfAppliedPoint(Point3D point)
         {
             point = _plane.Projection(point);
 

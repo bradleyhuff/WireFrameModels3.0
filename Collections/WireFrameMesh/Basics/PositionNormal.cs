@@ -54,12 +54,6 @@ namespace Collections.WireFrameMesh.Basics
                 if (PositionObject is not null) { return PositionObject.Point; }
                 return _position;
             }
-            set
-            {
-                if (PositionObject is not null) { PositionObject.Point = value; }
-                _position = value;
-                _box = null;
-            }
         }
 
         public Vector3D Normal
@@ -84,6 +78,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             if(PositionObject is null) { return; }
             PositionObject._positionNormals.Remove(this);
+            _position = PositionObject.Point;
             PositionObject = null;
         }
 

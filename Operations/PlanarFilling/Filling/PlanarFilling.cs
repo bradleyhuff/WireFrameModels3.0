@@ -1,165 +1,28 @@
-﻿using Operations.PlanarFilling.Basics;
-using Operations.SurfaceSegmentChaining.Basics;
+﻿using BasicObjects.GeometricObjects;
+using Operations.PlanarFilling.Abstracts;
+using Operations.PlanarFilling.Basics;
+using Operations.PlanarFilling.Filling.Interfaces;
 using Operations.SurfaceSegmentChaining.Interfaces;
-using static Operations.SurfaceSegmentChaining.Chaining.Extensions.SpurChaining;
 
 namespace Operations.PlanarFilling.Filling
 {
-    internal partial class PlanarFilling<G, T> where G : PlanarFillingGroup
+    internal class PlanarFilling<G, T> : AbstractFilling<G, T> where G : PlanarFillingGroup
     {
-        private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
-        private IReadOnlyList<int[]> _perimeterIndexLoops;
-        private IReadOnlyList<int[]> _indexLoops;
-        private IReadOnlyList<int[]> _indexSpurredLoops;
-        private IReadOnlyList<int[]> _indexSpurs;
-        private List<InternalPlanarLoopSet> _planarLoopSets = new List<InternalPlanarLoopSet>();
-        private ISurfaceSegmentChaining<G, T> _chaining;
-        private List<IndexSurfaceTriangle> _indexedFillTriangles;
+        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, int triangleID) : base(chaining, triangleID) { }
 
-        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, int triangleID)
+        protected override IFillingLoopSet CreateFillingLoopSet(object input, IReadOnlyList<Ray3D> referenceArray, int[] perimeterIndexLoop, int triangleID)
         {
-            _triangleID = triangleID;
-            _chaining = chaining;
-            _referenceArray = chaining.ReferenceArray;
-            GetProtectedLoops();
-            BuildPlanarLoopSets();
-            SetLoopNestings();
-            GetFillings();
-        }
-
-        private int _triangleID;
-        private IEnumerable<SurfaceTriangleContainer<T>> _fillings;
-
-        public IEnumerable<SurfaceTriangleContainer<T>> Fillings
-        {
-            get
+            if (input is InternalPlanarLoopSet)
             {
-                if (_fillings is null)
-                {
-                    _fillings = _indexedFillTriangles.Select(f =>
-                        new SurfaceTriangleContainer<T>(_referenceArray[f.IndexPointA], _referenceArray[f.IndexPointB], _referenceArray[f.IndexPointC])).ToArray();
-                }
-                return _fillings;
+                var loopSet = (InternalPlanarLoopSet)input;
+                return new InternalPlanarLoopSet(loopSet.Plane, loopSet.TestSegmentLength, referenceArray, perimeterIndexLoop, triangleID);
             }
-        }
-
-        private void GetFillings()
-        {
-            _indexedFillTriangles = new List<IndexSurfaceTriangle>();
-            foreach (var planarLoopSet in _planarLoopSets)
+            if (input is G)
             {
-                _indexedFillTriangles.AddRange(planarLoopSet.FillTriangles);
+                var loopSet = (G)input;
+                return new InternalPlanarLoopSet(loopSet.Plane, loopSet.TestSegmentLength, referenceArray, perimeterIndexLoop, triangleID);
             }
-        }
-
-        private void GetProtectedLoops()
-        {
-            var protectedIndexLoops = ProtectedIndexedLoops.Create<InternalProtectedIndexedLoops>(_chaining.ProtectedIndexedLoops);
-            _perimeterIndexLoops = protectedIndexLoops.GetPerimeterIndexLoops();
-            _indexLoops = protectedIndexLoops.GetIndexLoops();
-            _indexSpurredLoops = protectedIndexLoops.GetIndexSpurredLoops();
-            _indexSpurs = protectedIndexLoops.GetIndexSpurs();
-        }
-
-        private void BuildPlanarLoopSets()
-        {
-            var table = new Dictionary<int, List<InternalPlanarLoopSet>>();
-
-            for (int i = 0; i < _chaining.PerimeterLoopGroupKeys.Count; i++)
-            {
-                var key = _chaining.PerimeterLoopGroupKeys[i];
-                var groupObject = _chaining.PerimeterLoopGroupObjects[i];
-                if (!table.ContainsKey(key))
-                {
-                    table[key] = new List<InternalPlanarLoopSet>();
-                }
-                table[key].Add(
-                        new InternalPlanarLoopSet(groupObject.Plane, groupObject.TestSegmentLength,
-                            _referenceArray, _perimeterIndexLoops[i], _triangleID)
-                    );
-                table[key].Last().FillInteriorLoops = true;
-            }
-
-            for (int i = 0; i < _chaining.LoopGroupKeys.Count; i++)
-            {
-                var key = _chaining.LoopGroupKeys[i];
-                table[key].Last().IndexLoops.Add(_indexLoops[i]);
-            }
-
-            for (int i = 0; i < _chaining.SpurredLoopGroupKeys.Count; i++)
-            {
-                var key = _chaining.SpurredLoopGroupKeys[i];
-                table[key].Last().IndexSpurredLoops.Add(_indexSpurredLoops[i]);
-            }
-
-            for (int i = 0; i < _chaining.SpurGroupKeys.Count; i++)
-            {
-                var key = _chaining.SpurGroupKeys[i];
-                table[key].Last().IndexSpurs.Add(_indexSpurs[i]);
-            }
-
-            CombinePerimeterLoops(table);
-
-            _planarLoopSets = table.Values.SelectMany(k => k).ToList();
-        }
-
-        private void CombinePerimeterLoops(Dictionary<int, List<InternalPlanarLoopSet>> table)
-        {
-            var newTable = new Dictionary<int, List<InternalPlanarLoopSet>>();
-            foreach (var multiplePerimeterLoops in table.Where(p => p.Value.Count > 1))
-            {
-                //Console.WriteLine($"Combine {multiplePerimeterLoops.Value.Count} perimeter loops");
-                var loops = multiplePerimeterLoops.Value.Select(l => l.PerimeterLoop).ToArray();
-                List<InternalPlanarLoop> outerMostLoops;
-                List<InternalPlanarLoop> restOfLoops;
-                InternalPlanarLoop.ExtractOuterMostLoopsFromRest(loops, out outerMostLoops, out restOfLoops);
-
-                var first = multiplePerimeterLoops.Value.First();
-                var newList = new List<InternalPlanarLoopSet>();
-                newTable[multiplePerimeterLoops.Key] = newList;
-                newList.Add(
-                    new InternalPlanarLoopSet(first.Plane, first.TestSegmentLength,
-                    _referenceArray, outerMostLoops[0].IndexLoop.ToArray(), _triangleID));
-                newList[0].IndexLoops.AddRange(restOfLoops.Select(l => l.IndexLoop.ToArray()));
-                newList[0].FillInteriorLoops = false;
-            }
-            foreach (var pair in newTable)
-            {
-                table[pair.Key] = pair.Value;
-            }
-        }
-
-        private void SetLoopNestings()
-        {
-            foreach (var planarLoopSet in _planarLoopSets)
-            {
-                List<InternalPlanarLoop> outerMostLoops;
-                List<InternalPlanarLoop> restOfLoops;
-                InternalPlanarLoop.ExtractOuterMostLoopsFromRest(planarLoopSet.Loops, out outerMostLoops, out restOfLoops);
-
-                planarLoopSet.PerimeterLoop.InternalLoops = outerMostLoops;
-                foreach (var outerMostLoop in outerMostLoops)
-                {
-                    SetLoopNesting(outerMostLoop, restOfLoops);
-                }
-            }
-            //Console.WriteLine($"Loop compares {InternalPlanarLoop.Compares}");
-        }
-
-        private void SetLoopNesting(InternalPlanarLoop exteriorLoop, List<InternalPlanarLoop> restOfLoops)
-        {
-            var interiorLoops = restOfLoops.Where(r => exteriorLoop.OutLineContainsLoop(r)).ToArray();
-            if (!interiorLoops.Any()) { return; }
-
-            List<InternalPlanarLoop> outerMostLoops;
-            List<InternalPlanarLoop> restOfLoops2;
-            InternalPlanarLoop.ExtractOuterMostLoopsFromRest(interiorLoops, out outerMostLoops, out restOfLoops2);
-
-            exteriorLoop.InternalLoops = outerMostLoops;
-            foreach (var outerMostLoop in outerMostLoops)
-            {
-                SetLoopNesting(outerMostLoop, restOfLoops2);
-            }
+            return null;
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Operations.PlanarFilling.Filling.Interfaces
+namespace Operations.Filling.Interfaces
 {
     internal interface IFilling
     {

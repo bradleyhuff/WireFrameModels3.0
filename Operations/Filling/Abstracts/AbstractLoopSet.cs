@@ -1,8 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
-using Operations.PlanarFilling.Filling.Interfaces;
-using Operations.PlanarFilling.Filling;
+using Operations.Filling.Interfaces;
 
-namespace Operations.PlanarFilling.Abstracts
+namespace Operations.Filling.Abstracts
 {
     internal abstract class AbstractLoopSet : IFillingLoopSet
     {

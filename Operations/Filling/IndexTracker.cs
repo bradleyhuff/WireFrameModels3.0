@@ -1,5 +1,4 @@
-﻿
-namespace Operations.PlanarFilling.Filling
+﻿namespace Operations.Filling
 {
     internal class IndexTracker
     {

@@ -1,5 +1,4 @@
-﻿
-namespace Operations.PlanarFilling.Filling.Interfaces
+﻿namespace Operations.Filling.Interfaces
 {
     internal interface IFillingLoopSet
     {

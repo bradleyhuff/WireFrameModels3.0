@@ -1,6 +1,5 @@
-﻿using Operations.PlanarFilling.Basics;
-
-namespace Operations.PlanarFilling.Filling
+﻿
+namespace Operations.Filling
 {
     internal class IndexSurfaceTriangle
     {

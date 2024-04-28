@@ -1,7 +1,7 @@
 ﻿
 using BasicObjects.GeometricObjects;
 
-namespace Operations.PlanarFilling.Basics
+namespace Operations.Filling.Basics
 {
     internal class PlanarFillingGroup
     {

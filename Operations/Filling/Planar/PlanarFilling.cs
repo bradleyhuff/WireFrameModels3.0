@@ -1,10 +1,10 @@
 ﻿using BasicObjects.GeometricObjects;
-using Operations.PlanarFilling.Abstracts;
-using Operations.PlanarFilling.Basics;
-using Operations.PlanarFilling.Filling.Interfaces;
+using Operations.Filling.Abstracts;
+using Operations.Filling.Basics;
+using Operations.Filling.Interfaces;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
-namespace Operations.PlanarFilling.Filling
+namespace Operations.Filling.Planar
 {
     internal class PlanarFilling<G, T> : AbstractFilling<G, T> where G : PlanarFillingGroup
     {
@@ -12,15 +12,15 @@ namespace Operations.PlanarFilling.Filling
 
         protected override IFillingLoopSet CreateFillingLoopSet(object input, IReadOnlyList<Ray3D> referenceArray, int[] perimeterIndexLoop, int triangleID)
         {
-            if (input is InternalPlanarLoopSet)
+            if (input is PlanarLoopSet)
             {
-                var loopSet = (InternalPlanarLoopSet)input;
-                return new InternalPlanarLoopSet(loopSet.Plane, loopSet.TestSegmentLength, referenceArray, perimeterIndexLoop, triangleID);
+                var loopSet = (PlanarLoopSet)input;
+                return new PlanarLoopSet(loopSet.Plane, loopSet.TestSegmentLength, referenceArray, perimeterIndexLoop, triangleID);
             }
             if (input is G)
             {
                 var loopSet = (G)input;
-                return new InternalPlanarLoopSet(loopSet.Plane, loopSet.TestSegmentLength, referenceArray, perimeterIndexLoop, triangleID);
+                return new PlanarLoopSet(loopSet.Plane, loopSet.TestSegmentLength, referenceArray, perimeterIndexLoop, triangleID);
             }
             return null;
         }

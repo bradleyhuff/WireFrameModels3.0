@@ -1,16 +1,10 @@
 ﻿using BasicObjects.GeometricObjects;
-using Operations.PlanarFilling.Filling.Interfaces;
-using Operations.PlanarFilling.Filling;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Operations.SurfaceSegmentChaining.Chaining.Extensions.SpurChaining;
+using Operations.Filling.Interfaces;
 
-namespace Operations.PlanarFilling.Abstracts
+namespace Operations.Filling.Abstracts
 {
     internal abstract class AbstractFilling<G, T>
     {
@@ -117,7 +111,7 @@ namespace Operations.PlanarFilling.Abstracts
                 var loops = multiplePerimeterLoops.Value.Select(l => l.PerimeterLoop).ToArray();
                 List<IFillingLoop> outerMostLoops;
                 List<IFillingLoop> restOfLoops;
-                InternalPlanarLoop.ExtractOuterMostLoopsFromRest(loops, out outerMostLoops, out restOfLoops);
+                AbstractLoop.ExtractOuterMostLoopsFromRest(loops, out outerMostLoops, out restOfLoops);
 
                 var first = multiplePerimeterLoops.Value.First();
                 var newList = new List<IFillingLoopSet>();
@@ -139,7 +133,7 @@ namespace Operations.PlanarFilling.Abstracts
             {
                 List<IFillingLoop> outerMostLoops;
                 List<IFillingLoop> restOfLoops;
-                InternalPlanarLoop.ExtractOuterMostLoopsFromRest(planarLoopSet.Loops, out outerMostLoops, out restOfLoops);
+                AbstractLoop.ExtractOuterMostLoopsFromRest(planarLoopSet.Loops, out outerMostLoops, out restOfLoops);
 
                 planarLoopSet.PerimeterLoop.InternalLoops = outerMostLoops;
                 foreach (var outerMostLoop in outerMostLoops)
@@ -156,7 +150,7 @@ namespace Operations.PlanarFilling.Abstracts
 
             List<IFillingLoop> outerMostLoops;
             List<IFillingLoop> restOfLoops2;
-            InternalPlanarLoop.ExtractOuterMostLoopsFromRest(interiorLoops, out outerMostLoops, out restOfLoops2);
+            AbstractLoop.ExtractOuterMostLoopsFromRest(interiorLoops, out outerMostLoops, out restOfLoops2);
 
             exteriorLoop.InternalLoops = outerMostLoops;
             foreach (var outerMostLoop in outerMostLoops)

@@ -1,20 +1,20 @@
 ﻿using BasicObjects.GeometricObjects;
-using Operations.PlanarFilling.Filling.Interfaces;
-using Operations.PlanarFilling.Abstracts;
+using Operations.Filling.Abstracts;
+using Operations.Filling.Interfaces;
 
-namespace Operations.PlanarFilling.Filling
+namespace Operations.Filling.Planar
 {
-    internal class InternalPlanarLoop : AbstractLoop
+    internal class PlanarLoop : AbstractLoop
     {
-        public InternalPlanarLoop(Plane plane, double testSegmentLength, IReadOnlyList<Ray3D> referenceArray, int[] indexLoop, int triangleID) : base(referenceArray, indexLoop, triangleID)
+        public PlanarLoop(Plane plane, double testSegmentLength, IReadOnlyList<Ray3D> referenceArray, int[] indexLoop, int triangleID) : base(referenceArray, indexLoop, triangleID)
         {
             _testSegmentLength = testSegmentLength;
             Plane = plane;
         }
 
         double _testSegmentLength;
-        IFillingRegions _shellOutLine;
-        IFillingRegions _shell;
+        IFillingRegions _regionOutLine;
+        IFillingRegions _regionInternal;
 
         public Plane Plane { get; }
 
@@ -22,35 +22,35 @@ namespace Operations.PlanarFilling.Filling
         {
             return IndexLoop.Select(i => Plane.Projection(_referenceArray[i].Point)).ToArray();
         }
-        protected override IFillingRegions ShellOutLines
+        protected override IFillingRegions RegionOutLines
         {
             get
             {
-                if (_shellOutLine is null)
+                if (_regionOutLine is null)
                 {
-                    _shellOutLine = new InternalPlanarRegions(Plane, _testSegmentLength);
-                    _shellOutLine.Load(LoopSegments);
+                    _regionOutLine = new PlanarRegions(Plane, _testSegmentLength);
+                    _regionOutLine.Load(LoopSegments);
                 }
-                return _shellOutLine;
+                return _regionOutLine;
             }
         }
 
-        protected override IFillingRegions Shell
+        protected override IFillingRegions RegionInternal
         {
             get
             {
-                if (_shell is null)
+                if (_regionInternal is null)
                 {
-                    _shell = new InternalPlanarRegions(Plane, _testSegmentLength);
-                    _shell.Load(LoopSegments.Concat(InternalLoops.SelectMany(l => l.LoopSegments)));
+                    _regionInternal = new PlanarRegions(Plane, _testSegmentLength);
+                    _regionInternal.Load(LoopSegments.Concat(InternalLoops.SelectMany(l => l.LoopSegments)));
                 }
-                return _shell;
+                return _regionInternal;
             }
         }
 
         protected override void ResetWithInternalLoops()
         {
-            _shell = null;
+            _regionInternal = null;
         }
         protected override Point3D GetNextPoint(Point3D leftPoint, Point3D currentPoint, Point3D startLoopPoint, Point3D leftLoopPoint, Point3D rightLoopPoint)
         {
@@ -59,7 +59,7 @@ namespace Operations.PlanarFilling.Filling
             var angle = Vector3D.SignedAngle(direction, (leftPoint - currentPoint).Direction, (startLoopPoint - currentPoint).Direction);
             var rightOptionAngle = Vector3D.SignedAngle(direction, (currentPoint - startLoopPoint).Direction, (rightLoopPoint - startLoopPoint).Direction);
 
-            if (System.Math.Sign(angle) == System.Math.Sign(rightOptionAngle)) { return rightLoopPoint; }
+            if (Math.Sign(angle) == Math.Sign(rightOptionAngle)) { return rightLoopPoint; }
             return leftLoopPoint;
         }
     }

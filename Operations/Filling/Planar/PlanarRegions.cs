@@ -1,51 +1,50 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets;
-using Operations.PlanarFilling.Basics;
-using Operations.PlanarFilling.Filling.Interfaces;
+using Operations.Filling.Interfaces;
 using Operations.Regions;
 using Double = BasicObjects.Math.Double;
 
-namespace Operations.PlanarFilling.Filling
+namespace Operations.Filling.Planar
 {
-    internal class InternalPlanarRegions : IFillingRegions
+    internal class PlanarRegions : IFillingRegions
     {
         private double _testSegmentLength = 0;
-        private IEnumerable<InternalPlanarSegment> _segments;
+        private IEnumerable<FillingSegment> _segments;
         private Plane _plane;
 
-        public InternalPlanarRegions(Plane plane, double testSegmentLength)
+        public PlanarRegions(Plane plane, double testSegmentLength)
         {
             _plane = plane;
             _testSegmentLength = testSegmentLength;
         }
 
-        private BoxBucket<InternalPlanarSegment> _bucket = null;
+        private BoxBucket<FillingSegment> _bucket = null;
 
-        private BoxBucket<InternalPlanarSegment> Bucket
+        private BoxBucket<FillingSegment> Bucket
         {
             get
             {
                 if (_bucket is null)
                 {
-                    _bucket = new BoxBucket<InternalPlanarSegment>(_segments.ToArray());
+                    _bucket = new BoxBucket<FillingSegment>(_segments.ToArray());
                 }
                 return _bucket;
             }
         }
 
-        public void Load(IEnumerable<InternalPlanarSegment> segments)
+        public void Load(IEnumerable<FillingSegment> segments)
         {
             _segments = segments;
             _bucket = null;
         }
 
-        public bool CrossesInterior(InternalPlanarSegment testSegment)
+        public bool CrossesInterior(FillingSegment testSegment)
         {
             var testPoint = 0.5 * testSegment.Segment.Start + 0.5 * testSegment.Segment.End;
             return RegionOfProjectedPoint(testPoint) == Region.Interior;
         }
 
-        public bool IsAtBoundary(InternalPlanarSegment testSegment)
+        public bool IsAtBoundary(FillingSegment testSegment)
         {
             var testPoint = 0.5 * testSegment.Segment.Start + 0.5 * testSegment.Segment.End;
             return RegionOfProjectedPoint(testPoint) == Region.OnBoundary;
@@ -68,7 +67,7 @@ namespace Operations.PlanarFilling.Filling
 
             if (lineX is not null)
             {
-                var testSegment = new InternalPlanarSegment(point + -_testSegmentLength * lineX.Vector.Direction, point + _testSegmentLength * lineX.Vector.Direction);
+                var testSegment = new FillingSegment(point + -_testSegmentLength * lineX.Vector.Direction, point + _testSegmentLength * lineX.Vector.Direction);
                 var matches = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment).ToArray();
                 var intersections = GetCrossingIntersections(testSegment, matches).DistinctBy(x => x).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
@@ -78,7 +77,7 @@ namespace Operations.PlanarFilling.Filling
             }
             if (lineY is not null)
             {
-                var testSegment = new InternalPlanarSegment(point + -_testSegmentLength * lineY.Vector.Direction, point + _testSegmentLength * lineY.Vector.Direction);
+                var testSegment = new FillingSegment(point + -_testSegmentLength * lineY.Vector.Direction, point + _testSegmentLength * lineY.Vector.Direction);
                 var matches = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment).ToArray();
                 var intersections = GetCrossingIntersections(testSegment, matches).DistinctBy(x => x).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
@@ -90,7 +89,7 @@ namespace Operations.PlanarFilling.Filling
             if (voteForExterior >= 2) { return Region.Exterior; }
             if (lineZ is not null)
             {
-                var testSegment = new InternalPlanarSegment(point + -_testSegmentLength * lineZ.Vector.Direction, point + _testSegmentLength * lineZ.Vector.Direction);
+                var testSegment = new FillingSegment(point + -_testSegmentLength * lineZ.Vector.Direction, point + _testSegmentLength * lineZ.Vector.Direction);
                 var matches = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment).ToArray();
                 var intersections = GetCrossingIntersections(testSegment, matches).DistinctBy(x => x).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
@@ -104,15 +103,15 @@ namespace Operations.PlanarFilling.Filling
             return Region.Indeterminant;
         }
 
-        private IEnumerable<InternalPlanarSegment> GetNonLinkingSegments(IEnumerable<InternalPlanarSegment> matches, InternalPlanarSegment segment)
+        private IEnumerable<FillingSegment> GetNonLinkingSegments(IEnumerable<FillingSegment> matches, FillingSegment segment)
         {
             return matches.Where(n => LineSegment3D.IsNonLinking(n.Segment, segment.Segment));
         }
 
-        private IEnumerable<Point3D> GetCrossingIntersections(InternalPlanarSegment testSegment, IEnumerable<InternalPlanarSegment> matches)
+        private IEnumerable<Point3D> GetCrossingIntersections(FillingSegment testSegment, IEnumerable<FillingSegment> matches)
         {
             var pointSegments = matches.Select(m =>
-                    new { Intersection = LineSegment3D.PointIntersection(testSegment.Segment, m.Segment), Segment = m.Segment }).
+                    new { Intersection = LineSegment3D.PointIntersection(testSegment.Segment, m.Segment), m.Segment }).
                     Where(a => a.Intersection is not null);
 
             var orientedSegments = new List<LineSegment3D>();
@@ -159,7 +158,7 @@ namespace Operations.PlanarFilling.Filling
             }
         }
 
-        public bool HasIntersection(InternalPlanarSegment testSegment)
+        public bool HasIntersection(FillingSegment testSegment)
         {
             var nonLinkingSegments = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment);
             var intersectionDistances = nonLinkingSegments.Select(m => new
@@ -169,7 +168,7 @@ namespace Operations.PlanarFilling.Filling
             return intersectionDistances.Any();
         }
 
-        public InternalPlanarSegment GetNearestIntersectingSegment(InternalPlanarSegment testSegment)
+        public FillingSegment GetNearestIntersectingSegment(FillingSegment testSegment)
         {
             var nonLinkingSegments = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment);
 

@@ -2,11 +2,10 @@
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
-using Operations.PlanarFilling.Filling;
-using Operations.PlanarFilling.Filling.Interfaces;
+using Operations.Filling.Interfaces;
 using Operations.Regions;
 
-namespace Operations.PlanarFilling.Abstracts
+namespace Operations.Filling.Abstracts
 {
     internal abstract class AbstractLoop : IFillingLoop, IBox
     {
@@ -22,7 +21,7 @@ namespace Operations.PlanarFilling.Abstracts
             _passOver = _tracker.Tracking.Select(i => new KeyValuePair<int, bool>(i, false)).ToDictionary(p => p.Key, p => p.Value);
         }
         protected IReadOnlyList<Ray3D> _referenceArray;
-        InternalPlanarSegment[] _loopSegments;
+        FillingSegment[] _loopSegments;
         List<IFillingLoop> _internalLoops = new List<IFillingLoop>();
         IndexTracker _tracker;
         Dictionary<int, bool> _passOver = new Dictionary<int, bool>();
@@ -62,24 +61,24 @@ namespace Operations.PlanarFilling.Abstracts
             }
         }
 
-        public IReadOnlyCollection<InternalPlanarSegment> LoopSegments
+        public IReadOnlyCollection<FillingSegment> LoopSegments
         {
             get
             {
                 if (_loopSegments is null)
                 {
-                    _loopSegments = InternalPlanarSegment.GetLoop(this, ProjectedLoopPoints.ToArray()).ToArray();
+                    _loopSegments = FillingSegment.GetLoop(this, ProjectedLoopPoints.ToArray()).ToArray();
                 }
                 return _loopSegments;
             }
         }
 
-        protected abstract IFillingRegions ShellOutLines { get; }
-        protected abstract IFillingRegions Shell { get; }
+        protected abstract IFillingRegions RegionOutLines { get; }
+        protected abstract IFillingRegions RegionInternal { get; }
 
         private Region OutLineRegionOfPoint(Point3D point)
         {
-            return ShellOutLines.RegionOfProjectedPoint(point);
+            return RegionOutLines.RegionOfProjectedPoint(point);
         }
 
         public List<IFillingLoop> InternalLoops
@@ -239,7 +238,7 @@ namespace Operations.PlanarFilling.Abstracts
             if (_passOverCount > _startCount)
             {
                 if (showMessage)
-                { InternalLoop.FillLoopError++; Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}"); }
+                { InternalLoop.FillLoopError++; Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {string.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}"); }
 
                 return true;
             }
@@ -256,8 +255,8 @@ namespace Operations.PlanarFilling.Abstracts
 
         private bool MergeWithIntersectingInternalLoop(int leftIndex, int index, int rightIndex)
         {
-            var testSegment = new InternalPlanarSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
-            InternalPlanarSegment nearestIntersection = Shell.GetNearestIntersectingSegment(testSegment);
+            var testSegment = new FillingSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            FillingSegment nearestIntersection = RegionInternal.GetNearestIntersectingSegment(testSegment);
             IFillingLoop intersectingLoop = nearestIntersection.ParentLoop;
             if (intersectingLoop is null || !_unmergedInternalLoops.Contains(intersectingLoop)) return false;
 
@@ -293,8 +292,8 @@ namespace Operations.PlanarFilling.Abstracts
         {
             int startIndex = GetNearestInternalLoopPoint(ProjectedLoopPoints[index], internalLoop);
 
-            var testSegment = new InternalPlanarSegment(internalLoop.ProjectedLoopPoints[startIndex], ProjectedLoopPoints[index]);
-            if (Shell.HasIntersection(testSegment)) { return false; }
+            var testSegment = new FillingSegment(internalLoop.ProjectedLoopPoints[startIndex], ProjectedLoopPoints[index]);
+            if (RegionInternal.HasIntersection(testSegment)) { return false; }
 
             Point3D currentPoint = ProjectedLoopPoints[index];
             Point3D startingPoint = _referenceArray[internalLoop.IndexLoop[startIndex]].Point;
@@ -328,8 +327,8 @@ namespace Operations.PlanarFilling.Abstracts
 
         private bool HasIntersections(int leftIndex, int rightIndex)
         {
-            var testSegment = new InternalPlanarSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
-            return Shell.HasIntersection(testSegment);
+            var testSegment = new FillingSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            return RegionInternal.HasIntersection(testSegment);
         }
 
         private int[] UnwrapLoopPoints(Point3D leftPoint, Point3D currentPoint, int startIndex, int[] loopIndicies)
@@ -357,14 +356,14 @@ namespace Operations.PlanarFilling.Abstracts
         }
         private bool CrossesInterior(int leftIndex, int rightIndex)
         {
-            var testSegment = new InternalPlanarSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
-            return Shell.CrossesInterior(testSegment);
+            var testSegment = new FillingSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            return RegionInternal.CrossesInterior(testSegment);
         }
 
         private bool IsAtBoundary(int leftIndex, int rightIndex)
         {
-            var testSegment = new InternalPlanarSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
-            return Shell.IsAtBoundary(testSegment);
+            var testSegment = new FillingSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            return RegionInternal.IsAtBoundary(testSegment);
         }
 
         public static void ExtractOuterMostLoopsFromRest(IEnumerable<IFillingLoop> loops,

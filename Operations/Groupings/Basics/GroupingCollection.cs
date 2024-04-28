@@ -154,19 +154,19 @@ namespace Operations.Groupings.Basics
 
         private IEnumerable<GroupingCollection> ExtractSurfaces()
         {
-            return Extract(new Surface());
+            return Extract(Surface.Get());
         }
         private IEnumerable<GroupingCollection> ExtractFaces()
         {
-            return Extract(new Face());
+            return Extract(Face.Get());
         }
         private IEnumerable<GroupingCollection> ExtractClusters()
         {
-            return Extract(new Cluster());
+            return Extract(Cluster.Get());
         }
         private IEnumerable<GroupingCollection> ExtractPlanars()
         {
-            return Extract(new Planar());
+            return Extract(Planar.Get());
         }
 
         internal IEnumerable<GroupingCollection> Extract(IGrouping grouping)

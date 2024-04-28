@@ -29,5 +29,6 @@ namespace Collections.WireFrameMesh.Interfaces
         public IEnumerable<IWireFrameMesh> Clones(int number);
         public IWireFrameMesh CreateNewInstance();
         public void Apply(ITransform transform);
+        public IWireFrameMesh Clone(ITransform transform);
     }
 }

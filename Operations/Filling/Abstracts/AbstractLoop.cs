@@ -30,7 +30,7 @@ namespace Operations.Filling.Abstracts
         List<IFillingLoop> _unmergedInternalLoops = new List<IFillingLoop>();
         List<IFillingLoop> _mergedInternalLoops = new List<IFillingLoop>();
         Rectangle3D _box;
-        IReadOnlyList<Point3D> _projectedPoints;
+        IReadOnlyList<Ray3D> _appliedPoints;
         List<IndexSurfaceTriangle> _indexedFillTriangles;
         int _triangleID;
 
@@ -40,24 +40,24 @@ namespace Operations.Filling.Abstracts
         {
             get
             {
-                _box = Rectangle3D.Containing(ProjectedLoopPoints.ToArray());
+                _box = Rectangle3D.Containing(AppliedLoopPoints.Select(r => r.Point).ToArray());
                 return _box;
             }
         }
 
         public List<int> IndexLoop { get; private set; }
 
-        protected abstract IReadOnlyList<Point3D> GetProjectedLoopPoints();
+        protected abstract IReadOnlyList<Ray3D> GetAppliedLoopPoints();
 
-        public IReadOnlyList<Point3D> ProjectedLoopPoints
+        public IReadOnlyList<Ray3D> AppliedLoopPoints
         {
             get
             {
-                if (_projectedPoints is null)
+                if (_appliedPoints is null)
                 {
-                    _projectedPoints = GetProjectedLoopPoints();
+                    _appliedPoints = GetAppliedLoopPoints();
                 }
-                return _projectedPoints;
+                return _appliedPoints;
             }
         }
 
@@ -67,7 +67,7 @@ namespace Operations.Filling.Abstracts
             {
                 if (_loopSegments is null)
                 {
-                    _loopSegments = FillingSegment.GetLoop(this, ProjectedLoopPoints.ToArray()).ToArray();
+                    _loopSegments = FillingSegment.GetLoop(this, AppliedLoopPoints.Select(r => r.Point).ToArray()).ToArray();
                 }
                 return _loopSegments;
             }
@@ -78,7 +78,7 @@ namespace Operations.Filling.Abstracts
 
         private Region OutLineRegionOfPoint(Point3D point)
         {
-            return RegionOutLines.RegionOfProjectedPoint(point);
+            return RegionOutLines.RegionOfAppliedPoint(point);
         }
 
         public List<IFillingLoop> InternalLoops
@@ -238,7 +238,10 @@ namespace Operations.Filling.Abstracts
             if (_passOverCount > _startCount)
             {
                 if (showMessage)
-                { InternalLoop.FillLoopError++; Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {string.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}"); }
+                { 
+                    InternalLoop.FillLoopError++; 
+                    Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {string.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{AppliedLoopPoints[t]}"))}"); 
+                }
 
                 return true;
             }
@@ -255,12 +258,12 @@ namespace Operations.Filling.Abstracts
 
         private bool MergeWithIntersectingInternalLoop(int leftIndex, int index, int rightIndex)
         {
-            var testSegment = new FillingSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            var testSegment = new FillingSegment(AppliedLoopPoints[leftIndex].Point, AppliedLoopPoints[rightIndex].Point);
             FillingSegment nearestIntersection = RegionInternal.GetNearestIntersectingSegment(testSegment);
             IFillingLoop intersectingLoop = nearestIntersection.ParentLoop;
             if (intersectingLoop is null || !_unmergedInternalLoops.Contains(intersectingLoop)) return false;
 
-            var triangle = new Triangle3D(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[index], ProjectedLoopPoints[rightIndex]);
+            var triangle = new Triangle3D(AppliedLoopPoints[leftIndex].Point, AppliedLoopPoints[index].Point, AppliedLoopPoints[rightIndex].Point);
             var unmergedEnclosedInternalLoops = _unmergedInternalLoops.Where(p => p.EnclosedByTriangle(triangle));
             var checkingLoops = unmergedEnclosedInternalLoops.Concat(new[] { intersectingLoop });
 
@@ -273,13 +276,13 @@ namespace Operations.Filling.Abstracts
 
         private bool EnclosesInternalLoops(int leftIndex, int index, int rightIndex)
         {
-            var triangle = new Triangle3D(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[index], ProjectedLoopPoints[rightIndex]);
+            var triangle = new Triangle3D(AppliedLoopPoints[leftIndex].Point, AppliedLoopPoints[index].Point, AppliedLoopPoints[rightIndex].Point);
             return InternalLoops.Any(p => p.EnclosedByTriangle(triangle));
         }
 
         private bool MergeWithAnEnclosedInternalLoop(int leftIndex, int index, int rightIndex)
         {
-            var triangle = new Triangle3D(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[index], ProjectedLoopPoints[rightIndex]);
+            var triangle = new Triangle3D(AppliedLoopPoints[leftIndex].Point, AppliedLoopPoints[index].Point, AppliedLoopPoints[rightIndex].Point);
             var unmergedEnclosedInternalLoops = _unmergedInternalLoops.Where(p => p.EnclosedByTriangle(triangle));
             foreach (var internalLoops in unmergedEnclosedInternalLoops)
             {
@@ -290,22 +293,22 @@ namespace Operations.Filling.Abstracts
 
         private bool MergeInternalLoop(int leftIndex, int index, int rightIndex, IFillingLoop internalLoop)
         {
-            int startIndex = GetNearestInternalLoopPoint(ProjectedLoopPoints[index], internalLoop);
+            int startIndex = GetNearestInternalLoopPoint(AppliedLoopPoints[index].Point, internalLoop);
 
-            var testSegment = new FillingSegment(internalLoop.ProjectedLoopPoints[startIndex], ProjectedLoopPoints[index]);
+            var testSegment = new FillingSegment(internalLoop.AppliedLoopPoints[startIndex].Point, AppliedLoopPoints[index].Point);
             if (RegionInternal.HasIntersection(testSegment)) { return false; }
 
-            Point3D currentPoint = ProjectedLoopPoints[index];
+            Ray3D currentPoint = AppliedLoopPoints[index];
             Point3D startingPoint = _referenceArray[internalLoop.IndexLoop[startIndex]].Point;
-            if (currentPoint == startingPoint) { return false; }
+            if (currentPoint.Point == startingPoint) { return false; }
 
             int[] internalLoopIndicies = UnwrapLoopPoints(
-                ProjectedLoopPoints[leftIndex], currentPoint,
+                AppliedLoopPoints[leftIndex].Point, currentPoint,
                 startIndex, internalLoop.IndexLoop.ToArray());
 
             int[] mergingIndicies = internalLoopIndicies.Concat(new[] { IndexLoop[index] }).ToArray();
 
-            var insertionIndicies = mergingIndicies.Select((p, i) => i + ProjectedLoopPoints.Count).ToList();
+            var insertionIndicies = mergingIndicies.Select((p, i) => i + AppliedLoopPoints.Count).ToList();
             _tracker.InsertAt(_tracker.Tracking.IndexOf(rightIndex), insertionIndicies);
             _startCount += mergingIndicies.Length;
             foreach (var i in insertionIndicies)
@@ -313,7 +316,7 @@ namespace Operations.Filling.Abstracts
                 _passOver.Add(i, false);
             }
             IndexLoop.AddRange(mergingIndicies);
-            _projectedPoints = null;
+            _appliedPoints = null;
             _unmergedInternalLoops.Remove(internalLoop);
             _mergedInternalLoops.Add(internalLoop);
             return true;
@@ -321,23 +324,23 @@ namespace Operations.Filling.Abstracts
 
         public bool EnclosedByTriangle(Triangle3D triangle)
         {
-            if (!ProjectedLoopPoints.Any()) { return false; }
-            return triangle.PointIsIn(ProjectedLoopPoints.First());
+            if (!AppliedLoopPoints.Any()) { return false; }
+            return triangle.PointIsIn(AppliedLoopPoints.First().Point);
         }
 
         private bool HasIntersections(int leftIndex, int rightIndex)
         {
-            var testSegment = new FillingSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            var testSegment = new FillingSegment(AppliedLoopPoints[leftIndex].Point, AppliedLoopPoints[rightIndex].Point);
             return RegionInternal.HasIntersection(testSegment);
         }
 
-        private int[] UnwrapLoopPoints(Point3D leftPoint, Point3D currentPoint, int startIndex, int[] loopIndicies)
+        private int[] UnwrapLoopPoints(Point3D leftPoint, Ray3D currentPoint, int startIndex, int[] loopIndicies)
         {
             int leftIndex = (startIndex - 1 + loopIndicies.Length) % loopIndicies.Length;
             int rightIndex = (startIndex + 1 + loopIndicies.Length) % loopIndicies.Length;
 
             Point3D startingPoint = _referenceArray[loopIndicies[startIndex]].Point;
-            if (startingPoint == currentPoint) { Console.WriteLine("Starting point and current points are equal."); }
+            if (startingPoint == currentPoint.Point) { Console.WriteLine("Starting point and current points are equal."); }
 
             Point3D nextPoint = GetNextPoint(leftPoint, currentPoint,
                 startingPoint, _referenceArray[loopIndicies[leftIndex]].Point, _referenceArray[loopIndicies[rightIndex]].Point);
@@ -346,23 +349,30 @@ namespace Operations.Filling.Abstracts
             return unwrapped;
         }
 
-        protected abstract Point3D GetNextPoint(Point3D leftPoint, Point3D currentPoint, Point3D startLoopPoint, Point3D leftLoopPoint, Point3D rightLoopPoint);
+        private Point3D GetNextPoint(Point3D leftPoint, Ray3D currentPoint, Point3D startLoopPoint, Point3D leftLoopPoint, Point3D rightLoopPoint)
+        {
+            var angle = Vector3D.SignedAngle(currentPoint.Normal.Direction, (leftPoint - currentPoint.Point).Direction, (startLoopPoint - currentPoint.Point).Direction);
+            var rightOptionAngle = Vector3D.SignedAngle(currentPoint.Normal.Direction, (currentPoint.Point - startLoopPoint).Direction, (rightLoopPoint - startLoopPoint).Direction);
+
+            if (Math.Sign(angle) == Math.Sign(rightOptionAngle)) { return rightLoopPoint; }
+            return leftLoopPoint;
+        }
 
         private int GetNearestInternalLoopPoint(Point3D basePoint, IFillingLoop interiorLoop)
         {
-            var distances = interiorLoop.ProjectedLoopPoints.Select((p, i) => new { Index = i, Distance = Point3D.Distance(basePoint, p) });
+            var distances = interiorLoop.AppliedLoopPoints.Select((p, i) => new { Index = i, Distance = Point3D.Distance(basePoint, p.Point) });
             var minDistance = distances.Min(d => d.Distance);
             return distances.First(d => d.Distance == minDistance).Index;
         }
         private bool CrossesInterior(int leftIndex, int rightIndex)
         {
-            var testSegment = new FillingSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            var testSegment = new FillingSegment(AppliedLoopPoints[leftIndex].Point, AppliedLoopPoints[rightIndex].Point);
             return RegionInternal.CrossesInterior(testSegment);
         }
 
         private bool IsAtBoundary(int leftIndex, int rightIndex)
         {
-            var testSegment = new FillingSegment(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            var testSegment = new FillingSegment(AppliedLoopPoints[leftIndex].Point, AppliedLoopPoints[rightIndex].Point);
             return RegionInternal.IsAtBoundary(testSegment);
         }
 

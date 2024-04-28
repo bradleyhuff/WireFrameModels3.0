@@ -55,6 +55,12 @@ namespace BasicObjects.GeometricObjects
             return new Point3D(point.X + α * A, point.Y + α * B, point.Z + α * C);
         }
 
+        public Ray3D Projection(Ray3D ray)
+        {
+            double α = (D - A * ray.Point.X - B * ray.Point.Y - C * ray.Point.Z) / (A * A + B * B + C * C);
+            return new Ray3D(new Point3D(ray.Point.X + α * A, ray.Point.Y + α * B, ray.Point.Z + α * C), ray.Normal);
+        }
+
         public double Distance(Point3D point)
         {
             double length = A * A + B * B + C * C;

@@ -8,6 +8,13 @@ namespace Operations.Groupings.Types
 {
     internal class Planar : IGrouping
     {
+        private static Planar _planar = null;
+        public static IGrouping Get()
+        {
+            if (_planar is null) { _planar = new Planar(); }
+            return _planar;
+        }
+        private Planar() { }
         public GroupingTriangle FirstTriangle { get; set; }
         public bool EdgeFilter(IEnumerable<GroupingTriangle> triangles)
         {

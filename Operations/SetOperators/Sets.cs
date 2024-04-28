@@ -75,6 +75,7 @@ namespace Operations.SetOperators
             {
                 var triangles = group.Triangles.ToArray();
                 var testPoint = GetTestPoint(triangles);
+                //if (testPoint is null) { grid.RemoveAllTriangles(triangles); continue; }
                 var spaceAregion = Region.OnBoundary;
                 var spaceBregion = Region.OnBoundary;
                 var trace = triangles.First().Trace;
@@ -130,8 +131,8 @@ namespace Operations.SetOperators
 
         private static Point3D GetTestPoint(IEnumerable<PositionTriangle> triangles)
         {
-            var internalTriangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
-            return internalTriangle.Triangle.Center;
+            var internalTriangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).FirstOrDefault();
+            return internalTriangle?.Triangle?.Center;
         }
 
         private static Point3D GetInternalTestPoint(IEnumerable<PositionTriangle> triangles)

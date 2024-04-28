@@ -7,6 +7,13 @@ namespace Operations.Groupings.Types
 {
     internal class Face : IGrouping
     {
+        private static Face _face = null;
+        public static IGrouping Get()
+        {
+            if (_face is null) { _face = new Face(); }
+            return _face;
+        }
+        private Face() { }
         public GroupingTriangle FirstTriangle { get; set; }
         public bool EdgeFilter(IEnumerable<GroupingTriangle> triangles)
         {

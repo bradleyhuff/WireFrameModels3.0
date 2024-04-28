@@ -8,7 +8,7 @@ namespace Operations.Filling.Interfaces
         void Load(IEnumerable<FillingSegment> segments);
         bool CrossesInterior(FillingSegment testSegment);
         bool IsAtBoundary(FillingSegment testSegment);
-        Region RegionOfProjectedPoint(Point3D point);
+        Region RegionOfAppliedPoint(Point3D point);
         bool HasIntersection(FillingSegment testSegment);
         FillingSegment GetNearestIntersectingSegment(FillingSegment testSegment);
     }

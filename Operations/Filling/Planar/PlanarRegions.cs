@@ -41,16 +41,16 @@ namespace Operations.Filling.Planar
         public bool CrossesInterior(FillingSegment testSegment)
         {
             var testPoint = 0.5 * testSegment.Segment.Start + 0.5 * testSegment.Segment.End;
-            return RegionOfProjectedPoint(testPoint) == Region.Interior;
+            return RegionOfAppliedPoint(testPoint) == Region.Interior;
         }
 
         public bool IsAtBoundary(FillingSegment testSegment)
         {
             var testPoint = 0.5 * testSegment.Segment.Start + 0.5 * testSegment.Segment.End;
-            return RegionOfProjectedPoint(testPoint) == Region.OnBoundary;
+            return RegionOfAppliedPoint(testPoint) == Region.OnBoundary;
         }
 
-        public Region RegionOfProjectedPoint(Point3D point)
+        public Region RegionOfAppliedPoint(Point3D point)
         {
             point = _plane.Projection(point);
 

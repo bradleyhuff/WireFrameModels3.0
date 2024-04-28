@@ -6,7 +6,7 @@ namespace Operations.Filling.Interfaces
     internal interface IFillingLoop : IBox
     {
         List<int> IndexLoop { get; }
-        public IReadOnlyList<Point3D> ProjectedLoopPoints { get; }
+        public IReadOnlyList<Ray3D> AppliedLoopPoints { get; }
         public IReadOnlyCollection<FillingSegment> LoopSegments { get; }
         public List<IFillingLoop> InternalLoops { get; set; }
         public bool OutLineContainsLoop(IFillingLoop input);

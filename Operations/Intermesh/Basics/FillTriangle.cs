@@ -1,5 +1,4 @@
 ﻿using BasicObjects.GeometricObjects;
-using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Elastics;
 
@@ -33,6 +32,10 @@ namespace Operations.Intermesh.Basics
         public Vector3D NormalB { get; }
         public ElasticVertexCore PointC { get; }
         public Vector3D NormalC { get; }
+        public Triangle3D Triangle
+        {
+            get { return new Triangle3D(PointA.Point, PointB.Point, PointC.Point); }
+        }
 
         public IEnumerable<ElasticVertexCore> Points
         {

@@ -444,21 +444,28 @@ namespace BasicObjects.GeometricObjects
             }
             if (a.IsCollinear)
             {
-                var match = b.Edges.SingleOrDefault(e => LineSegment3D.LineSegmentIntersection(e, a.LongestEdge) is not null);
-                if (match is not null) { yield return match; }
-                yield break;
+                foreach (var edge in b.Edges)
+                {
+                    var match = LineSegment3D.LineSegmentIntersection(edge, a.LongestEdge);
+                    if (match is not null) { yield return match; yield break; }
+                }
             }
             if (b.IsCollinear)
             {
-                var match = a.Edges.SingleOrDefault(e => LineSegment3D.LineSegmentIntersection(e, b.LongestEdge) is not null);
-                if (match is not null) { yield return match; }
-                yield break;
+                foreach(var edge in a.Edges)
+                {
+                    var match = LineSegment3D.LineSegmentIntersection(edge, b.LongestEdge);
+                    if (match is not null) { yield return match; yield break; }
+                }
             }
 
             foreach (var edge in a.Edges)
             {
-                var match = b.Edges.SingleOrDefault(e => LineSegment3D.LineSegmentIntersection(e, edge) is not null);
-                if (match is not null) { yield return match; yield break; }
+                foreach(var edge2 in b.Edges)
+                {
+                    var match = LineSegment3D.LineSegmentIntersection(edge, edge2);
+                    if (match is not null) { yield return match; yield break; }
+                }
             }
 
             if (AreCoplanar(a, b))

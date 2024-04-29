@@ -313,6 +313,13 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             _bucket = new BoxBucket<Position>(Positions);
         }
 
+        public IWireFrameMesh Clone(ITransform transform)
+        {
+            var clone = Clone();
+            clone.Apply(transform);
+            return clone;
+        }
+
         //public void Transformation(Func<Point3D, Point3D> pointTransform, Func<Vector3D, Vector3D> normalTransform)
         //{
         //    foreach (var position in Positions)

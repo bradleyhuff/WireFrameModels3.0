@@ -243,5 +243,10 @@ namespace BasicObjects.GeometricObjects
                 distanceEnd < E.Double.DifferenceError ||
                 (distanceStart < Length && distanceEnd < Length);
         }
+        public bool PointIsOnSegment(Point3D point)
+        {
+            if (!LineExtension.PointIsOnLine(point)) { return false; }
+            return PointIsAtOrBetweenEndpoints(point);
+        }
     }
 }

@@ -91,6 +91,12 @@ namespace BasicObjects.GeometricObjects
             return PointIsOnPlane(intercept);
         }
 
+        public Line3D GetPerpendicular(Ray3D ray)
+        {
+            if (!LineIsOnPlane(ray.Line)) { return null; }
+            return new Line3D(ray.Point ,Vector3D.Cross(ray.Normal.Direction, Normal.Direction));
+        }
+
         public bool LineIsParallel(Line3D line)
         {
             return SMath.Abs(Vector3D.Dot(Normal.Direction, line.Vector.Direction)) < E.Double.RadianDifferenceError;

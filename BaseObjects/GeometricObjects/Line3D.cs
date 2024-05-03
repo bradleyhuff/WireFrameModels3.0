@@ -160,6 +160,8 @@ namespace BasicObjects.GeometricObjects
 
         public static Point3D PointIntersection(LineSegment3D a, Line3D b)
         {
+            if (b.PointIsOnLine(a.Start)) { return a.Start; }
+            if (b.PointIsOnLine(a.End)) { return a.End; }
             var intersection = MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out double gap);
             if (gap > E.Double.ProximityError) { return null; }
             return a.PointIsAtOrBetweenEndpoints(intersection) ? intersection : null;

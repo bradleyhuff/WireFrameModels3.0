@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileExportImport", "FileExp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Collections", "Collections\Collections.csproj", "{76005341-4971-4B70-A7AB-3845626E7B30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FundamentalMeshes", "FundamentalMeshes\FundamentalMeshes.csproj", "{51994B02-759C-4427-91DA-DD2788619403}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FundamentalMeshes", "FundamentalMeshes\FundamentalMeshes.csproj", "{51994B02-759C-4427-91DA-DD2788619403}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

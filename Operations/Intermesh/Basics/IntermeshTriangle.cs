@@ -308,10 +308,10 @@ namespace Operations.Intermesh.Basics
 
         public List<IntermeshTriangle> Gathering { get; } = new List<IntermeshTriangle>();
 
-        public Dictionary<int, IntermeshIntersection> IntersectionTable { get; } = new Dictionary<int, IntermeshIntersection>();
+        public Dictionary<int, IntermeshIntersectionSet> IntersectionTable { get; } = new Dictionary<int, IntermeshIntersectionSet>();
         public IEnumerable<IntermeshIntersection> Intersections
         {
-            get { return IntersectionTable.Values.Where(i => i.Intersection is not null).DistinctBy(i => i.Id); }
+            get { return IntersectionTable.Values.Where(i => i.Intersections is not null).SelectMany(s => s.Intersections).DistinctBy(i => i.Id); }
         }
 
         public IEnumerable<IntermeshDivision> Divisions
@@ -326,7 +326,7 @@ namespace Operations.Intermesh.Basics
 
         public void ClearNullIntersections()
         {
-            var nullKeys = IntersectionTable.Where(p => p.Value.Intersection is null).Select(p => p.Key).ToArray();
+            var nullKeys = IntersectionTable.Where(p => p.Value.Intersections is null).Select(p => p.Key).ToArray();
             foreach (var key in nullKeys)
             {
                 IntersectionTable.Remove(key);
@@ -335,7 +335,9 @@ namespace Operations.Intermesh.Basics
 
         public void ClearDisabledIntersections()
         {
-            var nullKeys = IntersectionTable.Where(p => p.Value.Disabled).Select(p => p.Key).ToArray();
+            foreach (var pair in IntersectionTable) { pair.Value.Intersections = pair.Value.Intersections.Where(s => !s.Disabled).ToArray(); }
+
+            var nullKeys = IntersectionTable.Where(p => p.Value.Intersections.Length == 0).Select(p => p.Key).ToArray();
             foreach (var key in nullKeys)
             {
                 IntersectionTable.Remove(key);

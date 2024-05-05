@@ -276,6 +276,19 @@ namespace BasicObjects.GeometricObjects
             return new Rectangle3D(minX, maxX, minY, maxY, minZ, maxZ);
         }
 
+        public static Rectangle3D Containing(params LineSegment3D[] segments)
+        {
+            if (segments == null || segments.Length == 0) { return null; }
+            double minX = segments.SelectMany(s => s.Points).Min(p => p.X);
+            double maxX = segments.SelectMany(s => s.Points).Max(p => p.X);
+            double minY = segments.SelectMany(s => s.Points).Min(p => p.Y);
+            double maxY = segments.SelectMany(s => s.Points).Max(p => p.Y);
+            double minZ = segments.SelectMany(s => s.Points).Min(p => p.Z);
+            double maxZ = segments.SelectMany(s => s.Points).Max(p => p.Z);
+
+            return new Rectangle3D(minX, maxX, minY, maxY, minZ, maxZ);
+        }
+
         public static Rectangle3D CubeContaining(Rectangle3D box, double factor = 1.0)
         {
             var center = box.CenterPoint;

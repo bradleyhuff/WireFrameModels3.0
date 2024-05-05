@@ -26,20 +26,19 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var gathering in node.Gathering)
             {
-                var intersectionNode = node.IntersectionTable[gathering.Id];
-                if (intersectionNode.IsSet) { continue; }
+                var intersectionSet = node.IntersectionTable[gathering.Id];
+                if (intersectionSet.IsSet) { continue; }
 
-                var intersection = Triangle3D.LineSegmentIntersections(node.Triangle, gathering.Triangle).FirstOrDefault();
+                var intersections = Triangle3D.LineSegmentIntersections(node.Triangle, gathering.Triangle).ToArray();
 
                 lock (node)
                 {
-                    if (!intersectionNode.IsSet)
+                    if (!intersectionSet.IsSet)
                     {
-                        intersectionNode.IsSet = true;
-                        intersectionNode.Intersection = intersection;
-                        intersectionNode.IntersectorA = node;
-                        intersectionNode.IntersectorB = gathering;
-                        if (intersectionNode.Intersection is not null) { threadState.Intersections++; }
+                        intersectionSet.IsSet = true;
+                        intersectionSet.Intersections = intersections.Length > 0 ? intersections.Select(i => 
+                            new IntermeshIntersection() { Intersection = i, IntersectorA = node, IntersectorB = gathering}).ToArray() : null;
+                        if (intersectionSet.Intersections is not null) { threadState.Intersections += intersectionSet.Intersections.Length; }
                     }
                 }
             }

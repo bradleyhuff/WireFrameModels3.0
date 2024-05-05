@@ -401,8 +401,8 @@ namespace BasicObjects.GeometricObjects
 
         public bool PointIsOnPerimeter(Point3D point)
         {
-            return (EdgeAB.LineExtension.PointIsOnLine(point) && EdgeAB.PointIsAtOrBetweenEndpoints(point)) || 
-                (EdgeBC.LineExtension.PointIsOnLine(point) && EdgeBC.PointIsAtOrBetweenEndpoints(point)) || 
+            return (EdgeAB.LineExtension.PointIsOnLine(point) && EdgeAB.PointIsAtOrBetweenEndpoints(point)) ||
+                (EdgeBC.LineExtension.PointIsOnLine(point) && EdgeBC.PointIsAtOrBetweenEndpoints(point)) ||
                 (EdgeCA.LineExtension.PointIsOnLine(point) && EdgeCA.PointIsAtOrBetweenEndpoints(point));
         }
 
@@ -452,26 +452,26 @@ namespace BasicObjects.GeometricObjects
             }
             if (b.IsCollinear)
             {
-                foreach(var edge in a.Edges)
+                foreach (var edge in a.Edges)
                 {
                     var match = LineSegment3D.LineSegmentIntersection(edge, b.LongestEdge);
                     if (match is not null) { yield return match; yield break; }
                 }
             }
 
+            if (AreCoplanar(a, b))
+            {
+                foreach (var intersection in CoplanarIntersections(a, b)) { yield return intersection; }
+                yield break;
+            }
+
             foreach (var edge in a.Edges)
             {
-                foreach(var edge2 in b.Edges)
+                foreach (var edge2 in b.Edges)
                 {
                     var match = LineSegment3D.LineSegmentIntersection(edge, edge2);
                     if (match is not null) { yield return match; yield break; }
                 }
-            }
-
-            if (AreCoplanar(a, b))
-            {
-                // Add method to return all intersecting segments of the coplanar triangles.
-                yield break;
             }
 
             foreach (var edge in a.Edges)
@@ -499,6 +499,29 @@ namespace BasicObjects.GeometricObjects
             yield break;
         }
 
+        private static IEnumerable<LineSegment3D> CoplanarIntersections(Triangle3D a, Triangle3D b)
+        {
+            // Add method to return all intersecting segments of the coplanar triangles.
+            //
+            //Console.WriteLine($"Coplanar intersection {a} {b}");
+
+            var output = new List<LineSegment3D>();
+
+            foreach (var edge in a.Edges)
+            {
+                var splits = edge.LineSegmentSplit(b.Edges.ToArray()).ToArray();
+                foreach (var split in splits.Where(s => b.PointIsOn(s.Center))) { output.Add(split); }
+            }
+
+            foreach (var edge in b.Edges)
+            {
+                var splits = edge.LineSegmentSplit(a.Edges.ToArray()).ToArray();
+                foreach (var split in splits.Where(s => a.PointIsOn(s.Center))) { output.Add(split); }
+            }
+
+            foreach (var element in output.DistinctBy(l => l)) { yield return element; }
+
+        }
         public LineSegment3D LineSegmentIntersection(Line3D line)
         {
             Point3D ab = Line3D.PointIntersection(EdgeAB, line);
@@ -512,7 +535,7 @@ namespace BasicObjects.GeometricObjects
             if (ab is not null && bc is null && ca is null) { return ReturnLineSegment(new LineSegment3D(C, ab)); }
             if (ab is null && bc is not null && ca is null) { return ReturnLineSegment(new LineSegment3D(A, bc)); }
             if (ab is null && bc is null && ca is not null) { return ReturnLineSegment(new LineSegment3D(B, ca)); }
-            if(ab is not null && bc is not null && ca is not null)
+            if (ab is not null && bc is not null && ca is not null)
             {
                 if (ab == A || ca == A) { return ReturnLineSegment(new LineSegment3D(A, bc)); }
                 if (ab == B || bc == B) { return ReturnLineSegment(new LineSegment3D(B, ca)); }

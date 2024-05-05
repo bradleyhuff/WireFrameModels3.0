@@ -12,7 +12,6 @@ namespace Operations.Intermesh.Basics
             Id = _id++;
         }
         public int Id { get; }
-        public bool IsSet { get; set; }
 
         public void Disable()
         {

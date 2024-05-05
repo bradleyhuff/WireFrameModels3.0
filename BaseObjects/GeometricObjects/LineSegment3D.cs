@@ -235,6 +235,32 @@ namespace BasicObjects.GeometricObjects
             return a.PointIsAtOrBetweenEndpoints(point) && b.PointIsAtOrBetweenEndpoints(point) ? point : null;
         }
 
+        public IEnumerable<LineSegment3D> LineSegmentSplit(params LineSegment3D[] segments)
+        {
+            if (IsDegenerate) { yield break; }
+            var intersectionPoints = segments.Select(s => PointIntersection(this, s))
+                .Where(i => i is not null && i != Start && i != End)
+                .OrderBy(p => Point3D.Distance(Start, p)).ToArray();
+
+            if (intersectionPoints.Length == 0) { yield return this; yield break; }
+
+            {
+                var output = new LineSegment3D(Start, intersectionPoints.First());
+                if (!output.IsDegenerate) { yield return output; }
+            }
+
+            for (int i = 0; i < intersectionPoints.Length - 1; i++)
+            {
+                var output = new LineSegment3D(intersectionPoints[i], intersectionPoints[i + 1]);
+                if (!output.IsDegenerate) { yield return output; }
+            }
+
+            {
+                var output = new LineSegment3D(intersectionPoints.Last(), End);
+                if (!output.IsDegenerate) { yield return output; }
+            }
+        }
+
         public bool PointIsAtOrBetweenEndpoints(Point3D point)
         {
             double distanceStart = Point3D.Distance(Start, point);

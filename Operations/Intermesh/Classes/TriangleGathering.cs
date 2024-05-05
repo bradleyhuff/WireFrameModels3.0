@@ -39,9 +39,9 @@ namespace Operations.Intermesh.Classes
             {
                 foreach (var gathering in node.Gathering)
                 {
-                    var intersection = new IntermeshIntersection();
-                    node.IntersectionTable[gathering.Id] = intersection;
-                    gathering.IntersectionTable[node.Id] = intersection;
+                    var intersectionSet = new IntermeshIntersectionSet();
+                    node.IntersectionTable[gathering.Id] = intersectionSet;
+                    gathering.IntersectionTable[node.Id] = intersectionSet;
                 }
             }
         }

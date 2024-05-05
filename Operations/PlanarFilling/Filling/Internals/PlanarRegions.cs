@@ -123,10 +123,10 @@ namespace Operations.PlanarFilling.Filling.Internals
 
         private IEnumerable<Point3D> GetCheckingPoints(Line3D test, IEnumerable<PlanarSegment> matches)
         {
-            SeparateSegments(test, matches, out List<PlanarSegment> nonCollinears, out List<PlanarSegment> links);
+            SeparateSegments(test, matches, out List<PlanarSegment> links, out List<PlanarSegment> collinears);
 
-            var checkingPoints = GetLinks(test, nonCollinears).DistinctBy(x => x).ToArray();
-            var groups = BuildCollinearGroups(links, nonCollinears);
+            var checkingPoints = GetLinks(test, links).DistinctBy(x => x).ToArray();
+            var groups = BuildCollinearGroups(collinears, links);
             if (!groups.Any()) { return checkingPoints; }
             var applicableGroups = groups.Where(g => g.IsApplicable()).ToArray();
             checkingPoints = checkingPoints.Where(c => !groups.Any(g => g.Segment.PointIsOnSegment(c))).ToArray();

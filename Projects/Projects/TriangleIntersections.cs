@@ -2,6 +2,7 @@
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
+using System.Xml.Linq;
 using WireFrameModels3._0;
 using Console = BaseObjects.Console;
 
@@ -11,12 +12,18 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
-            var a = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 1, 0), new Point3D(1, 0, 0));
-            var b = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 0, 1), new Point3D(0, 1, 0));
-            b = b.Transform(Transform.Translation(new Vector3D(0, 0.25, 0)));
+            //var a = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 1, 0), new Point3D(1, 0, 0));
+            //var b = a.Reflect(Vector3D.BasisX);
+            ////b = b.Transform(Transform.Rotation(Vector3D.BasisZ, -0.7));
+            //b = b.Transform(Transform.Translation(new Vector3D(0.00, -0.25, 0)));
+
+            var a = new Triangle3D(new Point3D(0, 0, 0), new Point3D(1, 0, 0), new Point3D(1, 0, 1));
+            var b = new Triangle3D(new Point3D(0.5, 0, 0.5), new Point3D(1.5, 0, 0.5), new Point3D(1.5, 0, 1.5));
+            //node.Triangle = { Triangle A: [X: 0 Y: 0 Z: 0 ] B: [X: 1 Y: 0 Z: 0 ] C: [X: 1 Y: 0 Z: 1 ]}
+            //gathering.Triangle = { Triangle A: [X: 0.5 Y: 0 Z: 0.5 ] B: [X: 1.5 Y: 0 Z: 0.5 ] C: [X: 1.5 Y: 0 Z: 1.5 ]}
 
             var intersections = Triangle3D.LineSegmentIntersections(b, a).ToArray();
-            Console.WriteLine($"Intersections {string.Join(",", intersections.Select(i => i))}");
+            Console.WriteLine($"Intersections\n{string.Join("\n", intersections.Select(i => i))}");
 
             {
                 var mesh = WireFrameMesh.CreateMesh();

@@ -12,7 +12,7 @@ namespace Operations.SetOperators
     {
         public static IWireFrameMesh Difference(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
-            return Run("Difference", gridA, gridB, (a, b) => a == Region.OnBoundary && b != Region.Interior || a != Region.Exterior && b == Region.OnBoundary);
+            return Run("Difference", gridA, gridB, (a, b) => (a == Region.OnBoundary && b == Region.Exterior) || (a == Region.Interior && b == Region.OnBoundary));
         }
 
         public static IWireFrameMesh Intersection(this IWireFrameMesh gridA, IWireFrameMesh gridB)
@@ -64,12 +64,14 @@ namespace Operations.SetOperators
         {
             var start = DateTime.Now;
             var groups = GroupingCollection.ExtractSurfaces(intermesh.Triangles).ToArray();
+
             ConsoleLog.WriteLine($"Group extraction: Groups {groups.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return groups;
         }
 
         private static List<GroupingCollection> TestAndRemoveGroups(IWireFrameMesh grid, GroupingCollection[] groups, Space spaceA, Space spaceB, Func<Region, Region, bool> includeGroup)
         {
+            var start = DateTime.Now;
             var remainingGroups = new List<GroupingCollection>();
             foreach (var group in groups)
             {
@@ -89,6 +91,7 @@ namespace Operations.SetOperators
                     remainingGroups.Add(group);
                 }
             }
+            ConsoleLog.WriteLine($"Test and remove groups: Remaining groups {remainingGroups.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return remainingGroups;
         }
 
@@ -97,6 +100,7 @@ namespace Operations.SetOperators
             var start = DateTime.Now;
             var resultShell = new Space(remainingGroups.SelectMany(g => g.Triangles.Select(t => t.Triangle)).ToArray());
             var inverted = new Dictionary<int, bool>();
+            int invertedGroups = 0;
             foreach (var group in remainingGroups)
             {
                 var interiorTestPoint = GetInternalTestPoint(group.Triangles);
@@ -123,9 +127,10 @@ namespace Operations.SetOperators
                             inverted[triangle.C.Id] = true;
                         }
                     }
+                    invertedGroups++;
                 }
             }
-            ConsoleLog.WriteLine($"Included group and invert: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            ConsoleLog.WriteLine($"Included group and invert: Groups inverted {invertedGroups} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
         private static Point3D GetTestPoint(IEnumerable<PositionTriangle> triangles)

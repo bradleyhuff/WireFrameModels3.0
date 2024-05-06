@@ -27,7 +27,7 @@ namespace Projects.Projects
             part4.Apply(Transform.Translation(new Vector3D(-4.4, 3.50, -2.5)));
 
             var cross = part1.Union(part2);//.Union(part3);
-            //var cross = WireFrameMesh.CreateMesh();
+            //var cross = WireFrameMesh.Create();
             //cross.AddGrid(part1);
             //cross.AddGrid(part2);
             //IntermeshOperation.Run(cross);
@@ -35,19 +35,19 @@ namespace Projects.Projects
             //Console.WriteLine($"Triangles removed {count}");
             cross = cross.Difference(part4);
             //cross.AddGrid(part3);
-            //var sum = WireFrameMesh.CreateMesh();
+            //var sum = WireFrameMesh.Create();
             //sum.AddGrid(part1);
             //sum.AddGrid(part2);
 
             WavefrontFile.Export(cross, "Wavefront/CrossTest");
             //{
-            //    var test = WireFrameMesh.CreateMesh();
+            //    var test = WireFrameMesh.Create();
             //    var errorPoint = new Point3D(0.5, 3.5, 2.2);
             //    test.AddTriangle(errorPoint, errorPoint, errorPoint);
             //    WavefrontFile.Export(test, "Wavefront/CrossTestErrorPoint");
             //}
             //{
-            //    var test = WireFrameMesh.CreateMesh();
+            //    var test = WireFrameMesh.Create();
             //    var checkPoint = new Point3D(0.5, 3.5, 2.4000000000000004);
             //    test.AddTriangle(checkPoint, checkPoint, checkPoint);
 
@@ -60,14 +60,14 @@ namespace Projects.Projects
             //    WavefrontFile.Export(test, "Wavefront/CrossTestCheckPoints");
             //}
             {
-                var test = WireFrameMesh.CreateMesh();
+                var test = WireFrameMesh.Create();
                 var testSegment = new LineSegment3D(new Point3D(-1, 3.5, 2), new Point3D(0, 3.5, 2.5));
                 Console.WriteLine($"Test segment {testSegment}");
                 test.AddTriangle(testSegment.Start, testSegment.Center, testSegment.End);
                 WavefrontFile.Export(test, "Wavefront/CrossTest_TestSegment");
             }
             //{
-            //    var test = WireFrameMesh.CreateMesh();
+            //    var test = WireFrameMesh.Create();
             //    var collinear = new LineSegment3D(new Point3D(0.5, 3.5, 0), new Point3D(0.5, 3.5, 0.5));
             //    test.AddTriangle(collinear.Start, collinear.Center, collinear.End);
 
@@ -83,7 +83,7 @@ namespace Projects.Projects
             //    WavefrontFile.Export(test, "Wavefront/CrossTest_Collinears");
             //}
             //{
-            //    var test = WireFrameMesh.CreateMesh();
+            //    var test = WireFrameMesh.Create();
             //    var collinear = new LineSegment3D(new Point3D(0.5999999999999999, 3.5, 2.5), new Point3D(0, 3.5, 1.9000000000000001));
             //    test.AddTriangle(collinear.Start, collinear.Center, collinear.End);
 

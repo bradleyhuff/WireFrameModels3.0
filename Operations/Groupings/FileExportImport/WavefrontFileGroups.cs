@@ -20,7 +20,7 @@ namespace Operations.Groupings.FileExportImport
             Console.WriteLine();
             Console.WriteLine($"Faces {faces.Count()} [{string.Join(",", faces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
-            var meshes = faces.Select(s => s.CreateMesh());
+            var meshes = faces.Select(s => s.Create());
             WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
         }
 
@@ -36,7 +36,7 @@ namespace Operations.Groupings.FileExportImport
             Console.WriteLine();
             Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
-            var meshes = surfaces.Select(s => s.CreateMesh());
+            var meshes = surfaces.Select(s => s.Create());
             WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
         }
 
@@ -52,7 +52,7 @@ namespace Operations.Groupings.FileExportImport
             Console.WriteLine();
             Console.WriteLine($"Clusters {clusters.Count()} [{string.Join(",", clusters.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
-            var meshes = clusters.Select(s => s.CreateMesh());
+            var meshes = clusters.Select(s => s.Create());
             WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
         }
     }

@@ -363,7 +363,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return new WireFrameMesh();
         }
 
-        public static IWireFrameMesh CreateMesh()
+        public static IWireFrameMesh Create()
         {
             return new WireFrameMesh();
         }

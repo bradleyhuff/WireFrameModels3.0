@@ -14,7 +14,7 @@ namespace FundamentalMeshes
     {
         public static IWireFrameMesh Create(double majorRadius, double minorRadius, int majorCircumferenceSteps, int minorCircumferenceSteps)
         {
-            IWireFrameMesh torus = WireFrameMesh.CreateMesh();
+            IWireFrameMesh torus = WireFrameMesh.Create();
 
             var majorDelta = (Math.PI * 2.0) / majorCircumferenceSteps;
             var minorDelta = (Math.PI * 2.0) / minorCircumferenceSteps;

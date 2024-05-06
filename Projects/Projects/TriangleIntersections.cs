@@ -26,14 +26,14 @@ namespace Projects.Projects
             Console.WriteLine($"Intersections\n{string.Join("\n", intersections.Select(i => i))}");
 
             {
-                var mesh = WireFrameMesh.CreateMesh();
+                var mesh = WireFrameMesh.Create();
                 mesh.AddTriangle(a);
                 mesh.AddTriangle(b);
 
                 WavefrontFile.Export(mesh, "Wavefront/TriangleIntersections");
             }
             {
-                var mesh = WireFrameMesh.CreateMesh();
+                var mesh = WireFrameMesh.Create();
                 //mesh.AddTriangle(a.Center, a.Center + 0.005 * a.Normal, a.Center + 0.01 * a.Normal);
                 foreach (var intersection in intersections)
                 {

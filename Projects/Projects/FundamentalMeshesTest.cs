@@ -30,7 +30,7 @@ namespace Projects.Projects
         {
             var cone = Cone.Create(0.5, 3, 128);
             //cone.Transform(Transform.Scale(0.10, 1, 1));
-            cone.Apply(Transform.ShearXZ(2, 2));
+            //cone.Apply(Transform.ShearXZ(2, 2));
 
             TableDisplays.ShowCountSpread("Position normal triangle counts", cone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", cone.Positions, p => p.PositionNormals.Count);
@@ -87,7 +87,7 @@ namespace Projects.Projects
 
         private void TorusTest()
         {
-            var shape = Torus.Create(4, 2, 64, 128);
+            var shape = Torus.Create(4, 2, 7, 16);
             //var shape = Cuboid.Create(1, 1, 1, 1, 1, 1);
             //var squash = Transform.Scale(1, 0.25, 2);
             //var squash = Transform.ShearXZ(2, 1);
@@ -108,7 +108,7 @@ namespace Projects.Projects
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)
         {
-            var output = WireFrameMesh.CreateMesh();
+            var output = WireFrameMesh.Create();
 
             foreach(var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
             {

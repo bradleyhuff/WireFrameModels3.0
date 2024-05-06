@@ -14,7 +14,7 @@ namespace FundamentalMeshes
     {
         public static IWireFrameMesh Create(double radius, double height, int circumferenceSteps)
         {
-            IWireFrameMesh cylinder = WireFrameMesh.CreateMesh();
+            IWireFrameMesh cylinder = WireFrameMesh.Create();
 
             var delta = (Math.PI * 2.0) / circumferenceSteps;
 

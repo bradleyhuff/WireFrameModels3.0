@@ -47,7 +47,7 @@ namespace Projects.Projects
             //Transformations.Translation(spheres[4], new Vector3D(0.7500001, 0.75, 0));
             //Transformations.Translation(spheres[5], new Vector3D(0.7600001, 0.76, 0));
 
-            var allSpheres = WireFrameMesh.CreateMesh();
+            var allSpheres = WireFrameMesh.Create();
             allSpheres.AddGrid(spheres[0]);
             allSpheres.AddGrid(spheres[1]);
             allSpheres.AddGrid(spheres[2]);
@@ -67,7 +67,7 @@ namespace Projects.Projects
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)
         {
-            var output = WireFrameMesh.CreateMesh();
+            var output = WireFrameMesh.Create();
 
             foreach (var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
             {

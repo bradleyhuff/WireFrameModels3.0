@@ -17,7 +17,7 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
-            var wireMesh = WireFrameMesh.CreateMesh();
+            var wireMesh = WireFrameMesh.Create();
 
             wireMesh.AddPoint(new Point3D(0, 0, 0), new Vector3D(0, 0, 1));
             wireMesh.AddPoint(new Point3D(1, 0, 0), new Vector3D(0, 0, 1));
@@ -75,12 +75,12 @@ namespace Projects.Projects
             WavefrontFile.Export(wireMesh, "Wavefront/WireMeshTest");
             PntFile.Export(wireMesh, "PositionNormalTriangle/WireMeshTest");
 
-            var import = PntFile.Import(() => WireFrameMesh.CreateMesh(), "PositionNormalTriangle/WireMeshTest");
+            var import = PntFile.Import(() => WireFrameMesh.Create(), "PositionNormalTriangle/WireMeshTest");
             WavefrontFile.Export(import, "PositionNormalTriangle/WireMeshImportExportTest");
             TableDisplays.ShowCountSpread("Position normal triangle counts", import.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
             TableDisplays.ShowCountSpread("Position normal counts", import.Positions, p => p.PositionNormals.Count);
 
-            var wireMesh2 = WireFrameMesh.CreateMesh();
+            var wireMesh2 = WireFrameMesh.Create();
             wireMesh2.AddPoint(new Point3D(0, 0, 0), new Vector3D(0, -1, 0));
             wireMesh2.AddPoint(new Point3D(1, 0, 0), new Vector3D(0, -1, 0));
             wireMesh2.AddPoint(new Point3D(2, 0, 0), new Vector3D(0, -1, 0));

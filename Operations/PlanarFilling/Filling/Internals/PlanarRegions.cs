@@ -55,14 +55,6 @@ namespace Operations.PlanarFilling.Filling.Internals
 
         public Region RegionOfProjectedPoint(Point3D point)
         {
-            return RegionOfProjectedPointNEW(point);
-            //var result = RegionOfProjectedPointNEW(point);
-            //Console.WriteLine($"Region {point} -> {result}");
-            //return result;
-        }
-
-        private Region RegionOfProjectedPointNEW(Point3D point)
-        {
             point = _plane.Projection(point);
 
             var xPlane = new Plane(point, Vector3D.BasisX);
@@ -74,7 +66,6 @@ namespace Operations.PlanarFilling.Filling.Internals
                 if (IsOnBoundary(point, matches)) { return Region.OnBoundary; }
                 var checkingPoints = GetCheckingPoints(lineX, matches).ToArray();
                 var region = Manifold.GetRegion(point, checkingPoints);
-                //Console.WriteLine($"Region {point} {region}");
                 if (region != Region.Indeterminant) { return region; }
             }
 
@@ -87,7 +78,6 @@ namespace Operations.PlanarFilling.Filling.Internals
                 if (IsOnBoundary(point, matches)) { return Region.OnBoundary; }
                 var checkingPoints = GetCheckingPoints(lineY, matches).ToArray();
                 var region = Manifold.GetRegion(point, checkingPoints);
-                //Console.WriteLine($"Region {point} {region}");
                 if (region != Region.Indeterminant) { return region; }
             }
 
@@ -100,7 +90,6 @@ namespace Operations.PlanarFilling.Filling.Internals
                 if (IsOnBoundary(point, matches)) { return Region.OnBoundary; }
                 var checkingPoints = GetCheckingPoints(lineZ, matches).ToArray();
                 var region = Manifold.GetRegion(point, checkingPoints);
-                //Console.WriteLine($"Region {point} {region}");
                 if (region != Region.Indeterminant) { return region; }
             }
             Console.WriteLine($"Indeterminant point {point}");
@@ -162,7 +151,6 @@ namespace Operations.PlanarFilling.Filling.Internals
         {
             List<CollinearGroup> groups = new List<CollinearGroup>();
             var nonLinkedCollinears = collinears.ToList();
-            //if (collinears.Any()) { Console.WriteLine($"Collinears {collinears.Count()}"); }
 
             while (nonLinkedCollinears.Any())
             {

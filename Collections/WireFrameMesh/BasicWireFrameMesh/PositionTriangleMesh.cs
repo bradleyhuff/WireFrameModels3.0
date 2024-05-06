@@ -8,7 +8,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         private int _rowIndex = 0;
         private List<PositionNormal> _rowA = new List<PositionNormal>();
         private List<PositionNormal> _rowB = new List<PositionNormal>();
-        
+
 
         protected class DisabledPositions
         {
@@ -80,6 +80,13 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         {
             if (!rowA.Any() || !rowB.Any()) { return; }
 
+            //BuildRowOLD(rowA, rowB);
+
+            BuildRow(rowA.ToArray(), rowB.ToArray());
+        }
+
+        private static void BuildRowOLD(IEnumerable<PositionNormal> rowA, IEnumerable<PositionNormal> rowB)
+        {
             var queueA = new Queue<PositionNormal>(rowA);
             var queueB = new Queue<PositionNormal>(rowB);
 
@@ -100,7 +107,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                     distanceB = Point3D.Distance(pointA.Position, queueB.Peek().Position);
                 }
 
-                if (distanceA < distanceB)
+                if (distanceA < distanceB)//
                 {
                     new PositionTriangle(pointA, pointB, queueA.Peek());
                     pointA = queueA.Dequeue();
@@ -111,14 +118,42 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                     pointB = queueB.Dequeue();
                 }
             }
+        }
 
-            //var row_A = rowA.ToArray();
-            //var row_B = rowB.ToArray();
-            //for (int i = 0; i < row_A.Length - 1; i++)
-            //{
-            //    new PositionTriangle(row_A[i], row_B[i], row_B[i + 1]);
-            //    new PositionTriangle(row_A[i], row_B[i+ 1], row_A[i + 1]);
-            //}
+        private static void BuildRow(PositionNormal[] rowA, PositionNormal[] rowB)
+        {
+            if (rowB.Length > rowA.Length) { BuildRow(rowB, rowA); }
+
+            int iA = 0;
+            int iB = 0;
+
+            do
+            {
+                int fork = (int)Math.Round(((iA + 1) * rowA.Length)/(double)rowB.Length) - (int)Math.Round(iA * rowA.Length / (double)rowB.Length);
+                ForkB(fork, rowA, rowB, ref iA, ref iB);
+                Split(rowA, rowB, ref iA, ref iB);
+
+            } while (iA < rowA.Length - 1 && iB < rowB.Length - 1);
+        }
+
+        private static void Split(PositionNormal[] rowA, PositionNormal[] rowB, ref int iA, ref int iB)
+        {
+            int iAplus = (iA + 1) % rowA.Length;
+            int iBplus = (iB + 1) % rowB.Length;
+            new PositionTriangle(rowA[iA], rowB[iB], rowB[iBplus]);
+            new PositionTriangle(rowA[iA], rowA[iAplus], rowB[iBplus]);
+            iA = iAplus;
+            iB = iBplus;
+        }
+
+        private static void ForkB(int forkB, PositionNormal[] rowA, PositionNormal[] rowB, ref int iA, ref int iB)
+        {
+            for (int i = 0; i < forkB - 1; i++)
+            {
+                int iAplus = (iA + 1) % rowA.Length;
+                new PositionTriangle(rowA[iA], rowA[iAplus], rowB[iB]);
+                iA = iAplus;
+            }
         }
     }
 }

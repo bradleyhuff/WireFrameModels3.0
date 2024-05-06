@@ -21,7 +21,7 @@ namespace Projects.Projects
             var cube1 = Cuboid.Create(1, 1, 1, 1, 1, 1);
             var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);
             cube2.Apply(Transform.Translation(new Vector3D(0.00, 0.27, 0.32)));
-            //var sum = WireFrameMesh.CreateMesh();
+            //var sum = WireFrameMesh.Create();
             //sum.AddGrid(cube1);
             //sum.AddGrid(cube2);
             var sum = cube1.Difference(cube2);

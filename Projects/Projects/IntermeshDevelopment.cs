@@ -81,7 +81,7 @@ namespace Projects.Projects
         private void CubeSphereTestTwo(int resolution)
         {
 
-            var output = PntFile.Import(() => WireFrameMesh.CreateMesh(), $"Pnt/SphereDifference4 {resolution}");
+            var output = PntFile.Import(() => WireFrameMesh.Create(), $"Pnt/SphereDifference4 {resolution}");
             var spheres = CreateTestSpheres(resolution);
 
             var spheres5 = spheres.Clone();
@@ -164,7 +164,7 @@ namespace Projects.Projects
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)
         {
-            var output = WireFrameMesh.CreateMesh();
+            var output = WireFrameMesh.Create();
 
             foreach (var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
             {

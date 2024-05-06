@@ -22,14 +22,14 @@ namespace FundamentalMeshes
                 octantClones[i].Apply(Transform.Rotation(Vector3D.BasisZ, (i + 1) * Math.PI / 2));
             }
 
-            var hemisphere = WireFrameMesh.CreateMesh();
+            var hemisphere = WireFrameMesh.Create();
             hemisphere.AddGrid(octant);
             hemisphere.AddGrids(octantClones);
  
             var hemisphere2 = hemisphere.Clone();
             hemisphere2.Apply(Transform.Rotation(Vector3D.BasisX, Math.PI));
 
-            var sphere = WireFrameMesh.CreateMesh();
+            var sphere = WireFrameMesh.Create();
             sphere.AddGrid(hemisphere);
             sphere.AddGrid(hemisphere2);
 
@@ -40,7 +40,7 @@ namespace FundamentalMeshes
         {
             int cubeSubdivisions = subdivisions / 2;
 
-            IWireFrameMesh octantMesh = WireFrameMesh.CreateMesh();
+            IWireFrameMesh octantMesh = WireFrameMesh.Create();
 
             //Z triad
             for (int x = 0; x <= cubeSubdivisions; x++)

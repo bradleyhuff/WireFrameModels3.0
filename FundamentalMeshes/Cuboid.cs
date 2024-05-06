@@ -13,7 +13,7 @@ namespace FundamentalMeshes
             double yDelta = height / heightSubdivisions;
             double zDelta = depth / depthSubdivisions;
 
-            IWireFrameMesh block = WireFrameMesh.CreateMesh();
+            IWireFrameMesh block = WireFrameMesh.Create();
 
             for (int i = 0; i <= widthSubdivisions; i++)
             {

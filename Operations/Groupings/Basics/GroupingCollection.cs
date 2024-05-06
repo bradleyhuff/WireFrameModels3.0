@@ -81,12 +81,12 @@ namespace Operations.Groupings.Basics
             return grouping.ExtractPlanars();
         }
 
-        public IWireFrameMesh CreateMesh()
+        public IWireFrameMesh Create()
         {
-            return CreateMesh(WireFrameMesh.CreateMesh());
+            return Create(WireFrameMesh.Create());
         }
 
-        public IWireFrameMesh CreateMesh(IWireFrameMesh mesh)
+        public IWireFrameMesh Create(IWireFrameMesh mesh)
         {
             foreach (var triangle in GroupingTriangles)
             {

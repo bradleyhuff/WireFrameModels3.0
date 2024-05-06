@@ -10,7 +10,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
         public static void Export<T>(ElasticTriangle triangle, ChainingException<T> e, string fileName, double height = 0.01)
         {
             {
-                var mesh = WireFrameMesh.CreateMesh();
+                var mesh = WireFrameMesh.Create();
                 triangle.ExportWithSegments(mesh);
                 WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/Triangle-{triangle.Id}");
             }
@@ -18,7 +18,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
             foreach (var record in e.Logs.Select((r, i) => new { Value = r, Index = i }))
             {
                 {
-                    var mesh = WireFrameMesh.CreateMesh();
+                    var mesh = WireFrameMesh.Create();
                     var starter = new[] { e.ReferenceArray[record.Value.Start], e.ReferenceArray[record.Value.Chaining[0]] };
                     foreach (var element in starter.Select((r, i) => new { Record = r, Index = i }))
                     {
@@ -39,7 +39,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                     WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/Chains-Start-{triangle.Id}-{record.Index} ");
                 }
                 {
-                    var mesh = WireFrameMesh.CreateMesh();
+                    var mesh = WireFrameMesh.Create();
                     var chainLoop = record.Value.Chaining.Select(l => e.ReferenceArray[l]).ToArray();
 
                     if (chainLoop.Length > 1)
@@ -76,7 +76,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
         public static void Export(ElasticTriangle triangle, SpurLoopChainingException<TriangleFillingGroup, int> e, string fileName, double height = 0.01)
         {
             {
-                var mesh = WireFrameMesh.CreateMesh();
+                var mesh = WireFrameMesh.Create();
                 triangle.ExportWithSegments(mesh);
                 WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/Triangle-{triangle.Id}");
             }
@@ -87,7 +87,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 var freeSpurs = spurPoints.Where(s => !perimeterPoints.Any(p => p.Id == s.Reference as int?));
                 foreach (var freeSpur in freeSpurs)
                 {
-                    var mesh = WireFrameMesh.CreateMesh();
+                    var mesh = WireFrameMesh.Create();
                     mesh.AddTriangle(freeSpur.Point + -2 * height * triangle.Triangle.Triangle.Normal, freeSpur.Point, freeSpur.Point + 2 * height * triangle.Triangle.Triangle.Normal);
 
                     WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/FreeSpurs-{triangle.Id}-{freeSpur.Reference as int?}");
@@ -97,7 +97,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
 
             foreach (var segment in e.SpurConnectingSegments.Select((r, i) => new { Value = r, Index = i }))
             {
-                var mesh = WireFrameMesh.CreateMesh();
+                var mesh = WireFrameMesh.Create();
                 var a = e.Chain.ReferenceArray[segment.Value.IndexPointA];
                 var b = e.Chain.ReferenceArray[segment.Value.IndexPointB];
 

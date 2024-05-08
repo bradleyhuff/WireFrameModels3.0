@@ -5,6 +5,7 @@ using Collections.Buckets;
 using Operations.Intermesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Interfaces;
+using Operations.PlanarFilling.Basics;
 
 namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
 {
@@ -13,7 +14,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
         public static void GetSpurEndpoints<G, I, S, T>(IEnumerable<int[]> indexSpurredLoops, ISurfaceSegmentChaining<G, T> input,
             IEnumerable<int[]> loops, Func<LineSegment3D, I> createNode,
             out List<SpurEndpoint<G, I, S, T>> spurEndPoints, out List<OpenSpurEndpoint<G, I, S, T>> openSpurs)
-            where S : new() where I : IBox where G : TriangleFillingGroup
+            where S : new() where I : IBox where G : PlanarFillingGroup
         {
             var groupArray = input.SpurredLoopGroupObjects.ToArray();
             var groupKeyArray = input.SpurredLoopGroupKeys.ToArray();
@@ -65,7 +66,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
             }
         }
 
-        public static IEnumerable<LinkedIndexSurfaceSegment<G, T>> PullSegments<G, T>(ISurfaceSegmentChaining<G, T> input) where G : TriangleFillingGroup
+        public static IEnumerable<LinkedIndexSurfaceSegment<G, T>> PullSegments<G, T>(ISurfaceSegmentChaining<G, T> input) where G : PlanarFillingGroup
         {
             var protectedIndexLoops = ProtectedIndexedLoops.Create<InternalProtectedIndexedLoops>(input.ProtectedIndexedLoops);
             var indexLoops = protectedIndexLoops.GetIndexLoops();
@@ -95,7 +96,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
             IReadOnlyList<int[]> indexLoops,
             IReadOnlyList<int> loopGroupKeys,
             IReadOnlyList<G> loopGroupObjects
-            ) where G : TriangleFillingGroup
+            ) where G : PlanarFillingGroup
         {
             for (int i = 0; i < indexLoops.Count; i++)
             {

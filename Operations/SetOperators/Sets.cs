@@ -3,6 +3,7 @@ using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Basics;
+using Operations.Intermesh;
 using Operations.Regions;
 using Console = BaseObjects.Console;
 
@@ -34,7 +35,7 @@ namespace Operations.SetOperators
             DateTime start = DateTime.Now;
             ConsoleLog.Push(note);
             var sum = CombineAndMark(gridA, gridB, out Space spaceA, out Space spaceB);
-            IntermeshOperation.Run(sum);
+            sum.Intermesh();
             var groups = GroupExtraction(sum);
             var remainingGroups = TestAndRemoveGroups(sum, groups, spaceA, spaceB, includeGroup);
             IncludedGroupInverts(remainingGroups);

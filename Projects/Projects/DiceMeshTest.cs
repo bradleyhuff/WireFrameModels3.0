@@ -60,9 +60,10 @@ namespace Projects.Projects
 
             var grid = cube.Difference(allSpheres);
 
+            PntFile.Export(grid, "Pnt/Dice");
             WavefrontFile.Export(grid, "Wavefront/Dice");
             //WavefrontFileGroups.ExportBySurfaces(grid, "Wavefront/Dice");
-            WavefrontFile.Export(NormalOverlay(grid, 0.003), "Wavefront/DiceNormals");
+            //WavefrontFile.Export(NormalOverlay(grid, 0.003), "Wavefront/DiceNormals");
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

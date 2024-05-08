@@ -1,6 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Operations.Intermesh.Basics;
+using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Basics.Abstractions;
 using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
@@ -9,7 +10,7 @@ using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Chaining
 {
-    internal class SpurLoopingChaining<G, T> : SurfaceSegmentChaining<G, T> where G : TriangleFillingGroup
+    internal class SpurLoopingChaining<G, T> : SurfaceSegmentChaining<G, T> where G : PlanarFillingGroup
     {
         public static ISurfaceSegmentChaining<G, T> Create(ISurfaceSegmentChaining<G, T> input)
         {

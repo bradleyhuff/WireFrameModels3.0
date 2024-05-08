@@ -83,17 +83,17 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             }
         }
 
+        public PositionTriangle AddTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace = "")
+        {
+            return new PositionTriangle(a, b, c, trace);
+        }
+
         public PositionTriangle AddTriangle(Point3D a, Vector3D aN, Point3D b, Vector3D bN, Point3D c, Vector3D cN, string trace = "")
         {
             var aa = AddPointNoRow(a, aN);
             var bb = AddPointNoRow(b, bN);
             var cc = AddPointNoRow(c, cN);
             return new PositionTriangle(aa, bb, cc, trace);
-        }
-
-        public PositionTriangle AddTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace = "")
-        {
-            return new PositionTriangle(a, b, c, trace);
         }
 
         public bool RemoveTriangle(Point3D a, Point3D b, Point3D c)

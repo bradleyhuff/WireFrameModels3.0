@@ -1,9 +1,11 @@
 ﻿using BaseObjects;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
+using Operations.PlanarFilling.Basics;
 using Operations.PlanarFilling.Filling;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
+using Operations.SurfaceSegmentChaining.Collections;
 using Operations.SurfaceSegmentChaining.Interfaces;
 using Console = BaseObjects.Console;
 
@@ -173,12 +175,12 @@ namespace Operations.Intermesh.Classes
         private static IEnumerable<FillTriangle> ComplexSegmentFills(ElasticTriangle triangle)
         {
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
-            var collection = new SurfaceElasticSegmentCollections<TriangleFillingGroup>(surfaceSet);
+            var collection = new SurfaceSegmentCollections<PlanarFillingGroup>(surfaceSet);
 
-            ISurfaceSegmentChaining<TriangleFillingGroup, int> chain;
+            ISurfaceSegmentChaining<PlanarFillingGroup, int> chain;
             try
             {
-                chain = SurfaceSegmentChaining<TriangleFillingGroup, int>.Create(collection);
+                chain = SurfaceSegmentChaining<PlanarFillingGroup, int>.Create(collection);
             }
             catch (ChainingException<int> e)
             {
@@ -198,10 +200,10 @@ namespace Operations.Intermesh.Classes
             {
                 try
                 {
-                    chain = OpenSpurConnectChaining<TriangleFillingGroup, int>.Create(chain);
-                    chain = SpurLoopingChaining<TriangleFillingGroup, int>.Create(chain);
+                    chain = OpenSpurConnectChaining<PlanarFillingGroup, int>.Create(chain);
+                    chain = SpurLoopingChaining<PlanarFillingGroup, int>.Create(chain);
                 }
-                catch (SpurLoopChainingException<TriangleFillingGroup, int> e)
+                catch (SpurLoopChainingException<PlanarFillingGroup, int> e)
                 {
                     Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
                     WavefrontFileChaining.Export(triangle, e, $"Wavefront/SpurLoopingChainingError", 5e-4);
@@ -216,7 +218,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            var planarFilling = new PlanarFilling<TriangleFillingGroup, int>(chain, triangle.Id);
+            var planarFilling = new PlanarFilling<PlanarFillingGroup, int>(chain, triangle.Id);
             var fillings = planarFilling.Fillings.ToArray();
             var lookup = triangle.VertexLookup;
 

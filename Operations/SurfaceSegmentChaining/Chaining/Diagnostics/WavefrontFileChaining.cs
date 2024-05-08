@@ -1,7 +1,7 @@
 ﻿using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
-using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
+using Operations.PlanarFilling.Basics;
 
 namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
 {
@@ -73,7 +73,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
             }
         }
 
-        public static void Export(ElasticTriangle triangle, SpurLoopChainingException<TriangleFillingGroup, int> e, string fileName, double height = 0.01)
+        public static void Export(ElasticTriangle triangle, SpurLoopChainingException<PlanarFillingGroup, int> e, string fileName, double height = 0.01)
         {
             {
                 var mesh = WireFrameMesh.Create();
@@ -82,15 +82,15 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
             }
             foreach (var spurredLoop in e.Chain.SpurredLoops)
             {
-                var spurPoints = spurredLoop.GroupBy(g => g.Reference).Where(g => g.Count() > 1).Select(g => g.First()).ToArray();
+                var spurPoints = spurredLoop.GroupBy(g => g.Index).Where(g => g.Count() > 1).Select(g => g.First()).ToArray();
                 var perimeterPoints = triangle.PerimeterEdges.SelectMany(e => e.PerimeterPoints).ToArray();
-                var freeSpurs = spurPoints.Where(s => !perimeterPoints.Any(p => p.Id == s.Reference as int?));
+                var freeSpurs = spurPoints.Where(s => !perimeterPoints.Any(p => p.Id == s.Index as int?));
                 foreach (var freeSpur in freeSpurs)
                 {
                     var mesh = WireFrameMesh.Create();
                     mesh.AddTriangle(freeSpur.Point + -2 * height * triangle.Triangle.Triangle.Normal, freeSpur.Point, freeSpur.Point + 2 * height * triangle.Triangle.Triangle.Normal);
 
-                    WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/FreeSpurs-{triangle.Id}-{freeSpur.Reference as int?}");
+                    WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/FreeSpurs-{triangle.Id}-{freeSpur.Index as int?}");
                 }
 
             }

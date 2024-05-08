@@ -2,11 +2,11 @@
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
-namespace Operations.Intermesh.Elastics
+namespace Operations.SurfaceSegmentChaining.Collections
 {
-    internal class SurfaceElasticSegmentCollections<G> : ISurfaceSegmentCollections<G, int> where G : class
+    internal class SurfaceSegmentCollections<G> : ISurfaceSegmentCollections<G, int> where G : class
     {
-        public SurfaceElasticSegmentCollections(IEnumerable<SurfaceSegmentSets<G, int>> segmentSets)
+        public SurfaceSegmentCollections(IEnumerable<SurfaceSegmentSets<G, int>> segmentSets)
         {
             foreach (var segmentSet in segmentSets)
             {
@@ -14,7 +14,7 @@ namespace Operations.Intermesh.Elastics
             }
         }
 
-        public SurfaceElasticSegmentCollections(SurfaceSegmentSets<G, int> segmentSet)
+        public SurfaceSegmentCollections(SurfaceSegmentSets<G, int> segmentSet)
         {
             BuildCollections(segmentSet);
         }
@@ -24,30 +24,30 @@ namespace Operations.Intermesh.Elastics
             var table = new Dictionary<int, SurfaceRayContainer<int>>();
             foreach (var segment in segmentSet.PerimeterSegments)
             {
-                table[segment.A.Reference] = segment.A;
-                table[segment.B.Reference] = segment.B;
+                table[segment.A.Index] = segment.A;
+                table[segment.B.Index] = segment.B;
             }
             foreach (var segment in segmentSet.DividingSegments)
             {
-                table[segment.A.Reference] = segment.A;
-                table[segment.B.Reference] = segment.B;
+                table[segment.A.Index] = segment.A;
+                table[segment.B.Index] = segment.B;
             }
 
             _referenceArray = table.Values.ToArray();
             var backTable = new Dictionary<int, int>();
-            foreach (var element in _referenceArray.Select((e, i) => new { Element = e, Index = i })) { backTable[element.Element.Reference] = element.Index; }
+            foreach (var element in _referenceArray.Select((e, i) => new { Element = e, Index = i })) { backTable[element.Element.Index] = element.Index; }
 
             var keyTable = new Combination2Dictionary<bool>();
             foreach (var segment in segmentSet.PerimeterSegments)
             {
                 var surfaceSegment = new LinkedIndexSurfaceSegment<G>(
-                    backTable[segment.A.Reference], backTable[segment.B.Reference], Rank.Perimeter, segmentSet.GroupKey, segmentSet.GroupObject);
+                    backTable[segment.A.Index], backTable[segment.B.Index], Rank.Perimeter, segmentSet.GroupKey, segmentSet.GroupObject);
                 AddToLinkSegments(keyTable, surfaceSegment);
             }
             foreach (var segment in segmentSet.DividingSegments)
             {
                 var surfaceSegment = new LinkedIndexSurfaceSegment<G>(
-                    backTable[segment.A.Reference], backTable[segment.B.Reference], Rank.Dividing, segmentSet.GroupKey, segmentSet.GroupObject);
+                    backTable[segment.A.Index], backTable[segment.B.Index], Rank.Dividing, segmentSet.GroupKey, segmentSet.GroupObject);
                 AddToLinkSegments(keyTable, surfaceSegment);
             }
 

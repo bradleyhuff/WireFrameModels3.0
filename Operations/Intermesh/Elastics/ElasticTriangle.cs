@@ -2,6 +2,7 @@
 using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
+using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 
 namespace Operations.Intermesh.Elastics
@@ -156,8 +157,8 @@ namespace Operations.Intermesh.Elastics
             foreach (var segment in _dividingSegments)
             {
                 yield return new SurfaceSegmentContainer<int>(
-                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id),
-                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id));
+                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id, segment.PointA.Id),
+                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id, segment.PointB.Id));
             }
         }
 
@@ -168,17 +169,17 @@ namespace Operations.Intermesh.Elastics
             foreach (var segment in _perimeterLinks)
             {
                 yield return new SurfaceSegmentContainer<int>(
-                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id),
-                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id));
+                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id, segment.PointA.Id),
+                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id, segment.PointB.Id));
             }
         }
 
-        public SurfaceSegmentSets<TriangleFillingGroup, int> CreateSurfaceSegmentSet()
+        public SurfaceSegmentSets<PlanarFillingGroup, int> CreateSurfaceSegmentSet()
         {
-            return new SurfaceSegmentSets<TriangleFillingGroup, int>
+            return new SurfaceSegmentSets<PlanarFillingGroup, int>
             {
                 NodeId = Id,
-                GroupObject = new TriangleFillingGroup(SurfaceTriangle),
+                GroupObject = new PlanarFillingGroup(SurfaceTriangle.Triangle.Plane, SurfaceTriangle.Triangle.Box.Diagonal),
                 DividingSegments = GetDividingSurfaceSegments().ToArray(),
                 PerimeterSegments = GetPerimeterSurfaceSegments().ToArray()
             };

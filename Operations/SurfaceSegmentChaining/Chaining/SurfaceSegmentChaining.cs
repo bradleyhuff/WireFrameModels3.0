@@ -134,7 +134,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             {
                 var rayA = _referenceArray[endPointSegment.IndexPointA];
                 var rayB = _referenceArray[endPointSegment.IndexPointB];
-                //calculate midpoint between rayA and rayB with small height offset
+
                 var rayM = new Ray3D(0.5 * (rayA.Point + rayB.Point), (rayA.Normal + rayB.Normal).Direction);
                 var vectorAB = rayA.Point - rayB.Point;
                 var offsetDirection = Vector3D.Cross(vectorAB.Direction, rayM.Normal).Direction;

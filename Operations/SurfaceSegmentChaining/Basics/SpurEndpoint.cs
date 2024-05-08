@@ -1,15 +1,10 @@
 ﻿using Collections.Buckets.Interfaces;
 using Collections.Buckets;
-using Operations.Intermesh.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Operations.PlanarFilling.Basics;
 
 namespace Operations.SurfaceSegmentChaining.Basics
 {
-    internal class SpurEndpoint<G, I, S, T> where G : TriangleFillingGroup where I : IBox where S : new()
+    internal class SpurEndpoint<G, I, S, T> where G : PlanarFillingGroup where I : IBox where S : new()
     {
         public SpurEndpoint(int[] spurredLoop, int index, int groupKey, G group, BoxBucket<I> bucket, IReadOnlyList<SurfaceRayContainer<T>> referenceArray)
         {

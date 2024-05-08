@@ -48,6 +48,16 @@ namespace Collections.WireFrameMesh.Basics
         public PositionNormal B { get; private set; }
         public PositionNormal C { get; private set; }
 
+        public IEnumerable<PositionEdge> Edges
+        {
+            get
+            {
+                yield return new PositionEdge(A, B);
+                yield return new PositionEdge(B, C);
+                yield return new PositionEdge(C, A);
+            }
+        }
+
         public bool Disabled { get; private set; }
         public void Disable()
         {
@@ -229,15 +239,15 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
-        public IEnumerable<PositionNormal[]> Edges
-        {
-            get
-            {
-                yield return [A, B];
-                yield return [B, C];
-                yield return [C, A];
-            }
-        }
+        //public IEnumerable<PositionNormal[]> Edges
+        //{
+        //    get
+        //    {
+        //        yield return [A, B];
+        //        yield return [B, C];
+        //        yield return [C, A];
+        //    }
+        //}
 
         private Triangle3D _triangle = null;
         public Triangle3D Triangle
@@ -272,7 +282,6 @@ namespace Collections.WireFrameMesh.Basics
                 yield return C.Position;
             }
         }
-
 
         public void ExportWithCenterNormal(IWireFrameMesh mesh)
         {

@@ -1,12 +1,9 @@
 ﻿using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Operations.PositionRemovals;
 
 namespace FundamentalMeshes
 {
@@ -22,6 +19,7 @@ namespace FundamentalMeshes
             var basePoint = new Point3D(radius, 0, 0);
             var normal = new Vector3D(1, radius / height, 0);
             var downNormal = -Vector3D.BasisY;
+            PositionNormal baseCenter = null;
 
             for (int i = 0; i <= circumferenceSteps; i++)
             {
@@ -31,10 +29,12 @@ namespace FundamentalMeshes
                 cone.AddPoint(vertexPoint, normal, transform);
                 cone.AddPoint(basePoint, normal, transform);
                 cone.AddPoint(basePoint, downNormal, transform);
-                cone.AddPoint(Point3D.Zero, downNormal);
+                baseCenter = cone.AddPoint(Point3D.Zero, downNormal);
                 cone.EndRow();
             }
             cone.EndGrid();
+
+            cone.RemovePosition(baseCenter.PositionObject);
 
             return cone;
         }

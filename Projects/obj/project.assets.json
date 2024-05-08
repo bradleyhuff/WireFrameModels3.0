@@ -44,7 +44,8 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "BaseObjects": "1.0.0",
-          "Collections": "1.0.0"
+          "Collections": "1.0.0",
+          "Operations": "1.0.0"
         },
         "compile": {
           "bin/placeholder/FundamentalMeshes.dll": {}

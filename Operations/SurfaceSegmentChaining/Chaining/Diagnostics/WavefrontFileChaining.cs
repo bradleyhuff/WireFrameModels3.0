@@ -73,7 +73,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
             }
         }
 
-        public static void Export(ElasticTriangle triangle, SpurLoopChainingException<PlanarFillingGroup, int> e, string fileName, double height = 0.01)
+        public static void Export(ElasticTriangle triangle, SpurLoopChainingException<PlanarFillingGroup, ElasticVertexCore> e, string fileName, double height = 0.01)
         {
             {
                 var mesh = WireFrameMesh.Create();

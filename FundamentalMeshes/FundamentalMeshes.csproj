@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BaseObjects\BaseObjects.csproj" />
     <ProjectReference Include="..\Collections\Collections.csproj" />
+    <ProjectReference Include="..\Operations\Operations.csproj" />
   </ItemGroup>
 
 </Project>

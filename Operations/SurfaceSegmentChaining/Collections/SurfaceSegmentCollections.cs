@@ -4,9 +4,9 @@ using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Collections
 {
-    internal class SurfaceSegmentCollections<G> : ISurfaceSegmentCollections<G, int> where G : class
+    internal class SurfaceSegmentCollections<G, T> : ISurfaceSegmentCollections<G, T> where G : class
     {
-        public SurfaceSegmentCollections(IEnumerable<SurfaceSegmentSets<G, int>> segmentSets)
+        public SurfaceSegmentCollections(IEnumerable<SurfaceSegmentSets<G, T>> segmentSets)
         {
             foreach (var segmentSet in segmentSets)
             {
@@ -14,14 +14,14 @@ namespace Operations.SurfaceSegmentChaining.Collections
             }
         }
 
-        public SurfaceSegmentCollections(SurfaceSegmentSets<G, int> segmentSet)
+        public SurfaceSegmentCollections(SurfaceSegmentSets<G, T> segmentSet)
         {
             BuildCollections(segmentSet);
         }
 
-        private void BuildCollections(SurfaceSegmentSets<G, int> segmentSet)
+        private void BuildCollections(SurfaceSegmentSets<G, T> segmentSet)
         {
-            var table = new Dictionary<int, SurfaceRayContainer<int>>();
+            var table = new Dictionary<int, SurfaceRayContainer<T>>();
             foreach (var segment in segmentSet.PerimeterSegments)
             {
                 table[segment.A.Index] = segment.A;
@@ -51,7 +51,7 @@ namespace Operations.SurfaceSegmentChaining.Collections
                 AddToLinkSegments(keyTable, surfaceSegment);
             }
 
-            _protectedLinkedIndexSegments = new ProtectedLinkedIndexSegments<G, int>(_linkedIndexSegments);
+            _protectedLinkedIndexSegments = new ProtectedLinkedIndexSegments<G, T>(_linkedIndexSegments);
         }
 
         private void AddToLinkSegments(Combination2Dictionary<bool> keyTable, LinkedIndexSurfaceSegment<G> surfaceSegment)
@@ -63,12 +63,12 @@ namespace Operations.SurfaceSegmentChaining.Collections
             }
         }
 
-        private ProtectedLinkedIndexSegments<G, int> _protectedLinkedIndexSegments;
-        private SurfaceRayContainer<int>[] _referenceArray;
+        private ProtectedLinkedIndexSegments<G, T> _protectedLinkedIndexSegments;
+        private SurfaceRayContainer<T>[] _referenceArray;
         private List<LinkedIndexSurfaceSegment<G>> _linkedIndexSegments = new List<LinkedIndexSurfaceSegment<G>>();
         private List<LinkedSurfaceSegment<G>> _linkedSegments = null;
 
-        public IReadOnlyList<SurfaceRayContainer<int>> ReferenceArray
+        public IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray
         {
             get { return _referenceArray; }
         }
@@ -86,7 +86,7 @@ namespace Operations.SurfaceSegmentChaining.Collections
             }
         }
 
-        public ProtectedLinkedIndexSegments<G, int> ProtectedLinkedIndexSegments
+        public ProtectedLinkedIndexSegments<G, T> ProtectedLinkedIndexSegments
         {
             get { return _protectedLinkedIndexSegments; }
         }

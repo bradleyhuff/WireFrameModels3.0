@@ -20,10 +20,10 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             //CylinderTest();
-            //ConeTest();
+            ConeTest();
             //CuboidTest();
             //SphereTest();
-            TorusTest();
+            //TorusTest();
         }
 
         private void ConeTest()

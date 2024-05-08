@@ -149,73 +149,40 @@ namespace Operations.Intermesh.Elastics
             _dividingSegments = Segments.Where(s => !perimeterSegments.Any(p => p.Id == s.Id)).Select(s => new ElasticVertexLink(s.VertexA.Vertex, s.VertexB.Vertex)).ToArray();
         }
 
-        public IEnumerable<SurfaceSegmentContainer<int>> GetDividingSurfaceSegments()
+        public IEnumerable<SurfaceSegmentContainer<ElasticVertexCore>> GetDividingSurfaceSegments()
         {
             SetPerimeterLinks();
             SetDividingLinks();
 
             foreach (var segment in _dividingSegments)
             {
-                yield return new SurfaceSegmentContainer<int>(
-                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id, segment.PointA.Id),
-                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id, segment.PointB.Id));
+                yield return new SurfaceSegmentContainer<ElasticVertexCore>(
+                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id, segment.PointA),
+                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id, segment.PointB));
             }
         }
 
-        public IEnumerable<SurfaceSegmentContainer<int>> GetPerimeterSurfaceSegments()
+        public IEnumerable<SurfaceSegmentContainer<ElasticVertexCore>> GetPerimeterSurfaceSegments()
         {
             SetPerimeterLinks();
 
             foreach (var segment in _perimeterLinks)
             {
-                yield return new SurfaceSegmentContainer<int>(
-                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id, segment.PointA.Id),
-                    new SurfaceRayContainer<int>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id, segment.PointB.Id));
+                yield return new SurfaceSegmentContainer<ElasticVertexCore>(
+                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id, segment.PointA),
+                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id, segment.PointB));
             }
         }
 
-        public SurfaceSegmentSets<PlanarFillingGroup, int> CreateSurfaceSegmentSet()
+        public SurfaceSegmentSets<PlanarFillingGroup, ElasticVertexCore> CreateSurfaceSegmentSet()
         {
-            return new SurfaceSegmentSets<PlanarFillingGroup, int>
+            return new SurfaceSegmentSets<PlanarFillingGroup, ElasticVertexCore>
             {
                 NodeId = Id,
                 GroupObject = new PlanarFillingGroup(SurfaceTriangle.Triangle.Plane, SurfaceTriangle.Triangle.Box.Diagonal),
                 DividingSegments = GetDividingSurfaceSegments().ToArray(),
                 PerimeterSegments = GetPerimeterSurfaceSegments().ToArray()
             };
-        }
-
-        Dictionary<int, ElasticVertexCore> _vertexLookup;
-        public Dictionary<int, ElasticVertexCore> VertexLookup
-        {
-            get
-            {
-                if (_vertexLookup is null)
-                {
-                    _vertexLookup = new Dictionary<int, ElasticVertexCore>();
-                    _vertexLookup[AnchorA.Id] = AnchorA;
-                    _vertexLookup[AnchorB.Id] = AnchorB;
-                    _vertexLookup[AnchorC.Id] = AnchorC;
-                    foreach (var point in PerimeterEdgeAB.PerimeterPoints)
-                    {
-                        _vertexLookup[point.Id] = point;
-                    }
-                    foreach (var point in PerimeterEdgeBC.PerimeterPoints)
-                    {
-                        _vertexLookup[point.Id] = point;
-                    }
-                    foreach (var point in PerimeterEdgeCA.PerimeterPoints)
-                    {
-                        _vertexLookup[point.Id] = point;
-                    }
-                    foreach (var segment in _segments)
-                    {
-                        _vertexLookup[segment.VertexA.Vertex.Id] = segment.VertexA.Vertex;
-                        _vertexLookup[segment.VertexB.Vertex.Id] = segment.VertexB.Vertex;
-                    }
-                }
-                return _vertexLookup;
-            }
         }
 
         public void ExportWithSegments(IWireFrameMesh mesh, double height = 2e-4)

@@ -175,14 +175,14 @@ namespace Operations.Intermesh.Classes
         private static IEnumerable<FillTriangle> ComplexSegmentFills(ElasticTriangle triangle)
         {
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
-            var collection = new SurfaceSegmentCollections<PlanarFillingGroup>(surfaceSet);
+            var collection = new SurfaceSegmentCollections<PlanarFillingGroup, ElasticVertexCore>(surfaceSet);
 
-            ISurfaceSegmentChaining<PlanarFillingGroup, int> chain;
+            ISurfaceSegmentChaining<PlanarFillingGroup, ElasticVertexCore> chain;
             try
             {
-                chain = SurfaceSegmentChaining<PlanarFillingGroup, int>.Create(collection);
+                chain = SurfaceSegmentChaining<PlanarFillingGroup, ElasticVertexCore>.Create(collection);
             }
-            catch (ChainingException<int> e)
+            catch (ChainingException<ElasticVertexCore> e)
             {
                 Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
                 WavefrontFileChaining.Export(triangle, e, $"Wavefront/SurfaceChainingError");
@@ -200,10 +200,10 @@ namespace Operations.Intermesh.Classes
             {
                 try
                 {
-                    chain = OpenSpurConnectChaining<PlanarFillingGroup, int>.Create(chain);
-                    chain = SpurLoopingChaining<PlanarFillingGroup, int>.Create(chain);
+                    chain = OpenSpurConnectChaining<PlanarFillingGroup, ElasticVertexCore>.Create(chain);
+                    chain = SpurLoopingChaining<PlanarFillingGroup, ElasticVertexCore>.Create(chain);
                 }
-                catch (SpurLoopChainingException<PlanarFillingGroup, int> e)
+                catch (SpurLoopChainingException<PlanarFillingGroup, ElasticVertexCore> e)
                 {
                     Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
                     WavefrontFileChaining.Export(triangle, e, $"Wavefront/SpurLoopingChainingError", 5e-4);
@@ -218,14 +218,13 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            var planarFilling = new PlanarFilling<PlanarFillingGroup, int>(chain, triangle.Id);
+            var planarFilling = new PlanarFilling<PlanarFillingGroup, ElasticVertexCore>(chain, triangle.Id);
             var fillings = planarFilling.Fillings.ToArray();
-            var lookup = triangle.VertexLookup;
 
             foreach (var filling in fillings)
             {
-                yield return new FillTriangle(lookup[filling.A.Reference], filling.A.Normal,
-                    lookup[filling.B.Reference], filling.B.Normal, lookup[filling.C.Reference], filling.C.Normal, triangle.Trace);
+                yield return new FillTriangle(filling.A.Reference, filling.A.Normal,
+                    filling.B.Reference, filling.B.Normal, filling.C.Reference, filling.C.Normal, triangle.Trace);
             }
 
             yield break;

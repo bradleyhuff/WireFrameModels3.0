@@ -182,13 +182,13 @@ namespace Operations.Intermesh.Classes
             {
                 chain = SurfaceSegmentChaining<PlanarFillingGroup, ElasticVertexCore>.Create(collection);
             }
-            catch (ChainingException<ElasticVertexCore> e)
-            {
-                Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-                WavefrontFileChaining.Export(triangle, e, $"Wavefront/SurfaceChainingError");
-                LoopError++;
-                yield break;
-            }
+            //catch (ChainingException<ElasticVertexCore> e)
+            //{
+            //    Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+            //    WavefrontFileChaining.Export(triangle, e, $"Wavefront/SurfaceChainingError");
+            //    LoopError++;
+            //    yield break;
+            //}
             catch (Exception e)
             {
                 Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
@@ -203,13 +203,13 @@ namespace Operations.Intermesh.Classes
                     chain = OpenSpurConnectChaining<PlanarFillingGroup, ElasticVertexCore>.Create(chain);
                     chain = SpurLoopingChaining<PlanarFillingGroup, ElasticVertexCore>.Create(chain);
                 }
-                catch (SpurLoopChainingException<PlanarFillingGroup, ElasticVertexCore> e)
-                {
-                    Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-                    WavefrontFileChaining.Export(triangle, e, $"Wavefront/SpurLoopingChainingError", 5e-4);
-                    SpurredLoopError++;
-                    yield break;
-                }
+                //catch (SpurLoopChainingException<PlanarFillingGroup, ElasticVertexCore> e)
+                //{
+                //    Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                //    WavefrontFileChaining.Export(triangle, e, $"Wavefront/SpurLoopingChainingError", 5e-4);
+                //    SpurredLoopError++;
+                //    yield break;
+                //}
                 catch (Exception e)
                 {
                     Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");

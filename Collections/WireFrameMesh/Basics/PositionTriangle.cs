@@ -16,6 +16,7 @@ namespace Collections.WireFrameMesh.Basics
             C = c;
             Key = new Combination3(a.PositionObject.Id, b.PositionObject.Id, c.PositionObject.Id);
             Id = _id++;
+            ParentGrid = A.Mesh.Id;
             if (a.Position == b.Position || a.Position == c.Position || b.Position == c.Position) { return; }
             if (!A.Mesh.AddNewTriangle(this)) { return; }
             A._triangles.Add(this);
@@ -29,6 +30,25 @@ namespace Collections.WireFrameMesh.Basics
 
         public int Id { get; }
         public string Trace { get; set; }
+
+        public int ParentGrid { get; private set; }
+
+        public void GridClearMarks()
+        {
+            A.Mesh.IncrementMark();
+        }
+
+        private int _mark = 0;
+        public void Mark()
+        {
+            _mark = A.Mesh.Mark;
+        }
+
+        public void ClearMark()
+        {
+            _mark--;
+        }
+        public bool IsMarked { get { return _mark == A.Mesh.Mark; } }
 
         public Combination3 Key { get; }
 
@@ -66,15 +86,10 @@ namespace Collections.WireFrameMesh.Basics
 
         internal void DelinkPositionNormals()
         {
-            foreach (var triangle in A._triangles) { triangle.ClearStates(); }
-            foreach (var triangle in B._triangles) { triangle.ClearStates(); }
-            foreach (var triangle in C._triangles) { triangle.ClearStates(); }
-
             A._triangles.Remove(this);
             B._triangles.Remove(this);
             C._triangles.Remove(this);
             Disable();
-            ClearStates();
         }
 
         private IReadOnlyList<PositionTriangle> _abAdjacents;
@@ -86,29 +101,13 @@ namespace Collections.WireFrameMesh.Basics
         private IReadOnlyList<PositionTriangle> _aExclusiveVerticies;
         private IReadOnlyList<PositionTriangle> _bExclusiveVerticies;
         private IReadOnlyList<PositionTriangle> _cExclusiveVerticies;
-        private void ClearStates()
-        {
-            _abAdjacents = null;
-            _bcAdjacents = null;
-            _caAdjacents = null;
-            _aVerticies = null;
-            _bVerticies = null;
-            _cVerticies = null;
-            _aExclusiveVerticies = null;
-            _bExclusiveVerticies = null;
-            _cExclusiveVerticies = null;
-        }
 
         public IReadOnlyList<PositionTriangle> ABadjacents
         {
             get
             {
-                if (_abAdjacents is null)
-                {
-                    _abAdjacents = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
-                        Intersect(B.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
-                }
-                return _abAdjacents;
+                return A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
+                    Intersect(B.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -116,12 +115,8 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (_bcAdjacents is null)
-                {
-                    _bcAdjacents = B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
-                        Intersect(C.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
-                }
-                return _bcAdjacents;
+                return B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
+                    Intersect(C.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -129,12 +124,8 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (_caAdjacents is null)
-                {
-                    _caAdjacents = C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
-                        Intersect(A.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
-                }
-                return _caAdjacents;
+                return C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
+                    Intersect(A.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -142,11 +133,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (_aVerticies is null)
-                {
-                    _aVerticies = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
-                }
-                return _aVerticies;
+                return A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -154,11 +141,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (_bVerticies is null)
-                {
-                    _bVerticies = B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
-                }
-                return _bVerticies;
+                return B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -166,11 +149,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (_cVerticies is null)
-                {
-                    _cVerticies = C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
-                }
-                return _cVerticies;
+                return C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -178,13 +157,8 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (_aExclusiveVerticies is null)
-                {
-                    _aExclusiveVerticies = A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
-                        !ABadjacents.Any(a => a.Id == t.Id) && !CAadjacents.Any(a => a.Id == t.Id)).ToList();
-
-                }
-                return _aExclusiveVerticies;
+                return A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
+                    !ABadjacents.Any(a => a.Id == t.Id) && !CAadjacents.Any(a => a.Id == t.Id)).ToList();
             }
         }
 
@@ -192,13 +166,8 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (_bExclusiveVerticies is null)
-                {
-                    _bExclusiveVerticies = B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
-                        !ABadjacents.Any(a => a.Id == t.Id) && !BCadjacents.Any(a => a.Id == t.Id)).ToList();
-
-                }
-                return _bExclusiveVerticies;
+                return B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
+                    !ABadjacents.Any(a => a.Id == t.Id) && !BCadjacents.Any(a => a.Id == t.Id)).ToList();
             }
         }
 
@@ -206,13 +175,8 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (_cExclusiveVerticies is null)
-                {
-                    _cExclusiveVerticies = C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
-                        !BCadjacents.Any(a => a.Id == t.Id) && !CAadjacents.Any(a => a.Id == t.Id)).ToList();
-
-                }
-                return _cExclusiveVerticies;
+                return C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).Where(t => t.Id != Id &&
+                    !BCadjacents.Any(a => a.Id == t.Id) && !CAadjacents.Any(a => a.Id == t.Id)).ToList();
             }
         }
 
@@ -238,16 +202,6 @@ namespace Collections.WireFrameMesh.Basics
                 yield return C;
             }
         }
-
-        //public IEnumerable<PositionNormal[]> Edges
-        //{
-        //    get
-        //    {
-        //        yield return [A, B];
-        //        yield return [B, C];
-        //        yield return [C, A];
-        //    }
-        //}
 
         private Triangle3D _triangle = null;
         public Triangle3D Triangle

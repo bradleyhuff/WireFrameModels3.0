@@ -4,6 +4,7 @@ using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Basics;
 using Operations.Intermesh;
+using Operations.PositionRemovals;
 using Operations.Regions;
 using Console = BaseObjects.Console;
 
@@ -26,9 +27,9 @@ namespace Operations.SetOperators
             return Run("Union", gridA, gridB, (a, b) => (a == Region.OnBoundary && b != Region.Interior) || (a != Region.Interior && b == Region.OnBoundary));
         }
 
-        public static IWireFrameMesh All(this IWireFrameMesh gridA, IWireFrameMesh gridB)
+        public static IWireFrameMesh Sum(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
-            return Run("All", gridA, gridB, (a, b) => true);
+            return Run("Sum", gridA, gridB, (a, b) => true);
         }
         private static IWireFrameMesh Run(string note, IWireFrameMesh gridA, IWireFrameMesh gridB, Func<Region, Region, bool> includeGroup)
         {
@@ -39,6 +40,10 @@ namespace Operations.SetOperators
             var groups = GroupExtraction(sum);
             var remainingGroups = TestAndRemoveGroups(sum, groups, spaceA, spaceB, includeGroup);
             IncludedGroupInverts(remainingGroups);
+
+            sum.RemoveShortSegments(3e-4);
+            sum.RemoveCollinearEdgePoints();
+            sum.RemoveCoplanarSurfacePoints();
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");

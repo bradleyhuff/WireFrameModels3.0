@@ -30,11 +30,17 @@ namespace Collections.WireFrameMesh.Basics
 
         private Point3D _position;
         private Rectangle3D _box;
-        internal List<PositionNormal> _positionNormals = new List<PositionNormal>();
+
+        internal List<PositionNormal> _positionNormals { get; } = new List<PositionNormal>();
 
         public IReadOnlyList<PositionNormal> PositionNormals 
         {
             get { return _positionNormals; }
+        }
+
+        public IEnumerable<PositionTriangle> Triangles
+        {
+            get { return _positionNormals.SelectMany(p => p.Triangles); }
         }
 
         public int Cardinality

@@ -22,7 +22,7 @@ namespace Collections.WireFrameMesh.Basics
         internal IWireFrameMeshInternal Mesh { get; }
         public Position? PositionObject { get; private set; }
 
-        internal List<PositionTriangle> _triangles = new List<PositionTriangle>();
+        internal List<PositionTriangle> _triangles { get; } = new List<PositionTriangle>();
 
         public IReadOnlyList<PositionTriangle> Triangles
         {

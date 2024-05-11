@@ -14,26 +14,27 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
-            var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/Dice");
+            var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 32");
+            grid.RemoveShortSegments(3e-4);
 
-            var edges = grid.Positions.Where(p => p.Cardinality == 2).ToArray();
+            //var edges = grid.Positions.Where(p => p.Cardinality == 2).ToArray();
 
-            Console.WriteLine($"Edges {grid.Positions.Count(p => p.Cardinality == 2)}");
-            Console.WriteLine($"Corners {grid.Positions.Count(p => p.Cardinality == 3)}");
+            //Console.WriteLine($"Edges {grid.Positions.Count(p => p.Cardinality == 2)}");
+            //Console.WriteLine($"Corners {grid.Positions.Count(p => p.Cardinality == 3)}");
 
-            grid.RemovePosition(edges[0]);
-            grid.RemovePosition(edges[1]);
-            grid.RemovePosition(edges[2]);
-            grid.RemovePosition(edges[3]);
-            grid.RemovePosition(edges[4]);
-            grid.RemovePosition(edges[5]);
-            grid.RemovePosition(edges[6]);
-            grid.RemovePosition(edges[7]);
-            grid.RemovePosition(edges[8]);
-            grid.RemovePosition(edges[9]);
-            grid.RemovePosition(edges[10]);
+            //grid.RemovePosition(edges[0]);
+            //grid.RemovePosition(edges[1]);
+            //grid.RemovePosition(edges[2]);
+            //grid.RemovePosition(edges[3]);
+            //grid.RemovePosition(edges[4]);
+            //grid.RemovePosition(edges[5]);
+            //grid.RemovePosition(edges[6]);
+            //grid.RemovePosition(edges[7]);
+            //grid.RemovePosition(edges[8]);
+            //grid.RemovePosition(edges[9]);
+            //grid.RemovePosition(edges[10]);
 
-            WavefrontFile.Export(grid, "Wavefront/DicePositionRemovals");
+            WavefrontFile.Export(grid, "Wavefront/GridPositionRemovals");
         }
     }
 }

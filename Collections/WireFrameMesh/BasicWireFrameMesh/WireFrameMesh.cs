@@ -21,6 +21,11 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
 
         public int Id { get; }
 
+        private int _mark = 1;
+
+        public void IncrementMark() { _mark++; }
+        public int Mark { get { return _mark; } }
+
         public IReadOnlyList<Position> Positions
         {
             get

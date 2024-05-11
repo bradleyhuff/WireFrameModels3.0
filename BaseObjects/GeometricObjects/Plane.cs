@@ -84,6 +84,15 @@ namespace BasicObjects.GeometricObjects
             return Distance(point) < E.Double.ProximityError;
         }
 
+        public bool AllPointsOnPlane(params Point3D[] points)
+        {
+            foreach(var point in points)
+            {
+                if (!PointIsOnPlane(point)) { return false; }
+            }
+            return true;
+        }
+
         public bool LineIsOnPlane(Line3D line)
         {
             if (SMath.Abs(Vector3D.Dot(Normal.Direction, line.Vector.Direction)) > E.Double.RadianDifferenceError) { return false; }

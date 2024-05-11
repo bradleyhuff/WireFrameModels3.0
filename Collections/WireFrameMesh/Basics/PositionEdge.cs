@@ -1,4 +1,5 @@
-﻿using BasicObjects.MathExtensions;
+﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 
 namespace Collections.WireFrameMesh.Basics
 {
@@ -20,6 +21,17 @@ namespace Collections.WireFrameMesh.Basics
             {
                 yield return A;
                 yield return B;
+            }
+        }
+
+        private LineSegment3D _segment = null;
+
+        public LineSegment3D Segment
+        {
+            get
+            {
+                if (_segment is null) { _segment = new LineSegment3D(A.Position, B.Position); }
+                return _segment;
             }
         }
 

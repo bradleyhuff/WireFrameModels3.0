@@ -9,6 +9,14 @@ namespace FileExportImport
 {
     public static class PntFile
     {
+        public static void Export(IEnumerable<IWireFrameMesh> meshes, string fileName)
+        {
+            int count = 0;
+            foreach (var mesh in meshes)
+            {
+                Export(mesh, $"{fileName}-{count++}");
+            }
+        }
         public static void Export(IWireFrameMesh mesh, string fileName)
         {
             DateTime start = DateTime.Now;

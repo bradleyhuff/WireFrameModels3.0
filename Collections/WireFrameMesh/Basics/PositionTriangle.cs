@@ -92,16 +92,6 @@ namespace Collections.WireFrameMesh.Basics
             Disable();
         }
 
-        private IReadOnlyList<PositionTriangle> _abAdjacents;
-        private IReadOnlyList<PositionTriangle> _bcAdjacents;
-        private IReadOnlyList<PositionTriangle> _caAdjacents;
-        private IReadOnlyList<PositionTriangle> _aVerticies;
-        private IReadOnlyList<PositionTriangle> _bVerticies;
-        private IReadOnlyList<PositionTriangle> _cVerticies;
-        private IReadOnlyList<PositionTriangle> _aExclusiveVerticies;
-        private IReadOnlyList<PositionTriangle> _bExclusiveVerticies;
-        private IReadOnlyList<PositionTriangle> _cExclusiveVerticies;
-
         public IReadOnlyList<PositionTriangle> ABadjacents
         {
             get

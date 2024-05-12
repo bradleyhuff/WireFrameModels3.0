@@ -1,6 +1,7 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Basics;
 using Operations.Intermesh;

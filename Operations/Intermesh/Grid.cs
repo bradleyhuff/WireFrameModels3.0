@@ -1,6 +1,4 @@
 ﻿using BaseObjects;
-using BasicObjects.GeometricObjects;
-using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Classes;
@@ -26,7 +24,7 @@ internal static class Grid
         var elasticLinks = BuildElasticLinks.Action(processTriangles);
         PullElasticLinks.Action(elasticLinks);
         var fillTriangles = ExtractFillTriangles.Action(elasticLinks);
-        Console.WriteLine($"Collinear fill triangles {fillTriangles.Count(f => f.Triangle.IsCollinear)}");
+        //Console.WriteLine($"Collinear fill triangles {fillTriangles.Count(f => f.Triangle.IsCollinear)}");
         UpdateResultGrid(mesh, processTriangles, fillTriangles);
 
         ConsoleLog.Pop();
@@ -37,7 +35,7 @@ internal static class Grid
     {
         var start = DateTime.Now;
         processTriangles = collections.Triangles.Where(t => t.Intersections.Any()).ToList();
-        ConsoleLog.WriteLine($"Separate processes: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+        //ConsoleLog.WriteLine($"Separate processes: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
     }
 
     private static void UpdateResultGrid(IWireFrameMesh mesh, IEnumerable<IntermeshTriangle> processTriangles, IEnumerable<FillTriangle> fillTriangles)
@@ -50,15 +48,6 @@ internal static class Grid
         {
             triangle.AddWireFrameTriangle(mesh);
         }
-        ConsoleLog.WriteLine($"Update result grid: Triangle removals {removalCount} Fills {fillTriangles.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
-
-        //var edges = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-        //var groups = edges.GroupBy(p => (int)Math.Floor(3 * Math.Log10(Point3D.Distance(p.A.Position, p.B.Position)))).OrderBy(g => g.Key).ToArray();
-        //Console.WriteLine();
-        //foreach (var group in groups)
-        //{
-        //    Console.WriteLine($"{Math.Pow(10, group.Key / 3.0).ToString("E2")}  {group.Count()}");
-        //}
-        Console.WriteLine();
+        //ConsoleLog.WriteLine($"Update result grid: Triangle removals {removalCount} Fills {fillTriangles.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
     }
 }

@@ -1,4 +1,5 @@
-﻿using BaseObjects.Transformations;
+﻿using BaseObjects;
+using BaseObjects.Transformations;
 using BasicObjects;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
@@ -6,9 +7,9 @@ using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using FundamentalMeshes;
+using Operations.Basics;
 using Operations.Groupings.Basics;
-using Operations.Groupings.FileExportImport;
-using Operations.Groupings.Types;
+using Console = BaseObjects.Console;
 using Operations.SetOperators;
 using WireFrameModels3._0;
 
@@ -18,6 +19,7 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
+            ConsoleLog.MaximumLevels = 1;
             CubeSphereTestOne(32);
             //CubeSphereTestTwo(64);
         }
@@ -27,6 +29,7 @@ namespace Projects.Projects
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
             var spheres = CreateTestSpheres(resolution);
             var output = cube.Difference(spheres);
+            output.ShowVitals();
             var spheres2 = spheres.Clone();
 
             ////spheres2.Apply(Transform.Translation(new Point3D(1.0001, 0.0001, 0.0001)));
@@ -35,6 +38,7 @@ namespace Projects.Projects
             spheres2.Apply(Transform.Translation(new Vector3D(1, 0, 0)));
             //spheres2.Apply(Transform.Translation(new Point3D(1.05, 0.04, 0.06)));
             output = output.Difference(spheres2);
+            output.ShowVitals();
             //var removalTriangle = output.Triangles.First();
             //var isRemoved = output.RemoveTriangle(output.Triangles.First());
             //Console.WriteLine($"Triangle removed {isRemoved}");
@@ -44,38 +48,47 @@ namespace Projects.Projects
             var spheres3 = spheres.Clone();
             spheres3.Apply(Transform.Translation(new Vector3D(0, 1, 0)));
             output = output.Difference(spheres3);
+            output.ShowVitals();
 
             var spheres4 = spheres.Clone();
             spheres4.Apply(Transform.Translation(new Vector3D(0, 0, 1)));
             output = output.Difference(spheres4);
+            output.ShowVitals();
 
             var spheres5 = spheres.Clone();
             spheres5.Apply(Transform.Translation(new Vector3D(0, 1, 1)));
             output = output.Difference(spheres5);
+            output.ShowVitals();
 
             var spheres6 = spheres.Clone();
             spheres6.Apply(Transform.Translation(new Vector3D(1, 0, 1)));
             output = output.Difference(spheres6);
+            output.ShowVitals();
 
             var spheres7 = spheres.Clone();
             spheres7.Apply(Transform.Translation(new Vector3D(1, 1, 0)));
             output = output.Difference(spheres7);
+            output.ShowVitals();
 
             var spheres8 = spheres.Clone();
             spheres8.Apply(Transform.Translation(new Vector3D(1, 1, 1)));
             output = output.Difference(spheres8);
-
-            //TableDisplays.ShowCountSpread("Position normal triangle counts", output.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            //TableDisplays.ShowCountSpread("Position normal counts", output.Positions, p => p.PositionNormals.Count);
-
-            Console.WriteLine($"Clusters {GroupingCollection.ExtractClusters(output.Triangles).Count()}");
-            Console.WriteLine();
+            //output.RemoveTagTriangles();
+            output.ShowSegmentLengths();
+            output.ShowVitals();
 
             PntFile.Export(output, $"Pnt/SphereDifference8 {resolution}");
             WavefrontFile.Export(output, $"Wavefront/SphereDifference8 {resolution}");
             //WavefrontFile.Export(spheres3A, $"Wavefront/Sphere3 {resolution}");
             //WavefrontFileGroups.ExportByClusters(output, "Wavefront/Clusters");
             //WavefrontFileGroups.ExportByClusters(output, o => NormalOverlay(o, 0.003), "Wavefront/Normals");
+            //{
+            //    var test = WireFrameMesh.Create();
+            //    //X: 0.5 Y: 0.2466388655593797 Z: 0.3341667387814071
+            //    var pointA = new Point3D(0.5, 0.2466388655593797, 0.3341667387814071);
+            //    test.AddTriangle(pointA, pointA, pointA);
+            //    WavefrontFile.Export(test, "Wavefront/ErrorPoints48");
+            //}
         }
 
         private void CubeSphereTestTwo(int resolution)

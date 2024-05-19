@@ -62,10 +62,10 @@ namespace Operations.Intermesh.Classes
                             //needComplexFill++;
                             
                             var fills = ComplexSegmentFills(triangle).ToArray();
-                            if (fills.Any(f => f.Triangle.IsCollinear))
-                            {
-                                Console.WriteLine($"Collinear fills elastic triangle id {triangle.Id} intermesh triangle id {triangle.Triangle.Id} position triangle id {triangle.Triangle.PositionTriangle.Id}");
-                            }
+                            //if (fills.Any(f => f.Triangle.IsCollinear))
+                            //{
+                            //    Console.WriteLine($"Collinear fills elastic triangle id {triangle.Id} intermesh triangle id {triangle.Triangle.Id} position triangle id {triangle.Triangle.PositionTriangle.Id}");
+                            //}
                             if (fills.Any())
                             { complexTriangles++; foreach (var fill in fills) { yield return fill; } }
                         }
@@ -73,7 +73,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
             //Console.WriteLine($"Needs complex fill {needComplexFill}");
-            Console.WriteLine($"Simple triangles0 {simpleTriangles0} Simple triangles1 {simpleTriangles1} Simple triangles2 {simpleTriangles2}  Simple triangles3 {simpleTriangles3} Complex triangles {complexTriangles}");
+            //Console.WriteLine($"Simple triangles0 {simpleTriangles0} Simple triangles1 {simpleTriangles1} Simple triangles2 {simpleTriangles2}  Simple triangles3 {simpleTriangles3} Complex triangles {complexTriangles}");
         }
 
         private static IEnumerable<FillTriangle> NoSegmentFills(ElasticTriangle triangle)

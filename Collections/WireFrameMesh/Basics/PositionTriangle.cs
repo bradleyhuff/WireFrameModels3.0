@@ -119,6 +119,11 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
+        public int AdjacentAnyCount
+        {
+            get { return (ABadjacents.Any() ? 1 : 0) + (BCadjacents.Any() ? 1 : 0) + (CAadjacents.Any() ? 1 : 0); }
+        }
+
         public IReadOnlyList<PositionTriangle> Averticies
         {
             get

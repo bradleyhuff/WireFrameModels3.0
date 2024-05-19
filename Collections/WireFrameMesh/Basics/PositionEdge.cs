@@ -36,6 +36,10 @@ namespace Collections.WireFrameMesh.Basics
         }
 
         public Combination2 Key { get; }
+        public Combination2 Cardinality
+        {
+            get { return new Combination2(A.PositionObject?.Cardinality ?? 0, B.PositionObject?.Cardinality ?? 0); }
+        }
 
         public bool ContainsPosition(Position position)
         {

@@ -7,6 +7,7 @@ namespace BaseObjects
     {
         private static Stack<string> stack = new Stack<string>();
         private static ConsoleColor[] colors = [ConsoleColor.Green, ConsoleColor.Cyan, ConsoleColor.Gray];
+        public static int MaximumLevels = 16;
 
         public static void Push(string parent)
         {
@@ -19,6 +20,7 @@ namespace BaseObjects
         }
         public static void WriteLine(string message)
         {
+            if (stack.Count >= MaximumLevels) { return; }
             foreach (var element in stack.Reverse().Select((s, i) => new { Message = s, Index = i }))
             {
                 Console.Write($"{element.Message} > ", colors[element.Index % colors.Length]);
@@ -27,6 +29,7 @@ namespace BaseObjects
         }
         public static void WriteNextLine(string message)
         {
+            if (stack.Count >= MaximumLevels) { return; }
             foreach (var element in stack.Reverse().Select((s, i) => new { Message = s, Index = i }))
             {
                 Console.Write($"{" ".Repeat(element.Message.Length)}   ");
@@ -35,6 +38,7 @@ namespace BaseObjects
         }
         public static void WriteNextLine(string message, ConsoleColor color)
         {
+            if (stack.Count >= MaximumLevels) { return; }
             foreach (var element in stack.Reverse().Select((s, i) => new { Message = s, Index = i }))
             {
                 Console.Write($"{" ".Repeat(element.Message.Length)}   ");

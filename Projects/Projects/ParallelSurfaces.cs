@@ -69,16 +69,7 @@ namespace Projects.Projects
 
             //var corners = banana.Positions.Where(p => p.Cardinality == 3).ToArray();
 
-            //var segments = banana.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-            //{
-            //    var groups = segments.GroupBy(p => (int)Math.Floor(3 * Math.Log10(Point3D.Distance(p.A.Position, p.B.Position)))).OrderBy(g => g.Key).ToArray();
-            //    Console.WriteLine();
-            //    foreach (var group in groups)
-            //    {
-            //        Console.WriteLine($"{Math.Pow(10, group.Key / 3.0).ToString("E2")}  {group.Count()}", ConsoleColor.Green);
-            //    }
-            //    Console.WriteLine();
-            //}
+            //banana.ShowSegmentLengths();
         }
     }
 }

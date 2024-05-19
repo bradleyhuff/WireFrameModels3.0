@@ -1,13 +1,16 @@
 ﻿using BasicObjects.GeometricObjects;
+using Operations.PositionRemovals.Interfaces;
+using Operations.SurfaceSegmentChaining.Basics;
 
 namespace Operations.PlanarFilling.Filling.Internals
 {
-    internal class PlanarLoopSet
+    internal class PlanarLoopSet<T>
     {
-        internal PlanarLoopSet(Plane plane, double testSegmentLength, IReadOnlyList<Ray3D> referenceArray, int[] perimeterIndexLoop, int triangleID)
+        internal PlanarLoopSet(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillConditionals<T> fillConditionals, int[] perimeterIndexLoop, int triangleID)
         {
             Plane = plane;
             PerimeterIndexLoop = perimeterIndexLoop;
+            _fillConditionals = fillConditionals;
             _referenceArray = referenceArray;
             _testSegmentLength = testSegmentLength;
             _triangleID = triangleID;
@@ -19,12 +22,13 @@ namespace Operations.PlanarFilling.Filling.Internals
         public List<int[]> IndexSpurs { get; } = new List<int[]>();
         public bool FillInteriorLoops { get; set; }
 
-        private IReadOnlyList<Ray3D> _referenceArray;
+        private IFillConditionals<T> _fillConditionals;
+        private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
         private double _testSegmentLength;
         private int _triangleID;
-        private PlanarLoop _perimeterLoop;
-        private List<PlanarLoop> _loops;
-        private List<PlanarLoop> _spurredLoops;
+        private PlanarLoop<T> _perimeterLoop;
+        private List<PlanarLoop<T>> _loops;
+        private List<PlanarLoop<T>> _spurredLoops;
         private List<IndexSurfaceTriangle> _indexedFillTriangles;
 
         public double TestSegmentLength
@@ -35,36 +39,36 @@ namespace Operations.PlanarFilling.Filling.Internals
             }
         }
 
-        public PlanarLoop PerimeterLoop
+        public PlanarLoop<T> PerimeterLoop
         {
             get
             {
                 if (_perimeterLoop is null)
                 {
-                    _perimeterLoop = new PlanarLoop(/*_planar,*/ Plane, _testSegmentLength, _referenceArray, PerimeterIndexLoop, _triangleID);
+                    _perimeterLoop = new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillConditionals, PerimeterIndexLoop, _triangleID);
                 }
                 return _perimeterLoop;
             }
         }
-        public IReadOnlyList<PlanarLoop> Loops
+        public IReadOnlyList<PlanarLoop<T>> Loops
         {
             get
             {
                 if (_loops is null)
                 {
-                    _loops = IndexLoops.Select(l => new PlanarLoop(Plane, _testSegmentLength, _referenceArray, l, _triangleID)).ToList();
+                    _loops = IndexLoops.Select(l => new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillConditionals, l, _triangleID)).ToList();
                 }
                 return _loops;
             }
         }
 
-        public IReadOnlyList<PlanarLoop> SpurredLoops
+        public IReadOnlyList<PlanarLoop<T>> SpurredLoops
         {
             get
             {
                 if (_spurredLoops is null)
                 {
-                    _spurredLoops = IndexSpurredLoops.Select(l => new PlanarLoop(Plane, _testSegmentLength, _referenceArray, l, _triangleID)).ToList();
+                    _spurredLoops = IndexSpurredLoops.Select(l => new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillConditionals, l, _triangleID)).ToList();
                 }
                 return _spurredLoops;
             }

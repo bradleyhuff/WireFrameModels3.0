@@ -28,7 +28,7 @@ namespace Projects.Projects
 
         private void ConeTest()
         {
-            var cone = Cone.Create(0.5, 3, 128);
+            var cone = Cone.Create(0.5, 3, 16);
             //cone.Transform(Transform.Scale(0.10, 1, 1));
             //cone.Apply(Transform.ShearXZ(2, 2));
 

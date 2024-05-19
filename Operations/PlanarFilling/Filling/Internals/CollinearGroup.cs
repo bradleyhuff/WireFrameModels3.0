@@ -2,9 +2,9 @@
 
 namespace Operations.PlanarFilling.Filling.Internals
 {
-    internal class CollinearGroup
+    internal class CollinearGroup<T>
     {
-        private List<PlanarSegment> _collinears = new List<PlanarSegment>();
+        private List<PlanarSegment<T>> _collinears = new List<PlanarSegment<T>>();
         private List<Point3D> _links = new List<Point3D>();
         private Point3D _start;
         private Point3D _end;
@@ -32,7 +32,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             }
         }
 
-        public bool AddCollinear(PlanarSegment collinear)
+        public bool AddCollinear(PlanarSegment<T> collinear)
         {
             if (!_collinears.Any()) { _collinears.Add(collinear); _start = collinear.Segment.Start; _end = collinear.Segment.End; return true; }
 
@@ -67,7 +67,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             return false;
         }
 
-        public bool AddLink(PlanarSegment link)
+        public bool AddLink(PlanarSegment<T> link)
         {
             if (_start == link.Segment.Start) { _links.Add(link.Segment.End); return true; }
             if (_start == link.Segment.End) { _links.Add(link.Segment.Start); return true; }

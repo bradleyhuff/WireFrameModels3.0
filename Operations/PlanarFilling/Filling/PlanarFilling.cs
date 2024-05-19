@@ -1,5 +1,6 @@
 ﻿using Operations.PlanarFilling.Basics;
 using Operations.PlanarFilling.Filling.Internals;
+using Operations.PositionRemovals.Interfaces;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Interfaces;
 using static Operations.SurfaceSegmentChaining.Chaining.Extensions.SpurChaining;
@@ -8,19 +9,23 @@ namespace Operations.PlanarFilling.Filling
 {
     internal partial class PlanarFilling<G, T> where G : PlanarFillingGroup
     {
+        private IFillConditionals<T> _fillConditionals;
         private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
         private IReadOnlyList<int[]> _perimeterIndexLoops;
         private IReadOnlyList<int[]> _indexLoops;
         private IReadOnlyList<int[]> _indexSpurredLoops;
         private IReadOnlyList<int[]> _indexSpurs;
-        private List<PlanarLoopSet> _planarLoopSets = new List<PlanarLoopSet>();
+        private List<PlanarLoopSet<T>> _planarLoopSets = new List<PlanarLoopSet<T>>();
         private ISurfaceSegmentChaining<G, T> _chaining;
         private List<IndexSurfaceTriangle> _indexedFillTriangles;
 
-        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, int triangleID)
+        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, int triangleID) : this(chaining, null, triangleID) { }
+
+        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, IFillConditionals<T> fillConditionals, int triangleID)
         {
             _triangleID = triangleID;
             _chaining = chaining;
+            _fillConditionals = fillConditionals;
             _referenceArray = chaining.ReferenceArray;
             GetProtectedLoops();
             BuildPlanarLoopSets();
@@ -64,7 +69,7 @@ namespace Operations.PlanarFilling.Filling
 
         private void BuildPlanarLoopSets()
         {
-            var table = new Dictionary<int, List<PlanarLoopSet>>();
+            var table = new Dictionary<int, List<PlanarLoopSet<T>>>();
 
             for (int i = 0; i < _chaining.PerimeterLoopGroupKeys.Count; i++)
             {
@@ -72,11 +77,11 @@ namespace Operations.PlanarFilling.Filling
                 var groupObject = _chaining.PerimeterLoopGroupObjects[i];
                 if (!table.ContainsKey(key))
                 {
-                    table[key] = new List<PlanarLoopSet>();
+                    table[key] = new List<PlanarLoopSet<T>>();
                 }
                 table[key].Add(
-                        new PlanarLoopSet(groupObject.Plane, groupObject.TestSegmentLength,
-                            _referenceArray, _perimeterIndexLoops[i], _triangleID)
+                        new PlanarLoopSet<T>(groupObject.Plane, groupObject.TestSegmentLength,
+                            _referenceArray, _fillConditionals, _perimeterIndexLoops[i], _triangleID)
                     );
                 table[key].Last().FillInteriorLoops = true;
             }
@@ -104,23 +109,23 @@ namespace Operations.PlanarFilling.Filling
             _planarLoopSets = table.Values.SelectMany(k => k).ToList();
         }
 
-        private void CombinePerimeterLoops(Dictionary<int, List<PlanarLoopSet>> table)
+        private void CombinePerimeterLoops(Dictionary<int, List<PlanarLoopSet<T>>> table)
         {
-            var newTable = new Dictionary<int, List<PlanarLoopSet>>();
+            var newTable = new Dictionary<int, List<PlanarLoopSet<T>>>();
             foreach (var multiplePerimeterLoops in table.Where(p => p.Value.Count > 1))
             {
                 //Console.WriteLine($"Combine {multiplePerimeterLoops.Value.Count} perimeter loops");
                 var loops = multiplePerimeterLoops.Value.Select(l => l.PerimeterLoop).ToArray();
-                List<PlanarLoop> outerMostLoops;
-                List<PlanarLoop> restOfLoops;
-                PlanarLoop.ExtractOuterMostLoopsFromRest(loops, out outerMostLoops, out restOfLoops);
+                List<PlanarLoop<T>> outerMostLoops;
+                List<PlanarLoop<T>> restOfLoops;
+                PlanarLoop<T>.ExtractOuterMostLoopsFromRest(loops, out outerMostLoops, out restOfLoops);
 
                 var first = multiplePerimeterLoops.Value.First();
-                var newList = new List<PlanarLoopSet>();
+                var newList = new List<PlanarLoopSet<T>>();
                 newTable[multiplePerimeterLoops.Key] = newList;
                 newList.Add(
-                    new PlanarLoopSet(first.Plane, first.TestSegmentLength,
-                    _referenceArray, outerMostLoops[0].IndexLoop.ToArray(), _triangleID));
+                    new PlanarLoopSet<T>(first.Plane, first.TestSegmentLength,
+                    _referenceArray,_fillConditionals, outerMostLoops[0].IndexLoop.ToArray(), _triangleID));
                 newList[0].IndexLoops.AddRange(restOfLoops.Select(l => l.IndexLoop.ToArray()));
                 newList[0].FillInteriorLoops = false;
             }
@@ -134,9 +139,9 @@ namespace Operations.PlanarFilling.Filling
         {
             foreach (var planarLoopSet in _planarLoopSets)
             {
-                List<PlanarLoop> outerMostLoops;
-                List<PlanarLoop> restOfLoops;
-                PlanarLoop.ExtractOuterMostLoopsFromRest(planarLoopSet.Loops, out outerMostLoops, out restOfLoops);
+                List<PlanarLoop<T>> outerMostLoops;
+                List<PlanarLoop<T>> restOfLoops;
+                PlanarLoop<T>.ExtractOuterMostLoopsFromRest(planarLoopSet.Loops, out outerMostLoops, out restOfLoops);
 
                 planarLoopSet.PerimeterLoop.InternalLoops = outerMostLoops;
                 foreach (var outerMostLoop in outerMostLoops)
@@ -147,14 +152,14 @@ namespace Operations.PlanarFilling.Filling
             //Console.WriteLine($"Loop compares {InternalPlanarLoop.Compares}");
         }
 
-        private void SetLoopNesting(PlanarLoop exteriorLoop, List<PlanarLoop> restOfLoops)
+        private void SetLoopNesting(PlanarLoop<T> exteriorLoop, List<PlanarLoop<T>> restOfLoops)
         {
             var interiorLoops = restOfLoops.Where(r => exteriorLoop.OutLineContainsLoop(r)).ToArray();
             if (!interiorLoops.Any()) { return; }
 
-            List<PlanarLoop> outerMostLoops;
-            List<PlanarLoop> restOfLoops2;
-            PlanarLoop.ExtractOuterMostLoopsFromRest(interiorLoops, out outerMostLoops, out restOfLoops2);
+            List<PlanarLoop<T>> outerMostLoops;
+            List<PlanarLoop<T>> restOfLoops2;
+            PlanarLoop<T>.ExtractOuterMostLoopsFromRest(interiorLoops, out outerMostLoops, out restOfLoops2);
 
             exteriorLoop.InternalLoops = outerMostLoops;
             foreach (var outerMostLoop in outerMostLoops)

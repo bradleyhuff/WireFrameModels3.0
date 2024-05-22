@@ -5,13 +5,14 @@ using Collections.Buckets;
 using Operations.Regions;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.PositionRemovals.Interfaces;
+using Collections.WireFrameMesh.Basics;
 
 namespace Operations.PlanarFilling.Filling.Internals
 {
     internal class PlanarLoop<T> : IBox
     {
         private static int _id = 0;
-        public PlanarLoop(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillConditionals<T> fillConditionals, int[] indexLoop, int triangleID)
+        public PlanarLoop(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, ISharedFillConditionals fillConditionals, int[] indexLoop, int triangleID)
         {
             Id = _id++;
             _triangleID = triangleID;
@@ -22,7 +23,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             _fillConditionals = fillConditionals;
         }
 
-        IFillConditionals<T> _fillConditionals;
+        ISharedFillConditionals _fillConditionals;
         IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
         double _testSegmentLength;
         PlanarRegions<T> _shellOutLine;
@@ -383,9 +384,9 @@ namespace Operations.PlanarFilling.Filling.Internals
         private bool FillIsAllowed(int leftIndex, int index, int rightIndex)
         {
             return _fillConditionals?.AllowFill(
-                _referenceArray[IndexLoop[leftIndex]].Reference, 
-                _referenceArray[IndexLoop[index]].Reference, 
-                _referenceArray[IndexLoop[rightIndex]].Reference) ?? true;
+                _referenceArray[IndexLoop[leftIndex]].Reference as PositionNormal, 
+                _referenceArray[IndexLoop[index]].Reference as PositionNormal, 
+                _referenceArray[IndexLoop[rightIndex]].Reference as PositionNormal) ?? true;
         }
 
         private bool CrossesInterior(int leftIndex, int rightIndex)

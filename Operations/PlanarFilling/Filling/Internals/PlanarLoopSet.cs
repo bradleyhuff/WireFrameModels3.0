@@ -6,7 +6,7 @@ namespace Operations.PlanarFilling.Filling.Internals
 {
     internal class PlanarLoopSet<T>
     {
-        internal PlanarLoopSet(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillConditionals<T> fillConditionals, int[] perimeterIndexLoop, int triangleID)
+        internal PlanarLoopSet(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, ISharedFillConditionals fillConditionals, int[] perimeterIndexLoop, int triangleID)
         {
             Plane = plane;
             PerimeterIndexLoop = perimeterIndexLoop;
@@ -22,7 +22,7 @@ namespace Operations.PlanarFilling.Filling.Internals
         public List<int[]> IndexSpurs { get; } = new List<int[]>();
         public bool FillInteriorLoops { get; set; }
 
-        private IFillConditionals<T> _fillConditionals;
+        private ISharedFillConditionals _fillConditionals;
         private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
         private double _testSegmentLength;
         private int _triangleID;

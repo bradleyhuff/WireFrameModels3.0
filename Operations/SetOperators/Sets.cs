@@ -46,8 +46,8 @@ namespace Operations.SetOperators
             sum.RemoveCollinearEdgePoints();
             sum.RemoveCoplanarSurfacePoints();
 
-            //var tags = sum.RemoveTagTriangles();
-            //Console.WriteLine($"Tags removed {tags}");
+            var tags = sum.RemoveTagTriangles();
+            Console.WriteLine($"Tags removed {tags}");
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");

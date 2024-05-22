@@ -45,7 +45,7 @@ namespace FundamentalMeshes
             return cone;
         }
 
-        internal class ConvergePoint : IFillConditionals<PositionNormal>
+        internal class ConvergePoint : ISharedFillConditionals
         {
             public Position ConvergeAt { get; set; }
             public bool AllowFill(PositionNormal a, PositionNormal b, PositionNormal c)

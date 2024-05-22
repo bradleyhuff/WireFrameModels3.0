@@ -1,9 +1,9 @@
 ﻿using Collections.WireFrameMesh.Basics;
 using Operations.PositionRemovals.Interfaces;
 
-namespace Operations.PositionRemovals.Internals
+namespace Operations.PositionRemovals.Conditionals
 {
-    internal class EdgeExclusions : IFillConditionals<PositionNormal>
+    internal class SurfaceEdgeConditionals : ISharedFillConditionals
     {
         public bool AllowFill(PositionNormal a, PositionNormal b, PositionNormal c)
         {

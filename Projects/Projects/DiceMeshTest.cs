@@ -5,6 +5,7 @@ using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using FundamentalMeshes;
+using Operations.Basics;
 using Operations.Groupings.FileExportImport;
 using Operations.SetOperators;
 using System;
@@ -59,6 +60,8 @@ namespace Projects.Projects
             allSpheres.AddGrid(spheres[8]);
 
             var grid = cube.Difference(allSpheres);
+
+            grid.ShowVitals();
 
             PntFile.Export(grid, "Pnt/Dice");
             WavefrontFile.Export(grid, "Wavefront/Dice");

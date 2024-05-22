@@ -9,7 +9,7 @@ namespace Operations.PlanarFilling.Filling
 {
     internal partial class PlanarFilling<G, T> where G : PlanarFillingGroup
     {
-        private IFillConditionals<T> _fillConditionals;
+        private ISharedFillConditionals _fillConditionals;
         private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
         private IReadOnlyList<int[]> _perimeterIndexLoops;
         private IReadOnlyList<int[]> _indexLoops;
@@ -21,7 +21,7 @@ namespace Operations.PlanarFilling.Filling
 
         public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, int triangleID) : this(chaining, null, triangleID) { }
 
-        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, IFillConditionals<T> fillConditionals, int triangleID)
+        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, ISharedFillConditionals fillConditionals, int triangleID)
         {
             _triangleID = triangleID;
             _chaining = chaining;

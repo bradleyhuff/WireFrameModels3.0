@@ -7,6 +7,7 @@ using Collections.WireFrameMesh.Interfaces;
 using Operations.Basics;
 using Operations.PlanarFilling.Basics;
 using Operations.PlanarFilling.Filling;
+using Operations.PositionRemovals.Conditionals;
 using Operations.PositionRemovals.Interfaces;
 using Operations.PositionRemovals.Internals;
 using Operations.SurfaceSegmentChaining.Basics;
@@ -84,79 +85,15 @@ namespace Operations.PositionRemovals
 
             Console.WriteLine($"Short segments {shortSegments.Length}");
 
-            int lastLength = -1;
-            while (shortSegments.Length > 0 && lastLength != shortSegments.Length)
-            {
-                lastLength = shortSegments.Length;
-                var removalPositions = GetEdgeRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
+            ShortEdgeSegmentRemoval(mesh, minimumLength);
+            ShortSurfaceSegmentRemoval(mesh, minimumLength);
+            ShortEdgeSurfaceSegmentRemoval(mesh, minimumLength);
+            ShortEdgeCornerSegmentRemoval(mesh, minimumLength);
 
-                GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
+            //RemoveTagTriangles(mesh);
 
-                mesh.RemovePositions(markedPositions);
-
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-                shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
-                Console.WriteLine($"Edge short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
-            }
-
-            lastLength = -1;
-            while (shortSegments.Length > 0 && lastLength != shortSegments.Length)
-            {
-                lastLength = shortSegments.Length;
-                var removalPositions = GetSurfaceRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
-
-                GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
-
-                mesh.RemovePositions(markedPositions);
-
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-                shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
-                Console.WriteLine($"Surface short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
-            }
-
-            //segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-            //shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
-            //var mixedPositions = GetMixedRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
-            //Console.WriteLine($"Mixed short positions {mixedPositions.Length}");
-            //Console.WriteLine($"Remaining short segments {shortSegments.Length}");
-
-            lastLength = -1;
-            while (shortSegments.Length > 0 && lastLength != shortSegments.Length)
-            {
-                lastLength = shortSegments.Length;
-                var removalPositions = GetMixedRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
-
-                GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
-
-                mesh.RemovePositions(markedPositions, new EdgeExclusions()/*, fillingIsAllowed*/);
-
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-                shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
-                Console.WriteLine($"Mixed short segments {shortSegments.Length}");
-            }
-
-            //lastLength = -1;
-            //while (shortSegments.Length > 0 && lastLength != shortSegments.Length)
-            //{
-            //    lastLength = shortSegments.Length;
-            //    var removalPositions = GetEdgeCornerRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
-
-            //    GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
-
-            //    mesh.RemovePositions(markedPositions, fillingIsAllowed2);
-
-            //    segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-            //    shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
-            //    Console.WriteLine($"Edge Corner short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
-            //}
-
-            //segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-            //shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
-            var mixedPositions = GetMixedRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
-            Console.WriteLine($"Mixed short positions {mixedPositions.Length}");
-            //TableDisplays.ShowCountSpread("Remaining short positions", shortSegments, s => );
-
-
+            segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
             Console.WriteLine($"Remaining short segments {shortSegments.Length}");
             var groups = shortSegments.GroupBy(s => s.Cardinality, new Combination2Comparer()).ToArray();
             foreach (var group in groups.OrderBy(g => g.Key.A))
@@ -169,13 +106,93 @@ namespace Operations.PositionRemovals
             ConsoleLog.WriteLine($"Remove short segments: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
         }
 
-        //public static int RemoveTagTriangles(this IWireFrameMesh mesh)
-        //{
-        //    var tagTriangles = mesh.Triangles.Where(t => t.AdjacentAnyCount <= 1).ToArray();
-        //    var removed = 0;
-        //    foreach(var triangle in tagTriangles) { removed += mesh.RemoveTriangle(triangle) ? 1 : 0; }
-        //    return removed;
-        //}
+        private static void ShortEdgeSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
+        {
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
+
+            while (shortSegments.Length > 0)
+            {
+                var removalPositions = GetEdgeRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
+                if (removalPositions.Length == 0) { break; }
+
+                GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
+
+                mesh.RemovePositions(markedPositions);
+
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
+                Console.WriteLine($"Edge short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
+            }
+        }
+
+        private static void ShortSurfaceSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
+        {
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
+            while (shortSegments.Length > 0)
+            {
+                var removalPositions = GetSurfaceRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
+                if (removalPositions.Length == 0) { break; }
+
+                GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
+
+                mesh.RemovePositions(markedPositions);
+
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
+                Console.WriteLine($"Surface short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
+            }
+        }
+
+        private static void ShortEdgeSurfaceSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
+        {
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
+
+            while (shortSegments.Length > 0)
+            {
+                var removalPositions = GetEdgeSurfaceRemovalPositions(shortSegments).DistinctBy(p => p.Id).ToArray();
+                if (removalPositions.Length == 0) { break; }
+
+                GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
+
+                mesh.RemovePositions(markedPositions, new SurfaceEdgeConditionals());
+
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
+                Console.WriteLine($"Edge surface short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
+            }
+        }
+
+        private static void ShortEdgeCornerSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
+        {
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
+
+            //while (shortSegments.Length > 0)
+            do
+            {
+                var removalPositions = GetEdgeCornerRemovalPositions(shortSegments).Select(p => new EdgeCornerConditionals(p.Position, p.Edge)).ToArray();
+                if (removalPositions.Length == 0) { break; }
+
+                GetMarkedPositions(removalPositions, out List<IPositionFillConditionals> markedPositions, out List<IPositionFillConditionals> unmarkedPositions);
+                mesh.RemovePositions(markedPositions.ToArray());
+
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
+                Console.WriteLine($"Edge Corner short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
+            } while (shortSegments.Length > 0);
+        }
+
+        public static int RemoveTagTriangles(this IWireFrameMesh mesh)
+        {
+            var tagTriangles = mesh.Triangles.Where(t => t.AdjacentAnyCount <= 2).ToArray();
+            Console.WriteLine($"Tag triangles {string.Join(",", tagTriangles.Select(t => $"[{string.Join(",", t.Positions.Select(p => p.PositionObject.Id))}]"))}");
+            var removed = 0;
+            //foreach (var triangle in tagTriangles) { removed += mesh.RemoveTriangle(triangle) ? 1 : 0; }
+            return removed;
+        }
 
         private static IEnumerable<Position> GetEdgeRemovalPositions(PositionEdge[] segments)
         {
@@ -186,13 +203,10 @@ namespace Operations.PositionRemovals
             }
         }
 
-        private static IEnumerable<Position> GetEdgeCornerRemovalPositions(PositionEdge[] segments)
+        private static IEnumerable<RemovalSet> GetEdgeCornerRemovalPositions(PositionEdge[] segments)
         {
-            foreach (var segment in segments.Where(s => s.Cardinality == new Combination2(2, 3)))
-            {
-                if (segment.B.PositionObject.Cardinality == 2) { yield return segment.B.PositionObject; continue; }
-                yield return segment.A.PositionObject;
-            }
+            return segments.Where(s => s.Cardinality.A == 2 && s.Cardinality.B > 2).
+                Select(e => new RemovalSet() { Edge = e, Position = e.A.PositionObject.Cardinality == 2 ? e.A : e.B });
         }
 
         private static IEnumerable<Position> GetSurfaceRemovalPositions(PositionEdge[] segments)
@@ -204,13 +218,12 @@ namespace Operations.PositionRemovals
             }
         }
 
-        private static IEnumerable<Position> GetMixedRemovalPositions(PositionEdge[] segments)
+        private static IEnumerable<Position> GetEdgeSurfaceRemovalPositions(PositionEdge[] segments)
         {
             foreach (var segment in segments.Where(s => s.Cardinality == new Combination2(1, 2)))
             {
-                if (segment.A.PositionObject.Cardinality > segment.B.PositionObject.Cardinality) { yield return segment.B.PositionObject; continue; }
-
-                if (segment.B.PositionObject.Cardinality > segment.A.PositionObject.Cardinality) { yield return segment.A.PositionObject; continue; }
+                if (segment.A.PositionObject.Cardinality == 1) { yield return segment.A.PositionObject; }
+                yield return segment.B.PositionObject;
             }
         }
 
@@ -230,11 +243,27 @@ namespace Operations.PositionRemovals
             }
         }
 
+        private static void GetMarkedPositions(IPositionFillConditionals[] positions, out List<IPositionFillConditionals> markedPositions, out List<IPositionFillConditionals> unmarkedPositions)
+        {
+            markedPositions = new List<IPositionFillConditionals>();
+            unmarkedPositions = new List<IPositionFillConditionals>();
+
+            if (positions.Length == 0) { return; }
+            positions[0].Triangles.First().GridClearMarks();
+
+            foreach (var position in positions)
+            {
+                if (position.Triangles.Any(t => t.IsMarked)) { unmarkedPositions.Add(position); continue; }
+                foreach (var triangle in position.Triangles) { triangle.Mark(); }
+                markedPositions.Add(position);
+            }
+        }
+
         public static void RemovePosition(this IWireFrameMesh mesh, Position position)
         {
             mesh.RemovePosition(position, null);
         }
-        public static void RemovePosition(this IWireFrameMesh mesh, Position position, IFillConditionals<PositionNormal> fillConditionals)
+        public static void RemovePosition(this IWireFrameMesh mesh, Position position, ISharedFillConditionals fillConditionals)
         {
             var trianglesToRemove = new List<PositionTriangle>();
             var fillingsToAdd = new List<PositionNormal[]>();
@@ -265,7 +294,7 @@ namespace Operations.PositionRemovals
             mesh.RemovePositions(positions, null);
         }
 
-        public static void RemovePositions(this IWireFrameMesh mesh, IEnumerable<Position> positions, IFillConditionals<PositionNormal> fillConditionals)
+        public static void RemovePositions(this IWireFrameMesh mesh, IEnumerable<Position> positions, ISharedFillConditionals fillConditionals)
         {
             GetMarkedPositions(positions.ToArray(), out List<Position> markedPositions, out List<Position> unmarkedPositions);
 
@@ -282,9 +311,9 @@ namespace Operations.PositionRemovals
                         var segmentSet = CreateSurfaceSegmentSet(positionNormal, triangles);
                         var collection = new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(segmentSet);
                         var chain = SurfaceSegmentChaining<PlanarFillingGroup, PositionNormal>.Create(collection);
- 
+
                         try
-                        {                            
+                        {
                             var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, fillConditionals, position.Id);
                             var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
 
@@ -311,19 +340,61 @@ namespace Operations.PositionRemovals
 
         }
 
-        //private static bool fillingIsAllowed(PositionNormal a, PositionNormal b, PositionNormal c)
-        //{
-        //    //return a.PositionObject.Cardinality != 2 || b.PositionObject.Cardinality != 2 || c.PositionObject.Cardinality != 2;
-        //    //return true;
-        //    return a.PositionObject.Cardinality < 2 || b.PositionObject.Cardinality < 2 || c.PositionObject.Cardinality < 2;
-        //}
+        public static void RemovePositions(this IWireFrameMesh mesh, IPositionFillConditionals[] positions)
+        {
+            GetMarkedPositions(positions,
+                out List<IPositionFillConditionals> markedPositions,
+                out List<IPositionFillConditionals> unmarkedPositions);
 
-        //private static bool fillingIsAllowed2(PositionNormal a, PositionNormal b, PositionNormal c)
-        //{
-        //    //return true;
-        //    //return a.PositionObject.Cardinality != 2 || b.PositionObject.Cardinality != 2 || c.PositionObject.Cardinality != 2;
-        //    return (a.PositionObject.Cardinality < 3 || b.PositionObject.Cardinality < 3 || c.PositionObject.Cardinality < 3) && (a.PositionObject.Cardinality != 2 || b.PositionObject.Cardinality != 2 || c.PositionObject.Cardinality != 2);
-        //}
+            //var position381599Before = mesh.Positions.Where(p => p.Id == 381599);
+
+            while (markedPositions.Count > 0)
+            {
+                var trianglesToRemove = new List<PositionTriangle>();
+                var fillingsToAdd = new List<PositionNormal[]>();
+
+                foreach (var position in markedPositions)
+                {
+                    //if (((EdgeCornerConditionals)position).Segment.Key == new Combination2(331178, 381599)) { continue; }
+                    //Console.WriteLine($"Fill conditional segment {((EdgeCornerConditionals)position).Segment.Key} Removal point {position.RemovalPoint.PositionObject.Id}");
+                    //var show = ((EdgeCornerConditionals)position).OppositePoint.Id == 381940;
+                    //if (((EdgeCornerConditionals)position).OppositePoint.Id == 381940)
+                    //{
+                    //}
+                    foreach (var positionNormal in position.RemovalPoint.PositionObject.PositionNormals)
+                    {
+                        var triangles = positionNormal.Triangles.ToArray();
+                        //if (show) Console.WriteLine($"Position {positionNormal.PositionObject.Id} triangles {triangles.Length}", ConsoleColor.Yellow);
+                        //if (show) Console.WriteLine($"Triangles {string.Join(",", triangles.Select(t => $"[{string.Join(",", t.Positions.Select(p => p.PositionObject.Id))}]"))}");
+                        var segmentSet = CreateSurfaceSegmentSet(positionNormal, triangles);
+                        var collection = new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(segmentSet);
+                        var chain = SurfaceSegmentChaining<PlanarFillingGroup, PositionNormal>.Create(collection);
+                        //if (show) Console.WriteLine($"Chain [{string.Join(",", (chain.PerimeterLoops.FirstOrDefault() ?? Array.Empty<SurfaceRayContainer<PositionNormal>>()).Select(p => p.Reference.PositionObject.Id))}]");
+
+                        var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, position, positionNormal.PositionObject.Id);
+                        var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
+                        //if (show) Console.WriteLine($"Filling {string.Join(",", fillings.Select(f => $"[{string.Join(",", f.Select(p => p.PositionObject.Id))}]"))}");
+
+                        var fillingIndicies = fillings.Select(f => new int[] { f[0].PositionObject.Id, f[1].PositionObject.Id, f[2].PositionObject.Id });
+                        //if (show) Console.WriteLine($"Chain {chain.PerimeterLoops.FirstOrDefault()?.Length} filling {fillings.Count()}", ConsoleColor.Yellow);
+
+                        fillingsToAdd.AddRange(fillings);
+                        trianglesToRemove.AddRange(triangles);
+                    }
+                }
+
+
+                foreach (var filling in fillingsToAdd)
+                {
+                    mesh.AddTriangle(filling[0], filling[1], filling[2]);
+                }
+                mesh.RemoveAllTriangles(trianglesToRemove);
+
+                //var position381599After = mesh.Positions.Where(p => p.Id == 381599);
+
+                GetMarkedPositions(unmarkedPositions.ToArray(), out markedPositions, out unmarkedPositions);
+            }
+        }
 
         private static SurfaceSegmentSets<PlanarFillingGroup, PositionNormal> CreateSurfaceSegmentSet(PositionNormal positionNormal, IEnumerable<PositionTriangle> triangles)
         {

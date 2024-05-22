@@ -20,7 +20,7 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             ConsoleLog.MaximumLevels = 1;
-            CubeSphereTestOne(32);
+            CubeSphereTestOne(96);
             //CubeSphereTestTwo(64);
         }
 
@@ -73,7 +73,7 @@ namespace Projects.Projects
             var spheres8 = spheres.Clone();
             spheres8.Apply(Transform.Translation(new Vector3D(1, 1, 1)));
             output = output.Difference(spheres8);
-            //output.RemoveTagTriangles();
+
             output.ShowSegmentLengths();
             output.ShowVitals();
 

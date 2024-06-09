@@ -9,7 +9,7 @@ namespace Operations.PlanarFilling.Filling
 {
     internal partial class PlanarFilling<G, T> where G : PlanarFillingGroup
     {
-        private ISharedFillConditionals _fillConditionals;
+        private IFillAction<T> _fillAction;
         private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
         private IReadOnlyList<int[]> _perimeterIndexLoops;
         private IReadOnlyList<int[]> _indexLoops;
@@ -21,11 +21,11 @@ namespace Operations.PlanarFilling.Filling
 
         public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, int triangleID) : this(chaining, null, triangleID) { }
 
-        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, ISharedFillConditionals fillConditionals, int triangleID)
+        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, IFillAction<T> fillAction,  int triangleID)
         {
             _triangleID = triangleID;
             _chaining = chaining;
-            _fillConditionals = fillConditionals;
+            _fillAction = fillAction;
             _referenceArray = chaining.ReferenceArray;
             GetProtectedLoops();
             BuildPlanarLoopSets();
@@ -81,7 +81,7 @@ namespace Operations.PlanarFilling.Filling
                 }
                 table[key].Add(
                         new PlanarLoopSet<T>(groupObject.Plane, groupObject.TestSegmentLength,
-                            _referenceArray, _fillConditionals, _perimeterIndexLoops[i], _triangleID)
+                            _referenceArray, _fillAction, _perimeterIndexLoops[i], _triangleID)
                     );
                 table[key].Last().FillInteriorLoops = true;
             }
@@ -114,7 +114,6 @@ namespace Operations.PlanarFilling.Filling
             var newTable = new Dictionary<int, List<PlanarLoopSet<T>>>();
             foreach (var multiplePerimeterLoops in table.Where(p => p.Value.Count > 1))
             {
-                //Console.WriteLine($"Combine {multiplePerimeterLoops.Value.Count} perimeter loops");
                 var loops = multiplePerimeterLoops.Value.Select(l => l.PerimeterLoop).ToArray();
                 List<PlanarLoop<T>> outerMostLoops;
                 List<PlanarLoop<T>> restOfLoops;
@@ -125,7 +124,7 @@ namespace Operations.PlanarFilling.Filling
                 newTable[multiplePerimeterLoops.Key] = newList;
                 newList.Add(
                     new PlanarLoopSet<T>(first.Plane, first.TestSegmentLength,
-                    _referenceArray,_fillConditionals, outerMostLoops[0].IndexLoop.ToArray(), _triangleID));
+                    _referenceArray, _fillAction, outerMostLoops[0].IndexLoop.ToArray(), _triangleID));
                 newList[0].IndexLoops.AddRange(restOfLoops.Select(l => l.IndexLoop.ToArray()));
                 newList[0].FillInteriorLoops = false;
             }
@@ -149,7 +148,6 @@ namespace Operations.PlanarFilling.Filling
                     SetLoopNesting(outerMostLoop, restOfLoops);
                 }
             }
-            //Console.WriteLine($"Loop compares {InternalPlanarLoop.Compares}");
         }
 
         private void SetLoopNesting(PlanarLoop<T> exteriorLoop, List<PlanarLoop<T>> restOfLoops)

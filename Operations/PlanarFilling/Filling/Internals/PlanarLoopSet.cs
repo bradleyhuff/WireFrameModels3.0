@@ -6,11 +6,11 @@ namespace Operations.PlanarFilling.Filling.Internals
 {
     internal class PlanarLoopSet<T>
     {
-        internal PlanarLoopSet(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, ISharedFillConditionals fillConditionals, int[] perimeterIndexLoop, int triangleID)
+        internal PlanarLoopSet(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillAction<T> fillAction,  int[] perimeterIndexLoop, int triangleID)
         {
             Plane = plane;
             PerimeterIndexLoop = perimeterIndexLoop;
-            _fillConditionals = fillConditionals;
+            _fillAction = fillAction;
             _referenceArray = referenceArray;
             _testSegmentLength = testSegmentLength;
             _triangleID = triangleID;
@@ -22,7 +22,7 @@ namespace Operations.PlanarFilling.Filling.Internals
         public List<int[]> IndexSpurs { get; } = new List<int[]>();
         public bool FillInteriorLoops { get; set; }
 
-        private ISharedFillConditionals _fillConditionals;
+        private IFillAction<T> _fillAction;
         private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
         private double _testSegmentLength;
         private int _triangleID;
@@ -45,7 +45,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_perimeterLoop is null)
                 {
-                    _perimeterLoop = new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillConditionals, PerimeterIndexLoop, _triangleID);
+                    _perimeterLoop = new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillAction, PerimeterIndexLoop, _triangleID);
                 }
                 return _perimeterLoop;
             }
@@ -56,7 +56,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_loops is null)
                 {
-                    _loops = IndexLoops.Select(l => new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillConditionals, l, _triangleID)).ToList();
+                    _loops = IndexLoops.Select(l => new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillAction, l, _triangleID)).ToList();
                 }
                 return _loops;
             }
@@ -68,7 +68,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_spurredLoops is null)
                 {
-                    _spurredLoops = IndexSpurredLoops.Select(l => new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillConditionals, l, _triangleID)).ToList();
+                    _spurredLoops = IndexSpurredLoops.Select(l => new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillAction, l, _triangleID)).ToList();
                 }
                 return _spurredLoops;
             }

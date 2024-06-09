@@ -78,6 +78,16 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
+        public IEnumerable<PositionEdge> OpenEdges
+        {
+            get
+            {
+                if (!ABadjacents.Any()) yield return new PositionEdge(A, B);
+                if (!BCadjacents.Any()) yield return new PositionEdge(B, C);
+                if (!CAadjacents.Any()) yield return new PositionEdge(C, A);
+            }
+        }
+
         public bool Disabled { get; private set; }
         public void Disable()
         {
@@ -116,6 +126,16 @@ namespace Collections.WireFrameMesh.Basics
             {
                 return C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
                     Intersect(A.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
+            }
+        }
+
+        public IEnumerable<PositionTriangle> AllAdjacents
+        {
+            get
+            {
+                foreach (var adjacent in ABadjacents) { yield return adjacent; }
+                foreach (var adjacent in BCadjacents) { yield return adjacent; }
+                foreach (var adjacent in CAadjacents) { yield return adjacent; }
             }
         }
 

@@ -75,12 +75,30 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return AddTriangle(triangle.A, triangle.B, triangle.C, trace);
         }
 
+        public PositionTriangle AddTriangle(SurfaceTriangle triangle, string trace = "")
+        {
+            return AddTriangle(triangle.A.Point, triangle.A.Normal, triangle.B.Point, triangle.B.Normal, triangle.C.Point, triangle.C.Normal, trace);
+        }
+
         public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<Triangle3D> triangles, string trace = "")
         {
             return AddRangeTrianglesIterate(triangles, trace).ToArray();
         }
 
         private IEnumerable<PositionTriangle> AddRangeTrianglesIterate(IEnumerable<Triangle3D> triangles, string trace = "")
+        {
+            foreach (var triangle in triangles)
+            {
+                yield return AddTriangle(triangle, trace);
+            }
+        }
+
+        public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<SurfaceTriangle> triangles, string trace = "")
+        {
+            return AddRangeTrianglesIterate(triangles, trace).ToArray();
+        }
+
+        private IEnumerable<PositionTriangle> AddRangeTrianglesIterate(IEnumerable<SurfaceTriangle> triangles, string trace = "")
         {
             foreach (var triangle in triangles)
             {

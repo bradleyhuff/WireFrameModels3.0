@@ -1,7 +1,10 @@
-﻿using Collections.WireFrameMesh.BasicWireFrameMesh;
+﻿using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
 using Operations.Intermesh.Elastics;
 using Operations.PlanarFilling.Basics;
+using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
 {
@@ -115,6 +118,39 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 mesh.EndGrid();
                 WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/SpurConnectingSegment-{triangle.Id}-{segment.Index}");
             }
+        }
+
+        public static void Export(ISurfaceSegmentChaining<PlanarFillingGroup, PositionNormal> chain, string fileName, double height = 0.01)
+        {
+            var mesh = WireFrameMesh.Create();
+            var chainLoop = chain.PerimeterLoops.First().Select(l => chain.ReferenceArray[l.Index]).ToArray();
+
+            if (chainLoop.Length > 1)
+            {
+                var firstPoint = chain.ReferenceArray[chainLoop.First().Index];
+                mesh.AddPoint(firstPoint.Point + -height * 1.5 * firstPoint.Normal);
+                foreach (var ray in chainLoop.Skip(1))
+                {
+                    mesh.AddPoint(ray.Point + -height * ray.Normal);
+                }
+                mesh.AddPoint(firstPoint.Point);
+                mesh.EndRow();
+                foreach (var ray in chainLoop)
+                {
+                    mesh.AddPoint(ray.Point);
+                }
+                mesh.AddPoint(firstPoint.Point);
+                mesh.EndRow();
+                mesh.AddPoint(firstPoint.Point + height * 1.5 * firstPoint.Normal);
+                foreach (var ray in chainLoop.Skip(1))
+                {
+                    mesh.AddPoint(ray.Point + height * ray.Normal);
+                }
+                mesh.AddPoint(firstPoint.Point);
+                mesh.EndRow();
+                mesh.EndGrid();
+            }
+            WavefrontFile.ErrorExport(mesh, $"{fileName}/Chains-Loop");
         }
     }
 }

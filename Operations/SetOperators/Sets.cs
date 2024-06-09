@@ -43,11 +43,8 @@ namespace Operations.SetOperators
             IncludedGroupInverts(remainingGroups);
 
             sum.RemoveShortSegments(3e-4);
-            sum.RemoveCollinearEdgePoints();
-            sum.RemoveCoplanarSurfacePoints();
-
-            var tags = sum.RemoveTagTriangles();
-            Console.WriteLine($"Tags removed {tags}");
+            //sum.RemoveCollinearEdgePoints();
+            //sum.RemoveCoplanarSurfacePoints();
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");

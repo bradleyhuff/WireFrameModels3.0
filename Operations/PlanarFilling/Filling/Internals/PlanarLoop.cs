@@ -12,19 +12,18 @@ namespace Operations.PlanarFilling.Filling.Internals
     internal class PlanarLoop<T> : IBox
     {
         private static int _id = 0;
-        public PlanarLoop(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, ISharedFillConditionals fillConditionals, int[] indexLoop, int triangleID)
+        public PlanarLoop(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillAction<T> fillAction, int[] indexLoop, int triangleID)
         {
             Id = _id++;
             _triangleID = triangleID;
             Plane = plane;
             IndexLoop = indexLoop.ToList();
-            _referenceArray = referenceArray;
+            ReferenceArray = referenceArray;
             _testSegmentLength = testSegmentLength;
-            _fillConditionals = fillConditionals;
+            _fillAction = fillAction;
         }
 
-        ISharedFillConditionals _fillConditionals;
-        IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
+        IFillAction<T> _fillAction;
         double _testSegmentLength;
         PlanarRegions<T> _shellOutLine;
         PlanarRegions<T> _shell;
@@ -59,7 +58,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_projectedPoints is null)
                 {
-                    _projectedPoints = IndexLoop.Select(i => Plane.Projection(_referenceArray[i].Point)).ToArray();
+                    _projectedPoints = IndexLoop.Select(i => Plane.Projection(ReferenceArray[i].Point)).ToArray();
                 }
                 return _projectedPoints;
             }
@@ -128,7 +127,7 @@ namespace Operations.PlanarFilling.Filling.Internals
         {
             var difference = input.IndexLoop.Difference(IndexLoop);
             if (!difference.Any()) { return false; }
-            var testPoint = _referenceArray[difference.First()].Point;
+            var testPoint = ReferenceArray[difference.First()].Point;
 
             return OutLineRegionOfPoint(testPoint) == Region.Interior;
         }
@@ -139,16 +138,22 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_indexedFillTriangles is null)
                 {
-                    if (_fillConditionals is null) { LoopForFillings(0, true); return _indexedFillTriangles; }
-                    if (LoopForFillings(0, false)) return _indexedFillTriangles;
-                    if (LoopForFillings(1, false)) return _indexedFillTriangles;
-                    if (LoopForFillings(-1, true)) return _indexedFillTriangles;
+                    if (_fillAction is null) { LoopForFillings(0, true); return _indexedFillTriangles; }
+
+                    _fillAction?.Run(this);
                 }
                 return _indexedFillTriangles;
             }
         }
 
-        private bool LoopForFillings(int displacement = 0, bool showError = false)
+        public IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray { get; }
+
+        internal List<IndexSurfaceTriangle> IndexedFillTriangles
+        {
+            get { return _indexedFillTriangles; }
+        }
+
+        internal bool LoopForFillings(int displacement = 0, bool showError = false)
         {
             _tracker = new IndexTracker(IndexLoop.Select((p, i) => i));
             _passOver = _tracker.Tracking.Select(i => new KeyValuePair<int, bool>(i, false)).ToDictionary(p => p.Key, p => p.Value);
@@ -177,6 +182,10 @@ namespace Operations.PlanarFilling.Filling.Internals
                             if (TrackingError(showError)) { return false; }
                         }
                         continue;
+                    }
+                    if (!FillIsAllowed(leftIndex, index, rightIndex))
+                    {
+                        return false;
                     }
                     AdvanceAndFill(leftIndex, index, rightIndex);
                     return true; //Fully filled
@@ -246,20 +255,27 @@ namespace Operations.PlanarFilling.Filling.Internals
             _passOverCount = 0;
         }
 
-        private bool TrackingError(bool showMessage = false)
+        internal bool TrackingError(bool showMessage = false)
         {
             if (_passOverCount > _startCount)
             {
                 if (showMessage)
                 {
                     InternalLoop.FillLoopError++;
-                    throw new Exception("Could not be filled.");
-                    //Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}");
+                    //throw new Exception("Could not be filled.");
+                    Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}");
                 }
 
                 return true;
             }
             return false;
+        }
+
+        internal void ThrowError()
+        {
+            InternalLoop.FillLoopError++;
+            //throw new Exception("Could not be filled.");
+            Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled, error thrown {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}");
         }
 
         private bool MergeWithAnEnclosedInternalLoopAndAdvance(int leftIndex, int index, int rightIndex)
@@ -313,7 +329,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             if (Shell.HasIntersection(testSegment)) { return false; }
 
             Point3D currentPoint = ProjectedLoopPoints[index];
-            Point3D startingPoint = _referenceArray[internalLoop.IndexLoop[startIndex]].Point;
+            Point3D startingPoint = ReferenceArray[internalLoop.IndexLoop[startIndex]].Point;
             if (currentPoint == startingPoint) { return false; }
 
             int[] internalLoopIndicies = UnwrapLoopPoints(
@@ -353,13 +369,13 @@ namespace Operations.PlanarFilling.Filling.Internals
             int leftIndex = (startIndex - 1 + loopIndicies.Length) % loopIndicies.Length;
             int rightIndex = (startIndex + 1 + loopIndicies.Length) % loopIndicies.Length;
 
-            Point3D startingPoint = _referenceArray[loopIndicies[startIndex]].Point;
+            Point3D startingPoint = ReferenceArray[loopIndicies[startIndex]].Point;
             if (startingPoint == currentPoint) { Console.WriteLine("Starting point and current points are equal."); }
 
             Point3D nextPoint = GetNextPoint(leftPoint, currentPoint,
-                startingPoint, _referenceArray[loopIndicies[leftIndex]].Point, _referenceArray[loopIndicies[rightIndex]].Point);
+                startingPoint, ReferenceArray[loopIndicies[leftIndex]].Point, ReferenceArray[loopIndicies[rightIndex]].Point);
             int[] unwrapped = loopIndicies.Unwrap(startIndex).ToArray();
-            if (nextPoint != _referenceArray[unwrapped[1]].Point) { unwrapped = unwrapped.Reverse().ToArray(); }
+            if (nextPoint != ReferenceArray[unwrapped[1]].Point) { unwrapped = unwrapped.Reverse().ToArray(); }
             return unwrapped;
         }
 
@@ -383,22 +399,16 @@ namespace Operations.PlanarFilling.Filling.Internals
 
         private bool FillIsAllowed(int leftIndex, int index, int rightIndex)
         {
-            return _fillConditionals?.AllowFill(
-                _referenceArray[IndexLoop[leftIndex]].Reference as PositionNormal, 
-                _referenceArray[IndexLoop[index]].Reference as PositionNormal, 
-                _referenceArray[IndexLoop[rightIndex]].Reference as PositionNormal) ?? true;
+            return _fillAction?.FillConditions?.AllowFill(
+                ReferenceArray[IndexLoop[leftIndex]].Reference as PositionNormal,
+                ReferenceArray[IndexLoop[index]].Reference as PositionNormal,
+                ReferenceArray[IndexLoop[rightIndex]].Reference as PositionNormal) ?? true;
         }
 
         private bool CrossesInterior(int leftIndex, int rightIndex)
         {
             var testSegment = new PlanarSegment<T>(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
             return Shell.CrossesInterior(testSegment);
-        }
-
-        private bool IsAtBoundary(int leftIndex, int rightIndex)
-        {
-            var testSegment = new PlanarSegment<T>(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
-            return Shell.IsAtBoundary(testSegment);
         }
 
         public static void ExtractOuterMostLoopsFromRest(IEnumerable<PlanarLoop<T>> loops,

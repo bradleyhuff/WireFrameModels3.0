@@ -35,6 +35,14 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
+        public Triangle3D Plot
+        {
+            get
+            {
+                return new Triangle3D(Segment.Start, Segment.Center, Segment.End);
+            }
+        }
+
         public Combination2 Key { get; }
         public Combination2 Cardinality
         {

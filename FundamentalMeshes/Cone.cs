@@ -3,8 +3,11 @@ using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
+using Operations.PlanarFilling.Basics;
 using Operations.PositionRemovals;
+using Operations.PositionRemovals.FillActions;
 using Operations.PositionRemovals.Interfaces;
+using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace FundamentalMeshes
 {
@@ -37,21 +40,12 @@ namespace FundamentalMeshes
             }
             cone.EndGrid();
 
-            //cone.RemovePosition(baseCenter.PositionObject);
+            var fill = new FirstValidFill<PositionNormal>();
+            fill.FillConditions.SetPrimaryMatchingPoints([firstPoint.PositionObject]);
 
-            var convergePoint = new ConvergePoint() { ConvergeAt = firstPoint.PositionObject };
-            cone.RemovePosition(baseCenter.PositionObject, convergePoint);
+            cone.RemovePosition(baseCenter.PositionObject, fill);
 
             return cone;
-        }
-
-        internal class ConvergePoint : ISharedFillConditionals
-        {
-            public Position ConvergeAt { get; set; }
-            public bool AllowFill(PositionNormal a, PositionNormal b, PositionNormal c)
-            {
-                return a.PositionObject.Id == ConvergeAt.Id || b.PositionObject.Id == ConvergeAt.Id || c.PositionObject.Id == ConvergeAt.Id;
-            }
         }
     }
 }

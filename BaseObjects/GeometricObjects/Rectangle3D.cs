@@ -279,12 +279,27 @@ namespace BasicObjects.GeometricObjects
         public static Rectangle3D Containing(params LineSegment3D[] segments)
         {
             if (segments == null || segments.Length == 0) { return null; }
-            double minX = segments.SelectMany(s => s.Points).Min(p => p.X);
-            double maxX = segments.SelectMany(s => s.Points).Max(p => p.X);
-            double minY = segments.SelectMany(s => s.Points).Min(p => p.Y);
-            double maxY = segments.SelectMany(s => s.Points).Max(p => p.Y);
-            double minZ = segments.SelectMany(s => s.Points).Min(p => p.Z);
-            double maxZ = segments.SelectMany(s => s.Points).Max(p => p.Z);
+            var points = segments.SelectMany(s => s.Points).ToArray();
+            double minX = points.Min(p => p.X);
+            double maxX = points.Max(p => p.X);
+            double minY = points.Min(p => p.Y);
+            double maxY = points.Max(p => p.Y);
+            double minZ = points.Min(p => p.Z);
+            double maxZ = points.Max(p => p.Z);
+
+            return new Rectangle3D(minX, maxX, minY, maxY, minZ, maxZ);
+        }
+
+        public static Rectangle3D Containing(params Triangle3D[] triangles)
+        {
+            if (triangles == null || triangles.Length == 0) { return null; }
+            var verticies = triangles.SelectMany(s => s.Verticies).ToArray();
+            double minX = verticies.Min(p => p.X);
+            double maxX = verticies.Max(p => p.X);
+            double minY = verticies.Min(p => p.Y);
+            double maxY = verticies.Max(p => p.Y);
+            double minZ = verticies.Min(p => p.Z);
+            double maxZ = verticies.Max(p => p.Z);
 
             return new Rectangle3D(minX, maxX, minY, maxY, minZ, maxZ);
         }

@@ -123,32 +123,19 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
         public static void Export(ISurfaceSegmentChaining<PlanarFillingGroup, PositionNormal> chain, string fileName, double height = 0.01)
         {
             var mesh = WireFrameMesh.Create();
-            var chainLoop = chain.PerimeterLoops.First().Select(l => chain.ReferenceArray[l.Index]).ToArray();
+            var chainLoop = chain.PerimeterLoops.First();
 
             if (chainLoop.Length > 1)
             {
-                var firstPoint = chain.ReferenceArray[chainLoop.First().Index];
-                mesh.AddPoint(firstPoint.Point + -height * 1.5 * firstPoint.Normal);
-                foreach (var ray in chainLoop.Skip(1))
+                for (int i = 0; i < chainLoop.Length - 1; i++)
                 {
-                    mesh.AddPoint(ray.Point + -height * ray.Normal);
+                    var segment = new LineSegment3D(chainLoop[i].Point, chainLoop[i+1].Point);
+                    mesh.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
                 }
-                mesh.AddPoint(firstPoint.Point);
-                mesh.EndRow();
-                foreach (var ray in chainLoop)
                 {
-                    mesh.AddPoint(ray.Point);
+                    var segment = new LineSegment3D(chainLoop[0].Point, chainLoop[chainLoop.Length - 1].Point);
+                    mesh.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
                 }
-                mesh.AddPoint(firstPoint.Point);
-                mesh.EndRow();
-                mesh.AddPoint(firstPoint.Point + height * 1.5 * firstPoint.Normal);
-                foreach (var ray in chainLoop.Skip(1))
-                {
-                    mesh.AddPoint(ray.Point + height * ray.Normal);
-                }
-                mesh.AddPoint(firstPoint.Point);
-                mesh.EndRow();
-                mesh.EndGrid();
             }
             WavefrontFile.ErrorExport(mesh, $"{fileName}/Chains-Loop");
         }

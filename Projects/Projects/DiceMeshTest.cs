@@ -67,6 +67,16 @@ namespace Projects.Projects
             WavefrontFile.Export(grid, "Wavefront/Dice");
             //WavefrontFileGroups.ExportBySurfaces(grid, "Wavefront/Dice");
             //WavefrontFile.Export(NormalOverlay(grid, 0.003), "Wavefront/DiceNormals");
+            {
+                var test = WireFrameMesh.Create();
+                var openEdges = grid.Triangles.SelectMany(t => t.OpenEdges);
+                //Console.WriteLine($"Triangles {string.Join(",", output.Triangles.Select(t => t.Key))}");
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => o.Segment))}");
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.PositionObject.Point}<{o.A.PositionObject.Id}>, {o.B.PositionObject.Point}<{o.B.PositionObject.Id}>]"))}");
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.Normal}<{o.A.PositionObject.Id}>, {o.B.Normal}<{o.B.PositionObject.Id}>]"))}");
+                test.AddRangeTriangles(openEdges.Select(e => e.Plot));
+                WavefrontFile.Export(test, $"Wavefront/TagOpenEdges");
+            }
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

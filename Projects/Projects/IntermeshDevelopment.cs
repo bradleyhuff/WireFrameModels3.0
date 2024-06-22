@@ -22,14 +22,14 @@ namespace Projects.Projects
         {
             ConsoleLog.MaximumLevels = 1;
             CubeSphereTestOne(96);
-            //CubeSphereTestTwo(96);
+            //CubeSphereTestOne(64);
+            //CubeSphereTestTwo(179);
         }
 
         private void CubeSphereTestOne(int resolution)
         {
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
             var spheres = CreateTestSpheres(resolution);
-            //Grid.RemovalFilter = true;
             var output = cube.Difference(spheres);
             output.ShowVitals();
             var spheres2 = spheres.Clone();
@@ -52,7 +52,6 @@ namespace Projects.Projects
 
             var spheres3 = spheres.Clone();
             spheres3.Apply(Transform.Translation(new Vector3D(0, 1, 0)));
-            //Grid.RemovalFilter = false;
             output = output.Difference(spheres3);
             output.ShowVitals();
 
@@ -80,13 +79,11 @@ namespace Projects.Projects
             spheres8.Apply(Transform.Translation(new Vector3D(1, 1, 1)));
             output = output.Difference(spheres8);
 
-            //output.AddTriangle();
-
             output.ShowSegmentLengths();
             output.ShowVitals();
 
-            PntFile.Export(output, $"Pnt/SphereDifference3 {resolution}");
-            WavefrontFile.Export(output, $"Wavefront/SphereDifference3 {resolution}");
+            PntFile.Export(output, $"Pnt/SphereDifference7 {resolution}");
+            WavefrontFile.Export(output, $"Wavefront/SphereDifference7 {resolution}");
             //WavefrontFile.Export(spheres3A, $"Wavefront/Sphere3 {resolution}");
             //WavefrontFileGroups.ExportByClusters(output, "Wavefront/Clusters");
             {
@@ -104,27 +101,26 @@ namespace Projects.Projects
         private void CubeSphereTestTwo(int resolution)
         {
 
-            var output = PntFile.Import(WireFrameMesh.Create, $"Pnt/SphereDifference4 {resolution}");
+            var output = PntFile.Import(WireFrameMesh.Create, $"Pnt/SphereDifference7 {resolution}");
             output.ShowVitals();
             var spheres = CreateTestSpheres(resolution);
 
-            var spheres5 = spheres.Clone();
-            spheres5.Apply(Transform.Translation(new Vector3D(0, 1, 1)));
-            //Grid.RemovalFilter = true;
-            output = output.Difference(spheres5);
-
+            //var spheres5 = spheres.Clone();
+            //spheres5.Apply(Transform.Translation(new Vector3D(0, 1, 1)));
+            //output = output.Difference(spheres5);
+            //output.ShowVitals();
             //WavefrontFile.Export(spheres5, "Wavefront/Spheres5");
 
-            var spheres6 = spheres.Clone();
-            spheres6.Apply(Transform.Translation(new Vector3D(1, 0, 1)));
-            //Grid.RemovalFilter = false;
-            output = output.Difference(spheres6);
+            //var spheres6 = spheres.Clone();
+            //spheres6.Apply(Transform.Translation(new Vector3D(1, 0, 1)));
+            //output = output.Difference(spheres6);
+            //output.ShowVitals();
 
-            //WavefrontFile.Export(spheres6, "Wavefront/Spheres6");
+            ////WavefrontFile.Export(spheres6, "Wavefront/Spheres6");
 
-            var spheres7 = spheres.Clone();
-            spheres7.Apply(Transform.Translation(new Vector3D(1, 1, 0)));
-            output = output.Difference(spheres7);
+            //var spheres7 = spheres.Clone();
+            //spheres7.Apply(Transform.Translation(new Vector3D(1, 1, 0)));
+            //output = output.Difference(spheres7);
 
             var spheres8 = spheres.Clone();
             spheres8.Apply(Transform.Translation(new Vector3D(1, 1, 1)));
@@ -182,6 +178,19 @@ namespace Projects.Projects
 
             PntFile.Export(output, $"Pnt/SphereDifference8 {resolution}");
             WavefrontFile.Export(output, $"Wavefront/SphereDifference8 {resolution}");
+            {
+                var test = WireFrameMesh.Create();
+                var openEdges = output.Triangles.SelectMany(t => t.OpenEdges);
+                //Console.WriteLine($"Triangles {string.Join(",", output.Triangles.Select(t => t.Key))}");
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => o.Segment))}");
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.PositionObject.Point}<{o.A.PositionObject.Id}>, {o.B.PositionObject.Point}<{o.B.PositionObject.Id}>]"))}");
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.Normal}<{o.A.PositionObject.Id}>, {o.B.Normal}<{o.B.PositionObject.Id}>]"))}");
+                test.AddRangeTriangles(openEdges.Select(e => e.Plot));
+                WavefrontFile.Export(test, $"Wavefront/TagOpenEdges");
+            }
+
+            //PntFile.Export(output, $"Pnt/SphereDifference8 {resolution}");
+            //WavefrontFile.Export(output, $"Wavefront/SphereDifference8 {resolution}");
             //WavefrontFileGroups.ExportByClusters(output, "Wavefront/SphereDifference5");
             //WavefrontFileGroups.ExportByClusters(output, o => NormalOverlay(o, 0.003), "Wavefront/Normals");
         }

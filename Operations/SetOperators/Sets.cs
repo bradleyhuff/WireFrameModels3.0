@@ -34,6 +34,7 @@ namespace Operations.SetOperators
         }
         private static IWireFrameMesh Run(string note, IWireFrameMesh gridA, IWireFrameMesh gridB, Func<Region, Region, bool> includeGroup)
         {
+            ConsoleLog.MaximumLevels = 1;
             DateTime start = DateTime.Now;
             ConsoleLog.Push(note);
             var sum = CombineAndMark(gridA, gridB, out Space spaceA, out Space spaceB);
@@ -42,12 +43,14 @@ namespace Operations.SetOperators
             var remainingGroups = TestAndRemoveGroups(sum, groups, spaceA, spaceB, includeGroup);
             IncludedGroupInverts(remainingGroups);
 
+            ConsoleLog.MaximumLevels = 8;
             sum.RemoveShortSegments(3e-4);
-            //sum.RemoveCollinearEdgePoints();
-            //sum.RemoveCoplanarSurfacePoints();
+            sum.RemoveCollinearEdgePoints();
+            sum.RemoveCoplanarSurfacePoints();
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
+            ConsoleLog.MaximumLevels = 1;
             return sum;
         }
 

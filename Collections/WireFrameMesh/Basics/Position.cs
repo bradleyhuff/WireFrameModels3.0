@@ -58,6 +58,14 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
+        public Vector3D Normal
+        {
+            get
+            {
+                return Vector3D.Average(_positionNormals.Select(p => p.Normal));
+            }
+        }
+
         public Rectangle3D Box
         {
             get

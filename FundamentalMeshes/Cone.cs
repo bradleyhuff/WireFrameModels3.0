@@ -40,10 +40,7 @@ namespace FundamentalMeshes
             }
             cone.EndGrid();
 
-            var fill = new FirstValidFill<PositionNormal>();
-            fill.FillConditions.SetPrimaryMatchingPoints([firstPoint.PositionObject]);
-
-            cone.RemovePosition(baseCenter.PositionObject, fill);
+            cone.FanRemovePosition(baseCenter.PositionObject, firstPoint.PositionObject);
 
             return cone;
         }

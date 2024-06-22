@@ -11,11 +11,6 @@ namespace Operations.PositionRemovals.Conditionals
         private Position[] _primaryMatchingPoints = null;
         private Position[] _secondaryMatchingPoints = null;
 
-        //public void SetMatchingPoints(Position[] positions)
-        //{
-        //    _matchingPoints = positions;
-        //}
-
         public void SetPrimaryMatchingPoints(Position[] positions)
         {
             _primaryMatchingPoints = positions;

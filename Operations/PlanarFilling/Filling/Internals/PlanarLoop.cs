@@ -138,7 +138,9 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_indexedFillTriangles is null)
                 {
-                    if (_fillAction is null) { LoopForFillings(0, true); return _indexedFillTriangles; }
+                    if (_fillAction is null) {
+                        return BasicFill();
+                    }
 
                     _fillAction?.Run(this);
                 }
@@ -153,7 +155,26 @@ namespace Operations.PlanarFilling.Filling.Internals
             get { return _indexedFillTriangles; }
         }
 
-        internal bool LoopForFillings(int displacement = 0, bool showError = false)
+        private List<IndexSurfaceTriangle> BasicFill()
+        {
+            if (LoopForFillings(0, false, false)) return _indexedFillTriangles;
+
+            for (int i = 1; i <= IndexLoop.Count / 2; i++)
+            {
+                if (LoopForFillings(i, false, false)) return _indexedFillTriangles;
+                if (LoopForFillings(-i, false, false)) return _indexedFillTriangles;
+            }
+            if (LoopForFillings(0, false, true)) return _indexedFillTriangles;
+
+            for (int i = 1; i <= IndexLoop.Count / 2; i++)
+            {
+                if (LoopForFillings(i, false, true)) return _indexedFillTriangles;
+                if (LoopForFillings(-i, false, true)) return _indexedFillTriangles;
+            }
+            LoopForFillings(0, true, true); return _indexedFillTriangles;
+        }
+
+        internal bool LoopForFillings(int displacement, bool showError, bool allowBoundaryFill)
         {
             _tracker = new IndexTracker(IndexLoop.Select((p, i) => i));
             _passOver = _tracker.Tracking.Select(i => new KeyValuePair<int, bool>(i, false)).ToDictionary(p => p.Key, p => p.Value);
@@ -164,6 +185,19 @@ namespace Operations.PlanarFilling.Filling.Internals
             _indexedFillTriangles = new List<IndexSurfaceTriangle>();
             if (InternalLoops.Any(l => l.IndexLoop.Intersect(IndexLoop).Any())) { return true; } // All internal loops must not touch the loop.
 
+            if (allowBoundaryFill)
+            {
+                if (PerformLooping(false, false)) { return true; }
+                _passOverCount = 0;
+                _passOver = _tracker.Tracking.Select(i => new KeyValuePair<int, bool>(i, false)).ToDictionary(p => p.Key, p => p.Value);
+                return PerformLooping(showError, true);
+            }
+
+            return PerformLooping(showError, false);
+        }
+
+        private bool PerformLooping(bool showError, bool allowBoundaryFill)
+        {
             while (true)
             {
                 if (_tracker.Count < 3) return true;//Fully filled
@@ -218,7 +252,7 @@ namespace Operations.PlanarFilling.Filling.Internals
                     continue;
                 }
 
-                if (FillIsAllowed(leftIndex, index, rightIndex) && CrossesInterior(leftIndex, rightIndex))
+                if (FillIsAllowed(leftIndex, index, rightIndex) && CrossingCheck(leftIndex, rightIndex, allowBoundaryFill))
                 {
                     AdvanceAndFill(leftIndex, index, rightIndex);
                 }
@@ -226,6 +260,11 @@ namespace Operations.PlanarFilling.Filling.Internals
                 AdvanceAndPassOver(index);
                 if (TrackingError(showError)) { return false; }
             }
+        }
+
+        private bool CrossingCheck(int leftIndex, int rightIndex, bool allowBoundaryFill)
+        {
+            return allowBoundaryFill ? CrossesInteriorOrAtBoundary(leftIndex, rightIndex) : CrossesInterior(leftIndex, rightIndex);
         }
 
         private void AdvanceAndPassOver(int index)
@@ -262,8 +301,7 @@ namespace Operations.PlanarFilling.Filling.Internals
                 if (showMessage)
                 {
                     InternalLoop.FillLoopError++;
-                    //throw new Exception("Could not be filled.");
-                    Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}");
+                    throw new Exception($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}");
                 }
 
                 return true;
@@ -274,8 +312,7 @@ namespace Operations.PlanarFilling.Filling.Internals
         internal void ThrowError()
         {
             InternalLoop.FillLoopError++;
-            //throw new Exception("Could not be filled.");
-            Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled, error thrown {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}");
+            throw new Exception($"Triangle node {_triangleID} Loop {Id} could not be filled, error thrown {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}");
         }
 
         private bool MergeWithAnEnclosedInternalLoopAndAdvance(int leftIndex, int index, int rightIndex)
@@ -409,6 +446,12 @@ namespace Operations.PlanarFilling.Filling.Internals
         {
             var testSegment = new PlanarSegment<T>(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
             return Shell.CrossesInterior(testSegment);
+        }
+
+        private bool CrossesInteriorOrAtBoundary(int leftIndex, int rightIndex)
+        {
+            var testSegment = new PlanarSegment<T>(ProjectedLoopPoints[leftIndex], ProjectedLoopPoints[rightIndex]);
+            return Shell.CrossesInteriorOrAtBoundary(testSegment);
         }
 
         public static void ExtractOuterMostLoopsFromRest(IEnumerable<PlanarLoop<T>> loops,

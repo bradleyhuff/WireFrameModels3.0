@@ -54,7 +54,7 @@ namespace Operations.Groupings.Basics
             {
                 if (_abAdjacents is null)
                 {
-                    _abAdjacents = _triangle.ABadjacents.Select(t => _lookup[t]).ToList();
+                    _abAdjacents = _triangle.ABadjacents.Select(GetTriangle).ToList();
                 }
                 return _abAdjacents;
             }
@@ -66,7 +66,7 @@ namespace Operations.Groupings.Basics
             {
                 if (_bcAdjacents is null)
                 {
-                    _bcAdjacents = _triangle.BCadjacents.Select(t => _lookup[t]).ToList();
+                    _bcAdjacents = _triangle.BCadjacents.Select(GetTriangle).ToList();
                 }
                 return _bcAdjacents;
             }
@@ -78,10 +78,16 @@ namespace Operations.Groupings.Basics
             {
                 if (_caAdjacents is null)
                 {
-                    _caAdjacents = _triangle.CAadjacents.Select(t => _lookup[t]).ToList();
+                    _caAdjacents = _triangle.CAadjacents.Select(GetTriangle).ToList();
                 }
                 return _caAdjacents;
             }
+        }
+
+        private GroupingTriangle GetTriangle(PositionTriangle triangle)
+        {
+            if (!_lookup.ContainsKey(triangle)) { _lookup[triangle] = new GroupingTriangle(triangle, _lookup); }
+            return _lookup[triangle];
         }
 
         public Triangle3D Triangle

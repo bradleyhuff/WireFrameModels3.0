@@ -21,7 +21,7 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             ConsoleLog.MaximumLevels = 1;
-            CubeSphereTestOne(96);
+            CubeSphereTestOne(64);
             //CubeSphereTestOne(64);
             //CubeSphereTestTwo(179);
         }
@@ -82,8 +82,8 @@ namespace Projects.Projects
             output.ShowSegmentLengths();
             output.ShowVitals();
 
-            PntFile.Export(output, $"Pnt/SphereDifference7 {resolution}");
-            WavefrontFile.Export(output, $"Wavefront/SphereDifference7 {resolution}");
+            PntFile.Export(output, $"Pnt/SphereDifference8 {resolution}");
+            WavefrontFile.Export(output, $"Wavefront/SphereDifference8 {resolution}");
             //WavefrontFile.Export(spheres3A, $"Wavefront/Sphere3 {resolution}");
             //WavefrontFileGroups.ExportByClusters(output, "Wavefront/Clusters");
             {

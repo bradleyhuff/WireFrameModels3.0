@@ -65,7 +65,7 @@ namespace Projects.Projects
 
             PntFile.Export(grid, "Pnt/Dice");
             WavefrontFile.Export(grid, "Wavefront/Dice");
-            //WavefrontFileGroups.ExportBySurfaces(grid, "Wavefront/Dice");
+            WavefrontFileGroups.ExportBySurfaces(grid, "Wavefront/Dice");
             //WavefrontFile.Export(NormalOverlay(grid, 0.003), "Wavefront/DiceNormals");
             {
                 var test = WireFrameMesh.Create();

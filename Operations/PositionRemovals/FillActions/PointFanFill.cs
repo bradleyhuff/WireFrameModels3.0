@@ -31,12 +31,12 @@ namespace Operations.PositionRemovals.FillActions
 
         private List<IndexSurfaceTriangle> EvaluateByMatchingPoints()
         {
-            if (_planarLoop.LoopForFillings(0, false)) return _planarLoop.IndexedFillTriangles;
+            if (_planarLoop.LoopForFillings(0, false, false)) return _planarLoop.IndexedFillTriangles;
 
             for (int i = 1; i <= _planarLoop.IndexLoop.Count / 2; i++)
             {
-                if (_planarLoop.LoopForFillings(i, false)) return _planarLoop.IndexedFillTriangles;
-                if (_planarLoop.LoopForFillings(-i, false)) return _planarLoop.IndexedFillTriangles;
+                if (_planarLoop.LoopForFillings(i, false, false)) return _planarLoop.IndexedFillTriangles;
+                if (_planarLoop.LoopForFillings(-i, false, false)) return _planarLoop.IndexedFillTriangles;
             }
             return null;
         }

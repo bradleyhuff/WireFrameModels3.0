@@ -4,6 +4,7 @@ using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
+using FileExportImport;
 using Operations.Basics;
 using Operations.PlanarFilling.Basics;
 using Operations.PlanarFilling.Filling;
@@ -231,8 +232,21 @@ namespace Operations.PositionRemovals
         {
             var tagTriangles = mesh.Triangles.Where(t => t.AdjacentAnyCount <= 2).ToArray();
             Console.WriteLine($"Tag triangles {string.Join(",", tagTriangles.Select(t => t.Key))}");
-
+            var test = WireFrameMesh.Create();
+            test.AddRangeTriangles(tagTriangles.Select(t => t.Triangle));
+            WavefrontFile.Export(test, "Wavefront/TagTriangles");
             return tagTriangles.Length;
+        }
+
+        public static void ShowOpenEdges(this IWireFrameMesh mesh)
+        {
+                var test = WireFrameMesh.Create();
+                var openEdges = mesh.Triangles.SelectMany(t => t.OpenEdges);
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => o.Segment))}");
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.PositionObject.Point}<{o.A.PositionObject.Id}>, {o.B.PositionObject.Point}<{o.B.PositionObject.Id}>]"))}");
+                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.Normal}<{o.A.PositionObject.Id}>, {o.B.Normal}<{o.B.PositionObject.Id}>]"))}");
+                test.AddRangeTriangles(openEdges.Select(e => e.Plot));
+                WavefrontFile.Export(test, $"Wavefront/TagOpenEdges");
         }
 
         private static IEnumerable<Position> GetEdgeRemovalPositions(PositionEdge[] segments)
@@ -356,38 +370,54 @@ namespace Operations.PositionRemovals
                         var perimeterPoints = chain.PerimeterLoops.FirstOrDefault();
 
                         fillAction?.PresetMatching(position, perimeterPoints);
+                        try
+                        {
+                            var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, fillAction, position.Id);
+                            var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
 
-                        var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, fillAction, position.Id);
-                        var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
-
-                        fillingsToAdd.AddRange(fillings);
-                        trianglesToRemove.AddRange(triangles);
+                            fillingsToAdd.AddRange(fillings);
+                            trianglesToRemove.AddRange(triangles);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
                     }
                 }
 
                 foreach (var position in markedPositions.Where(p => p.Cardinality > 2))
                 {
-                    var antipodePosition = position.Triangles.SelectMany(t => t.Positions.Select(p => p.PositionObject)).DistinctBy(p => p.Id).SingleOrDefault(p => p.Cardinality > 2 && p.Id != position.Id);
-                    if (antipodePosition is null) { continue; }
+                    var trianglePositions = position.Triangles.SelectMany(t => t.Positions.Select(p => p.PositionObject)).DistinctBy(p => p.Id).ToArray();
+                    if (trianglePositions.Count(p => p.Cardinality > 2 && p.Id != position.Id) > 1) { Console.WriteLine($"Corner by-pass {position.Id}"); continue; }
+
+                    var antipodePosition = trianglePositions.SingleOrDefault(p => p.Cardinality > 2 && p.Id != position.Id);
+                    if (antipodePosition is null) { Console.WriteLine($"Corner by-pass no antipode {position.Id}"); continue; }
 
                     foreach (var positionNormal in position.PositionNormals.ToArray())
-                    {
-                        trianglesToRemove.AddRange(positionNormal.Triangles);
+                    { 
+                        try
+                        {
+                            trianglesToRemove.AddRange(positionNormal.Triangles);
 
-                        var segmentSet = CreateSurfaceCornerSet(mesh, positionNormal, antipodePosition);
-                        if (segmentSet is null) {
-                            continue; 
+                            var segmentSet = CreateSurfaceCornerSet(mesh, positionNormal, antipodePosition);
+                            if (segmentSet is null)
+                            {
+                                continue;
+                            }
+
+                            var collection = new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(segmentSet);
+                            var chain = SurfaceSegmentChaining<PlanarFillingGroup, PositionNormal>.Create(collection);
+                            var perimeterPoints = chain.PerimeterLoops.FirstOrDefault();
+
+                            fillAction?.PresetMatching(position, perimeterPoints);
+                            var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, fillAction, position.Id);
+                            var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
+                            fillingsToAdd.AddRange(fillings);
                         }
-
-                        var collection = new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(segmentSet);
-                        var chain = SurfaceSegmentChaining<PlanarFillingGroup, PositionNormal>.Create(collection);
-                        var perimeterPoints = chain.PerimeterLoops.FirstOrDefault();
-
-                        fillAction?.PresetMatching(position, perimeterPoints);
-
-                        var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, fillAction, position.Id);
-                        var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
-                        fillingsToAdd.AddRange(fillings);
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
                     }
                 }
 

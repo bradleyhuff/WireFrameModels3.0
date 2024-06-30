@@ -3,6 +3,7 @@ using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Operations.PlanarFilling.Basics;
 using Operations.PlanarFilling.Filling;
+using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
 using Operations.SurfaceSegmentChaining.Collections;
@@ -60,7 +61,7 @@ namespace Operations.Intermesh.Classes
                     default:
                         {
                             //needComplexFill++;
-                            
+
                             var fills = ComplexSegmentFills(triangle).ToArray();
                             //if (fills.Any(f => f.Triangle.IsCollinear))
                             //{
@@ -218,8 +219,16 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            var planarFilling = new PlanarFilling<PlanarFillingGroup, ElasticVertexCore>(chain, triangle.Id);
-            var fillings = planarFilling.Fillings.ToArray();
+            var fillings = new SurfaceTriangleContainer<ElasticVertexCore>[0];
+            try
+            {
+                var planarFilling = new PlanarFilling<PlanarFillingGroup, ElasticVertexCore>(chain, triangle.Id);
+                fillings = planarFilling.Fillings.ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             foreach (var filling in fillings)
             {

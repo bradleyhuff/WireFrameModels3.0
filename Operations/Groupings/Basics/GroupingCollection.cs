@@ -130,20 +130,44 @@ namespace Operations.Groupings.Basics
             }
         }
 
+        private List<Position> _internalPoints;
+
+        public IReadOnlyList<Position> InternalPoints
+        {
+            get
+            {
+                if (_internalPoints is null)
+                {
+                    _internalPoints = GetInternalPoints().DistinctBy(p => p.Id).ToList();
+                }
+                return _internalPoints;
+            }
+        }
+
         private IEnumerable<GroupEdge> GetPerimeterEdges()
         {
-            var table = GroupingTriangles.Select(v => new KeyValuePair<int, bool>(v.Id, true)).ToDictionary(p => p.Key, p => p.Value);
+            var table = GroupingTriangles.Select(v => new KeyValuePair<int, bool>(v.PositionTriangle.Id, true)).ToDictionary(p => p.Key, p => p.Value);
             foreach (var triangle in GroupingTriangles)
             {
-                if (!triangle.ABadjacents.Any() ||
-                    triangle.ABadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.A, triangle.B); }
+                if (!triangle.PositionTriangle.ABadjacents.Any() ||
+                    triangle.PositionTriangle.ABadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.A, triangle.B); }
 
-                if (!triangle.BCadjacents.Any() ||
-                    triangle.BCadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.B, triangle.C); }
+                if (!triangle.PositionTriangle.BCadjacents.Any() ||
+                    triangle.PositionTriangle.BCadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.B, triangle.C); }
 
-                if (!triangle.CAadjacents.Any() ||
-                    triangle.CAadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.C, triangle.A); }
+                if (!triangle.PositionTriangle.CAadjacents.Any() ||
+                    triangle.PositionTriangle.CAadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.C, triangle.A); }
             }
+        }
+
+        private IEnumerable<Position> GetInternalPoints()
+        {
+            var perimeterPoints = PerimeterEdges.SelectMany(e => e.Positions.Select(p => p.PositionObject)).
+                DistinctBy(p => p.Id).Select(p => new KeyValuePair<int, bool>(p.Id, true)).ToDictionary(p => p.Key, p => p.Value);
+
+            var allPoints = GroupingTriangles.SelectMany(t => t.PositionTriangle.Positions.Select(p => p.PositionObject)).DistinctBy(p => p.Id).ToArray();
+
+            return allPoints.Where(p => !perimeterPoints.ContainsKey(p.Id));
         }
 
         private GroupingTriangle GetTriangle(PositionTriangle triangle)

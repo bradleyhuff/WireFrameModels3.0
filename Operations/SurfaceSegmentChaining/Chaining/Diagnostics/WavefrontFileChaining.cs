@@ -120,7 +120,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
             }
         }
 
-        public static void Export(ISurfaceSegmentChaining<PlanarFillingGroup, PositionNormal> chain, string fileName, double height = 0.01)
+        public static void Export<T>(ISurfaceSegmentChaining<PlanarFillingGroup, T> chain, string fileName, double height = 0.01)
         {
             var mesh = WireFrameMesh.Create();
             var chainLoop = chain.PerimeterLoops.First();

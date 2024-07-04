@@ -52,17 +52,24 @@ namespace Projects.Projects
             //TableDisplays.ShowCountSpread("Position cardinalities", banana.Positions, p => p.Cardinality);
 
             //var parallelSurfaces = grid.ParallelSurfaces(-0.01790);
-            var parallelSurfaces = grid.ParallelSurfaces(-0.001750);
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.001750);
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.001900);//check indeterminancies  search 'Indeterminant point'
+            var parallelSurfaces = grid.ParallelSurfaces(-0.01000);//extra surface
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.01700);//filling errors on point removal
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.02600);
             //WavefrontFileGroups.ExportByFaces(parallelSurfaces, "Wavefront/ParallelSurfaces");
             //parallelSurfaces.RemoveShortSegments(1e-4);
             parallelSurfaces.Trim();
             parallelSurfaces.RemoveShortSegments(1e-4);
             parallelSurfaces.RemoveCollinearEdgePoints();
             parallelSurfaces.RemoveCoplanarSurfacePoints();
+            //parallelSurfaces.RemoveOpenFaces();
+
             //Console.WriteLine($"Clusters {GroupingCollection.ExtractClusters(parallelSurfaces.Triangles).Count()}");
             //PntFileGroups.ExportByClusters(parallelSurfaces, "Pnt/ParallelSurfaces");
             parallelSurfaces.ShowVitals();
-            WavefrontFile.Export(parallelSurfaces, $"Wavefront/ParallelSurfaces");
+            //WavefrontFile.Export(parallelSurfaces, $"Wavefront/ParallelSurfaces");
+            //WavefrontFileGroups.ExportBySurfaces(parallelSurfaces, $"Wavefront/ParallelSurfaces");
             //WavefrontFileGroups.ExportByClusters(parallelSurfaces, o => {
             //    var surfaces = GroupingCollection.ExtractSurfaces(o.Triangles);
             //    Console.WriteLine($"Surfaces {string.Join(",", surfaces.Select(s => s.Triangles.Count()))}");
@@ -84,9 +91,9 @@ namespace Projects.Projects
             grid.RemoveCoplanarSurfacePoints();
             var surfaces = GroupingCollection.ExtractSurfaces(grid.Triangles);
 
-            var parallelSurfaces = grid.ParallelSurfaces(-0.00200);
+            var parallelSurfaces = grid.ParallelSurfaces(-0.001750);
             parallelSurfaces.Trim();
-            parallelSurfaces.ShowOpenEdges();
+            //parallelSurfaces.ShowOpenEdges();
 
             parallelSurfaces.ShowVitals();
             //Console.WriteLine($"Surfaces {string.Join(",", surfaces.Select(s => s.Triangles.Count()))}");

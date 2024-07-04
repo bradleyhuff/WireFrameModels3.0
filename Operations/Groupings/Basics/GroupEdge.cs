@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
 namespace Operations.Groupings.Basics
 {
@@ -8,6 +9,7 @@ namespace Operations.Groupings.Basics
         {
             A = a;
             B = b;
+            Key = new Combination2(A.PositionObject.Id, B.PositionObject.Id);
         }
         public PositionNormal A { get; private set; }
         public PositionNormal B { get; private set; }
@@ -20,6 +22,8 @@ namespace Operations.Groupings.Basics
                 yield return B;
             }
         }
+
+        public Combination2 Key { get; }
 
         public bool IsDegenerate
         {
@@ -40,6 +44,11 @@ namespace Operations.Groupings.Basics
         public bool IsOpenEdge
         {
             get { return Triangles.Count() < 2; }
+        }
+
+        public bool IsIntersectingEdge
+        {
+            get { return Triangles.Count() > 2; }
         }
 
         public LineSegment3D Segment

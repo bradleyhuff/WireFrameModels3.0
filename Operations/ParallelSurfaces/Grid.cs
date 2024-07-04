@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
@@ -8,6 +9,8 @@ using Operations.Groupings.Types;
 using Operations.Intermesh;
 using Operations.PositionRemovals;
 using Operations.Regions;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Operations.ParallelSurfaces
 {
@@ -43,9 +46,9 @@ namespace Operations.ParallelSurfaces
         public static void Trim(this IWireFrameMesh mesh)
         {
             RemoveAllOpenFaces(mesh);
+            RemoveInternalSurfaces(mesh);
             RemoveInvertedSurfaces(mesh);
             RemoveAllOpenFaces(mesh);
-            CornerCapping(mesh);
         }
 
         private static void RemoveInvertedSurfaces(IWireFrameMesh mesh)
@@ -53,7 +56,7 @@ namespace Operations.ParallelSurfaces
             var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles).Select(f => f.Triangles).ToArray();
             Console.WriteLine($"Surfaces to check for inversion/trim {surfaces.Length}");
             List<PositionTriangle[]> surfacesToRemove = new List<PositionTriangle[]>();
- 
+
             foreach (var surface in surfaces)
             {
                 var faces = GroupingCollection.ExtractFaces(surface.ToArray()).ToArray();
@@ -80,39 +83,145 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        private static void CornerCapping(IWireFrameMesh mesh)
+        private static void RemoveInternalSurfaces(IWireFrameMesh mesh)
         {
-            var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles).Select(f => f.Triangles).ToArray();
-            Console.WriteLine($"Surfaces to check for corners/trim {surfaces.Length}");
+            var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles).Select(f => new GroupingCollection(f.Triangles)).ToArray();
+            Console.WriteLine($"Surfaces to check for internals {surfaces.Length}");
+
+            var associations = AssociatedGroupsByIntersection(surfaces).ToArray();
             List<PositionTriangle[]> surfacesToRemove = new List<PositionTriangle[]>();
 
-            foreach (var surface in surfaces)
+            foreach (var association in associations)
             {
-                var space = new Space(surface.Select(t => t.Triangle).ToArray());
-                var testPoint = GetTestPoint(surface);
-                var interiorTestPoint = testPoint.Point + -1e-9 * testPoint.Normal.Direction;
+                var largestGroup = association.MaxBy(g => Rectangle3D.Containing(g.Triangles.Select(t => t.Triangle).ToArray()).Diagonal);
+                var groupsToConsider = association.Where(a => a.Id != largestGroup.Id).OrderBy(a => a.InternalPoints.Any(p => p.Cardinality > 2)).ToArray();
 
-                var region = space.RegionOfPoint(interiorTestPoint);
-
-                if (region == Region.Indeterminant && SurfaceHasCorner(surface))
+                if (groupsToConsider.Any())
                 {
-                    surfacesToRemove.Add(surface.ToArray());
+                    surfacesToRemove.Add(groupsToConsider.First().Triangles.ToArray());
                 }
             }
 
             Console.WriteLine($"Surfaces to remove {surfacesToRemove.Count}");
 
-            foreach (var surface in surfacesToRemove)
+            foreach (var surfaceToRemove in surfacesToRemove)
             {
-                mesh.RemoveAllTriangles(surface);
+                mesh.RemoveAllTriangles(surfaceToRemove);
             }
         }
 
-        private static bool SurfaceHasCorner(IEnumerable<PositionTriangle> surface)
+        private static IEnumerable<GroupingCollection[]> AssociatedGroupsByIntersection(GroupingCollection[] surfaces)
         {
-            var collection = new GroupingCollection(surface);
+            var lookup = new Dictionary<int, GroupingCollection>();
+            foreach (var surface in surfaces)
+            {
+                foreach (var triangle in surface.Triangles)
+                {
+                    lookup[triangle.Id] = surface;
+                }
+            }
 
-            return collection.InternalPoints.Any(p => p.Cardinality > 2);
+            var list = new List<GroupEdgeGroupCollection>();
+            foreach (var surface in surfaces)
+            {
+                var perimeter = surface.PerimeterEdges;
+
+                var edgeAssociatedGroups = surface.PerimeterEdges.
+                    Select(e => new { Edge = e, Triangles = e.Triangles }).
+                    Select(et => new GroupEdgeGroupCollection()
+                    {
+                        Edge = et.Edge,
+                        Groups = et.Triangles.
+                    Select(p => lookup[p.Id]).OrderBy(a => a.Id).ToArray()
+                    });
+
+                list.AddRange(edgeAssociatedGroups);
+            }
+
+            var regroup = Regroup(list);
+
+            return regroup.Where(eg => IsLinked(eg.GroupEdges)).Select(r => r.Groups);
+        }
+
+        private class GroupEdgeGroupCollection
+        {
+            public GroupEdge Edge { get; set; }
+            public GroupingCollection[] Groups { get; set; }
+        }
+
+        private class GroupCollectionGroupEdges
+        {
+            public GroupingCollection[] Groups { get; set; }
+            public GroupEdge[] GroupEdges { get; set; }
+        }
+
+        private static List<GroupCollectionGroupEdges> Regroup(List<GroupEdgeGroupCollection> input)
+        {
+            var output = new List<GroupCollectionGroupEdges>();
+
+            var groupings = new Dictionary<string, GroupingCollection[]>();
+            var edgeSets = new Dictionary<string, List<GroupEdge>>();
+
+            foreach (GroupEdgeGroupCollection edge in input)
+            {
+                var key = string.Join("|", edge.Groups.Select(g => g.Id));
+                groupings[key] = edge.Groups;
+            }
+
+            foreach (GroupEdgeGroupCollection edge in input)
+            {
+                var key = string.Join("|", edge.Groups.Select(g => g.Id));
+                if (!edgeSets.ContainsKey(key)) { edgeSets[key] = new List<GroupEdge>(); }
+                edgeSets[key].Add(edge.Edge);
+            }
+
+            foreach (var keyPair in edgeSets)
+            {
+                output.Add(new GroupCollectionGroupEdges()
+                {
+                    Groups = groupings[keyPair.Key],
+                    GroupEdges = keyPair.Value.DistinctBy(e => e.Key, new Combination2Comparer()).ToArray()
+                });
+            }
+
+            return output;
+        }
+
+        private static bool IsLinked(GroupEdge[] groupEdges)
+        {
+            //return true;
+            var table = new Dictionary<int, List<int>>();
+
+            foreach (var groupEdge in groupEdges)
+            {
+                if (!table.ContainsKey(groupEdge.Key.A)) { table[groupEdge.Key.A] = new List<int>(); }
+                if (!table.ContainsKey(groupEdge.Key.B)) { table[groupEdge.Key.B] = new List<int>(); }
+
+                table[groupEdge.Key.A].Add(groupEdge.Key.B);
+                table[groupEdge.Key.B].Add(groupEdge.Key.A);
+            }
+            if (table.Values.Any(v => v.Count != 2)) { return false; }
+
+            int previousKey = -1;
+            int currentKey = groupEdges.First().Key.A;
+            int startKey = currentKey;
+
+            var links = new List<int>() { startKey };
+
+            do
+            {
+                if (!table.ContainsKey(currentKey)) { return false; }
+                var keys = table[currentKey];
+                int nextKey = keys[0];
+                if (nextKey == previousKey) { nextKey = keys[1]; }
+                if (nextKey == startKey) { break; }
+                previousKey = currentKey;
+                currentKey = nextKey;
+                links.Add(currentKey);
+            } 
+            while (true);
+
+            return links.Count == groupEdges.Length;
         }
 
         private static void RemoveAllOpenFaces(IWireFrameMesh mesh)

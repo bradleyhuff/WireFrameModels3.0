@@ -2,6 +2,7 @@
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
+using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Basics;
 using Operations.Groupings.Basics;
@@ -26,8 +27,9 @@ namespace Projects.Projects
         }
 
         private void ParallelSurfaceBuild()
-        { 
+        {
             var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
+            //var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8-62");
             grid.RemoveShortSegments(3e-4);
             grid.RemoveCollinearEdgePoints();
             grid.RemoveCoplanarSurfacePoints();
@@ -53,23 +55,31 @@ namespace Projects.Projects
 
             //var parallelSurfaces = grid.ParallelSurfaces(-0.01790);
             //var parallelSurfaces = grid.ParallelSurfaces(-0.001750);
-            //var parallelSurfaces = grid.ParallelSurfaces(-0.001900);//check indeterminancies  search 'Indeterminant point'
-            var parallelSurfaces = grid.ParallelSurfaces(-0.01000);//extra surface
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.001900);//check indeterminancies  search 'Indeterminant point' RESOLVED
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.01000);//extra surface RESOLVED
             //var parallelSurfaces = grid.ParallelSurfaces(-0.01700);//filling errors on point removal
-            //var parallelSurfaces = grid.ParallelSurfaces(-0.02600);
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.02200);//multiple surfaces start showing
+            var parallelSurfaces = grid.ParallelSurfaces(-0.01000);
             //WavefrontFileGroups.ExportByFaces(parallelSurfaces, "Wavefront/ParallelSurfaces");
             //parallelSurfaces.RemoveShortSegments(1e-4);
             parallelSurfaces.Trim();
             parallelSurfaces.RemoveShortSegments(1e-4);
             parallelSurfaces.RemoveCollinearEdgePoints();
             parallelSurfaces.RemoveCoplanarSurfacePoints();
-            //parallelSurfaces.RemoveOpenFaces();
+
+            //var extra = parallelSurfaces.Triangles.SingleOrDefault(t => t.Id == 6240);
+            //if (extra is not null)
+            //{
+            //    parallelSurfaces.RemoveTriangle(extra);
+            //}
 
             //Console.WriteLine($"Clusters {GroupingCollection.ExtractClusters(parallelSurfaces.Triangles).Count()}");
-            //PntFileGroups.ExportByClusters(parallelSurfaces, "Pnt/ParallelSurfaces");
+
             parallelSurfaces.ShowVitals();
-            //WavefrontFile.Export(parallelSurfaces, $"Wavefront/ParallelSurfaces");
-            //WavefrontFileGroups.ExportBySurfaces(parallelSurfaces, $"Wavefront/ParallelSurfaces");
+            //parallelSurfaces.ShowOpenEdges();
+            WavefrontFile.Export(parallelSurfaces, $"Wavefront/ParallelSurfaces");
+            //PntFileGroups.ExportBySurfaces(parallelSurfaces, "Pnt/ParallelSurfacesDebug");
+            //WavefrontFileGroups.ExportBySurfaces(parallelSurfaces, $"Wavefront/ParallelSurfacesDebug");
             //WavefrontFileGroups.ExportByClusters(parallelSurfaces, o => {
             //    var surfaces = GroupingCollection.ExtractSurfaces(o.Triangles);
             //    Console.WriteLine($"Surfaces {string.Join(",", surfaces.Select(s => s.Triangles.Count()))}");
@@ -83,22 +93,63 @@ namespace Projects.Projects
             //Console.WriteLine();
         }
 
+        private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)
+        {
+            var output = WireFrameMesh.Create();
+
+            foreach (var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
+            {
+                output.AddTriangle(positionNormal.Position, Vector3D.Zero, positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero, positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
+            }
+
+            return output;
+        }
+
         private void SurfaceExplore()
         {
-            var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8-136");
+            //var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/ParallelSurfaces-186");
+            var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8-62");
             grid.RemoveShortSegments(3e-4);
             grid.RemoveCollinearEdgePoints();
             grid.RemoveCoplanarSurfacePoints();
-            var surfaces = GroupingCollection.ExtractSurfaces(grid.Triangles);
+            //var surfaces = GroupingCollection.ExtractSurfaces(grid.Triangles);
 
-            var parallelSurfaces = grid.ParallelSurfaces(-0.001750);
+            var parallelSurfaces = grid.ParallelSurfaces(-0.01000);
+            //WavefrontFileGroups.ExportBySurfaces(parallelSurfaces, "Wavefront/SurfaceExplorePre-trim");
+
+
             parallelSurfaces.Trim();
             //parallelSurfaces.ShowOpenEdges();
 
+            //grid.RemoveOpenFaces();
+            //var extra = grid.Triangles.SingleOrDefault(t => t.Id == 5);
+            //if (extra is not null)
+            //{
+            //    grid.RemoveTriangle(extra);
+            //}
+
             parallelSurfaces.ShowVitals();
+            parallelSurfaces.ShowOpenEdges();
             //Console.WriteLine($"Surfaces {string.Join(",", surfaces.Select(s => s.Triangles.Count()))}");
             //WavefrontFileGroups.ExportBySurfaces(parallelSurfaces, "Wavefront/SurfaceExplore");
             WavefrontFile.Export(parallelSurfaces, "Wavefront/SurfaceExplore");
+
+            {
+                var test = WireFrameMesh.Create();
+                var segment = new LineSegment3D(new Point3D(0.49999999999999994, 0.1527586315275828, 0.6303201003419308), new Point3D(0.49999999999999994, 0.11764240251735608, 0.6180217443923588));
+                test.AddTriangle(segment.Start, segment.Center, segment.End);
+                WavefrontFile.Export(test,"Wavefront/SurfaceExploreXtestLine");
+            }
+
+            //foreach(var triangle in grid.Triangles)
+            //{
+            //    var test = WireFrameMesh.Create();
+            //    test.AddTriangle(triangle.Triangle);
+            //    WavefrontFile.Export(test, $"Wavefront/Surface-{triangle.Id}");
+            //}
+
+            //var normalGrid = NormalOverlay(grid, 0.001);
+            //WavefrontFile.Export(normalGrid, "Wavefront/SurfaceNormals");
         }
     }
 }

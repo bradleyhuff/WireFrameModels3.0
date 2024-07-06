@@ -120,7 +120,8 @@ namespace Operations.PlanarFilling.Filling.Internals
         {
             SeparateSegments(test, matches, out List<PlanarSegment<T>> links, out List<PlanarSegment<T>> collinears);
 
-            var checkingPoints = GetLinks(test, links).DistinctBy(x => x).ToArray();
+            var checkingPoints = GetIntersections(test, links).ToArray();// regular point by point checking
+
             var groups = BuildCollinearGroups(collinears, links);
             if (!groups.Any()) { return checkingPoints; }
             var applicableGroups = groups.Where(g => g.IsApplicable()).ToArray();
@@ -143,13 +144,45 @@ namespace Operations.PlanarFilling.Filling.Internals
             }
         }
 
-        private IEnumerable<Point3D> GetLinks(Line3D test, IEnumerable<PlanarSegment<T>> links)
+        private IEnumerable<Point3D> GetIntersections(Line3D test, IEnumerable<PlanarSegment<T>> links)
         {
             foreach (var link in links)
             {
-                var intersection = Line3D.PointIntersection(link.Segment, test);
+                var intersection = Line3D.PointIntersectionOpen(link.Segment, test);
                 if (intersection is null) { continue; }
                 yield return intersection;
+            }
+
+            var rays = GetTouchingRays(test, links).ToArray();
+
+            var groups = rays.GroupBy(r => r.Point).Where(g => g.Count() == 2).ToArray();
+
+            foreach(var group in groups)
+            {
+                var testRays = group.ToArray();
+                var testPoints = testRays.Select(r => r.Point + r.Normal).ToArray();
+                var testSegment = new LineSegment3D(testPoints[0], testPoints[1]);
+
+                var intersection = Line3D.PointIntersection(testSegment, test);
+                if(intersection is not null)
+                {
+                    yield return group.Key;
+                }
+            }
+        }
+
+        private IEnumerable<Ray3D> GetTouchingRays(Line3D test, IEnumerable<PlanarSegment<T>> links)
+        {
+            foreach(var link in links)
+            {
+                if (test.PointIsOnLine(link.Segment.Start) && !test.PointIsOnLine(link.Segment.End)) 
+                {
+                    yield return new Ray3D(link.Segment.Start, (link.Segment.End - link.Segment.Start).Direction);
+                }
+                if (test.PointIsOnLine(link.Segment.End) && !test.PointIsOnLine(link.Segment.Start))
+                {
+                    yield return new Ray3D(link.Segment.End, (link.Segment.Start - link.Segment.End).Direction);
+                }
             }
         }
 

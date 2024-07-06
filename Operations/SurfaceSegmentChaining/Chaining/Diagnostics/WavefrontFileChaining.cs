@@ -10,6 +10,47 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
 {
     internal static class WavefrontFileChaining
     {
+        public static void Export<G, T>(ISurfaceSegmentChaining<G, T> chain, string fileName)
+        {
+            int i = 0;
+            foreach (var perimeterLoop in chain.PerimeterLoops)
+            {
+                var mesh = WireFrameMesh.Create();
+
+                for (int j = 0; j < perimeterLoop.Length - 1; j++)
+                {
+                    var segment = new LineSegment3D(perimeterLoop[j].Point, perimeterLoop[j + 1].Point);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                }
+                {
+                    var segment = new LineSegment3D(perimeterLoop.Last().Point, perimeterLoop.First().Point);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                }
+
+                WavefrontFile.Export(mesh, $"{fileName}/PerimeterLoop-{i}");
+                i++;
+            }
+            i = 0;
+            foreach (var loop in chain.Loops)
+            {
+                var mesh = WireFrameMesh.Create();
+
+                for (int j = 0; j < loop.Length - 1; j++)
+                {
+                    var segment = new LineSegment3D(loop[j].Point, loop[j + 1].Point);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                }
+                {
+                    var segment = new LineSegment3D(loop.Last().Point, loop.First().Point);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                }
+
+                WavefrontFile.Export(mesh, $"{fileName}/Loop-{i}");
+                i++;
+            }
+
+        }
+
         public static void Export<T>(ElasticTriangle triangle, ChainingException<T> e, string fileName, double height = 0.01)
         {
             {
@@ -129,7 +170,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
             {
                 for (int i = 0; i < chainLoop.Length - 1; i++)
                 {
-                    var segment = new LineSegment3D(chainLoop[i].Point, chainLoop[i+1].Point);
+                    var segment = new LineSegment3D(chainLoop[i].Point, chainLoop[i + 1].Point);
                     mesh.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
                 }
                 {

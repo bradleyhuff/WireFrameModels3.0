@@ -501,10 +501,6 @@ namespace BasicObjects.GeometricObjects
 
         private static IEnumerable<LineSegment3D> CoplanarIntersections(Triangle3D a, Triangle3D b)
         {
-            // Add method to return all intersecting segments of the coplanar triangles.
-            //
-            //Console.WriteLine($"Coplanar intersection {a} {b}");
-
             var output = new List<LineSegment3D>();
 
             foreach (var edge in a.Edges)

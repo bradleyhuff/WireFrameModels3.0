@@ -1,16 +1,10 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
-using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
-using FileExportImport;
 using Operations.Groupings.Basics;
-using Operations.Groupings.Types;
 using Operations.Intermesh;
-using Operations.PositionRemovals;
 using Operations.Regions;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace Operations.ParallelSurfaces
 {

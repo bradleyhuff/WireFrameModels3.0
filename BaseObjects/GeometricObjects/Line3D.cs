@@ -167,5 +167,14 @@ namespace BasicObjects.GeometricObjects
             return a.PointIsAtOrBetweenEndpoints(intersection) ? intersection : null;
         }
 
+        public static Point3D PointIntersectionOpen(LineSegment3D a, Line3D b)
+        {
+            if (b.PointIsOnLine(a.Start)) { return null; }
+            if (b.PointIsOnLine(a.End)) { return null; }
+            var intersection = MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out double gap);
+            if (gap > E.Double.ProximityError) { return null; }
+            return a.PointIsAtOrBetweenEndpoints(intersection) ? intersection : null;
+        }
+
     }
 }

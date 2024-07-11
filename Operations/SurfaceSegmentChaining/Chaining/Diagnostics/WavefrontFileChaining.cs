@@ -49,6 +49,21 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 i++;
             }
 
+            i = 0;
+            foreach (var loop in chain.SpurredLoops)
+            {
+                var mesh = WireFrameMesh.Create();
+
+                for (int j = 0; j < loop.Length - 1; j++)
+                {
+                    var segment = new LineSegment3D(loop[j].Point, loop[j + 1].Point);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                }
+
+                WavefrontFile.Export(mesh, $"{fileName}/SpurredLoop-{i}");
+                i++;
+            }
+
         }
 
         public static void Export<T>(ElasticTriangle triangle, ChainingException<T> e, string fileName, double height = 0.01)

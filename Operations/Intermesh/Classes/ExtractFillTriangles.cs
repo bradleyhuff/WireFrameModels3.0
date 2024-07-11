@@ -1,4 +1,6 @@
 ﻿using BaseObjects;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using FileExportImport;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Elastics;
 using Operations.PlanarFilling.Basics;
@@ -26,12 +28,6 @@ namespace Operations.Intermesh.Classes
 
         private static IEnumerable<FillTriangle> GetFillTriangles(IEnumerable<ElasticTriangle> elasticTriangles)
         {
-            int simpleTriangles0 = 0;
-            int simpleTriangles1 = 0;
-            int simpleTriangles2 = 0;
-            int simpleTriangles3 = 0;
-            int complexTriangles = 0;
-            int needComplexFill = 0;
             foreach (var triangle in elasticTriangles)
             {
                 var segments = triangle.SegmentsCount;
@@ -39,27 +35,53 @@ namespace Operations.Intermesh.Classes
                 {
                     case 0:
                         {
-                            var fills = NoSegmentFills(triangle);
-                            if (fills.Any()) { simpleTriangles0++; foreach (var fill in fills) { yield return fill; } break; }
+                            FillTriangle[] fills = [];
+                            try
+                            {
+                                fills = NoSegmentFills(triangle).ToArray();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+
+                            if (fills.Any()) { foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     case 1:
                         {
-                            var fills = SingleSegmentFills(triangle);
-                            if (fills.Any()) { simpleTriangles1++; foreach (var fill in fills) { yield return fill; } break; }
+                            FillTriangle[] fills = [];
+                            try
+                            {
+                                fills = SingleSegmentFills(triangle).ToArray();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+
+                            if (fills.Any()) { foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     case 2:
                         {
-                            var fills = DoubleSegmentFills(triangle);
-                            if (fills.Any()) { simpleTriangles2++; foreach (var fill in fills) { yield return fill; } break; }
+                            FillTriangle[] fills = [];
+                            try
+                            {
+                                fills = DoubleSegmentFills(triangle).ToArray();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+
+                            if (fills.Any()) { foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     default:
                         {
-                            var fills = ComplexSegmentFills(triangle).ToArray();
-                            if (fills.Any())
-                            { complexTriangles++; foreach (var fill in fills) { yield return fill; } }
+                            var fills = ComplexSegmentFills(triangle);
+                            if (fills.Any()) { foreach (var fill in fills) { yield return fill; } }
                         }
                         break;
                 }
@@ -107,10 +129,6 @@ namespace Operations.Intermesh.Classes
 
                     yield break;
                 }
-            }
-            if (triangle.PerimeterPointsCount == 1 && triangle.VertexPointsCount == 1)
-            {
-
             }
 
             yield break;

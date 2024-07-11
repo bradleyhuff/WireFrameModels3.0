@@ -4,6 +4,7 @@ using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
 using FundamentalMeshes;
 using Operations;
+using Operations.ParallelSurfaces;
 using Operations.SetOperators;
 using WireFrameModels3._0;
 
@@ -38,6 +39,7 @@ namespace Projects.Projects
             //var sum = WireFrameMesh.Create();
             //sum.AddGrid(part1);
             //sum.AddGrid(part2);
+            cross.Trim();
 
             WavefrontFile.Export(cross, "Wavefront/CrossTest");
             //{

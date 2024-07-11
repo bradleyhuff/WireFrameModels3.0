@@ -1,9 +1,11 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Basics;
 using Operations.Intermesh;
+using Operations.PositionRemovals;
 using Operations.Regions;
 
 namespace Operations.ParallelSurfaces
@@ -12,6 +14,9 @@ namespace Operations.ParallelSurfaces
     {
         public static IWireFrameMesh ParallelSurfaces(this IWireFrameMesh mesh, double displacement)
         {
+            var start = DateTime.Now;
+            ConsoleLog.Push($"Parallel Surfaces {displacement}");
+
             var faces = GroupingCollection.ExtractFaces(mesh.Triangles).Select(f => f.Triangles).ToArray();
             var surfaceTriangles = faces.SelectMany(f => CreateSet(f.ToArray(), displacement)).ToArray();
             var grid = mesh.CreateNewInstance();
@@ -21,7 +26,15 @@ namespace Operations.ParallelSurfaces
             }
 
             grid.Intermesh();
-            //Trim(grid);
+
+            grid.Trim();
+            grid.RemoveShortSegments(1e-4);
+            grid.RemoveCollinearEdgePoints();
+            grid.RemoveCoplanarSurfacePoints();
+
+            ConsoleLog.Pop();
+            ConsoleLog.WriteLine($"Parallel Surfaces: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
+
             return grid;
         }
 
@@ -39,16 +52,20 @@ namespace Operations.ParallelSurfaces
 
         public static void Trim(this IWireFrameMesh mesh)
         {
+            var start = DateTime.Now;
+            ConsoleLog.Push($"Surface Trim");
             RemoveAllOpenFaces(mesh);
-            RemoveInternalSurfaces(mesh);
+            RemoveAllInternalSurfaces(mesh);
             RemoveInvertedSurfaces(mesh);
             RemoveAllOpenFaces(mesh);
+            ConsoleLog.Pop();
+            ConsoleLog.WriteLine($"Surface Trim: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
         }
 
         private static void RemoveInvertedSurfaces(IWireFrameMesh mesh)
         {
             var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles).Select(f => f.Triangles).ToArray();
-            Console.WriteLine($"Surfaces to check for inversion/trim {surfaces.Length}");
+            ConsoleLog.WriteLine($"Surfaces to check for inversion/trim {surfaces.Length}");
             List<PositionTriangle[]> surfacesToRemove = new List<PositionTriangle[]>();
 
             foreach (var surface in surfaces)
@@ -69,7 +86,7 @@ namespace Operations.ParallelSurfaces
                 }
             }
 
-            Console.WriteLine($"Surfaces to remove {surfacesToRemove.Count}");
+            ConsoleLog.WriteLine($"Surfaces to remove {surfacesToRemove.Count}");
 
             foreach (var surface in surfacesToRemove)
             {
@@ -77,10 +94,14 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        private static void RemoveInternalSurfaces(IWireFrameMesh mesh)
+        private static void RemoveAllInternalSurfaces(IWireFrameMesh mesh)
+        {
+            while (RemoveInternalSurfaces(mesh)) { }
+        }
+        private static bool RemoveInternalSurfaces(IWireFrameMesh mesh)
         {
             var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles).Select(f => new GroupingCollection(f.Triangles)).ToArray();
-            Console.WriteLine($"Surfaces to check for internals {surfaces.Length}");
+            ConsoleLog.WriteLine($"Surfaces to check for internals {surfaces.Length}");
 
             var associations = AssociatedGroupsByIntersection(surfaces).ToArray();
             List<PositionTriangle[]> surfacesToRemove = new List<PositionTriangle[]>();
@@ -88,7 +109,7 @@ namespace Operations.ParallelSurfaces
             foreach (var association in associations)
             {
                 var largestGroup = association.MaxBy(g => Rectangle3D.Containing(g.Triangles.Select(t => t.Triangle).ToArray()).Diagonal);
-                var groupsToConsider = association.Where(a => a.Id != largestGroup.Id).OrderBy(a => a.InternalPoints.Any(p => p.Cardinality > 2)).ToArray();
+                var groupsToConsider = association.Where(a => a.Id != largestGroup.Id).OrderBy(a => !a.InternalPoints.Any(p => p.Cardinality > 2)).ToArray();
 
                 if (groupsToConsider.Any())
                 {
@@ -96,12 +117,13 @@ namespace Operations.ParallelSurfaces
                 }
             }
 
-            Console.WriteLine($"Surfaces to remove {surfacesToRemove.Count}");
+            ConsoleLog.WriteLine($"Surfaces to remove {surfacesToRemove.Count}");
 
             foreach (var surfaceToRemove in surfacesToRemove)
             {
                 mesh.RemoveAllTriangles(surfaceToRemove);
             }
+            return surfacesToRemove.Count() > 0;
         }
 
         private static IEnumerable<GroupingCollection[]> AssociatedGroupsByIntersection(GroupingCollection[] surfaces)
@@ -183,39 +205,39 @@ namespace Operations.ParallelSurfaces
 
         private static bool IsLinked(GroupEdge[] groupEdges)
         {
-            //return true;
-            var table = new Dictionary<int, List<int>>();
+            return true;
+            //var table = new Dictionary<int, List<int>>();
 
-            foreach (var groupEdge in groupEdges)
-            {
-                if (!table.ContainsKey(groupEdge.Key.A)) { table[groupEdge.Key.A] = new List<int>(); }
-                if (!table.ContainsKey(groupEdge.Key.B)) { table[groupEdge.Key.B] = new List<int>(); }
+            //foreach (var groupEdge in groupEdges)
+            //{
+            //    if (!table.ContainsKey(groupEdge.Key.A)) { table[groupEdge.Key.A] = new List<int>(); }
+            //    if (!table.ContainsKey(groupEdge.Key.B)) { table[groupEdge.Key.B] = new List<int>(); }
 
-                table[groupEdge.Key.A].Add(groupEdge.Key.B);
-                table[groupEdge.Key.B].Add(groupEdge.Key.A);
-            }
-            if (table.Values.Any(v => v.Count != 2)) { return false; }
+            //    table[groupEdge.Key.A].Add(groupEdge.Key.B);
+            //    table[groupEdge.Key.B].Add(groupEdge.Key.A);
+            //}
+            //if (table.Values.Any(v => v.Count != 2)) { return false; }
 
-            int previousKey = -1;
-            int currentKey = groupEdges.First().Key.A;
-            int startKey = currentKey;
+            //int previousKey = -1;
+            //int currentKey = groupEdges.First().Key.A;
+            //int startKey = currentKey;
 
-            var links = new List<int>() { startKey };
+            //var links = new List<int>() { startKey };
 
-            do
-            {
-                if (!table.ContainsKey(currentKey)) { return false; }
-                var keys = table[currentKey];
-                int nextKey = keys[0];
-                if (nextKey == previousKey) { nextKey = keys[1]; }
-                if (nextKey == startKey) { break; }
-                previousKey = currentKey;
-                currentKey = nextKey;
-                links.Add(currentKey);
-            } 
-            while (true);
+            //do
+            //{
+            //    if (!table.ContainsKey(currentKey)) { return false; }
+            //    var keys = table[currentKey];
+            //    int nextKey = keys[0];
+            //    if (nextKey == previousKey) { nextKey = keys[1]; }
+            //    if (nextKey == startKey) { break; }
+            //    previousKey = currentKey;
+            //    currentKey = nextKey;
+            //    links.Add(currentKey);
+            //} 
+            //while (true);
 
-            return links.Count == groupEdges.Length;
+            //return links.Count == groupEdges.Length;
         }
 
         private static void RemoveAllOpenFaces(IWireFrameMesh mesh)
@@ -226,7 +248,7 @@ namespace Operations.ParallelSurfaces
         private static bool RemoveOpenFaces(IWireFrameMesh mesh)
         {
             var faces = GroupingCollection.ExtractFaces(mesh.Triangles).Select(f => f.Triangles).ToArray();
-            Console.WriteLine($"Faces to check/trim {faces.Length}");
+            ConsoleLog.WriteLine($"Faces to check/trim {faces.Length}");
 
             List<PositionTriangle[]> facesToRemove = new List<PositionTriangle[]>();
             int i = -1;
@@ -243,7 +265,7 @@ namespace Operations.ParallelSurfaces
                 }
             }
 
-            Console.WriteLine($"Faces to remove {facesToRemove.Count}");
+            ConsoleLog.WriteLine($"Faces to remove {facesToRemove.Count}");
 
             foreach (var face in facesToRemove)
             {

@@ -138,7 +138,8 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_indexedFillTriangles is null)
                 {
-                    if (_fillAction is null) {
+                    if (_fillAction is null)
+                    {
                         return BasicFill();
                     }
 

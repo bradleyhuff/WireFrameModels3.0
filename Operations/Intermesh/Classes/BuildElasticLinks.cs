@@ -35,8 +35,6 @@ namespace Operations.Intermesh.Classes
             SetAdjacents(intermeshTriangles, triangleTable);
             ConsoleLog.WriteLine($"Build elastic links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
-            //Notes.BuildElasticLinksNotes(elasticTriangles, verticies, anchorTable, segmentTable);
-
             return elasticTriangles;
         }
 
@@ -45,12 +43,16 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var triangle in triangles)
             {
-                var elasticTriangle = triangleTable[triangle.Id];
-                var adjacentsAB = triangle.ABadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
-                var adjacentsBC = triangle.BCadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
-                var adjacentsCA = triangle.CAadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
+                try
+                {
+                    var elasticTriangle = triangleTable[triangle.Id];
+                    var adjacentsAB = triangle.ABadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
+                    var adjacentsBC = triangle.BCadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
+                    var adjacentsCA = triangle.CAadjacents.Where(t => triangleTable.ContainsKey(t.Id)).Select(t => triangleTable[t.Id]);
 
-                elasticTriangle.SetAdjacents(adjacentsAB, adjacentsBC, adjacentsCA);
+                    elasticTriangle.SetAdjacents(adjacentsAB, adjacentsBC, adjacentsCA);
+                }
+                catch (Exception ex) { Console.WriteLine(ex.Message); }
             }
         }
 
@@ -60,8 +62,15 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var triangle in triangles)
             {
-                var elasticTriangle = GetTriangle(triangle, triangleTable, anchorTable, edgeTable);
-                elasticTriangle.SetSegments(GetSegments(triangle.Divisions, segmentTable));
+                try
+                {
+                    var elasticTriangle = GetTriangle(triangle, triangleTable, anchorTable, edgeTable);
+                    elasticTriangle.SetSegments(GetSegments(triangle.Divisions, segmentTable));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
@@ -71,20 +80,24 @@ namespace Operations.Intermesh.Classes
 
             foreach (var triangle in triangles)
             {
-                var containers = triangle.Divisions.SelectMany(s => s.VerticiesAB.SelectMany(v => v.Vertex.DivisionContainers)).DistinctBy(c => c.Id);
-                foreach (var container in containers)
+                try
                 {
-                    var tag = container.Tag;
-                    var division = segmentTable[container.Division.Id];
-                    if (tag == 'a')
+                    var containers = triangle.Divisions.SelectMany(s => s.VerticiesAB.SelectMany(v => v.Vertex.DivisionContainers)).DistinctBy(c => c.Id);
+                    foreach (var container in containers)
                     {
-                        containerTable[container.Id] = division.VertexA;
-                    }
-                    else
-                    {
-                        containerTable[container.Id] = division.VertexB;
+                        var tag = container.Tag;
+                        var division = segmentTable[container.Division.Id];
+                        if (tag == 'a')
+                        {
+                            containerTable[container.Id] = division.VertexA;
+                        }
+                        else
+                        {
+                            containerTable[container.Id] = division.VertexB;
+                        }
                     }
                 }
+                catch (Exception ex) { Console.WriteLine(ex.Message); }
             }
 
             return containerTable;
@@ -95,16 +108,20 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var triangle in triangles)
             {
-                foreach (var division in triangle.Divisions)
+                try
                 {
-                    var containersA = division.VertexA?.Vertex?.DivisionContainers ?? Enumerable.Empty<DivisionVertexContainer>();
-                    var elasticContainersA = containersA.Select(c => containerTable[c.Id]).ToArray();
-                    LinkContainers(elasticContainersA, anchors);
+                    foreach (var division in triangle.Divisions)
+                    {
+                        var containersA = division.VertexA?.Vertex?.DivisionContainers ?? Enumerable.Empty<DivisionVertexContainer>();
+                        var elasticContainersA = containersA.Select(c => containerTable[c.Id]).ToArray();
+                        LinkContainers(elasticContainersA, anchors);
 
-                    var containersB = division.VertexB?.Vertex?.DivisionContainers ?? Enumerable.Empty<DivisionVertexContainer>();
-                    var elasticContainersB = containersB.Select(c => containerTable[c.Id]).ToArray();
-                    LinkContainers(elasticContainersB, anchors);
+                        var containersB = division.VertexB?.Vertex?.DivisionContainers ?? Enumerable.Empty<DivisionVertexContainer>();
+                        var elasticContainersB = containersB.Select(c => containerTable[c.Id]).ToArray();
+                        LinkContainers(elasticContainersB, anchors);
+                    }
                 }
+                catch (Exception ex) { Console.WriteLine(ex.Message); }
             }
         }
 
@@ -175,34 +192,41 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var triangle in triangles)
             {
-                var elasticTriangle = triangleTable[triangle.Id];
+                try
+                {
+                    var elasticTriangle = triangleTable[triangle.Id];
 
-                var perimeterABpoints = MapPerimeterPoints(triangle.EdgeAB.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
-                var perimeterBCpoints = MapPerimeterPoints(triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
-                var perimeterCApoints = MapPerimeterPoints(triangle.EdgeCA.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
+                    var perimeterABpoints = MapPerimeterPoints(triangle.EdgeAB.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
+                    var perimeterBCpoints = MapPerimeterPoints(triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
+                    var perimeterCApoints = MapPerimeterPoints(triangle.EdgeCA.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
 
-                var perimeterABsegments = new List<ElasticSegment>();
-                var perimeterBCsegments = new List<ElasticSegment>();
-                var perimeterCAsegments = new List<ElasticSegment>();
+                    var perimeterABsegments = new List<ElasticSegment>();
+                    var perimeterBCsegments = new List<ElasticSegment>();
+                    var perimeterCAsegments = new List<ElasticSegment>();
 
-                ApplyCollinears(elasticTriangle, 
-                    perimeterABsegments, perimeterBCsegments, perimeterCAsegments, 
-                    perimeterABpoints, perimeterBCpoints, perimeterCApoints);
+                    ApplyCollinears(elasticTriangle,
+                        perimeterABsegments, perimeterBCsegments, perimeterCAsegments,
+                        perimeterABpoints, perimeterBCpoints, perimeterCApoints);
 
-                ApplyFreePoints(elasticTriangle, perimeterABpoints, perimeterBCpoints, perimeterCApoints);
+                    ApplyFreePoints(elasticTriangle, perimeterABpoints, perimeterBCpoints, perimeterCApoints);
 
-                elasticTriangle.PerimeterEdgeAB.AddPerimeterPoints(perimeterABpoints, perimeterABsegments);
-                elasticTriangle.PerimeterEdgeBC.AddPerimeterPoints(perimeterBCpoints, perimeterBCsegments);
-                elasticTriangle.PerimeterEdgeCA.AddPerimeterPoints(perimeterCApoints, perimeterCAsegments);
+                    elasticTriangle.PerimeterEdgeAB.AddPerimeterPoints(perimeterABpoints, perimeterABsegments);
+                    elasticTriangle.PerimeterEdgeBC.AddPerimeterPoints(perimeterBCpoints, perimeterBCsegments);
+                    elasticTriangle.PerimeterEdgeCA.AddPerimeterPoints(perimeterCApoints, perimeterCAsegments);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
-        private static void ApplyCollinears(ElasticTriangle triangle, 
+        private static void ApplyCollinears(ElasticTriangle triangle,
             List<ElasticSegment> perimeterABsegments,
-            List<ElasticSegment> perimeterBCsegments, 
+            List<ElasticSegment> perimeterBCsegments,
             List<ElasticSegment> perimeterCAsegments,
-            List<ElasticVertexCore> perimeterABpoints, 
-            List<ElasticVertexCore> perimeterBCpoints, 
+            List<ElasticVertexCore> perimeterABpoints,
+            List<ElasticVertexCore> perimeterBCpoints,
             List<ElasticVertexCore> perimeterCApoints)
         {
             var lineAB = triangle.SurfaceTriangle.Triangle.EdgeAB.LineExtension;

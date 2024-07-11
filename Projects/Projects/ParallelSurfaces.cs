@@ -29,68 +29,51 @@ namespace Projects.Projects
         private void ParallelSurfaceBuild()
         {
             var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
-            //var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8-62");
-            grid.RemoveShortSegments(3e-4);
-            grid.RemoveCollinearEdgePoints();
-            grid.RemoveCoplanarSurfacePoints();
             grid.ShowSegmentLengths();
             grid.ShowVitals();
-            //WavefrontFileGroups.ExportByClusters(grid, "Wavefront/SphereDifference8");
-            //PntFileGroups.ExportByClusters(grid, "Pnt/SphereDifference8");
-
-            //Pnt/SphereDifference8-70.pnt
-            //var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8-70");
-
-            //var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/Clusters-29");
-            //TableDisplays.ShowCountSpread("Position cardinalities", grid.Positions, p => p.Cardinality);
-            //WavefrontFile.Export(grid, $"Wavefront/Banana-Original");
-
-            //var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/ParallelSurfaces-29");
-            //grid.Trim();
-            //WavefrontFile.Export(grid, "Wavefront/ParallelSurfaces-29 Trimmed");
-            //TableDisplays.ShowCountSpread("Position cardinalities", grid.Positions, p => p.Cardinality);
-
-            //var banana = PntFile.Import(WireFrameMesh.Create, "Pnt/Banana");
-            //TableDisplays.ShowCountSpread("Position cardinalities", banana.Positions, p => p.Cardinality);
 
             //var parallelSurfaces = grid.ParallelSurfaces(-0.01790);
             //var parallelSurfaces = grid.ParallelSurfaces(-0.001750);
             //var parallelSurfaces = grid.ParallelSurfaces(-0.001900);//check indeterminancies  search 'Indeterminant point' RESOLVED
             //var parallelSurfaces = grid.ParallelSurfaces(-0.01000);//extra surface RESOLVED
             //var parallelSurfaces = grid.ParallelSurfaces(-0.01700);//filling errors on point removal
-            //var parallelSurfaces = grid.ParallelSurfaces(-0.02200);//multiple surfaces start showing
-            var parallelSurfaces = grid.ParallelSurfaces(-0.01000);
-            //WavefrontFileGroups.ExportByFaces(parallelSurfaces, "Wavefront/ParallelSurfaces");
-            //parallelSurfaces.RemoveShortSegments(1e-4);
-            parallelSurfaces.Trim();
-            parallelSurfaces.RemoveShortSegments(1e-4);
-            parallelSurfaces.RemoveCollinearEdgePoints();
-            parallelSurfaces.RemoveCoplanarSurfacePoints();
-
-            //var extra = parallelSurfaces.Triangles.SingleOrDefault(t => t.Id == 6240);
-            //if (extra is not null)
-            //{
-            //    parallelSurfaces.RemoveTriangle(extra);
-            //}
-
-            //Console.WriteLine($"Clusters {GroupingCollection.ExtractClusters(parallelSurfaces.Triangles).Count()}");
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.02200);//multiple surfaces start showing RESOLVED
+            var displacement = -0.0230;
+            //var parallelSurfaces = grid.ParallelSurfaces(-0.001005);
+            var parallelSurfaces = grid.ParallelSurfaces(displacement);
 
             parallelSurfaces.ShowVitals();
             //parallelSurfaces.ShowOpenEdges();
-            WavefrontFile.Export(parallelSurfaces, $"Wavefront/ParallelSurfaces");
-            //PntFileGroups.ExportBySurfaces(parallelSurfaces, "Pnt/ParallelSurfacesDebug");
-            //WavefrontFileGroups.ExportBySurfaces(parallelSurfaces, $"Wavefront/ParallelSurfacesDebug");
-            //WavefrontFileGroups.ExportByClusters(parallelSurfaces, o => {
-            //    var surfaces = GroupingCollection.ExtractSurfaces(o.Triangles);
-            //    Console.WriteLine($"Surfaces {string.Join(",", surfaces.Select(s => s.Triangles.Count()))}");
-            //    return o; 
-            //}, "Wavefront/ParallelSurfaces");
-            //PntFileGroups.ExportByClusters(parallelSurfaces, "Pnt/ParallelSurfaces");
-            //var surfaces = GroupingCollection.ExtractSurfaces(parallelSurfaces.Triangles).ToArray();
+            WavefrontFile.Export(parallelSurfaces, $"Wavefront/ParallelSurfaces{displacement}");
 
-            //Console.WriteLine();
-            //Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
-            //Console.WriteLine();
+            //var test = WireFrameMesh.Create();
+            //{
+            //    var segment = new LineSegment3D(new Point3D(0.5331362315381254, 0.8471644540143806, 0.4999999991064687), new Point3D(0.5347974559256385, 0.8422291341886806, 0.49999999909095205));
+            //    test.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
+            //}
+            //{
+            //    var segment = new LineSegment3D(new Point3D(0.5347974559256385, 0.8422291341886806, 0.49999999909095205), new Point3D(0.5348667626638983, 0.8420232312374452, 0.49999999910628645));
+            //    test.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
+            //}
+            //{
+            //    var segment = new LineSegment3D(new Point3D(0.5348667626638983, 0.8420232312374452, 0.49999999910628645), new Point3D(0.5348667626638983, 0.8420232312374452, 0.49999999910628645));
+            //    test.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
+            //}
+            //{
+            //    var segment = new LineSegment3D(new Point3D(0.5348667626638983, 0.8420232312374452, 0.49999999910628645), new Point3D(0.5347974559256385, 0.8422291341886806, 0.49999999909095205));
+            //    test.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
+            //}
+            //{
+            //    var segment = new LineSegment3D(new Point3D(0.5347974559256385, 0.8422291341886806, 0.49999999909095205), new Point3D(0.5303035828870624, 0.841192936479687, 0.5045115007596117));
+            //    test.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
+            //}
+            //{
+            //    var segment = new LineSegment3D(new Point3D(0.5303035828870624, 0.841192936479687, 0.5045115007596117), new Point3D(0.5331362315381254, 0.8471644540143806, 0.4999999991064687));
+            //    test.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
+            //}
+
+            //WavefrontFile.Export(test, $"Wavefront/ErrorFill");
+
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)
@@ -109,7 +92,7 @@ namespace Projects.Projects
         {
             //var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/ParallelSurfaces-186");
             var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8-62");
-            grid.RemoveShortSegments(3e-4);
+            grid.RemoveShortSegments(1e-4);
             grid.RemoveCollinearEdgePoints();
             grid.RemoveCoplanarSurfacePoints();
             //var surfaces = GroupingCollection.ExtractSurfaces(grid.Triangles);

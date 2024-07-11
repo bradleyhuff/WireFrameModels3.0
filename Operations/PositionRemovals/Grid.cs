@@ -50,7 +50,7 @@ namespace Operations.PositionRemovals
             while (shortSegments.Length != lastShortSegments);
 
             ConsoleLog.Pop();
-            ConsoleLog.WriteLine($"Remove short segments: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
+            ConsoleLog.WriteLine($"Remove short segments: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             mesh.ShowSegmentLengths(ConsoleColor.Green);
         }
 
@@ -65,7 +65,7 @@ namespace Operations.PositionRemovals
             ConsoleLog.WriteLine($"Qualified positions {qualifiedPositions.Length}");
             mesh.RemovePositions(qualifiedPositions);
             ConsoleLog.Pop();
-            ConsoleLog.WriteLine($"Remove coplanar surface points: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
+            ConsoleLog.WriteLine($"Remove coplanar surface points: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
         public static void RemoveCollinearEdgePoints(this IWireFrameMesh mesh)
@@ -83,7 +83,7 @@ namespace Operations.PositionRemovals
 
             mesh.RemovePositions(qualifiedClusters.Select(c => c.Position));
             ConsoleLog.Pop();
-            ConsoleLog.WriteLine($"Remove collinear edge points: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
+            ConsoleLog.WriteLine($"Remove collinear edge points: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
 
         }
 
@@ -296,7 +296,9 @@ namespace Operations.PositionRemovals
             markedPositions = new List<Position>();
             unmarkedPositions = new List<Position>();
 
-            if (positions.Length == 0) { return; }
+            if (positions?.FirstOrDefault()?.
+                PositionNormals?.FirstOrDefault()?.
+                Triangles?.FirstOrDefault() is null) { return; }
             positions[0].PositionNormals[0].Triangles[0].GridClearMarks();
 
             foreach (var position in positions)

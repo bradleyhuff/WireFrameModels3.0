@@ -16,7 +16,6 @@ namespace Operations.Intermesh.Classes
             DisableIntersectionNodes(intersectionNodes);
 
             var unlinkedVerticies = intersectionNodes.Where(i => !i.Disabled).SelectMany(l => l.VerticiesAB).Where(v => v.Vertex is null).ToList();
-            //Console.WriteLine($"Unlinked verticies {unlinkedVerticies.Count()}");
 
             var bucket = new BoxBucket<IntermeshIntersection>(intersectionNodes.Where(i => !i.Disabled).ToArray());
 
@@ -31,7 +30,6 @@ namespace Operations.Intermesh.Classes
 
             foreach (var triangle in intermeshTriangles) { triangle.ClearDisabledIntersections(); }
             ConsoleLog.WriteLine($"Set intersection links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
-            //Console.WriteLine();
         }
 
         private static void DisableIntersectionNodes(IEnumerable<IntermeshIntersection> intersectionNodes)
@@ -40,8 +38,6 @@ namespace Operations.Intermesh.Classes
             {
                 if (intersectionNode.Intersection.Length < GapConstants.Resolution) { intersectionNode.Disable(); }
             }
-
-            //Console.WriteLine($"Before removing multiples {intersectionNodes.Count(i => !i.Disabled)}");
 
             var bucket = new BoxBucket<IntermeshIntersection>(intersectionNodes.Where(i => !i.Disabled).ToArray());
             foreach (var intersectionNode in intersectionNodes.Where(i => !i.Disabled))
@@ -61,8 +57,6 @@ namespace Operations.Intermesh.Classes
                     multiple.Disable();
                 }
             }
-
-            //Console.WriteLine($"Step 1 After removing multiples {intersectionNodes.Count(i => !i.Disabled)}");
         }
 
         private static void SamePointDisableAndRemoval(IEnumerable<IntermeshIntersection> intersectionNodes)
@@ -76,14 +70,12 @@ namespace Operations.Intermesh.Classes
 
                 count++;
             }
-            //Console.WriteLine($"Step 6 Same point intersection removal {count}");
         }
 
         private static void SegmentLengthNearestCheckLinking(ref List<IntersectionVertexContainer> unlinkedVerticies, BoxBucket<IntermeshIntersection> bucket)
         {
             foreach (var vertex in unlinkedVerticies) { SegmentLengthNearestCheckLinking(vertex, bucket); }
             unlinkedVerticies = unlinkedVerticies.Where(v => v.Vertex is null).ToList();
-            //Console.WriteLine($"Step 2 Segment length nearest check linking {unlinkedVerticies.Count()}");
         }
 
         private static void SegmentLengthNearestCheckLinking(IntersectionVertexContainer vertex, BoxBucket<IntermeshIntersection> bucket)
@@ -101,9 +93,7 @@ namespace Operations.Intermesh.Classes
                 foreach (var vertex in unlinkedVerticies) { applyLink |= BidirectionRadiusNearestCheckLinking(vertex, bucket); }
                 if (!applyLink) { break; }
                 unlinkedVerticies = unlinkedVerticies.Where(v => v.Vertex is null).ToList();
-                //Console.WriteLine($"Step 3 Bidirectional radius nearest check linking {unlinkedVerticies.Count()}");
             }
-            //Console.WriteLine($"Step 3 Bidirectional radius nearest check linking {unlinkedVerticies.Count()}");
         }
 
         private static bool BidirectionRadiusNearestCheckLinking(IntersectionVertexContainer vertex, BoxBucket<IntermeshIntersection> bucket)
@@ -127,7 +117,6 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var vertex in unlinkedVerticies) { MonodirectionalRadiusNearestCheckLinking(vertex, bucket); }
             unlinkedVerticies = unlinkedVerticies.Where(v => v.Vertex is null).ToList();
-            //Console.WriteLine($"Step 4 Monodirection radius nearest check linking {unlinkedVerticies.Count()}");
         }
 
         private static void MonodirectionalRadiusNearestCheckLinking(IntersectionVertexContainer vertex, BoxBucket<IntermeshIntersection> bucket)
@@ -145,15 +134,14 @@ namespace Operations.Intermesh.Classes
         private static void AllCheckRadiusLinking(List<IntersectionVertexContainer> linkedVerticies, BoxBucket<IntermeshIntersection> bucket)
         {
             foreach (var vertex in linkedVerticies) { AllCheckRadiusLinking(vertex, bucket); }
-            //Console.WriteLine($"Step 5 All check radius linking {linkedVerticies.Count()}");
         }
 
         private static void AllCheckRadiusLinking(IntersectionVertexContainer vertex, BoxBucket<IntermeshIntersection> bucket)
         {
             if (vertex.Vertex is null) { Console.WriteLine($"Null vertex {vertex.Id}"); return; }
 
-            var vertexPath = vertex.GetTreeUntil(v => Point3D.Distance(v.Point, vertex.Point) > GapConstants.Filler).ToArray();
-            var neighbors = GetNeighbors(vertex, GapConstants.Filler, bucket);
+            var vertexPath = vertex.GetTreeUntil(v => Point3D.Distance(v.Point, vertex.Point) > GapConstants.Proximity).ToArray();
+            var neighbors = GetNeighbors(vertex, GapConstants.Proximity, bucket);
             neighbors = neighbors.ExceptBy(vertexPath.Select(t => t.Id), c => c.Id);
 
             var neighborhoods = NeighborhoodGrouping(neighbors);

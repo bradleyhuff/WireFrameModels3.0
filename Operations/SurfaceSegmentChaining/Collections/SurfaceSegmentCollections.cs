@@ -90,5 +90,15 @@ namespace Operations.SurfaceSegmentChaining.Collections
         {
             get { return _protectedLinkedIndexSegments; }
         }
+
+        public void Show()
+        {
+            Console.WriteLine($"Reference array {ReferenceArray.Count}");
+            Console.WriteLine($"{string.Join("\n", ReferenceArray.Select((r, i) => $"[{i}]{r.Point}"))}");
+            Console.WriteLine();
+            Console.WriteLine($"Linked segments {_linkedIndexSegments.Count}");
+            Console.WriteLine($"{string.Join(",", _linkedIndexSegments.Select(s => $"[{s.IndexPointA}, {s.IndexPointB}]"))}");
+            Console.WriteLine();
+        }
     }
 }

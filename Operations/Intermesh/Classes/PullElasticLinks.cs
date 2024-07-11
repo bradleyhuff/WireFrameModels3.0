@@ -26,19 +26,19 @@ namespace Operations.Intermesh.Classes
                 var perimeterPoints = elasticTriangle.PerimeterEdges.SelectMany(p => p.PerimeterPoints).ToArray();
                 foreach (var perimeter in perimeterPoints)
                 {
-                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorA.Point) < GapConstants.Filler)
+                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorA.Point) < GapConstants.Proximity)
                     {
                         AnchorPull(elasticTriangle.AnchorA, elasticTriangle.PerimeterEdgeAB, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorA, elasticTriangle.PerimeterEdgeCA, perimeter, perimeterTable);
                         pulls++;
                     }
-                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorB.Point) < GapConstants.Filler)
+                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorB.Point) < GapConstants.Proximity)
                     {
                         AnchorPull(elasticTriangle.AnchorB, elasticTriangle.PerimeterEdgeBC, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorB, elasticTriangle.PerimeterEdgeAB, perimeter, perimeterTable);
                         pulls++;
                     }
-                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorC.Point) < GapConstants.Filler)
+                    if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorC.Point) < GapConstants.Proximity)
                     {
                         AnchorPull(elasticTriangle.AnchorC, elasticTriangle.PerimeterEdgeCA, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorC, elasticTriangle.PerimeterEdgeBC, perimeter, perimeterTable);
@@ -46,7 +46,6 @@ namespace Operations.Intermesh.Classes
                     }
                 }
             }
-            //Console.WriteLine($"Anchor pulls {pulls}");
         }
 
         private static Dictionary<int, List<ElasticEdge>> GetPerimeterTable(IEnumerable<ElasticTriangle> elasticTriangles)

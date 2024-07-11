@@ -24,7 +24,6 @@ internal static class Grid
         var elasticLinks = BuildElasticLinks.Action(processTriangles);
         PullElasticLinks.Action(elasticLinks);
         var fillTriangles = ExtractFillTriangles.Action(elasticLinks);
-        //Console.WriteLine($"Collinear fill triangles {fillTriangles.Count(f => f.Triangle.IsCollinear)}");
         UpdateResultGrid(mesh, processTriangles, fillTriangles);
 
         ConsoleLog.Pop();

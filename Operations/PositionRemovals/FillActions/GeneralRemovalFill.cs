@@ -9,27 +9,46 @@ namespace Operations.PositionRemovals.FillActions
 {
     internal class GeneralRemovalFill<T> : IFillAction<T>
     {
-        private MatchingConditionals _conditionals = new MatchingConditionals();
+        private MatchingConditionals _matching = new MatchingConditionals();
+        private AngleConditionals _angleCheck = new AngleConditionals();
+        private IFillConditionals _conditionals;
         private PlanarLoop<T> _planarLoop;
+        
 
         public IFillConditionals FillConditions { get { return _conditionals; } }
 
         public void PresetMatching(Position position, SurfaceRayContainer<PositionNormal>[] perimeterPoints)
         {
             var primaryMatchingPoints = GetPrimaryMatchingPoints(position, perimeterPoints);
-            _conditionals.SetPrimaryMatchingPoints(primaryMatchingPoints.ToArray());
+            _matching.SetPrimaryMatchingPoints(primaryMatchingPoints.ToArray());
             var secondaryMatchingPoints = primaryMatchingPoints.Concat(GetSecondaryMatchingPoints(position, perimeterPoints));
-            _conditionals.SetSecondaryMatchingPoints(secondaryMatchingPoints.ToArray());
+            _matching.SetSecondaryMatchingPoints(secondaryMatchingPoints.ToArray());
         }
 
         public List<IndexSurfaceTriangle> Run(PlanarLoop<T> planarLoop)
         {
+            _conditionals = _matching;
             _planarLoop = planarLoop;
-            _conditionals.MatchWithPrimaryMatchingPoints();
+            _matching.MatchWithPrimaryMatchingPoints();
             var result = EvaluateByMatchingPoints();
             if (result is not null) { return result; }
-            _conditionals.MatchWithSecondaryMatchingPoints();
+            _matching.MatchWithSecondaryMatchingPoints();
             result = EvaluateByMatchingPoints();
+            if (result is not null) { return result; }
+            _conditionals = _angleCheck;
+
+            _angleCheck.MaxAngle = 2.5;
+            result = EvaluateByMatchingPoints();
+            if (result is not null) { return result; }
+            _angleCheck.MaxAngle = 3.0;
+            result = EvaluateByMatchingPoints();
+            if (result is not null) { return result; }
+            _angleCheck.MaxAngle = 3.1;
+            result = EvaluateByMatchingPoints();
+            if (result is not null) { return result; }
+            _angleCheck.Unconditional = true;
+            result = EvaluateByMatchingPoints();
+
             if (result is null) { _planarLoop.ThrowError(); return _planarLoop.IndexedFillTriangles; }
             return result;
         }
@@ -46,24 +65,6 @@ namespace Operations.PositionRemovals.FillActions
             return null;
         }
 
-        private List<IndexSurfaceTriangle> EvaluateByMatchingPoints2()
-        {
-            if (_planarLoop.LoopForFillings(0, false, false)) return _planarLoop.IndexedFillTriangles;
-
-            for (int i = 1; i <= _planarLoop.IndexLoop.Count / 2; i++)
-            {
-                if (_planarLoop.LoopForFillings(i, false, false)) return _planarLoop.IndexedFillTriangles;
-                if (_planarLoop.LoopForFillings(-i, false, false)) return _planarLoop.IndexedFillTriangles;
-            }
-
-            if (_planarLoop.LoopForFillings(0, false, true)) return _planarLoop.IndexedFillTriangles;
-            for (int i = 1; i <= _planarLoop.IndexLoop.Count / 2; i++)
-            {
-                if (_planarLoop.LoopForFillings(i, false, true)) return _planarLoop.IndexedFillTriangles;
-                if (_planarLoop.LoopForFillings(-i, false, true)) return _planarLoop.IndexedFillTriangles;
-            }
-            return null;
-        }
 
         private List<Position> GetPrimaryMatchingPoints(Position position, SurfaceRayContainer<PositionNormal>[] perimeterPoints)
         {

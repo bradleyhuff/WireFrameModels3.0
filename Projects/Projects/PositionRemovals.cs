@@ -15,7 +15,7 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             var grid = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 32");
-            grid.RemoveShortSegments(3e-4);
+            grid.RemoveShortSegments(1e-4);
 
             //var edges = grid.Positions.Where(p => p.Cardinality == 2).ToArray();
 

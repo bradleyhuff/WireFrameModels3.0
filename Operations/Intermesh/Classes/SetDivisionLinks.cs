@@ -113,61 +113,17 @@ namespace Operations.Intermesh.Classes
                             var vertexPath = element.VertexA.GetTreeUntil(v => Point3D.Distance(v.Point, element.VertexA.Point) > GapConstants.Filler).ToArray();
                             var containers = vertexContainers.Where(c => c.Id != element.VertexA.Id && c.Division.Length > GapConstants.Filler);
                             containers = containers.ExceptBy(vertexPath.Select(t => t.Id), c => c.Id);
-                            AllCheckRadiusLinking(element.VertexA, GapConstants.Filler, containers);
+                            AllCheckRadiusLinking(element.VertexA, GapConstants.Proximity, containers);
                         }
                         {
                             var vertexPath = element.VertexB.GetTreeUntil(v => Point3D.Distance(v.Point, element.VertexB.Point) > GapConstants.Filler).ToArray();
                             var containers = vertexContainers.Where(c => c.Id != element.VertexB.Id && c.Division.Length > GapConstants.Filler);
                             containers = containers.ExceptBy(vertexPath.Select(t => t.Id), c => c.Id);
-                            AllCheckRadiusLinking(element.VertexB, GapConstants.Filler, containers);
+                            AllCheckRadiusLinking(element.VertexB, GapConstants.Proximity, containers);
                         }
                     }
                 }
             }
-
-            //Console.WriteLine($"A count {aCount} B count {bCount} AB count {abCount} Div count {divCount} Grouping count {count} Average neighbor {totalNeighbors / (double)count} Average group {totalGroups / (double)count} Tree sum {treeSum}");
-            //Console.WriteLine($"Step 4 All check radius linking {count}");
-        }
-        private static int count = 0;
-        private static int totalNeighbors = 0;
-        private static int totalGroups = 0;
-        private static int treeSum = 0;
-        private static IEnumerable<DivisionVertexContainer[]> NeighborhoodGrouping(IEnumerable<DivisionVertexContainer> neighbors)
-        {
-            var ungroupedNeighbors = neighbors.ToList();
-            totalNeighbors += ungroupedNeighbors.Count;
-            var groups = new List<DivisionVertexContainer[]>();
-            while (ungroupedNeighbors.Any())
-            {
-                var first = ungroupedNeighbors.First();
-                var neighborhoodA = first.GetTreeUntil(v => Point3D.Distance(v.Point, first.Point) > GapConstants.Proximity).ToArray();
-                var neighborhoodB = first.Opposite.GetTreeUntil(v => Point3D.Distance(v.Point, first.Opposite.Point) > GapConstants.Proximity).ToArray();
-                var neighborhood = neighborhoodA.Concat(neighborhoodB).ToArray();
-                treeSum += neighborhood.Length;
-
-                var group = ungroupedNeighbors.IntersectBy(neighborhood.Select(n => n.Id), v => v.Id).ToArray();
-                ungroupedNeighbors = ungroupedNeighbors.ExceptBy(group.Select(n => n.Id), v => v.Id).ToList();
-                groups.Add(group);
-            }
-            count++;
-            totalGroups += groups.Count;
-            return groups;
-        }
-
-        private static void NearestInRangeLinking(DivisionVertexContainer vertex, double radius, IEnumerable<DivisionVertexContainer> links)
-        {
-            DivisionVertexContainer nearestLink = null;
-            double distance = radius;
-            foreach (var link in links.Where(l => Point3D.Distance(vertex.Point, l.Point) < radius))
-            {
-                var linkDistance = Point3D.Distance(vertex.Point, link.Point);
-                if (linkDistance < distance)
-                {
-                    distance = linkDistance;
-                    nearestLink = link;
-                }
-            }
-            if (nearestLink is not null && vertex.Vertex.Id != nearestLink.Vertex.Id) { PreferenceLink(vertex, nearestLink); }
         }
 
         private static void AllCheckRadiusLinking(DivisionVertexContainer vertex, double radius, IEnumerable<DivisionVertexContainer> links)

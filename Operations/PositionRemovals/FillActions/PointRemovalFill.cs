@@ -6,41 +6,31 @@ using Operations.SurfaceSegmentChaining.Basics;
 
 namespace Operations.PositionRemovals.FillActions
 {
-    internal class CornerRemovalFill<T> : IFillAction<T>
+    internal class PointRemovalFill<T> : IFillAction<T>
     {
-        private MatchingConditionals _matching = new MatchingConditionals();
-        private AngleConditionals _angleCheck = new AngleConditionals();
-        private IFillConditionals _conditionals;
+        private AngleConditionals _conditionals = new AngleConditionals();
         private PlanarLoop<T> _planarLoop;
 
         public IFillConditionals FillConditions { get { return _conditionals; } }
 
         public void PresetMatching(Position position, SurfaceRayContainer<PositionNormal>[] perimeterPoints)
         {
-            _matching.SetPrimaryMatchingPoints([perimeterPoints.Single(p => p.Reference.PositionObject.Cardinality > 2).Reference.PositionObject]);
         }
 
         public List<IndexSurfaceTriangle> Run(PlanarLoop<T> planarLoop)
         {
-            _conditionals = _matching;
             _planarLoop = planarLoop;
-            _matching.MatchWithPrimaryMatchingPoints();
+            _conditionals.MaxAngle = 2.5;
             var result = EvaluateByMatchingPoints();
             if (result is not null) { return result; }
-            _conditionals = _angleCheck;
-
-            _angleCheck.MaxAngle = 2.5;
+            _conditionals.MaxAngle = 3.0;
             result = EvaluateByMatchingPoints();
             if (result is not null) { return result; }
-            _angleCheck.MaxAngle = 3.0;
+            _conditionals.MaxAngle = 3.1;
             result = EvaluateByMatchingPoints();
             if (result is not null) { return result; }
-            _angleCheck.MaxAngle = 3.1;
+            _conditionals.Unconditional = true;
             result = EvaluateByMatchingPoints();
-            if (result is not null) { return result; }
-            _angleCheck.Unconditional = true;
-            result = EvaluateByMatchingPoints();
-
             if (result is null) { _planarLoop.ThrowError(); return _planarLoop.IndexedFillTriangles; }
             return result;
         }

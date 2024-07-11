@@ -44,8 +44,7 @@ namespace Operations.SetOperators
             IncludedGroupInverts(remainingGroups);
 
             ConsoleLog.MaximumLevels = 8;
-            //sum.RemoveShortSegments(1e-5);
-            sum.RemoveShortSegments(3e-4);
+            sum.RemoveShortSegments(1e-4);
             sum.RemoveCollinearEdgePoints();
             sum.RemoveCoplanarSurfacePoints();
 

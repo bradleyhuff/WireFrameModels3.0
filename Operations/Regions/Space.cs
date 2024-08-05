@@ -1,6 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets.Interfaces;
 using Collections.Buckets;
+using Collections.WireFrameMesh.Basics;
 
 namespace Operations.Regions
 {
@@ -8,46 +9,45 @@ namespace Operations.Regions
     {
         private class Triangle3DNodeX : IBox
         {
-            public Triangle3DNodeX(Triangle3D triangle)
+            public Triangle3DNodeX(ITriangle triangle)
             {
                 Triangle = triangle;
                 Box = new Rectangle3D(0, 0,
-                    triangle.Box.MinPoint.Y, triangle.Box.MaxPoint.Y,
-                    triangle.Box.MinPoint.Z, triangle.Box.MaxPoint.Z).Margin(BoxBucket.MARGINS);
+                    triangle.Triangle.Box.MinPoint.Y, triangle.Triangle.Box.MaxPoint.Y,
+                    triangle.Triangle.Box.MinPoint.Z, triangle.Triangle.Box.MaxPoint.Z).Margin(BoxBucket.MARGINS);
             }
 
-            public Triangle3D Triangle { get; }
+            public ITriangle Triangle { get; }
             public Rectangle3D Box { get; }
         }
 
         private class Triangle3DNodeY : IBox
         {
-            public Triangle3DNodeY(Triangle3D triangle)
+            public Triangle3DNodeY(ITriangle triangle)
             {
                 Triangle = triangle;
-                Box = new Rectangle3D(triangle.Box.MinPoint.X, triangle.Box.MaxPoint.X,
+                Box = new Rectangle3D(triangle.Triangle.Box.MinPoint.X, triangle.Triangle.Box.MaxPoint.X,
                     0, 0,
-                    triangle.Box.MinPoint.Z, triangle.Box.MaxPoint.Z).Margin(BoxBucket.MARGINS);
+                    triangle.Triangle.Box.MinPoint.Z, triangle.Triangle.Box.MaxPoint.Z).Margin(BoxBucket.MARGINS);
             }
 
-            public Triangle3D Triangle { get; }
+            public ITriangle Triangle { get; }
             public Rectangle3D Box { get; }
         }
 
         private class Triangle3DNodeZ : IBox
         {
-            public Triangle3DNodeZ(Triangle3D triangle)
+            public Triangle3DNodeZ(ITriangle triangle)
             {
                 Triangle = triangle;
-                Box = new Rectangle3D(triangle.Box.MinPoint.X, triangle.Box.MaxPoint.X,
-                    triangle.Box.MinPoint.Y, triangle.Box.MaxPoint.Y,
+                Box = new Rectangle3D(triangle.Triangle.Box.MinPoint.X, triangle.Triangle.Box.MaxPoint.X,
+                    triangle.Triangle.Box.MinPoint.Y, triangle.Triangle.Box.MaxPoint.Y,
                     0, 0).Margin(BoxBucket.MARGINS);
             }
 
-            public Triangle3D Triangle { get; }
+            public ITriangle Triangle { get; }
             public Rectangle3D Box { get; }
         }
-
 
         private class Point3DNodeX : IBox
         {
@@ -82,22 +82,28 @@ namespace Operations.Regions
             public Rectangle3D Box { get { return _box; } }
         }
 
+        private class TriangleNode : ITriangle
+        {
+            public TriangleNode(Triangle3D triangle) { Triangle = triangle; }
+            public Triangle3D Triangle { get; }
+        }
+
         private class Triangle3DNodeBucketX : BoxBucket<Triangle3DNodeX>
         {
-            public Triangle3DNodeBucketX(IEnumerable<Triangle3D> triangles) : base(triangles.Select(t => new Triangle3DNodeX(t)).ToArray()) { }
-            public IEnumerable<Triangle3D> Fetch(Point3DNodeX node) { return Fetch(node.Box).Select(t => t.Triangle); }
+            public Triangle3DNodeBucketX(IEnumerable<ITriangle> triangles) : base(triangles.Select(t => new Triangle3DNodeX(t)).ToArray()) { }
+            public IEnumerable<ITriangle> Fetch(Point3DNodeX node) { return Fetch(node.Box).Select(t => t.Triangle); }
         }
 
         private class Triangle3DNodeBucketY : BoxBucket<Triangle3DNodeY>
         {
-            public Triangle3DNodeBucketY(IEnumerable<Triangle3D> triangles) : base(triangles.Select(t => new Triangle3DNodeY(t)).ToArray()) { }
-            public IEnumerable<Triangle3D> Fetch(Point3DNodeY node) { return Fetch(node.Box).Select(t => t.Triangle); }
+            public Triangle3DNodeBucketY(IEnumerable<ITriangle> triangles) : base(triangles.Select(t => new Triangle3DNodeY(t)).ToArray()) { }
+            public IEnumerable<ITriangle> Fetch(Point3DNodeY node) { return Fetch(node.Box).Select(t => t.Triangle); }
         }
 
         private class Triangle3DNodeBucketZ : BoxBucket<Triangle3DNodeZ>
         {
-            public Triangle3DNodeBucketZ(IEnumerable<Triangle3D> triangles) : base(triangles.Select(t => new Triangle3DNodeZ(t)).ToArray()) { }
-            public IEnumerable<Triangle3D> Fetch(Point3DNodeZ node) { return Fetch(node.Box).Select(t => t.Triangle); }
+            public Triangle3DNodeBucketZ(IEnumerable<ITriangle> triangles) : base(triangles.Select(t => new Triangle3DNodeZ(t)).ToArray()) { }
+            public IEnumerable<ITriangle> Fetch(Point3DNodeZ node) { return Fetch(node.Box).Select(t => t.Triangle); }
         }
 
         private Triangle3DNodeBucketX _bucketX;
@@ -106,12 +112,24 @@ namespace Operations.Regions
 
         public Space(IEnumerable<Triangle3D> triangles)
         {
+            _bucketX = new Triangle3DNodeBucketX(triangles.Select(t => new TriangleNode(t)));
+            _bucketY = new Triangle3DNodeBucketY(triangles.Select(t => new TriangleNode(t)));
+            _bucketZ = new Triangle3DNodeBucketZ(triangles.Select(t => new TriangleNode(t)));
+        }
+
+        public Space(IEnumerable<ITriangle> triangles)
+        {
             _bucketX = new Triangle3DNodeBucketX(triangles);
             _bucketY = new Triangle3DNodeBucketY(triangles);
             _bucketZ = new Triangle3DNodeBucketZ(triangles);
         }
 
         public Region RegionOfPoint(Point3D point)
+        {
+            return RegionOfPoint(point, t => t);
+        }
+
+        public Region RegionOfPoint(Point3D point, Func<IEnumerable<ITriangle>, IEnumerable<ITriangle>> filter)
         {
             var lineX = new Line3D(point, Vector3D.BasisX);
             var lineY = new Line3D(point, Vector3D.BasisY);
@@ -121,16 +139,18 @@ namespace Operations.Regions
             int voteForExterior = 0;
 
             {
-                var matches = _bucketX.Fetch(new Point3DNodeX(point));
-                var intersections = GetIntersections(lineX, matches).ToArray();
+                var matches = filter(_bucketX.Fetch(new Point3DNodeX(point)));
+
+                var intersections = GetIntersections(lineX, matches.Select(m => m.Triangle)).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
                 if (region == Region.Interior) { voteForInterior++; }
                 if (region == Region.Exterior) { voteForExterior++; }
                 if (region == Region.OnBoundary) { return Region.OnBoundary; }
             }
             {
-                var matches = _bucketY.Fetch(new Point3DNodeY(point));
-                var intersections = GetIntersections(lineY, matches).ToArray();
+                var matches = filter(_bucketY.Fetch(new Point3DNodeY(point)));
+
+                var intersections = GetIntersections(lineY, matches.Select(m => m.Triangle)).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
                 if (region == Region.Interior) { voteForInterior++; }
                 if (region == Region.Exterior) { voteForExterior++; }
@@ -139,8 +159,9 @@ namespace Operations.Regions
             if (voteForInterior >= 2) { return Region.Interior; }
             if (voteForExterior >= 2) { return Region.Exterior; }
             {
-                var matches = _bucketZ.Fetch(new Point3DNodeZ(point));
-                var intersections = GetIntersections(lineZ, matches).ToArray();
+                var matches = filter(_bucketZ.Fetch(new Point3DNodeZ(point)));
+
+                var intersections = GetIntersections(lineZ, matches.Select(m => m.Triangle)).ToArray();
                 var region = Manifold.GetRegion(point, intersections);
                 if (region == Region.Interior) { voteForInterior++; }
                 if (region == Region.Exterior) { voteForExterior++; }

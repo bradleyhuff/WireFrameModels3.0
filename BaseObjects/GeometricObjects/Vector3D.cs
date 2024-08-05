@@ -74,6 +74,18 @@ namespace BasicObjects.GeometricObjects
             return sum.Direction;
         }
 
+        public static Vector3D Sum(IEnumerable<Vector3D> source)
+        {
+            List<Vector3D> list = source.ToList();
+
+            Vector3D sum = list[0];
+            for (int i = 1; i < list.Count; i++)
+            {
+                sum += list[i];
+            }
+            return sum;
+        }
+
         private double _magnitude = 0;
         private bool _magnitudeFound = false;
 
@@ -106,7 +118,7 @@ namespace BasicObjects.GeometricObjects
         public static bool DirectionsEqual(Vector3D a, Vector3D b, double ε = E.Double.RadianDifferenceError)
         {
             var cross = Cross(a.Direction, b.Direction);
-            return cross.Magnitude < ε && System.Math.Sign(Dot(a.Direction,b.Direction)) == 1;
+            return cross.Magnitude < ε && System.Math.Sign(Dot(a.Direction, b.Direction)) == 1;
         }
 
         public override string ToString()

@@ -9,7 +9,9 @@
 //var project = new CrossTest();
 //var project = new FlushCubeTest();
 //var project = new PositionRemovals();
-var project = new ParallelSurfaces();
+//var project = new ParallelSurfaces();
+var project = new CurvedPlate();
+//var project = new RoundedCube();
 project.Run();
 
 Console.ReadLine();

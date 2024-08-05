@@ -6,7 +6,7 @@ using BasicObjects.MathExtensions;
 
 namespace Collections.WireFrameMesh.Basics
 {
-    public class PositionTriangle : IBox
+    public class PositionTriangle : IBox, ITriangle
     {
         private static int _id = 0;
         internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c)

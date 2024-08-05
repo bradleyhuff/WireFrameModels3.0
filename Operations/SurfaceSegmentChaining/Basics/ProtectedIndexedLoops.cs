@@ -35,5 +35,18 @@ namespace Operations.SurfaceSegmentChaining.Basics
             output.IndexSpurs = input.IndexSpurs;
             return output;
         }
+
+        internal static IEnumerable<T> SplitByPerimeterIndexLoops<T>(ProtectedIndexedLoops input) where T : ProtectedIndexedLoops, new()
+        {
+            for (int i = 0; i < input.PerimeterIndexLoops.Count; i++)
+            {
+                T output = new T();
+                output.PerimeterIndexLoops = [input.PerimeterIndexLoops[i]];
+                output.IndexLoops = input.IndexLoops;
+                output.IndexSpurredLoops = input.IndexSpurredLoops;
+                output.IndexSpurs = input.IndexSpurs;
+                yield return output;
+            }
+        }
     }
 }

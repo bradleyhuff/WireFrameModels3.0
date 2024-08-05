@@ -520,12 +520,12 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             get { return _indexSpurs; }
         }
 
-        public IReadOnlyList<int> PerimeterLoopGroupKeys { get { return _perimeterLoopGroupKeys; } }
+        public List<int> PerimeterLoopGroupKeys { get { return _perimeterLoopGroupKeys; } }
         public IReadOnlyList<int> LoopGroupKeys { get { return _loopGroupKeys; } }
         public IReadOnlyList<int> SpurredLoopGroupKeys { get { return _spurredLoopGroupKeys; } }
         public IReadOnlyList<int> SpurGroupKeys { get { return _spurGroupKeys; } }
 
-        public IReadOnlyList<G> PerimeterLoopGroupObjects { get { return _perimeterLoopGroupObjects; } }
+        public List<G> PerimeterLoopGroupObjects { get { return _perimeterLoopGroupObjects; } }
         public IReadOnlyList<G> LoopGroupObjects { get { return _loopGroupObjects; } }
         public IReadOnlyList<G> SpurredLoopGroupObjects { get { return _spurredLoopGroupObjects; } }
         public IReadOnlyList<G> SpurGroupObjects { get { return _spurGroupObjects; } }

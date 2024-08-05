@@ -7,11 +7,11 @@ namespace Operations.SurfaceSegmentChaining.Interfaces
     {
         IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray { get; }
         ProtectedIndexedLoops ProtectedIndexedLoops { get; }
-        IReadOnlyList<int> PerimeterLoopGroupKeys { get; }
+        List<int> PerimeterLoopGroupKeys { get; }
         IReadOnlyList<int> LoopGroupKeys { get; }
         IReadOnlyList<int> SpurredLoopGroupKeys { get; }
         IReadOnlyList<int> SpurGroupKeys { get; }
-        IReadOnlyList<G> PerimeterLoopGroupObjects { get; }
+        List<G> PerimeterLoopGroupObjects { get; }
         IReadOnlyList<G> LoopGroupObjects { get; }
         IReadOnlyList<G> SpurredLoopGroupObjects { get; }
         IReadOnlyList<G> SpurGroupObjects { get; }

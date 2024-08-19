@@ -205,6 +205,150 @@ namespace BasicObjects.MathExtensions
         }
     }
 
+    public struct Combination4
+    {
+        public Combination4(int a, int b, int c, int d)
+        {
+            int digit6 = (a < b) ? 1 : 0;
+            int digit5 = (b < c) ? 1 : 0;
+            int digit4 = (a < c) ? 1 : 0;
+            int digit3 = (c < d) ? 1 : 0;
+            int digit2 = (b < d) ? 1 : 0;
+            int digit1 = (a < d) ? 1 : 0;
+
+            int caseNumber = digit6 << 5 | digit5 << 4 | digit4 << 3 | digit3 << 2 | digit2 << 1 | digit1;
+
+            switch (caseNumber)
+            {
+                case  0: A = d; B = c; C = b; D = a; break;
+                case  4: A = c; B = d; C = b; D = a; break;
+                case  6: A = c; B = b; C = d; D = a; break;
+                case  7: A = c; B = b; C = a; D = d; break;
+                case 16: A = d; B = b; C = c; D = a; break;
+                case 18: A = b; B = d; C = c; D = a; break;
+
+                case 22: A = b; B = c; C = d; D = a; break;
+                case 23: A = b; B = c; C = a; D = d; break;
+                case 24: A = d; B = b; C = a; D = c; break;
+                case 26: A = b; B = d; C = a; D = c; break;
+                case 27: A = b; B = a; C = d; D = c; break;
+                case 31: A = b; B = a; C = c; D = d; break;
+
+                case 32: A = d; B = c; C = a; D = b; break;
+                case 36: A = c; B = d; C = a; D = b; break;
+                case 37: A = c; B = a; C = d; D = b; break;
+                case 39: A = c; B = a; C = b; D = d; break;                
+                case 40: A = d; B = a; C = c; D = b; break;
+                case 41: A = a; B = d; C = c; D = b; break;
+
+                case 45: A = a; B = c; C = d; D = b; break;
+                case 47: A = a; B = c; C = b; D = d; break;                
+                case 56: A = d; B = a; C = b; D = c; break;
+                case 57: A = a; B = d; C = b; D = c; break;
+                case 59: A = a; B = b; C = d; D = c; break;
+                case 63: A = a; B = b; C = c; D = d; break;
+            }
+        }
+
+        public int A { get; } = 0;
+        public int B { get; } = 0;
+        public int C { get; } = 0;
+        public int D { get; } = 0;
+
+        public static bool operator ==(Combination4 a, Combination4 b)
+        {
+            return a.A == b.A && a.B == b.B && a.C == b.C && a.D == b.D;
+        }
+        public static bool operator !=(Combination4 a, Combination4 b)
+        {
+            return !(a.A == b.A && a.B == b.B && a.C == b.C && a.D == b.D);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            throw new InvalidOperationException("Do not use this method in a dictionary.  Use Combination3Dictionary.");
+        }
+
+        public override int GetHashCode()
+        {
+            throw new InvalidOperationException("Do not use this method in a dictionary.  Use Combination3Dictionary.");
+        }
+        public override string ToString()
+        {
+            return $"[{A}, {B}, {C}, {D}]";
+        }
+    }
+
+    public class Combination4Comparer : IEqualityComparer<Combination4>, IComparer<Combination4>
+    {
+        public int Compare(Combination4 a, Combination4 b)
+        {
+            if (a.A < b.A)
+            {
+                return -1;
+            }
+            if (a.A > b.A)
+            {
+                return 1;
+            }
+            if (a.B < b.B)
+            {
+                return -1;
+            }
+            if (a.B > b.B)
+            {
+                return 1;
+            }
+            if (a.C < b.C)
+            {
+                return -1;
+            }
+            if (a.C > b.C)
+            {
+                return 1;
+            }
+            if (a.D < b.D)
+            {
+                return -1;
+            }
+            if (a.D > b.D)
+            {
+                return 1;
+            }
+            return 0;
+        }
+        public bool Equals(Combination4 x, Combination4 y)
+        {
+            return x.A == y.A && x.B == y.B && x.C == y.C && x.D == y.D;
+        }
+
+        public int GetHashCode(Combination4 obj)
+        {
+            return (obj.A << 24) ^ (obj.B << 16) ^ (obj.C << 8) ^ obj.D;
+        }
+    }
+
+    public class Combination4Dictionary<T> : Dictionary<Combination4, T>
+    {
+        public Combination4Dictionary() : base(new Combination4Comparer()) { }
+
+        public T this[int i, int j, int k, int l]
+        {
+            get
+            {
+                return base[new Combination4(i, j, k, l)];
+            }
+            set
+            {
+                base[new Combination4(i, j, k, l)] = value;
+            }
+        }
+        public bool ContainsKey(int i, int j, int k, int l)
+        {
+            return ContainsKey(new Combination4(i, j, k, l));
+        }
+    }
+
     public class Combination
     {
         public Combination(int[] array)

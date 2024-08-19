@@ -6,7 +6,7 @@ using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Chaining
 {
-    internal partial class SurfaceSegmentChaining<G, T> : ISurfaceSegmentChaining<G, T> where G : class
+    internal class SurfaceSegmentChaining<G, T> : ISurfaceSegmentChaining<G, T> where G : class
     {
         private enum Traversal
         {
@@ -16,9 +16,9 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         }
         private class InternalProtectedLinkedIndexSegments : ProtectedLinkedIndexSegments<G, T>
         {
-            public IReadOnlyCollection<LinkedIndexSurfaceSegment<G>> GetLinkedIndexSegments()
+            public IReadOnlyCollection<LinkedIndexSegment<G>> GetLinkedIndexSegments()
             {
-                return LinkedIndexSegments ?? new LinkedIndexSurfaceSegment<G>[0];
+                return LinkedIndexSegments ?? new LinkedIndexSegment<G>[0];
             }
         }
 

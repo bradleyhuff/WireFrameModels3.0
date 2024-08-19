@@ -13,6 +13,7 @@ using Operations.PlanarFilling.Basics;
 using Plane = BasicObjects.GeometricObjects.Plane;
 using Operations.PlanarFilling.Filling;
 using Console = BaseObjects.Console;
+using BasicObjects.MathExtensions;
 
 namespace Operations.ParallelSurfaces
 {
@@ -21,12 +22,22 @@ namespace Operations.ParallelSurfaces
         public static IWireFrameMesh SetFacePlates(this IWireFrameMesh mesh, double thickness)
         {
             var output = AddParallelSurfaces(mesh, thickness);
-
-            output.Intermesh();
+            try
+            {
+                output.Intermesh();
+            }
+            catch { }
 
             RemoveFoldedSurfaces(output);
+            RemoveClosedSurfaces(output);
+            RemoveUnderLeavingFolds(output);
+
             FillPlateSides(output, thickness);
-            ElbowFill(output);
+            try
+            {
+                ElbowFill(output, thickness);
+            }
+            catch { }
 
             return output;
         }
@@ -66,6 +77,94 @@ namespace Operations.ParallelSurfaces
             }
         }
 
+        private static void RemoveClosedSurfaces(IWireFrameMesh output)
+        {
+            var surfaces = GroupingCollection.ExtractSurfaces(output.Triangles).ToArray();
+
+            var closedSurfaces = surfaces.Where(s => s.PerimeterEdges.Count == 0 && s.Triangles.First().Trace[0] == 'S').ToArray();
+            output.RemoveAllTriangles(closedSurfaces.SelectMany(s => s.Triangles));
+        }
+
+        private static void RemoveUnderLeavingFolds(IWireFrameMesh output)
+        {
+            var faces = GroupingCollection.ExtractFaces(output.Triangles).ToArray();
+            var foldGroups = faces.Select(f => GroupingCollection.ExtractFolds(f).ToArray()).ToArray();
+            var underleavingGroups = foldGroups.Where(g => g.Length > 1);
+
+            foreach (var group in underleavingGroups)
+            {
+                RemoveUnderLeavingFold(output, group);
+            }
+        }
+
+        private static void RemoveUnderLeavingFold(IWireFrameMesh output, GroupingCollection[] group)
+        {
+            Console.WriteLine($"Underleaving group {group.Length}");
+
+            var first = group[0];
+            var upperId = -1;
+            for (int i = 1; i < group.Length; i++)
+            {
+                var order = Order(first, group[i]);
+                if (order is null) { continue; }
+
+                upperId = order[0].Id; break;
+            }
+            if (upperId == -1) { return; }
+
+            foreach (var element in group.Where(g => g.Id != upperId))
+            {
+                output.RemoveAllTriangles(element.Triangles);
+            }
+        }
+
+        private static GroupingCollection[] Order(GroupingCollection a, GroupingCollection b)
+        {
+            var perimeterA = a.PerimeterEdges;
+            var perimeterB = b.PerimeterEdges;
+            var oldTraceA = a.Triangles.First().Trace;
+            var oldTraceB = b.Triangles.First().Trace;
+
+            foreach (var t in a.Triangles) { t.Trace = "A"; }
+            foreach (var t in b.Triangles) { t.Trace = "B"; }
+
+            var common = perimeterA.IntersectBy(perimeterB.Select(p => p.Key), p => p.Key, new Combination2Comparer()).ToArray();
+
+            if (common.Any())
+            {
+                var triangles = common.First().Triangles;
+                // Determine order from here...
+
+                var triangleA = triangles.Single(t => t.Trace == "A");
+                var triangleB = triangles.Single(t => t.Trace == "B");
+                Console.WriteLine($"Order check. Triangle A {triangleA.Id} Triangle B {triangleB.Id}");
+
+                var normal = (triangleB.A.Normal + triangleB.B.Normal + triangleB.C.Normal).Direction;
+                var normalLine = new Line3D(triangleB.Triangle.Center, triangleB.Triangle.Center + normal);
+                var intersectionA = triangleA.Triangle.Plane.Intersection(normalLine);
+                var normalIntersection = (intersectionA - triangleB.Triangle.Center).Direction;
+                var polarity = Math.Sign(Vector3D.Dot(normal, normalIntersection));
+                Console.WriteLine($"Center {triangleB.Triangle.Center} intersection {intersectionA} polarity {polarity}");
+
+                foreach (var t in a.Triangles) { t.Trace = oldTraceA; }
+                foreach (var t in b.Triangles) { t.Trace = oldTraceB; }
+
+                if (polarity == 1)
+                {
+                    //A is upper
+                    return [a, b];
+                }
+                if (polarity == -1)
+                {
+                    //B is upper
+                    return [b, a];
+                }
+            }
+
+            return null;
+        }
+
+
         private static void FillPlateSides(IWireFrameMesh output, double thickness)
         {
             var sides = output.CreateNewInstance();
@@ -80,8 +179,8 @@ namespace Operations.ParallelSurfaces
                 var baseEdges = pair[0];
                 var parallelEdges = pair[1];
 
-                var positions = parallelEdges.SelectMany(e => e.SelectMany(e => e.Positions)).Select(p => new PointNode(p.PositionObject.Point)).ToArray();
-                var bucket = new BoxBucket<PointNode>(positions);
+                var positions = parallelEdges.SelectMany(e => e.SelectMany(e => e.Positions)).Select(p => p.PositionObject).DistinctBy(p => p.Id).ToArray();
+                var bucket = new BoxBucket<Position>(positions);
 
                 var edgeTrace = parallelEdges[0][0].A.Triangles.First().Trace;
                 edgeTrace = edgeTrace.Replace('S', 'B');
@@ -97,7 +196,7 @@ namespace Operations.ParallelSurfaces
             output.AddGrid(sides);
         }
 
-        private static void AddPlateSides(Position[] baseLoop, double thickness, BoxBucket<PointNode> bucket, string edgeTrace, IWireFrameMesh sides)
+        private static void AddPlateSides(Position[] baseLoop, double thickness, BoxBucket<Position> bucket, string edgeTrace, IWireFrameMesh sides)
         {
             for (int i = 0; i < baseLoop.Length; i++)
             {
@@ -114,9 +213,16 @@ namespace Operations.ParallelSurfaces
                 var nextSurfacePoint = nextPosition.Point + thickness * nextNormal.Direction;
                 var surfaceNormal = position.PositionNormals.Single(pn => pn.Triangles.First().Trace == commonTrace).Normal;
 
-                var surfacePointIsFound = bucket.Fetch(new PointNode(surfacePoint)).Any(p => p.Point == surfacePoint);
-                var nextSurfacePointIsFound = bucket.Fetch(new PointNode(nextSurfacePoint)).Any(p => p.Point == nextSurfacePoint);
+                var matchingSurfacePoint = bucket.Fetch(new PointNode(surfacePoint)).SingleOrDefault(p => p.Point == surfacePoint);
+                var matchingNextSurfacePoint = bucket.Fetch(new PointNode(nextSurfacePoint)).SingleOrDefault(p => p.Point == nextSurfacePoint);
 
+                var surfacePointIsFound = matchingSurfacePoint is not null;// bucket.Fetch(new PointNode(surfacePoint)).Any(p => p.Point == surfacePoint);
+                var nextSurfacePointIsFound = matchingNextSurfacePoint is not null;//bucket.Fetch(new PointNode(nextSurfacePoint)).Any(p => p.Point == nextSurfacePoint);
+
+                if (surfacePointIsFound && !nextSurfacePointIsFound)
+                {
+                    Console.WriteLine($"Divider [{matchingSurfacePoint.Id}, {position.Id}]");
+                }
                 if (!surfacePointIsFound || !nextSurfacePointIsFound) { continue; }
 
                 var nextSurfaceNormal = nextPosition.PositionNormals.Single(pn => pn.Triangles.First().Trace == commonTrace).Normal;
@@ -128,7 +234,7 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        private static void ElbowFill(IWireFrameMesh mesh)
+        private static void ElbowFill(IWireFrameMesh mesh, double thickness)
         {
             var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles).ToArray();
             var groups = surfaces.GroupBy(s => s.Triangles.First().Trace.Substring(1));
@@ -139,8 +245,51 @@ namespace Operations.ParallelSurfaces
                 var openEdges = triangles.SelectMany(t => OpenEdges(t, group.Key)).ToArray();
                 if (!openEdges.Any()) { continue; }
 
-                var chain = SurfaceSegmentChaining<PlanarFillingGroup, Position>.Create(
-                    new SurfaceSegmentCollections<PlanarFillingGroup, Position>(CreateSurfaceSegmentSet(openEdges)));               
+                //set division points
+                //var openEdgeTable = openEdges.Select(o => new KeyValuePair<Combination2, bool>(o.Key, true)).T
+                //var openEdgeTable = new Combination2Dictionary<bool>();
+                //foreach(var openEdge in openEdges)
+                //{
+                //    openEdgeTable[openEdge.Key] = true;
+                //}
+
+                var baseGroup = group.Single(g => g.Triangles.Any(t => t.Trace[0] == 'B'));
+                var surfaceGroup = group.Single(g => g.Triangles.Any(t => t.Trace[0] == 'S'));
+                var basePositions = baseGroup.PerimeterEdges.SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToArray();
+                var surfacePositions = surfaceGroup.PerimeterEdges.SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToArray();
+                var bucket = new BoxBucket<PositionNormal>(surfacePositions);
+                //var baseChain = SurfaceSegmentChaining<PlanarFillingGroup, PositionNormal>.Create(
+                //    new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(CreateSurfaceSegmentSet2(baseGroup.PerimeterEdges.Select(e => new PositionEdge(e.A, e.B)))));
+                //var surfaceChain = SurfaceSegmentChaining<PlanarFillingGroup, Position>.Create(
+                //    new SurfaceSegmentCollections<PlanarFillingGroup, Position>(CreateSurfaceSegmentSet(surfaceGroup.PerimeterEdges.Select(e => new PositionEdge(e.A, e.B)))));
+
+                var dividerEdges = new List<PositionEdge>();
+                foreach (var position in basePositions)
+                {
+                    var surfacePoint = position.Position + thickness * position.Normal.Direction;
+                    var matchingSurfacePoint = bucket.Fetch(new PointNode(surfacePoint)).FirstOrDefault(p => p.Position == surfacePoint);
+                    if (matchingSurfacePoint != null)
+                    {
+                        var positionEdge = new PositionEdge(position, matchingSurfacePoint);
+                        //if (!openEdgeTable.ContainsKey(positionEdge.Key))
+                        {
+                            Console.WriteLine($"Surface normal match [{position.PositionObject.Id}, {matchingSurfacePoint.Id}]");
+                            dividerEdges.Add(positionEdge);
+                        }
+
+                        //Console.WriteLine($"Surface normal match [{position.PositionObject.Id}, {matchingSurfacePoint.Id}]");
+                    }
+                }
+
+                //var baseOpenEdges = openEdges.Where(e => e.Triangles.Any(t => t.Trace[0] == 'B'));
+                //var surfaceOpenEdges = openEdges.Where(e => e.Triangles.Any(t => t.Trace[0] == 'S'));
+
+                var baseEdgeSurfaceCollection = new SurfaceSegmentCollections<PlanarFillingGroup, Position>(CreateSurfaceSegmentSet(openEdges, dividerEdges));
+
+                var chain = BaseDividerSurfaceChaining<PlanarFillingGroup, Position>.Create(baseEdgeSurfaceCollection);
+
+                //var chain = SurfaceSegmentChaining<PlanarFillingGroup, Position>.Create(
+                //    new SurfaceSegmentCollections<PlanarFillingGroup, Position>(CreateSurfaceSegmentSet(openEdges)));
 
                 for (int i = 0; i < chain.PerimeterLoops.Count; i++)
                 {
@@ -153,7 +302,7 @@ namespace Operations.ParallelSurfaces
 
                 var chains = Chaining.SplitByPerimeterLoops(chain);
 
-                foreach(var element in chains.Select((s, i) => new { s, i }))
+                foreach (var element in chains.Select((s, i) => new { s, i }))
                 {
                     var plane = element.s.PerimeterLoopGroupObjects.First().Plane;
                     var isOppositeDirection = element.s.PerimeterLoops.Single().Select(p => p.Reference.PositionNormals.Any(pn => Vector3D.Dot(pn.Normal, plane.Normal) < (-1 + 1e-6))).Any(r => r);
@@ -177,6 +326,22 @@ namespace Operations.ParallelSurfaces
                 PerimeterSegments = perimeterEdges.Select(e => new SurfaceSegmentContainer<Position>(
                     new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
                     new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray()
+            };
+        }
+
+        private static SurfaceSegmentSets<PlanarFillingGroup, Position> CreateSurfaceSegmentSet(IEnumerable<PositionEdge> openEdges, IEnumerable<PositionEdge> dividerEdges)
+        {
+            return new SurfaceSegmentSets<PlanarFillingGroup, Position>
+            {
+                DividingSegments = dividerEdges.Select(e => new SurfaceSegmentContainer<Position>(
+                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
+                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray(),
+                PerimeterSegments = openEdges.Select(e => new SurfaceSegmentContainer<Position>(
+                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
+                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray(),
+                //OuterPerimeterSegments = surfaceEdges.Select(e => new SurfaceSegmentContainer<Position>(
+                //    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
+                //    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray()
             };
         }
 

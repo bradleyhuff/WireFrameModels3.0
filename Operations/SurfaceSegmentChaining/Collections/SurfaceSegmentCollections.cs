@@ -40,13 +40,13 @@ namespace Operations.SurfaceSegmentChaining.Collections
             var keyTable = new Combination2Dictionary<bool>();
             foreach (var segment in segmentSet.PerimeterSegments)
             {
-                var surfaceSegment = new LinkedIndexSurfaceSegment<G>(
+                var surfaceSegment = new LinkedIndexSegment<G>(
                     backTable[segment.A.Index], backTable[segment.B.Index], Rank.Perimeter, segmentSet.GroupKey, segmentSet.GroupObject);
                 AddToLinkSegments(keyTable, surfaceSegment);
             }
             foreach (var segment in segmentSet.DividingSegments)
             {
-                var surfaceSegment = new LinkedIndexSurfaceSegment<G>(
+                var surfaceSegment = new LinkedIndexSegment<G>(
                     backTable[segment.A.Index], backTable[segment.B.Index], Rank.Dividing, segmentSet.GroupKey, segmentSet.GroupObject);
                 AddToLinkSegments(keyTable, surfaceSegment);
             }
@@ -54,7 +54,7 @@ namespace Operations.SurfaceSegmentChaining.Collections
             _protectedLinkedIndexSegments = new ProtectedLinkedIndexSegments<G, T>(_linkedIndexSegments);
         }
 
-        private void AddToLinkSegments(Combination2Dictionary<bool> keyTable, LinkedIndexSurfaceSegment<G> surfaceSegment)
+        private void AddToLinkSegments(Combination2Dictionary<bool> keyTable, LinkedIndexSegment<G> surfaceSegment)
         {
             if (!keyTable.ContainsKey(surfaceSegment.Key))
             {
@@ -65,7 +65,7 @@ namespace Operations.SurfaceSegmentChaining.Collections
 
         private ProtectedLinkedIndexSegments<G, T> _protectedLinkedIndexSegments;
         private SurfaceRayContainer<T>[] _referenceArray;
-        private List<LinkedIndexSurfaceSegment<G>> _linkedIndexSegments = new List<LinkedIndexSurfaceSegment<G>>();
+        private List<LinkedIndexSegment<G>> _linkedIndexSegments = new List<LinkedIndexSegment<G>>();
         private List<LinkedSurfaceSegment<G>> _linkedSegments = null;
 
         public IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray

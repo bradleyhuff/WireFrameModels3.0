@@ -7,37 +7,9 @@ using System.Threading.Tasks;
 
 namespace Operations.SurfaceSegmentChaining.Basics
 {
-    internal class LinkedIndexSurfaceSegment<G, T> where G : class
+    internal class LinkedIndexSurfaceSegment<G, T>: LinkedIndexSegment<G> where G : class
     {
-        public LinkedIndexSurfaceSegment(int groupKey, G groupObject, int indexPointA, int indexPointB, Rank rank)
-        {
-            GroupKey = groupKey;
-            GroupObject = groupObject;
-            IndexPointA = indexPointA;
-            IndexPointB = indexPointB;
-            Rank = rank;
-        }
-        public int GroupKey { get; }
-        public G GroupObject { get; }
-        public int IndexPointA { get; }
-        public int IndexPointB { get; }
-        public Rank Rank { get; }
-
-        private Combination2 _key;
-        private bool _keyIsAssigned = false;
-        public Combination2 Key
-        {
-            get
-            {
-                if (!_keyIsAssigned)
-                {
-                    _key = new Combination2(IndexPointA, IndexPointB);
-                    _keyIsAssigned = true;
-                }
-                return _key;
-            }
-        }
-
+        public LinkedIndexSurfaceSegment(int groupKey, G groupObject, int indexPointA, int indexPointB, Rank rank) : base(indexPointA, indexPointB, rank, groupKey, groupObject) { }
         public List<LinkedIndexSurfaceSegment<G, T>> LinksA { get; set; } = new List<LinkedIndexSurfaceSegment<G, T>>();
         public List<LinkedIndexSurfaceSegment<G, T>> LinksB { get; set; } = new List<LinkedIndexSurfaceSegment<G, T>>();
         public List<LinkedIndexSurfaceSegment<G, T>> Traversals { get; set; } = new List<LinkedIndexSurfaceSegment<G, T>>();
@@ -101,9 +73,35 @@ namespace Operations.SurfaceSegmentChaining.Basics
         }
     }
 
-    internal class LinkedIndexSurfaceSegment<G> where G : class
+    internal class LinkedIndexSegment<G, T>: LinkedIndexSegment<G> where G : class
     {
-        public LinkedIndexSurfaceSegment(int indexPointA, int indexPointB, Rank rank, int groupKey = 0, G groupObject = null)
+        public LinkedIndexSegment(int groupKey, G groupObject, int indexPointA, int indexPointB, Rank rank) : base(indexPointA, indexPointB, rank, groupKey, groupObject) { }
+
+        public List<LinkedIndexSegment<G, T>> LinksA { get; set; } = new List<LinkedIndexSegment<G, T>>();
+        public List<LinkedIndexSegment<G, T>> LinksB { get; set; } = new List<LinkedIndexSegment<G, T>>();
+
+        private int _passes;
+        public int Passes
+        {
+            get { return _passes; }
+            set
+            {
+                if (value > 2) { throw new InvalidProgramException("Passes can't exceed 2."); }
+                _passes = value;
+            }
+        }
+
+        public List<LinkedIndexSegment<G, T>> GetLinksAtOppositeIndex(int index)
+        {
+            if (IndexPointA == index) { return LinksB; }
+            if (IndexPointB == index) { return LinksA; }
+            throw new InvalidOperationException($"Index could not be found in segment [{IndexPointA}, {IndexPointB}]");
+        }
+    }
+
+    internal class LinkedIndexSegment<G> where G : class
+    {
+        public LinkedIndexSegment(int indexPointA, int indexPointB, Rank rank, int groupKey = 0, G groupObject = null)
         {
             IndexPointA = indexPointA;
             IndexPointB = indexPointB;

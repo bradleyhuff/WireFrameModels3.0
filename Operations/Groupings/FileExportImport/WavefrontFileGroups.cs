@@ -55,5 +55,21 @@ namespace Operations.Groupings.FileExportImport
             var meshes = clusters.Select(s => s.Create());
             WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
         }
+
+        public static void ExportByFolds(IWireFrameMesh mesh, string fileName)
+        {
+            ExportByFolds(mesh, o => o, fileName);
+        }
+
+        public static void ExportByFolds(IWireFrameMesh mesh, Func<IWireFrameMesh, IWireFrameMesh> overlay, string fileName)
+        {
+            var folds = GroupingCollection.ExtractFolds(mesh.Triangles).ToArray();
+
+            Console.WriteLine();
+            Console.WriteLine($"Folds {folds.Count()} [{string.Join(",", folds.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            Console.WriteLine();
+            var meshes = folds.Select(s => s.Create());
+            WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
+        }
     }
 }

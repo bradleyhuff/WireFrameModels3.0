@@ -81,6 +81,17 @@ namespace Operations.Groupings.Basics
             return grouping.ExtractPlanars();
         }
 
+        public static IEnumerable<GroupingCollection> ExtractFolds(IEnumerable<PositionTriangle> triangles)
+        {
+            var grouping = new GroupingCollection(triangles);
+            return grouping.ExtractFolds();
+        }
+        public static IEnumerable<GroupingCollection> ExtractFolds(GroupingCollection collection)
+        {
+            var grouping = new GroupingCollection(collection.GroupingTriangles);
+            return grouping.ExtractFolds();
+        }
+
         public IWireFrameMesh Create()
         {
             return Create(WireFrameMesh.Create());
@@ -191,6 +202,10 @@ namespace Operations.Groupings.Basics
         private IEnumerable<GroupingCollection> ExtractPlanars()
         {
             return Extract(new Planar());
+        }
+        private IEnumerable<GroupingCollection> ExtractFolds()
+        {
+            return Extract(new Fold());
         }
 
         internal IEnumerable<GroupingCollection> Extract(IGrouping grouping)

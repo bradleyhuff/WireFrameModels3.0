@@ -49,6 +49,15 @@ namespace Collections.WireFrameMesh.Basics
             get { return new Combination2(A.PositionObject?.Cardinality ?? 0, B.PositionObject?.Cardinality ?? 0); }
         }
 
+        public IReadOnlyList<PositionTriangle> Triangles
+        {
+            get
+            {
+                return A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
+                    Intersect(B.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).ToList();
+            }
+        }
+
         public bool ContainsPosition(Position position)
         {
             return A.PositionObject?.Id == position.Id || B.PositionObject?.Id == position.Id;

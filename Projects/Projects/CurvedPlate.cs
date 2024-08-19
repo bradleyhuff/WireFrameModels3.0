@@ -6,6 +6,7 @@ using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using FundamentalMeshes;
 using Operations.Basics;
+using Operations.Groupings.Basics;
 using Operations.Groupings.FileExportImport;
 using Operations.ParallelSurfaces;
 using Operations.SetOperators;
@@ -17,6 +18,11 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
+            Part1();
+            //Part2();
+        }
+
+        private void Part1() { 
             var curvedFace = WireFrameMesh.Create();
             //curvedFace.AddGrid(Cylinder.Create(0.1, 1, 40));
             double displacement = 0.15;
@@ -24,15 +30,15 @@ namespace Projects.Projects
             //AddPath(curvedFace, 0);
             //AddPath(curvedFace, 1);
 
-            var cube = Cuboid.Create(1, 1, 1, 1, 1, 1);
-            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0, -0.6)));
+            var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
+            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.090, -0.6)));
 
             curvedFace.AddGrid(cube);
             //curvedFace.AddGrid(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
             curvedFace = curvedFace.Difference(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.SetFacePlates(0.35);
+            var facePlates = curvedFace.SetFacePlates(0.15);
 
             //var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);
             //cube2.Apply(Transform.Translation(new Vector3D(-0.900001, 0, -1)));
@@ -68,12 +74,23 @@ namespace Projects.Projects
             //WavefrontFile.Export(facePlate, "Wavefront/curvedPlate");
             //WavefrontFile.Export(curvedFace, "Wavefront/CurvedPlate");
             //PntFile.Export(curvedFace, "Pnt/CurvedPlate");
-            //WavefrontFileGroups.ExportBySurfaces(facePlates, "Wavefront/FacePlates");
+            //WavefrontFileGroups.ExportByFaces(facePlates, "Wavefront/FacePlates");
+            //PntFileGroups.ExportByFaces(facePlates, "Pnt/FacePlates");
+            //WavefrontFileGroups.ExportByFolds(facePlates, "Wavefront/Folds");
             WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
             //WavefrontFile.Export(parallelSurface, "Wavefront/ParallelSurface");
-            //WavefrontFile.Export(NormalOverlay(facePlates, 0.05), "Wavefront/FacePlatesNormals");
+            WavefrontFile.Export(NormalOverlay(facePlates, 0.05), "Wavefront/FacePlatesNormals");
             //WavefrontFile.Export(NormalOverlay(parallelSurface, 0.02), "Wavefront/curvedPlateNormals");
             //WavefrontFileGroups.ExportBySurfaces(parallelSurface, "Wavefront/ParallelSurface");
+        }
+
+        private void Part2()
+        {
+            var facePlate = PntFile.Import(WireFrameMesh.Create, "Pnt/FacePlates-0");
+
+            var folds = GroupingCollection.ExtractFolds(facePlate.Triangles).ToArray();
+            WavefrontFileGroups.ExportByFolds(facePlate, "Wavefront/Folds");
+            Console.WriteLine($"Folds {folds.Length}");
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

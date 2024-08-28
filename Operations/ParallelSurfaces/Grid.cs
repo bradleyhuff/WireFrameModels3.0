@@ -14,6 +14,7 @@ using Plane = BasicObjects.GeometricObjects.Plane;
 using Operations.PlanarFilling.Filling;
 using Console = BaseObjects.Console;
 using BasicObjects.MathExtensions;
+using Operations.Regions;
 
 namespace Operations.ParallelSurfaces
 {
@@ -21,23 +22,19 @@ namespace Operations.ParallelSurfaces
     {
         public static IWireFrameMesh SetFacePlates(this IWireFrameMesh mesh, double thickness)
         {
+            FoldPrimming(mesh);
+
             var output = AddParallelSurfaces(mesh, thickness);
-            try
-            {
-                output.Intermesh();
-            }
-            catch { }
+            output.Intermesh();
 
             RemoveFoldedSurfaces(output);
             RemoveClosedSurfaces(output);
             RemoveUnderLeavingFolds(output);
 
+
             FillPlateSides(output, thickness);
-            try
-            {
-                ElbowFill(output, thickness);
-            }
-            catch { }
+            ObliqueNormalAdjustments(output);
+            ElbowFill(output, thickness);
 
             return output;
         }
@@ -99,7 +96,7 @@ namespace Operations.ParallelSurfaces
 
         private static void RemoveUnderLeavingFold(IWireFrameMesh output, GroupingCollection[] group)
         {
-            Console.WriteLine($"Underleaving group {group.Length}");
+            //Console.WriteLine($"Underleaving group {group.Length}");
 
             var first = group[0];
             var upperId = -1;
@@ -137,14 +134,14 @@ namespace Operations.ParallelSurfaces
 
                 var triangleA = triangles.Single(t => t.Trace == "A");
                 var triangleB = triangles.Single(t => t.Trace == "B");
-                Console.WriteLine($"Order check. Triangle A {triangleA.Id} Triangle B {triangleB.Id}");
+                //Console.WriteLine($"Order check. Triangle A {triangleA.Id} Triangle B {triangleB.Id}");
 
                 var normal = (triangleB.A.Normal + triangleB.B.Normal + triangleB.C.Normal).Direction;
                 var normalLine = new Line3D(triangleB.Triangle.Center, triangleB.Triangle.Center + normal);
                 var intersectionA = triangleA.Triangle.Plane.Intersection(normalLine);
                 var normalIntersection = (intersectionA - triangleB.Triangle.Center).Direction;
                 var polarity = Math.Sign(Vector3D.Dot(normal, normalIntersection));
-                Console.WriteLine($"Center {triangleB.Triangle.Center} intersection {intersectionA} polarity {polarity}");
+                //Console.WriteLine($"Center {triangleB.Triangle.Center} intersection {intersectionA} polarity {polarity}");
 
                 foreach (var t in a.Triangles) { t.Trace = oldTraceA; }
                 foreach (var t in b.Triangles) { t.Trace = oldTraceB; }
@@ -164,6 +161,59 @@ namespace Operations.ParallelSurfaces
             return null;
         }
 
+        private static void FoldPrimming(IWireFrameMesh output)
+        {
+            var foldedTriangles = output.Triangles.Where(t => t.IsFolded).ToArray();
+            Console.WriteLine($"Folded triangles {foldedTriangles.Length}");
+            if (!foldedTriangles.Any()) { Console.WriteLine(); return; }
+
+            var space = new Space(output.Triangles.Select(t => t.Triangle).ToArray());
+            var straightenedNormals = new Dictionary<int, Vector3D>();
+            foreach (var foldedTriangle in foldedTriangles)
+            {
+                var principleNormal = foldedTriangle.Triangle.Normal.Direction;
+                var testPoint = foldedTriangle.Triangle.Center + 1e-6 * principleNormal;
+                var spaceRegion = space.RegionOfPoint(testPoint);
+                if (spaceRegion == Region.Interior) { principleNormal = -principleNormal; }
+
+                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.A, principleNormal);
+                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.B, principleNormal);
+                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.C, principleNormal);
+            }
+
+            var replacements = new List<SurfaceTriangle>();
+
+            foreach (var foldedTriangle in foldedTriangles)
+            {
+                Ray3D a = PositionNormal.GetRay(foldedTriangle.A);
+                Ray3D b = PositionNormal.GetRay(foldedTriangle.B);
+                Ray3D c = PositionNormal.GetRay(foldedTriangle.C);
+                if (straightenedNormals.ContainsKey(foldedTriangle.A.Id)) { a = new Ray3D(foldedTriangle.A.Position, straightenedNormals[foldedTriangle.A.Id].Direction); }
+                if (straightenedNormals.ContainsKey(foldedTriangle.B.Id)) { b = new Ray3D(foldedTriangle.B.Position, straightenedNormals[foldedTriangle.B.Id].Direction); }
+                if (straightenedNormals.ContainsKey(foldedTriangle.C.Id)) { c = new Ray3D(foldedTriangle.C.Position, straightenedNormals[foldedTriangle.C.Id].Direction); }
+                replacements.Add(new SurfaceTriangle(a, b, c));
+            }
+
+            output.RemoveAllTriangles(foldedTriangles);
+            output.AddRangeTriangles(replacements);
+
+            Console.WriteLine();
+        }
+
+        private static void ApplyPrincipleNormal(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal)
+        {
+            if (Vector3D.Dot(position.Normal, principleNormal) < 0)
+            {
+                if (!straightenedNormals.ContainsKey(position.Id))
+                {
+                    straightenedNormals[position.Id] = principleNormal;
+                }
+                else
+                {
+                    straightenedNormals[position.Id] += principleNormal;
+                }
+            }
+        }
 
         private static void FillPlateSides(IWireFrameMesh output, double thickness)
         {
@@ -173,6 +223,8 @@ namespace Operations.ParallelSurfaces
             var pairs = groups.GroupBy(g => g.Key.Substring(1)).ToArray();
 
             var groupEdgePairs = GroupEdgePairs(pairs).ToArray();
+
+            var plateTriangles = new List<PositionTriangle>();
 
             foreach (var pair in groupEdgePairs)
             {
@@ -196,7 +248,117 @@ namespace Operations.ParallelSurfaces
             output.AddGrid(sides);
         }
 
-        private static void AddPlateSides(Position[] baseLoop, double thickness, BoxBucket<Position> bucket, string edgeTrace, IWireFrameMesh sides)
+        private static void ObliqueNormalAdjustments(IWireFrameMesh output)
+        {
+            var sideTriangles = output.Triangles.Where(t => t.Trace[0] == 'E').ToArray();
+            var sideTriangleSets = sideTriangles.GroupBy(t => t.Trace);
+
+            foreach (var sideTriangleSet in sideTriangleSets)
+            {
+                TriangleSetObliqueAdjustments(sideTriangleSet, output);
+            }
+        }
+
+        private static void TriangleSetObliqueAdjustments(IGrouping<string, PositionTriangle> sideTriangleSet, IWireFrameMesh output)
+        {
+            var bases = new Dictionary<int, PositionNormal>();
+            var surfaces = new Dictionary<int, PositionNormal>();
+            var pairing = new Dictionary<int, int>();
+            foreach (var triangle in sideTriangleSet)
+            {
+                var basePositions = GetBases(triangle);
+                var surfacePositions = GetSurfaces(triangle);
+                foreach (var basePosition in basePositions)
+                {
+                    bases[basePosition.Id] = basePosition;
+                }
+                foreach (var surfacePosition in surfacePositions)
+                {
+                    surfaces[surfacePosition.Id] = surfacePosition;
+                }
+            }
+            foreach (var triangle in sideTriangleSet)
+            {
+                var basePositions = GetBases(triangle);
+                var surfacePositions = GetSurfaces(triangle);
+                foreach (var basePosition in basePositions)
+                {
+                    foreach (var surfacePosition in surfacePositions)
+                    {
+                        if (!pairing.ContainsKey(basePosition.Id))
+                        {
+                            pairing[basePosition.Id] = surfacePosition.Id;
+                            continue;
+                        }
+                        var distance = Point3D.Distance(bases[basePosition.Id].Position, surfaces[pairing[basePosition.Id]].Position);
+                        var newDistance = Point3D.Distance(bases[basePosition.Id].Position, surfaces[surfacePosition.Id].Position);
+                        if (newDistance < distance) { pairing[basePosition.Id] = surfacePosition.Id; }
+                    }
+                }
+            }
+
+            var obliquePositions = new Dictionary<int, bool>();
+            var adjustedNormals = new Dictionary<int, Vector3D>();
+
+            foreach (var pair in pairing)
+            {
+                var point = bases[pair.Key].Position;
+                var vectorBase = (surfaces[pair.Value].Position - bases[pair.Key].Position).Direction;
+                var vectorNormal = bases[pair.Key].Normal.Direction;
+                var vectorNormal2 = surfaces[pair.Value].Normal.Direction;
+                var angle = Vector3D.Angle(vectorBase, vectorNormal);
+                var angle2 = Vector3D.Angle(vectorBase, vectorNormal2);
+
+                if (Math.Abs(angle - Math.PI / 2) > 1e-6)
+                {
+                    Console.WriteLine($"Pair [{pair.Key}: {bases[pair.Key].PositionObject.Id},{pair.Value}: {surfaces[pair.Value].PositionObject.Id}] {angle} {angle2}");
+                    obliquePositions[pair.Key] = true;
+                    obliquePositions[pair.Value] = true;
+
+                    var orthogonalPoint = SolveForOrthogonalPoint(point + vectorNormal, point + vectorBase, point);
+                    adjustedNormals[pair.Key] = (orthogonalPoint - point).Direction;
+                    adjustedNormals[pair.Value] = adjustedNormals[pair.Key];
+                }
+            }
+
+            var trianglesToReplace = sideTriangleSet.Where(t => obliquePositions.ContainsKey(t.A.Id) || obliquePositions.ContainsKey(t.B.Id) || obliquePositions.ContainsKey(t.C.Id)).ToArray();
+            Console.WriteLine($"{sideTriangleSet.Key} Triangles to replace {trianglesToReplace.Length}");
+            var replacements = trianglesToReplace.Select(t => new SurfaceTriangle(
+                new Ray3D(t.A.Position, adjustedNormals.ContainsKey(t.A.Id) ? adjustedNormals[t.A.Id] : t.A.Normal),
+                new Ray3D(t.B.Position, adjustedNormals.ContainsKey(t.B.Id) ? adjustedNormals[t.B.Id] : t.B.Normal),
+                new Ray3D(t.C.Position, adjustedNormals.ContainsKey(t.C.Id) ? adjustedNormals[t.C.Id] : t.C.Normal)));
+
+            output.RemoveAllTriangles(trianglesToReplace);
+            output.AddRangeTriangles(replacements, sideTriangleSet.Key);
+        }
+
+        private static Point3D SolveForOrthogonalPoint(Point3D a, Point3D b, Point3D center)
+        {
+            var bc = b - center;
+            var ba = b - a;
+            var top = bc.X * bc.X + bc.Y * bc.Y + bc.Z * bc.Z;
+            var bottom = ba.X * bc.X + ba.Y * bc.Y + ba.Z * bc.Z;
+            double alpha = top / bottom;
+            Console.WriteLine($"Alpha {alpha} {top} / {bottom}");
+
+            return alpha * a + (1 - alpha) * b;
+        }
+
+        private static IEnumerable<PositionNormal> GetBases(PositionTriangle triangle)
+        {
+            if (triangle.A.PositionObject.Triangles.Any(t => t.Trace[0] == 'B')) yield return triangle.A;
+            if (triangle.B.PositionObject.Triangles.Any(t => t.Trace[0] == 'B')) yield return triangle.B;
+            if (triangle.C.PositionObject.Triangles.Any(t => t.Trace[0] == 'B')) yield return triangle.C;
+        }
+
+        private static IEnumerable<PositionNormal> GetSurfaces(PositionTriangle triangle)
+        {
+            if (triangle.A.PositionObject.Triangles.Any(t => t.Trace[0] == 'S')) yield return triangle.A;
+            if (triangle.B.PositionObject.Triangles.Any(t => t.Trace[0] == 'S')) yield return triangle.B;
+            if (triangle.C.PositionObject.Triangles.Any(t => t.Trace[0] == 'S')) yield return triangle.C;
+        }
+
+        private static void AddPlateSides(Position[] baseLoop, double thickness, BoxBucket<Position> bucket, string edgeTrace, IWireFrameMesh grid)
         {
             for (int i = 0; i < baseLoop.Length; i++)
             {
@@ -204,35 +366,47 @@ namespace Operations.ParallelSurfaces
                 var position = baseLoop[i];
                 var nextPosition = baseLoop[i < length ? i + 1 : 0];
 
-                var commonTrace = position.Triangles.IntersectBy(nextPosition.Triangles.Select(t => t.Id), t => t.Id).Where(t => t.Trace != edgeTrace).Single().Trace;
+                var commonTriangles = position.Triangles.IntersectBy(nextPosition.Triangles.Select(t => t.Id), t => t.Id).Where(t => t.Trace != edgeTrace);
+                if (!commonTriangles.Any()) { continue; }
+                var commonTrace = commonTriangles.Single().Trace;
 
                 var normal = position.PositionNormals.Single(pn => pn.Triangles.First().Trace == edgeTrace).Normal;
                 var nextNormal = nextPosition.PositionNormals.Single(pn => pn.Triangles.First().Trace == edgeTrace).Normal;
 
                 var surfacePoint = position.Point + thickness * normal.Direction;
                 var nextSurfacePoint = nextPosition.Point + thickness * nextNormal.Direction;
-                var surfaceNormal = position.PositionNormals.Single(pn => pn.Triangles.First().Trace == commonTrace).Normal;
+                //
+                var surfaceNormal = position.PositionNormals.Single(pn => pn.Triangles.First().Trace == commonTrace).Normal;//
 
                 var matchingSurfacePoint = bucket.Fetch(new PointNode(surfacePoint)).SingleOrDefault(p => p.Point == surfacePoint);
                 var matchingNextSurfacePoint = bucket.Fetch(new PointNode(nextSurfacePoint)).SingleOrDefault(p => p.Point == nextSurfacePoint);
 
-                var surfacePointIsFound = matchingSurfacePoint is not null;// bucket.Fetch(new PointNode(surfacePoint)).Any(p => p.Point == surfacePoint);
-                var nextSurfacePointIsFound = matchingNextSurfacePoint is not null;//bucket.Fetch(new PointNode(nextSurfacePoint)).Any(p => p.Point == nextSurfacePoint);
+                var surfacePointIsFound = matchingSurfacePoint is not null;
+                var nextSurfacePointIsFound = matchingNextSurfacePoint is not null;
 
-                if (surfacePointIsFound && !nextSurfacePointIsFound)
-                {
-                    Console.WriteLine($"Divider [{matchingSurfacePoint.Id}, {position.Id}]");
-                }
                 if (!surfacePointIsFound || !nextSurfacePointIsFound) { continue; }
 
-                var nextSurfaceNormal = nextPosition.PositionNormals.Single(pn => pn.Triangles.First().Trace == commonTrace).Normal;
+                //
+                var nextSurfaceNormal = nextPosition.PositionNormals.Single(pn => pn.Triangles.First().Trace == commonTrace).Normal;//
 
                 var triangle1 = new SurfaceTriangle(new Ray3D(position.Point, surfaceNormal), new Ray3D(surfacePoint, surfaceNormal), new Ray3D(nextPosition.Point, nextSurfaceNormal));
                 var triangle2 = new SurfaceTriangle(new Ray3D(surfacePoint, surfaceNormal), new Ray3D(nextSurfacePoint, nextSurfaceNormal), new Ray3D(nextPosition.Point, nextSurfaceNormal));
-                var addedTriangles = sides.AddRangeTriangles([triangle1, triangle2]);
+                var addedTriangles = grid.AddRangeTriangles([triangle1, triangle2]);
                 foreach (var triangle in addedTriangles) { triangle.Trace = edgeTrace.Replace('B', 'E'); }
             }
         }
+
+        //private static void ApplyPrincipleNormal2(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal)
+        //{
+        //    if (!straightenedNormals.ContainsKey(position.Id))
+        //    {
+        //        straightenedNormals[position.Id] = principleNormal;
+        //    }
+        //    else
+        //    {
+        //        straightenedNormals[position.Id] += principleNormal;
+        //    }
+        //}
 
         private static void ElbowFill(IWireFrameMesh mesh, double thickness)
         {
@@ -245,23 +419,11 @@ namespace Operations.ParallelSurfaces
                 var openEdges = triangles.SelectMany(t => OpenEdges(t, group.Key)).ToArray();
                 if (!openEdges.Any()) { continue; }
 
-                //set division points
-                //var openEdgeTable = openEdges.Select(o => new KeyValuePair<Combination2, bool>(o.Key, true)).T
-                //var openEdgeTable = new Combination2Dictionary<bool>();
-                //foreach(var openEdge in openEdges)
-                //{
-                //    openEdgeTable[openEdge.Key] = true;
-                //}
-
                 var baseGroup = group.Single(g => g.Triangles.Any(t => t.Trace[0] == 'B'));
                 var surfaceGroup = group.Single(g => g.Triangles.Any(t => t.Trace[0] == 'S'));
                 var basePositions = baseGroup.PerimeterEdges.SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToArray();
                 var surfacePositions = surfaceGroup.PerimeterEdges.SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToArray();
                 var bucket = new BoxBucket<PositionNormal>(surfacePositions);
-                //var baseChain = SurfaceSegmentChaining<PlanarFillingGroup, PositionNormal>.Create(
-                //    new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(CreateSurfaceSegmentSet2(baseGroup.PerimeterEdges.Select(e => new PositionEdge(e.A, e.B)))));
-                //var surfaceChain = SurfaceSegmentChaining<PlanarFillingGroup, Position>.Create(
-                //    new SurfaceSegmentCollections<PlanarFillingGroup, Position>(CreateSurfaceSegmentSet(surfaceGroup.PerimeterEdges.Select(e => new PositionEdge(e.A, e.B)))));
 
                 var dividerEdges = new List<PositionEdge>();
                 foreach (var position in basePositions)
@@ -271,25 +433,14 @@ namespace Operations.ParallelSurfaces
                     if (matchingSurfacePoint != null)
                     {
                         var positionEdge = new PositionEdge(position, matchingSurfacePoint);
-                        //if (!openEdgeTable.ContainsKey(positionEdge.Key))
-                        {
-                            Console.WriteLine($"Surface normal match [{position.PositionObject.Id}, {matchingSurfacePoint.Id}]");
-                            dividerEdges.Add(positionEdge);
-                        }
-
-                        //Console.WriteLine($"Surface normal match [{position.PositionObject.Id}, {matchingSurfacePoint.Id}]");
+                        Console.WriteLine($"Surface normal match [{position.PositionObject.Id}, {matchingSurfacePoint.Id}]");
+                        dividerEdges.Add(positionEdge);
                     }
                 }
-
-                //var baseOpenEdges = openEdges.Where(e => e.Triangles.Any(t => t.Trace[0] == 'B'));
-                //var surfaceOpenEdges = openEdges.Where(e => e.Triangles.Any(t => t.Trace[0] == 'S'));
 
                 var baseEdgeSurfaceCollection = new SurfaceSegmentCollections<PlanarFillingGroup, Position>(CreateSurfaceSegmentSet(openEdges, dividerEdges));
 
                 var chain = BaseDividerSurfaceChaining<PlanarFillingGroup, Position>.Create(baseEdgeSurfaceCollection);
-
-                //var chain = SurfaceSegmentChaining<PlanarFillingGroup, Position>.Create(
-                //    new SurfaceSegmentCollections<PlanarFillingGroup, Position>(CreateSurfaceSegmentSet(openEdges)));
 
                 for (int i = 0; i < chain.PerimeterLoops.Count; i++)
                 {
@@ -312,21 +463,10 @@ namespace Operations.ParallelSurfaces
 
                     foreach (var filling in fillings)
                     {
-                        mesh.AddTriangle(filling.Triangle.A.Point, normal, filling.Triangle.B.Point, normal, filling.Triangle.C.Point, normal);
+                        mesh.AddTriangle(filling.Triangle.A.Point, normal, filling.Triangle.B.Point, normal, filling.Triangle.C.Point, normal, $"F{element.i}");
                     }
                 }
             }
-        }
-
-        private static SurfaceSegmentSets<PlanarFillingGroup, Position> CreateSurfaceSegmentSet(IEnumerable<PositionEdge> perimeterEdges)
-        {
-            return new SurfaceSegmentSets<PlanarFillingGroup, Position>
-            {
-                DividingSegments = Array.Empty<SurfaceSegmentContainer<Position>>(),
-                PerimeterSegments = perimeterEdges.Select(e => new SurfaceSegmentContainer<Position>(
-                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
-                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray()
-            };
         }
 
         private static SurfaceSegmentSets<PlanarFillingGroup, Position> CreateSurfaceSegmentSet(IEnumerable<PositionEdge> openEdges, IEnumerable<PositionEdge> dividerEdges)
@@ -339,9 +479,6 @@ namespace Operations.ParallelSurfaces
                 PerimeterSegments = openEdges.Select(e => new SurfaceSegmentContainer<Position>(
                     new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
                     new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray(),
-                //OuterPerimeterSegments = surfaceEdges.Select(e => new SurfaceSegmentContainer<Position>(
-                //    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
-                //    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray()
             };
         }
 

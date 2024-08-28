@@ -85,6 +85,11 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return AddRangeTrianglesIterate(triangles, trace).ToArray();
         }
 
+        public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<PositionTriangle> triangles, string trace = "")
+        {
+            return AddRangeTrianglesIterate(triangles.Select(PositionTriangle.GetSurfaceTriangle), trace).ToArray();
+        }
+
         private IEnumerable<PositionTriangle> AddRangeTrianglesIterate(IEnumerable<Triangle3D> triangles, string trace = "")
         {
             foreach (var triangle in triangles)

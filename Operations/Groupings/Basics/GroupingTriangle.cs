@@ -95,10 +95,6 @@ namespace Operations.Groupings.Basics
             get { return _triangle.Triangle; }
         }
 
-        public bool HasAnOpenEdge
-        {
-            get { return ABadjacents.Count == 0 || BCadjacents.Count == 0 || CAadjacents.Count == 0; }
-        }
         public int GroupId { get; set; }
         public bool Spanned { get; set; }
         public int Seed { get; set; }//lower seed values seed first

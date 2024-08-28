@@ -1,4 +1,5 @@
-﻿using Collections.WireFrameMesh.BasicWireFrameMesh;
+﻿using Collections.WireFrameMesh.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Groupings.Basics;
@@ -70,6 +71,50 @@ namespace Operations.Groupings.FileExportImport
             Console.WriteLine();
             var meshes = folds.Select(s => s.Create());
             WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
+        }
+
+        public static void ExportByFaceFolds(IWireFrameMesh mesh, string fileName)
+        {
+            ExportByFaceFolds(mesh, o => o, fileName);
+        }
+
+        public static void ExportByFaceFolds(IWireFrameMesh mesh, Func<IWireFrameMesh, IWireFrameMesh> overlay, string fileName)
+        {
+            var faces = GroupingCollection.ExtractFaces(mesh.Triangles).ToArray();
+            var folds = faces.SelectMany(f => GroupingCollection.ExtractFolds(f)).ToArray();
+
+            Console.WriteLine();
+            Console.WriteLine($"Folds {folds.Count()} [{string.Join(",", folds.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            Console.WriteLine();
+            var meshes = folds.Select(s => s.Create());
+            WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
+        }
+
+        public static void ExportByTraces(IWireFrameMesh mesh, string fileName)
+        {
+            ExportByTraces(mesh, o => o, fileName);
+        }
+
+        public static void ExportByTraces(IWireFrameMesh mesh, Func<IWireFrameMesh, IWireFrameMesh> overlay, string fileName)
+        {
+            var traces = mesh.Triangles.GroupBy(t => t.Trace).ToArray();
+
+            Console.WriteLine();
+            Console.WriteLine($"Traces {traces.Count()} [{string.Join(",", traces.Select(t => t.Key))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            Console.WriteLine();
+            var meshes = traces.Select(t => new { Trace = t.Key, Mesh = CreateTraceMesh(t)});
+            foreach(var m in meshes)
+            {
+                WavefrontFile.Export(overlay(m.Mesh), $"{fileName}-{m.Trace}");
+            }
+        }
+
+        private static IWireFrameMesh CreateTraceMesh(IEnumerable<PositionTriangle> t)
+        {
+            var output = WireFrameMesh.Create();
+            output.AddRangeTriangles(t);
+
+            return output;
         }
     }
 }

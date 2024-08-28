@@ -68,6 +68,18 @@ namespace Collections.WireFrameMesh.Basics
         public PositionNormal B { get; private set; }
         public PositionNormal C { get; private set; }
 
+        public bool IsFolded
+        {
+            get
+            {
+                if (Vector3D.Dot(A.Normal, B.Normal) < 0) return true;
+                if (Vector3D.Dot(A.Normal, C.Normal) < 0) return true;
+                if (Vector3D.Dot(B.Normal, C.Normal) < 0) return true;
+
+                return false;
+            }
+        }
+
         public IEnumerable<PositionEdge> Edges
         {
             get

@@ -21,11 +21,11 @@ namespace BasicObjects.MathExtensions
         private static IEnumerable<int> DifferenceYield(List<int> a, List<int> b)
         {
             var table = new Dictionary<int, bool>();
-            foreach(var element in b)
+            foreach (var element in b)
             {
                 table[element] = true;
             }
-            foreach(var element in a)
+            foreach (var element in a)
             {
                 if (!table.ContainsKey(element)) { yield return element; }
             }
@@ -88,6 +88,19 @@ namespace BasicObjects.MathExtensions
             return Unwrap(points, start);
         }
 
+        public static IEnumerable<T> UnwrapToBeginning<T>(this T[] points, Func<T, int, bool> startCondition)
+        {
+            if (!points.Select((v, i) => new { v, i }).Any(p => startCondition(p.v, p.i))) { return points; }
+            var start = 0;
+            for (int i = 0; i < points.Length; i++)
+            {
+                int p = (i - 1 + points.Length) % points.Length;
+                if (!startCondition(points[p], p) && startCondition(points[i], i)) { start = i; break; }
+            }
+
+            return Rotate(points, start).Where((p, i) => startCondition(p, i));
+        }
+
         public static IEnumerable<T> RotateToFirst<T>(this T[] points, Func<T, int, bool> startCondition)
         {
             if (!points.Select((v, i) => new { v, i }).Any(p => startCondition(p.v, p.i))) { return points; }
@@ -95,16 +108,29 @@ namespace BasicObjects.MathExtensions
             return Rotate(points, start);
         }
 
+        public static IEnumerable<T> RotateToBeginning<T>(this T[] points, Func<T, int, bool> startCondition)
+        {
+            if (!points.Select((v, i) => new { v, i }).Any(p => startCondition(p.v, p.i))) { return points; }
+            var start = 0;
+            for (int i = 0; i < points.Length; i++)
+            {
+                int p = (i - 1 + points.Length) % points.Length;
+                if (!startCondition(points[p], p) && startCondition(points[i], i)) { start = i; break; }
+            }
+
+            return Rotate(points, start);
+        }
+
         public static IEnumerable<T[]> SplitAt<T>(this T[] points, Func<T, bool> splitCondition, bool includeSplitElements = false)
         {
             var row = new List<T>();
-            foreach(var point in points)
+            foreach (var point in points)
             {
                 if (splitCondition(point))
                 {
-                    if (row.Count > 0) 
+                    if (row.Count > 0)
                     {
-                        yield return row.ToArray(); 
+                        yield return row.ToArray();
                     }
                     row = new List<T>();
                 }
@@ -113,7 +139,7 @@ namespace BasicObjects.MathExtensions
                     row.Add(point);
                 }
             }
-            if(row.Count > 0)
+            if (row.Count > 0)
             {
                 yield return row.ToArray();
             }
@@ -121,7 +147,7 @@ namespace BasicObjects.MathExtensions
 
         public static IEnumerable<T> TakeWhileIncluding<T>(this IEnumerable<T> list, Func<T, int, bool> takeCondition)
         {
-            foreach(var item in list.Select((v, i) => new { v, i }))
+            foreach (var item in list.Select((v, i) => new { v, i }))
             {
                 yield return item.v;
                 if (takeCondition(item.v, item.i)) { yield break; }

@@ -23,5 +23,20 @@ namespace Operations.PositionRemovals.Conditionals
 
             return angle < MaxAngle;
         }
+
+        public bool AllowFill(Position a, Position b, Position c)
+        {
+            if (Unconditional) return true;
+            if (a.Cardinality > 2) return true;
+            if (b.Cardinality > 2) return true;
+            if (c.Cardinality > 2) return true;
+
+            var vectorA = (a.Point - b.Point).Direction;
+            var vectorB = (c.Point - b.Point).Direction;
+
+            var angle = Vector3D.Angle(vectorA, vectorB);
+
+            return angle < MaxAngle;
+        }
     }
 }

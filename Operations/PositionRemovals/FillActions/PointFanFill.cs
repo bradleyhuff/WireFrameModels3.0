@@ -11,13 +11,13 @@ namespace Operations.PositionRemovals.FillActions
         private MatchingConditionals _conditionals = new MatchingConditionals();
         private PlanarLoop<T> _planarLoop;
 
-        public Position FanPosition { get; set; }
+        public Position[] FanPositions { get; set; }
 
         public IFillConditionals FillConditions { get { return _conditionals; } }
 
         public void PresetMatching(Position position, SurfaceRayContainer<PositionNormal>[] perimeterPoints)
         {
-            _conditionals.SetPrimaryMatchingPoints([FanPosition]);
+            _conditionals.SetPrimaryMatchingPoints(FanPositions);
         }
 
         public List<IndexSurfaceTriangle> Run(PlanarLoop<T> planarLoop)

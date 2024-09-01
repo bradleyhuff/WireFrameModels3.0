@@ -437,10 +437,21 @@ namespace Operations.PlanarFilling.Filling.Internals
 
         private bool FillIsAllowed(int leftIndex, int index, int rightIndex)
         {
-            return _fillAction?.FillConditions?.AllowFill(
-                ReferenceArray[IndexLoop[leftIndex]].Reference as PositionNormal,
-                ReferenceArray[IndexLoop[index]].Reference as PositionNormal,
-                ReferenceArray[IndexLoop[rightIndex]].Reference as PositionNormal) ?? true;
+            if (ReferenceArray[0].Reference is PositionNormal)
+            {
+                return _fillAction?.FillConditions?.AllowFill(
+                    ReferenceArray[IndexLoop[leftIndex]].Reference as PositionNormal,
+                    ReferenceArray[IndexLoop[index]].Reference as PositionNormal,
+                    ReferenceArray[IndexLoop[rightIndex]].Reference as PositionNormal) ?? true;
+            }
+            if (ReferenceArray[0].Reference is Position)
+            {
+                return _fillAction?.FillConditions?.AllowFill(
+                    ReferenceArray[IndexLoop[leftIndex]].Reference as Position,
+                    ReferenceArray[IndexLoop[index]].Reference as Position,
+                    ReferenceArray[IndexLoop[rightIndex]].Reference as Position) ?? true;
+            }
+            return true;
         }
 
         private bool CrossesInterior(int leftIndex, int rightIndex)

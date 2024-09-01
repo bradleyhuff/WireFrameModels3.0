@@ -312,7 +312,7 @@ namespace Operations.PositionRemovals
         public static void FanRemovePosition(this IWireFrameMesh mesh, Position position, Position fanPosition)
         {
             var fill = new PointFanFill<PositionNormal>();
-            fill.FanPosition = fanPosition;
+            fill.FanPositions = [fanPosition];
             RemovePosition(mesh, position, fill);
         }
 

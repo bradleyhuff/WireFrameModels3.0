@@ -15,7 +15,9 @@ namespace Collections.WireFrameMesh.Interfaces
         public PositionNormal AddPoint(Point3D? position, Vector3D? normal);
         public PositionNormal AddPoint(Point3D position, Vector3D normal, ITransform transform);
         public PositionTriangle AddTriangle(Point3D a, Point3D b, Point3D c, string trace = "");
+        public PositionTriangle AddTriangle(Ray3D a, Ray3D b, Ray3D c, string trace = "");
         public PositionTriangle AddTriangle(Triangle3D triangle, string trace = "");
+        public PositionTriangle AddTriangle(SurfaceTriangle triangle, string trace = "");
         public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<Triangle3D> triangles, string trace = "");
         public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<SurfaceTriangle> triangles, string trace = "");
         public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<PositionTriangle> triangles, string trace = "");

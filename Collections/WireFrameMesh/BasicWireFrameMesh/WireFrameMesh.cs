@@ -70,6 +70,11 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return AddTriangle(a, Vector3D.Zero, b, Vector3D.Zero, c, Vector3D.Zero, trace);
         }
 
+        public PositionTriangle AddTriangle(Ray3D a, Ray3D b, Ray3D c, string trace = "")
+        {
+            return AddTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, trace);
+        }
+
         public PositionTriangle AddTriangle(Triangle3D triangle, string trace = "")
         {
             return AddTriangle(triangle.A, triangle.B, triangle.C, trace);
@@ -77,7 +82,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
 
         public PositionTriangle AddTriangle(SurfaceTriangle triangle, string trace = "")
         {
-            return AddTriangle(triangle.A.Point, triangle.A.Normal, triangle.B.Point, triangle.B.Normal, triangle.C.Point, triangle.C.Normal, trace);
+            return AddTriangle(triangle.A, triangle.B, triangle.C, trace);
         }
 
         public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<Triangle3D> triangles, string trace = "")

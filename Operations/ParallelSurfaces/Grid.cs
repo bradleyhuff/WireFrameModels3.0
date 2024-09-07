@@ -10,12 +10,9 @@ using Operations.SurfaceSegmentChaining.Collections;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
 using Operations.PlanarFilling.Basics;
-using Plane = BasicObjects.GeometricObjects.Plane;
-using Operations.PlanarFilling.Filling;
 using Console = BaseObjects.Console;
 using BasicObjects.MathExtensions;
 using Operations.Regions;
-using Operations.PositionRemovals.FillActions;
 
 namespace Operations.ParallelSurfaces
 {
@@ -32,11 +29,12 @@ namespace Operations.ParallelSurfaces
             RemoveClosedSurfaces(output);
             RemoveUnderLeavingFolds(output);
 
-
             FillPlateSides(output, thickness);
             ObliqueNormalAdjustments(output);
+
             ElbowFill(output, thickness);
-            ElbowNormals(output);
+            PlateSidesNormalReplacement(output);
+            ElbowNormalBlending(output);
 
             return output;
         }
@@ -323,9 +321,16 @@ namespace Operations.ParallelSurfaces
                 var angle = Vector3D.Angle(vectorBase, vectorNormal);
                 var angle2 = Vector3D.Angle(vectorBase, vectorNormal2);
 
-                if (Math.Abs(angle - Math.PI / 2) > 1e-6)
+                if (Math.Abs(angle - Math.PI) < 1e-6)
                 {
-                    Console.WriteLine($"Pair [{pair.Key}: {bases[pair.Key].PositionObject.Id},{pair.Value}: {surfaces[pair.Value].PositionObject.Id}] {angle} {angle2}");
+                    obliquePositions[pair.Key] = true;
+                    obliquePositions[pair.Value] = true;
+                    adjustedNormals[pair.Key] = Vector3D.Zero;
+                    adjustedNormals[pair.Value] = adjustedNormals[pair.Key];
+                }
+                else if (Math.Abs(angle - Math.PI / 2) > 1e-6)
+                {
+                    //Console.WriteLine($"Pair [{pair.Key}: {bases[pair.Key].PositionObject.Id},{pair.Value}: {surfaces[pair.Value].PositionObject.Id}] {angle} {angle2}");
                     obliquePositions[pair.Key] = true;
                     obliquePositions[pair.Value] = true;
 
@@ -353,7 +358,7 @@ namespace Operations.ParallelSurfaces
             var top = bc.X * bc.X + bc.Y * bc.Y + bc.Z * bc.Z;
             var bottom = ba.X * bc.X + ba.Y * bc.Y + ba.Z * bc.Z;
             double alpha = top / bottom;
-            Console.WriteLine($"Alpha {alpha} {top} / {bottom}");
+            //Console.WriteLine($"Alpha {alpha} {top} / {bottom}");
 
             return alpha * a + (1 - alpha) * b;
         }
@@ -436,7 +441,6 @@ namespace Operations.ParallelSurfaces
                     if (matchingSurfacePoint != null)
                     {
                         var positionEdge = new PositionEdge(position, matchingSurfacePoint);
-                        Console.WriteLine($"Surface normal match [{position.PositionObject.Id}, {matchingSurfacePoint.Id}]");
                         dividerEdges.Add(positionEdge);
                     }
                 }
@@ -448,23 +452,19 @@ namespace Operations.ParallelSurfaces
 
                 foreach (var element in chains.Select((s, i) => new { s, i }))
                 {
-                    //var allPoints = element.s.PerimeterLoops[0].Select(p => p.Reference);
-                    //Console.WriteLine($"{string.Join(",", allPoints.Select(p => $"{p.Id}{(IsBasePosition(p) ? "*" : "")} "))}");
                     var surfacePoints = element.s.PerimeterLoops[0].
                         Select(p => p.Reference).ToArray().
                         UnwrapToBeginning((p, i) => IsSurfacePosition(p)).
                         Reverse().
                         ToArray();
-                    Console.WriteLine($"{string.Join(",", surfacePoints.Select(p => $"{p.Id} "))}");
+                    Console.WriteLine($"Surface points {string.Join(",", surfacePoints.Select(p => $"{p.Id} [{p.Cardinality}] "))}");
                     var basePoints = element.s.PerimeterLoops[0].
                         Select(p => p.Reference).ToArray().
                         UnwrapToBeginning((p, i) => IsBasePosition(p)).
                         ToArray();
-                    //Console.WriteLine($"{string.Join(",", basePoints.Select(p => $"{p.Id} "))}");
-                    //Console.WriteLine($"Elbow: Surface points {surfacePoints.Count()} Base points {basePoints.Count()} All points {allPoints.Count()}");
+                    Console.WriteLine($"Base points {string.Join(",", basePoints.Select(p => $"{p.Id} [{p.Cardinality}] "))}");
 
                     int s = 0;
-                    int r = 0;
                     var firstSurfacePoint = surfacePoints.First().Id;
                     var lastSurfacePoint = surfacePoints.Last().Id;
                     for (int b = 0; b < basePoints.Length - 1; b++)
@@ -472,12 +472,10 @@ namespace Operations.ParallelSurfaces
                         if (s + 1 < surfacePoints.Length &&
                             Point3D.Distance(basePoints[b + 1].Point, surfacePoints[s].Point) > Point3D.Distance(basePoints[b + 1].Point, surfacePoints[s + 1].Point))
                         {
-                            elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, surfacePoints[s].Point, surfacePoints[s + 1].Point, $"F{element.i}R{r}"));
+                            elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, surfacePoints[s].Point, surfacePoints[s + 1].Point, $"F{element.i}"));
                             s++;
                         }
-                        if (surfacePoints[s].Id == lastSurfacePoint && basePoints[b].Cardinality > 3) { r++; }
-                        elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, basePoints[b + 1].Point, surfacePoints[s].Point, $"F{element.i}R{r}"));
-                        if (surfacePoints[s].Id == firstSurfacePoint && basePoints[b + 1].Cardinality > 3) { r++; }
+                        elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, basePoints[b + 1].Point, surfacePoints[s].Point, $"F{element.i}"));
                     }
                 }
             }
@@ -510,144 +508,130 @@ namespace Operations.ParallelSurfaces
             public string Trace { get; }
         }
 
-        private static void ElbowNormals(IWireFrameMesh mesh)
+
+        private static void ElbowNormalBlending(IWireFrameMesh mesh)
         {
             var elbowNormals = mesh.Triangles.Where(t => t.Trace[0] == 'F');
             if (!elbowNormals.Any()) { return; }
 
-            var space = new Space(mesh.Triangles.Select(t => t.Triangle));
             var elbowGroups = elbowNormals.GroupBy(t => t.Trace).ToArray();
-            Console.WriteLine($"Elbow groups {string.Join(", ", elbowGroups.Select(g => $"{g.Key}: {g.Count()}"))}");
-
             foreach (var elbowGroup in elbowGroups)
             {
                 var triangles = elbowGroup.ToArray();
-                var normals = new Dictionary<int, Vector3D>();
+                var replacementPositions = new Dictionary<int, Vector3D>();
+
+                var surfaces = GroupingCollection.ExtractSurfaces(triangles);
+                var perimeter = surfaces.Select(f => f.PerimeterEdges).First().SelectMany(e => e.Positions).Select(p => p.PositionObject).DistinctBy(p => p.Id);
+                var surfacePositions = perimeter.Where(IsSurfacePosition);
+                var basePositions = perimeter.Where(IsBasePosition);
+                Console.WriteLine($"Base {basePositions.Count()} surface {surfacePositions.Count()}");
+
+                foreach (var position in basePositions.
+                    Where(p => 
+                        p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'E')) == 1))
+                {
+                    replacementPositions[position.Id] = Vector3D.Zero;
+                }
+                foreach (var position in surfacePositions.
+                    Where(p => 
+                        p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'S')) == 1 && 
+                        !p.Triangles.Any(t => t.Trace[0] == 'E')))
+                {
+                    replacementPositions[position.Id] = Vector3D.Zero;
+                }
+
+                Console.WriteLine($"Replacement positions {replacementPositions.Count()}");
+                Console.WriteLine($"Base point cardinalities \n{string.Join("\n", basePositions.Select(b => $"[{string.Join(",", b.PositionNormals.Select(p => $"<{string.Join(",", p.Triangles.Select(t => t.Trace).Distinct().OrderBy(s => s))}>"))}]"))}");
+                Console.WriteLine($"Surface point cardinalities \n{string.Join("\n", surfacePositions.Select(b => $"[{string.Join(",", b.PositionNormals.Select(p => $"<{string.Join(",", p.Triangles.Select(t => t.Trace).Distinct().OrderBy(s => s))}>"))}]"))}");
 
                 foreach (var triangle in triangles)
                 {
-                    var principleNormal = triangle.Triangle.Normal.Direction;
-                    var testPoint = triangle.Triangle.Center + 1e-6 * principleNormal;
-                    var spaceRegion = space.RegionOfPoint(testPoint);
-                    if (spaceRegion == Region.Interior) { principleNormal = -principleNormal; }
-
-                    var area = triangle.Triangle.Area;
-                    ApplyPrincipleNormal(normals, triangle.A, principleNormal, area);
-                    ApplyPrincipleNormal(normals, triangle.B, principleNormal, area);
-                    ApplyPrincipleNormal(normals, triangle.C, principleNormal, area);
+                    if (replacementPositions.ContainsKey(triangle.A.PositionObject.Id))
+                    {
+                        replacementPositions[triangle.A.PositionObject.Id] += triangle.Triangle.Area * triangle.A.Normal.Direction;//
+                    }
+                    if (replacementPositions.ContainsKey(triangle.B.PositionObject.Id))
+                    {
+                        replacementPositions[triangle.B.PositionObject.Id] += triangle.Triangle.Area * triangle.B.Normal.Direction;//
+                    }
+                    if (replacementPositions.ContainsKey(triangle.C.PositionObject.Id))
+                    {
+                        replacementPositions[triangle.C.PositionObject.Id] += triangle.Triangle.Area * triangle.C.Normal.Direction;//
+                    }
                 }
 
                 var replacements = new List<SurfaceTriangleTrace>();
+                var removals = new List<PositionTriangle>();
 
                 foreach (var triangle in triangles)
                 {
-                    var a = NormalLookups(triangle.A, normals);
-                    var b = NormalLookups(triangle.B, normals);
-                    var c = NormalLookups(triangle.C, normals);
+                    Ray3D a = null;
+                    Ray3D b = null;
+                    Ray3D c = null;
+
+                    if (replacementPositions.ContainsKey(triangle.A.PositionObject.Id))
+                    {
+                        a = new Ray3D(triangle.A.Position, replacementPositions[triangle.A.PositionObject.Id]);
+                    }
+                    if (replacementPositions.ContainsKey(triangle.B.PositionObject.Id))
+                    {
+                        b = new Ray3D(triangle.B.Position, replacementPositions[triangle.B.PositionObject.Id]);
+                    }
+                    if (replacementPositions.ContainsKey(triangle.C.PositionObject.Id))
+                    {
+                        c = new Ray3D(triangle.C.Position, replacementPositions[triangle.C.PositionObject.Id]);
+                    }
+
+                    if (a is null && b is null && c is null) { continue; }
+
+                    if (a is null) { a = PositionNormal.GetRay(triangle.A); }
+                    if (b is null) { b = PositionNormal.GetRay(triangle.B); }
+                    if (c is null) { c = PositionNormal.GetRay(triangle.C); }
 
                     replacements.Add(new SurfaceTriangleTrace(a, b, c, triangle.Trace));
+                    removals.Add(triangle);
                 }
 
-                mesh.RemoveAllTriangles(triangles);
+                Console.WriteLine($"Triangle replacements {replacements.Count()}");
+
+                mesh.RemoveAllTriangles(removals);
                 foreach (var triangle in replacements)
                 {
                     mesh.AddTriangle(triangle.Triangle, triangle.Trace);
                 }
             }
+        }
 
-            elbowNormals = mesh.Triangles.Where(t => t.Trace[0] == 'F');
-            elbowGroups = elbowNormals.GroupBy(t => t.Trace).ToArray();
+        private static void PlateSidesNormalReplacement(IWireFrameMesh mesh)
+        {
+            var zeroTriangles = mesh.Triangles.Where(t => t.A.Normal == Vector3D.Zero || t.B.Normal == Vector3D.Zero || t.C.Normal == Vector3D.Zero).ToArray();
+            Console.WriteLine($"Zero triangles {zeroTriangles.Length}");
+            if (!zeroTriangles.Any()) { return; }
 
-            foreach (var elbowGroup in elbowGroups)
+            var space = new Space(mesh.Triangles.Select(t => t.Triangle));
+            var replacements = new List<SurfaceTriangleTrace>();
+            foreach (var triangle in zeroTriangles)
             {
-                var triangles = elbowGroup.ToArray();
+                var principleNormal = triangle.Triangle.Normal.Direction;
+                var testPoint = triangle.Triangle.Center + 1e-6 * principleNormal;
+                var spaceRegion = space.RegionOfPoint(testPoint);
+                if (spaceRegion == Region.Interior) { principleNormal = -principleNormal; }
 
-                var normalOverrides = new Dictionary<int, Vector3D>();
+                var a = PositionNormal.GetRay(triangle.A);
+                var b = PositionNormal.GetRay(triangle.B);
+                var c = PositionNormal.GetRay(triangle.C);
 
-                var cuspPoints = triangles.SelectMany(t => t.Positions).DistinctBy(p => p.Id).
-                    Where(p =>
-                        p.PositionObject.Triangles.Any(t => t.Trace[0] == 'S' &&
-                        !p.PositionObject.Triangles.Any(t => t.Trace[0] == 'E') &&
-                        p.PositionObject.Cardinality > 2)).ToArray();
-                Console.WriteLine($"{elbowGroup.Key} Cusp points {string.Join(",", cuspPoints.Select(s => $"{s.Id}: {s.PositionObject.Id}: {s.PositionObject.Cardinality}"))}");
+                if (triangle.A.Normal == Vector3D.Zero) { a = new Ray3D(a.Point, principleNormal); }
+                if (triangle.B.Normal == Vector3D.Zero) { b = new Ray3D(b.Point, principleNormal); }
+                if (triangle.C.Normal == Vector3D.Zero) { c = new Ray3D(c.Point, principleNormal); }
 
+                replacements.Add(new SurfaceTriangleTrace(a, b, c, triangle.Trace));
+            }
 
-                var cuspSets = cuspPoints.Select(c =>
-                    new { c.Id, Position = c.Position, PositionTriangles = c.Triangles.Where(t => t.Trace[0] == 'F').ToArray() }).
-                        GroupBy(c => c.Id).ToArray();
-
-                foreach (var cuspSet in cuspSets.Where(c => c.Any()))
-                {
-                    var cuspTriangles = cuspSet.SelectMany(c => c.PositionTriangles);
-
-                    var triangleBasePointGroups = cuspTriangles.
-                        Select(t => new { t.Id, Positions = t.Positions.Where(p => p.PositionObject.Triangles.Any(pt => pt.Trace[0] == 'B')) }).
-                        GroupBy(t => t.Id).ToDictionary(pv => pv.Key, pv => pv.SelectMany(v => v.Positions).ToArray());
-
-                    var positionTriangleRelations = new Dictionary<int, List<int>>();
-
-                    foreach (var pair in triangleBasePointGroups)
-                    {
-                        foreach (var position in pair.Value)
-                        {
-                            if (!positionTriangleRelations.ContainsKey(position.Id)) { positionTriangleRelations[position.Id] = new List<int>(); }
-                            positionTriangleRelations[position.Id].Add(pair.Key);
-                        }
-                    }
-
-                    var orderedSurfacePoints = new List<PositionNormal>();
-                    var positionNormal = triangleBasePointGroups.First(p => p.Value.Length == 1).Value.First();
-                    var triangleId = triangleBasePointGroups.First(p => p.Value.Length == 1).Key;
-                    orderedSurfacePoints.Add(positionNormal);
-
-                    while (true)
-                    {
-                        triangleId = positionTriangleRelations[positionNormal.Id].Single(s => s != triangleId);
-                        positionNormal = triangleBasePointGroups[triangleId].SingleOrDefault(pn => pn.Id != positionNormal.Id);
-                        if (positionNormal is null) { break; }
-                        orderedSurfacePoints.Add(positionNormal);
-                    }
-
-                    var normals = orderedSurfacePoints.Select((pn, i) => new { Order = i, Index = pn.Id, Normal = pn.Normal, Radius = Point3D.Distance(pn.Position, cuspSet.First().Position)}).ToList();
-
-                    if (normals.Count > 3)
-                    {
-                        var normalsSubset = normals.Skip(1).Take(normals.Count - 2).ToArray();
-                        var maxRadius = BasicObjects.Math.Math.Max(normalsSubset.Select(n => n.Radius).ToArray()) * 1.1;
-
-                        if (normals.First().Radius > maxRadius) { normals.RemoveAt(0); }
-                        if (normals.Last().Radius > maxRadius) { normals.RemoveAt(normals.Count - 1); }
-                    }
-
-                    var normalsVectors = normals.ToDictionary(n => n.Index, n => new { n.Order, n.Normal });
-
-                    var replacements = new List<SurfaceTriangleTrace>();
-                    foreach (var triangle in cuspTriangles)
-                    {
-                        var a = normalsVectors.ContainsKey(triangle.A.Id) ? normalsVectors[triangle.A.Id] : null;
-                        var b = normalsVectors.ContainsKey(triangle.B.Id) ? normalsVectors[triangle.B.Id] : null;
-                        var c = normalsVectors.ContainsKey(triangle.C.Id) ? normalsVectors[triangle.C.Id] : null;
-
-                        var options = new[] { a, b, c}.Where(e => e is not null).OrderByDescending(e => e.Order).ToArray();
-                        var apply = options.FirstOrDefault();
-
-                        var aa = PositionNormal.GetRay(triangle.A);
-                        var bb = PositionNormal.GetRay(triangle.B);
-                        var cc = PositionNormal.GetRay(triangle.C);
-
-                        if (triangle.A.Id == cuspSet.Key && apply is not null) { aa = new Ray3D(aa.Point, apply.Normal); }
-                        if (triangle.B.Id == cuspSet.Key && apply is not null) { bb = new Ray3D(bb.Point, apply.Normal); }
-                        if (triangle.C.Id == cuspSet.Key && apply is not null) { cc = new Ray3D(cc.Point, apply.Normal); }
-
-                        replacements.Add(new SurfaceTriangleTrace(aa, bb, cc, triangle.Trace));
-                    }
-
-                    mesh.RemoveAllTriangles(cuspTriangles);//.SelectMany(p => p.PositionTriangles));
-                    foreach (var triangle in replacements)
-                    {
-                        mesh.AddTriangle(triangle.Triangle, triangle.Trace);
-                    }
-                }
+            mesh.RemoveAllTriangles(zeroTriangles);
+            foreach (var triangle in replacements)
+            {
+                mesh.AddTriangle(triangle.Triangle, triangle.Trace);
             }
         }
 

@@ -94,7 +94,7 @@ namespace Operations.Groupings.Types
             var vectorB = oppositePointB.Position - projectionPointB;
 
             var angle = Vector3D.Angle(vectorA, vectorB);
-            var isAFold =  angle < 1.5;
+            var isAFold = angle < 1.5;
             return isAFold;
         }
     }

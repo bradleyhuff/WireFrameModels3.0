@@ -439,7 +439,8 @@ namespace BasicObjects.GeometricObjects
         {
             if (a.IsCollinear && b.IsCollinear)
             {
-                yield return LineSegment3D.LineSegmentIntersection(a.LongestEdge, b.LongestEdge);
+                var match = LineSegment3D.LineSegmentIntersection(a.LongestEdge, b.LongestEdge);
+                if (match is not null) { yield return match; }
                 yield break;
             }
             if (a.IsCollinear)

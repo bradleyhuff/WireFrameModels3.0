@@ -1,7 +1,7 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
+using Collections.Buckets;
 using Operations.Intermesh.Basics;
-using Console = BaseObjects.Console;
 
 namespace Operations.Intermesh.Classes
 {
@@ -18,9 +18,9 @@ namespace Operations.Intermesh.Classes
             DivisionInterlinks(intersections);
             AllCheckRadiusLinking(intermeshTriangles);
             SamePointDisableAndRemoval(intersections);
+            DisableAndRemoveMultipleDivisions(intersections);
+            foreach (var triangle in intermeshTriangles) { triangle.ClearDisabledIntersections(); }
 
-            var disabledNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id).SelectMany(i => i.Divisions).Where(d => d.Disabled).ToArray();
-            var verticies = intersections.SelectMany(i => i.Divisions.SelectMany(d => d.VerticiesAB)).Where(v => v.Vertex is not null).Select(v => v.Vertex).DistinctBy(v => v.Id);
             ConsoleLog.WriteLine($"Set division links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
             //Console.WriteLine();
             //Notes.SetDivisionLinksNotes(intermeshTriangles, intersectionNodes, verticies, disabledNodes);
@@ -35,10 +35,43 @@ namespace Operations.Intermesh.Classes
                     if (division.Length < GapConstants.Resolution) { division.Disable(); }
                 }
             }
-            int disabledCount = intersectionNodes.Sum(i => i.Divisions.Count(d => d.Disabled));
+            intersectionNodes.ClearDisabledDivisions();
+        }
+
+        private static void DisableAndRemoveMultipleDivisions(IntermeshIntersection[] intersectionNodes)
+        {
+            var bucket = new BoxBucket<IntermeshDivision>(intersectionNodes.Where(i => !i.Disabled).SelectMany(i => i.Divisions).ToArray());
+
+            foreach (var intersectionNode in intersectionNodes.Where(i => !i.Disabled))
+            {
+                foreach (var divisionNode in intersectionNode.Divisions.Where(d => !d.Disabled))
+                {
+                    var matches = bucket.Fetch(divisionNode);
+                    foreach (var match in matches)
+                    {
+                        if (divisionNode.LinkedDivision.Equals(match.LinkedDivision)) {
+                            divisionNode.AddMultiple(match); 
+                        }
+                    }
+
+                }
+            }
+
+            foreach (var divisionNode in intersectionNodes.SelectMany(i => i.Divisions))
+            {
+                if (divisionNode.Disabled) { continue; }
+                foreach(var multiple in divisionNode.Multiples)
+                {
+                    multiple.Disable();
+                }
+            }
 
             intersectionNodes.ClearDisabledDivisions();
-            //Console.WriteLine($"Step 1 Division node removal {disabledCount}");
+
+            foreach (var intersection in intersectionNodes.Where(i => !i.Disabled))
+            {
+                if (!intersection.Divisions.Any()) { intersection.Disable(); }
+            }
         }
 
         private static void SamePointDisableAndRemoval(IntermeshIntersection[] intersectionNodes)
@@ -52,7 +85,6 @@ namespace Operations.Intermesh.Classes
                     foreach (var samePointDivision in samePointDivisions) { samePointDivision.Disable(); samePointDivision.VertexA.Delink(); samePointDivision.VertexB.Delink(); }
                 }
             }
-            int disabledCount = intersectionNodes.Sum(i => i.Divisions.Count(d => d.Disabled));
             intersectionNodes.ClearDisabledDivisions();
             //Console.WriteLine($"Step 5 Same point intersection removal {disabledCount}");
         }
@@ -96,8 +128,6 @@ namespace Operations.Intermesh.Classes
 
         private static void AllCheckRadiusLinking(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            int count = 0;
-            aCount = 0; bCount = 0; abCount = 0; divCount = 0;
             foreach (var triangle in intermeshTriangles)
             {
                 var vertexContainers = triangle.Intersections.SelectMany(i => i.Divisions.SelectMany(d => d.VerticiesAB)).ToArray();
@@ -148,33 +178,25 @@ namespace Operations.Intermesh.Classes
             }
         }
 
-        private static int aCount = 0;
-        private static int bCount = 0;
-        private static int abCount = 0;
-        private static int divCount = 0;
 
         private static void PreferenceLink(DivisionVertexContainer a, DivisionVertexContainer b)
         {
             if (a.Vertex.IntersectionContainers.Any() && !b.Vertex.IntersectionContainers.Any())
             {
                 VertexCore.Link(a, b);
-                aCount++;
                 return;
             }
 
             if (!a.Vertex.IntersectionContainers.Any() && b.Vertex.IntersectionContainers.Any())
             {
                 VertexCore.Link(b, a);
-                bCount++;
                 return;
             }
             if (a.Vertex.IntersectionContainers.Any() && b.Vertex.IntersectionContainers.Any())
             {
-                abCount++;
                 return;
             }
             VertexCore.Link(a, b);
-            divCount++;
         }
     }
 }

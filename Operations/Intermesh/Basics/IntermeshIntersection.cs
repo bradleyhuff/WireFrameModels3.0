@@ -106,6 +106,11 @@ namespace Operations.Intermesh.Basics
             }
         }
 
+        internal LineSegment3D LinkedIntersection
+        {
+            get { return new LineSegment3D(VertexA.Point, VertexB.Point); }
+        }
+
         private List<IntermeshIntersection> _multiples;
 
         public void AddMultiple(IntermeshIntersection multiple)

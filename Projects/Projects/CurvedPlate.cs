@@ -31,7 +31,7 @@ namespace Projects.Projects
             //AddPath(curvedFace, 1);
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
-            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.50, -0.6)));
+            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.10, -0.6)));
 
             curvedFace.AddGrid(cube);
             //curvedFace.AddGrid(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));

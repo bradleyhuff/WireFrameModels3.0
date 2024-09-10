@@ -6,19 +6,13 @@ namespace Operations.Intermesh.Elastics
     internal class ElasticVertexContainer
     {
         private static int _id = 0;
-        public ElasticVertexContainer(ElasticSegment segment, Point3D point, char tag)
+        public ElasticVertexContainer(Point3D point)
         {
             Id = _id++;
             _point = point;
-            _tag = tag;
-            _segment = segment;
         }
 
-        private ElasticSegment _segment;
-        private char _tag;
-
         public ElasticVertexCore Vertex { get; set; }
-        public ElasticSegment Segment { get { return _segment; } }
 
         public int Id { get; }
         private Point3D _point;

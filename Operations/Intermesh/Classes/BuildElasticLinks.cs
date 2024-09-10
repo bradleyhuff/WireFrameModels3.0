@@ -18,11 +18,13 @@ namespace Operations.Intermesh.Classes
 
             var anchorTable = new Dictionary<int, ElasticVertexAnchor>();
             var triangleTable = new Dictionary<int, ElasticTriangle>();
+            var containerTable = new Dictionary<int, ElasticVertexContainer>();
             var segmentTable = new Dictionary<int, ElasticSegment>();
             var edgeTable = new Combination2Dictionary<ElasticEdge>();
 
-            SetAllDivisions(intermeshTriangles, triangleTable, anchorTable, segmentTable, edgeTable);
-            var containerTable = BuildContainerTable(intermeshTriangles, segmentTable);
+            BuildContainerTable(intermeshTriangles, containerTable);
+
+            SetAllDivisions(intermeshTriangles, triangleTable, anchorTable, containerTable, segmentTable, edgeTable);
 
             var anchorBucket = new BoxBucket<ElasticVertexAnchor>(anchorTable.Values);
             LinkAllDivisions(intermeshTriangles, containerTable, anchorBucket);
@@ -58,6 +60,7 @@ namespace Operations.Intermesh.Classes
 
         private static void SetAllDivisions(IEnumerable<IntermeshTriangle> triangles,
             Dictionary<int, ElasticTriangle> triangleTable, Dictionary<int, ElasticVertexAnchor> anchorTable,
+            Dictionary<int, ElasticVertexContainer> containerTable,
             Dictionary<int, ElasticSegment> segmentTable, Combination2Dictionary<ElasticEdge> edgeTable)
         {
             foreach (var triangle in triangles)
@@ -65,7 +68,7 @@ namespace Operations.Intermesh.Classes
                 try
                 {
                     var elasticTriangle = GetTriangle(triangle, triangleTable, anchorTable, edgeTable);
-                    elasticTriangle.SetSegments(GetSegments(triangle.Divisions, segmentTable));
+                    elasticTriangle.SetSegments(GetSegments(triangle.Divisions, containerTable, segmentTable));
                 }
                 catch (Exception ex)
                 {
@@ -74,33 +77,16 @@ namespace Operations.Intermesh.Classes
             }
         }
 
-        private static Dictionary<int, ElasticVertexContainer> BuildContainerTable(IEnumerable<IntermeshTriangle> triangles, Dictionary<int, ElasticSegment> segmentTable)
+        private static void BuildContainerTable(IEnumerable<IntermeshTriangle> triangles, Dictionary<int, ElasticVertexContainer> containerTable)
         {
-            var containerTable = new Dictionary<int, ElasticVertexContainer>();
-
             foreach (var triangle in triangles)
             {
-                try
+                var containers = triangle.Divisions.SelectMany(s => s.VerticiesAB.SelectMany(v => v.Vertex.DivisionContainers)).DistinctBy(c => c.Id);
+                foreach (var container in containers)
                 {
-                    var containers = triangle.Divisions.SelectMany(s => s.VerticiesAB.SelectMany(v => v.Vertex.DivisionContainers)).DistinctBy(c => c.Id);
-                    foreach (var container in containers)
-                    {
-                        var tag = container.Tag;
-                        var division = segmentTable[container.Division.Id];
-                        if (tag == 'a')
-                        {
-                            containerTable[container.Id] = division.VertexA;
-                        }
-                        else
-                        {
-                            containerTable[container.Id] = division.VertexB;
-                        }
-                    }
+                    if (!containerTable.ContainsKey(container.Id)) { containerTable[container.Id] = new ElasticVertexContainer(container.Point); }
                 }
-                catch (Exception ex) { Console.WriteLine(ex.Message); }
             }
-
-            return containerTable;
         }
 
         private static void LinkAllDivisions(IEnumerable<IntermeshTriangle> triangles,
@@ -170,11 +156,15 @@ namespace Operations.Intermesh.Classes
             }
         }
 
-        private static IEnumerable<ElasticSegment> GetSegments(IEnumerable<IntermeshDivision> divisionNodes, Dictionary<int, ElasticSegment> segmentTable)
+        private static IEnumerable<ElasticSegment> GetSegments(IEnumerable<IntermeshDivision> divisionNodes, 
+            Dictionary<int, ElasticVertexContainer> containerTable, Dictionary<int, ElasticSegment> segmentTable)
         {
             foreach (var divisionNode in divisionNodes)
             {
-                if (!segmentTable.ContainsKey(divisionNode.Id)) { segmentTable[divisionNode.Id] = new ElasticSegment(divisionNode.VertexA.Point, divisionNode.VertexB.Point); }
+                if (!segmentTable.ContainsKey(divisionNode.Id)) 
+                { 
+                    segmentTable[divisionNode.Id] = new ElasticSegment(containerTable[divisionNode.VertexA.Id], containerTable[divisionNode.VertexB.Id]); 
+                }
 
                 yield return segmentTable[divisionNode.Id];
             }
@@ -242,6 +232,7 @@ namespace Operations.Intermesh.Classes
             {
                 var nearestLineA = NearestLine(collinear.VertexA.Point, lineAB, lineBC, lineCA);
                 var nearestLineB = NearestLine(collinear.VertexB.Point, lineAB, lineBC, lineCA);
+                if (nearestLineA == Line.None || nearestLineB == Line.None) { continue; }
 
                 if (LineCheck.HasAB(nearestLineA) && LineCheck.HasAB(nearestLineB)) { perimeterABsegments.Add(collinear); }
                 if (LineCheck.HasBC(nearestLineA) && LineCheck.HasBC(nearestLineB)) { perimeterBCsegments.Add(collinear); }
@@ -286,6 +277,7 @@ namespace Operations.Intermesh.Classes
 
         private enum Line
         {
+            None,
             LineAB,
             LineBC,
             LineCA,
@@ -316,7 +308,7 @@ namespace Operations.Intermesh.Classes
             double distanceCA = lineCA.Distance(point);
             if (distanceAB < Double.DifferenceError && distanceBC < Double.DifferenceError && distanceCA < Double.DifferenceError)
             {
-                throw new InvalidOperationException($"Invalid distance matches.");
+                return Line.None;
             }
             if (distanceAB < Double.DifferenceError && distanceBC < Double.DifferenceError) { return Line.LineABBC; }
             if (distanceAB < Double.DifferenceError && distanceCA < Double.DifferenceError) { return Line.LineABCA; }
@@ -325,7 +317,7 @@ namespace Operations.Intermesh.Classes
             if (distanceAB < distanceBC && distanceAB < distanceCA) { return Line.LineAB; }
             if (distanceBC < distanceAB && distanceBC < distanceCA) { return Line.LineBC; }
             if (distanceCA < distanceAB && distanceCA < distanceBC) { return Line.LineCA; }
-            throw new InvalidOperationException($"Invalid distance matches.");
+            return Line.None;
         }
 
         private static List<ElasticVertexCore> MapPerimeterPoints(IEnumerable<VertexCore> input, Dictionary<int, ElasticVertexContainer> containerTable)

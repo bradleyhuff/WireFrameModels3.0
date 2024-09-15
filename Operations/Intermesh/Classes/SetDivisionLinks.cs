@@ -22,8 +22,6 @@ namespace Operations.Intermesh.Classes
             foreach (var triangle in intermeshTriangles) { triangle.ClearDisabledIntersections(); }
 
             ConsoleLog.WriteLine($"Set division links. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
-            //Console.WriteLine();
-            //Notes.SetDivisionLinksNotes(intermeshTriangles, intersectionNodes, verticies, disabledNodes);
         }
 
         private static void DisableAndClearDivisionNodes(IntermeshIntersection[] intersectionNodes)
@@ -86,7 +84,6 @@ namespace Operations.Intermesh.Classes
                 }
             }
             intersectionNodes.ClearDisabledDivisions();
-            //Console.WriteLine($"Step 5 Same point intersection removal {disabledCount}");
         }
 
         private static void ClearDisabledDivisions(this IEnumerable<IntermeshIntersection> list)
@@ -103,7 +100,6 @@ namespace Operations.Intermesh.Classes
                 VertexCore.Link(intersectionNode.VertexB, intersectionNode.Divisions.Last().VertexB);
                 count++;
             }
-            //Console.WriteLine($"Step 2 Division end links {count}");
         }
 
         private static void DivisionInterlinks(IntermeshIntersection[] intersectionNodes)
@@ -123,7 +119,6 @@ namespace Operations.Intermesh.Classes
                     count++;
                 }
             }
-            //Console.WriteLine($"Step 3 Division interlinks {count}");
         }
 
         private static void AllCheckRadiusLinking(IEnumerable<IntermeshTriangle> intermeshTriangles)
@@ -177,7 +172,6 @@ namespace Operations.Intermesh.Classes
                 if (vertex.Vertex.Id != division.VertexB.Vertex.Id) { PreferenceLink(vertex, division.VertexB); }
             }
         }
-
 
         private static void PreferenceLink(DivisionVertexContainer a, DivisionVertexContainer b)
         {

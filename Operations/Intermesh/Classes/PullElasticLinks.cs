@@ -17,8 +17,6 @@ namespace Operations.Intermesh.Classes
 
         private static void AnchorPull(IEnumerable<ElasticTriangle> elasticTriangles)
         {
-            int pulls = 0;
-
             var perimeterTable = GetPerimeterTable(elasticTriangles);
 
             foreach (var elasticTriangle in elasticTriangles)
@@ -30,19 +28,16 @@ namespace Operations.Intermesh.Classes
                     {
                         AnchorPull(elasticTriangle.AnchorA, elasticTriangle.PerimeterEdgeAB, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorA, elasticTriangle.PerimeterEdgeCA, perimeter, perimeterTable);
-                        pulls++;
                     }
                     if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorB.Point) < GapConstants.Proximity)
                     {
                         AnchorPull(elasticTriangle.AnchorB, elasticTriangle.PerimeterEdgeBC, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorB, elasticTriangle.PerimeterEdgeAB, perimeter, perimeterTable);
-                        pulls++;
                     }
                     if (Point3D.Distance(perimeter.Point, elasticTriangle.AnchorC.Point) < GapConstants.Proximity)
                     {
                         AnchorPull(elasticTriangle.AnchorC, elasticTriangle.PerimeterEdgeCA, perimeter, perimeterTable);
                         AnchorPull(elasticTriangle.AnchorC, elasticTriangle.PerimeterEdgeBC, perimeter, perimeterTable);
-                        pulls++;
                     }
                 }
             }

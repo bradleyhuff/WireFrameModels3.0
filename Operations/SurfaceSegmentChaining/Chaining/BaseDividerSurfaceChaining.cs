@@ -40,7 +40,6 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             BuildLinks();
             var keys = GetDividingKeys(_linkedSegments);
             var chainSegments = PullSegmentsFromPerimeters().ToList();
-            Console.WriteLine($"Chain segments {chainSegments.Count}");
 
             var assemblyTable = GetAssemblyTable(chainSegments, keys);
             BuildPerimeterLoops(assemblyTable, keys);
@@ -169,7 +168,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             {
                 int startLink = segment.LinksA.Any(l => l.Rank == Rank.Dividing) ? segment.IndexPointA : segment.IndexPointB;
                 var indexChain = PullChainWithNoJunction(startLink, segment).ToArray(); 
-                Console.WriteLine($"Pulled chain {string.Join(",", indexChain)}");
+
                 yield return indexChain;
                 count++;
                 if (count > _linkedSegments.Count)
@@ -190,7 +189,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 (l) => l.Rank == Rank.Perimeter && l.Passes < 1)) is not null)
             {
                 var indexChain = PullChainWithNoJunction(segment.IndexPointA, segment).ToArray();
-                Console.WriteLine($"Pulled chain {string.Join(",", indexChain)}");
+
                 yield return indexChain;
                 count++;
                 if (count > _linkedSegments.Count)

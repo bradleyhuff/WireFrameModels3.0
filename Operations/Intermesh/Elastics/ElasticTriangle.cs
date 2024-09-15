@@ -67,6 +67,14 @@ namespace Operations.Intermesh.Elastics
         public ElasticVertexAnchor AnchorB { get; }
         public ElasticVertexAnchor AnchorC { get; }
 
+        public bool IsDegenerate
+        {
+            get
+            {
+                return AnchorA.Id == AnchorB.Id || AnchorB.Id == AnchorC.Id || AnchorC.Id == AnchorA.Id;
+            }
+        }
+
         public Vector3D NormalA { get; }
         public Vector3D NormalB { get; }
         public Vector3D NormalC { get; }

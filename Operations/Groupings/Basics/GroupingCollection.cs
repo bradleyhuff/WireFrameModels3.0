@@ -42,6 +42,7 @@ namespace Operations.Groupings.Basics
 
         public static IEnumerable<GroupingCollection> ExtractSurfaces(IEnumerable<PositionTriangle> triangles)
         {
+            if (triangles is null) { return Array.Empty<GroupingCollection>(); }
             var grouping = new GroupingCollection(triangles);
             return grouping.ExtractSurfaces();
         }
@@ -52,6 +53,7 @@ namespace Operations.Groupings.Basics
         }
         public static IEnumerable<GroupingCollection> ExtractFaces(IEnumerable<PositionTriangle> triangles)
         {
+            if (triangles is null) { return Array.Empty<GroupingCollection>(); }
             var grouping = new GroupingCollection(triangles);
             return grouping.ExtractFaces();
         }
@@ -62,6 +64,7 @@ namespace Operations.Groupings.Basics
         }
         public static IEnumerable<GroupingCollection> ExtractClusters(IEnumerable<PositionTriangle> triangles)
         {
+            if (triangles is null) { return Array.Empty<GroupingCollection>(); }
             var grouping = new GroupingCollection(triangles);
             return grouping.ExtractClusters();
         }
@@ -72,6 +75,7 @@ namespace Operations.Groupings.Basics
         }
         public static IEnumerable<GroupingCollection> ExtractPlanars(IEnumerable<PositionTriangle> triangles)
         {
+            if (triangles is null) { return Array.Empty<GroupingCollection>(); }
             var grouping = new GroupingCollection(triangles);
             return grouping.ExtractPlanars();
         }
@@ -83,6 +87,7 @@ namespace Operations.Groupings.Basics
 
         public static IEnumerable<GroupingCollection> ExtractFolds(IEnumerable<PositionTriangle> triangles)
         {
+            if (triangles is null) { return Array.Empty<GroupingCollection>(); }
             var grouping = new GroupingCollection(triangles);
             return grouping.ExtractFolds();
         }

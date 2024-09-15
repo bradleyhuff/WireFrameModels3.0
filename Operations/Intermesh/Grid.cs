@@ -1,4 +1,5 @@
 ﻿using BaseObjects;
+using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Classes;
@@ -30,11 +31,22 @@ internal static class Grid
         ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
     }
 
+    public static void RemoveNearDegenerates(this IWireFrameMesh mesh)
+    {
+        mesh.RemoveAllTriangles(mesh.Triangles.Where(IsNearDegenerate).ToArray());
+    }
+
+    private static bool IsNearDegenerate(PositionTriangle triangle)
+    {
+        return triangle.Triangle.LengthAB < GapConstants.Proximity ||
+            triangle.Triangle.LengthBC < GapConstants.Proximity ||
+            triangle.Triangle.LengthCA < GapConstants.Proximity;
+    }
+
     private static void SeparateProcesses(IntermeshCollection collections, out List<IntermeshTriangle> processTriangles)
     {
         var start = DateTime.Now;
         processTriangles = collections.Triangles.Where(t => t.Intersections.Any()).ToList();
-        //ConsoleLog.WriteLine($"Separate processes: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
     }
 
     private static void UpdateResultGrid(IWireFrameMesh mesh, IEnumerable<IntermeshTriangle> processTriangles, IEnumerable<FillTriangle> fillTriangles)

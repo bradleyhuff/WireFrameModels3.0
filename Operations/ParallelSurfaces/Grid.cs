@@ -23,6 +23,7 @@ namespace Operations.ParallelSurfaces
             FoldPrimming(mesh);
 
             var output = AddParallelSurfaces(mesh, thickness);
+            output.RemoveNearDegenerates();
             output.Intermesh();
 
             RemoveFoldedSurfaces(output);
@@ -96,8 +97,6 @@ namespace Operations.ParallelSurfaces
 
         private static void RemoveUnderLeavingFold(IWireFrameMesh output, GroupingCollection[] group)
         {
-            //Console.WriteLine($"Underleaving group {group.Length}");
-
             var first = group[0];
             var upperId = -1;
             for (int i = 1; i < group.Length; i++)
@@ -134,14 +133,12 @@ namespace Operations.ParallelSurfaces
 
                 var triangleA = triangles.Single(t => t.Trace == "A");
                 var triangleB = triangles.Single(t => t.Trace == "B");
-                //Console.WriteLine($"Order check. Triangle A {triangleA.Id} Triangle B {triangleB.Id}");
 
                 var normal = (triangleB.A.Normal + triangleB.B.Normal + triangleB.C.Normal).Direction;
                 var normalLine = new Line3D(triangleB.Triangle.Center, triangleB.Triangle.Center + normal);
                 var intersectionA = triangleA.Triangle.Plane.Intersection(normalLine);
                 var normalIntersection = (intersectionA - triangleB.Triangle.Center).Direction;
                 var polarity = Math.Sign(Vector3D.Dot(normal, normalIntersection));
-                //Console.WriteLine($"Center {triangleB.Triangle.Center} intersection {intersectionA} polarity {polarity}");
 
                 foreach (var t in a.Triangles) { t.Trace = oldTraceA; }
                 foreach (var t in b.Triangles) { t.Trace = oldTraceB; }
@@ -164,7 +161,6 @@ namespace Operations.ParallelSurfaces
         private static void FoldPrimming(IWireFrameMesh output)
         {
             var foldedTriangles = output.Triangles.Where(t => t.IsFolded).ToArray();
-            Console.WriteLine($"Folded triangles {foldedTriangles.Length}");
             if (!foldedTriangles.Any()) { Console.WriteLine(); return; }
 
             var space = new Space(output.Triangles.Select(t => t.Triangle).ToArray());
@@ -330,7 +326,6 @@ namespace Operations.ParallelSurfaces
                 }
                 else if (Math.Abs(angle - Math.PI / 2) > 1e-6)
                 {
-                    //Console.WriteLine($"Pair [{pair.Key}: {bases[pair.Key].PositionObject.Id},{pair.Value}: {surfaces[pair.Value].PositionObject.Id}] {angle} {angle2}");
                     obliquePositions[pair.Key] = true;
                     obliquePositions[pair.Value] = true;
 
@@ -341,7 +336,6 @@ namespace Operations.ParallelSurfaces
             }
 
             var trianglesToReplace = sideTriangleSet.Where(t => obliquePositions.ContainsKey(t.A.Id) || obliquePositions.ContainsKey(t.B.Id) || obliquePositions.ContainsKey(t.C.Id)).ToArray();
-            Console.WriteLine($"{sideTriangleSet.Key} Triangles to replace {trianglesToReplace.Length}");
             var replacements = trianglesToReplace.Select(t => new SurfaceTriangle(
                 new Ray3D(t.A.Position, adjustedNormals.ContainsKey(t.A.Id) ? adjustedNormals[t.A.Id] : t.A.Normal),
                 new Ray3D(t.B.Position, adjustedNormals.ContainsKey(t.B.Id) ? adjustedNormals[t.B.Id] : t.B.Normal),
@@ -358,7 +352,6 @@ namespace Operations.ParallelSurfaces
             var top = bc.X * bc.X + bc.Y * bc.Y + bc.Z * bc.Z;
             var bottom = ba.X * bc.X + ba.Y * bc.Y + ba.Z * bc.Z;
             double alpha = top / bottom;
-            //Console.WriteLine($"Alpha {alpha} {top} / {bottom}");
 
             return alpha * a + (1 - alpha) * b;
         }
@@ -457,12 +450,11 @@ namespace Operations.ParallelSurfaces
                         UnwrapToBeginning((p, i) => IsSurfacePosition(p)).
                         Reverse().
                         ToArray();
-                    Console.WriteLine($"Surface points {string.Join(",", surfacePoints.Select(p => $"{p.Id} [{p.Cardinality}] "))}");
+       
                     var basePoints = element.s.PerimeterLoops[0].
                         Select(p => p.Reference).ToArray().
                         UnwrapToBeginning((p, i) => IsBasePosition(p)).
                         ToArray();
-                    Console.WriteLine($"Base points {string.Join(",", basePoints.Select(p => $"{p.Id} [{p.Cardinality}] "))}");
 
                     int s = 0;
                     var firstSurfacePoint = surfacePoints.First().Id;
@@ -524,7 +516,6 @@ namespace Operations.ParallelSurfaces
                 var perimeter = surfaces.Select(f => f.PerimeterEdges).First().SelectMany(e => e.Positions).Select(p => p.PositionObject).DistinctBy(p => p.Id);
                 var surfacePositions = perimeter.Where(IsSurfacePosition);
                 var basePositions = perimeter.Where(IsBasePosition);
-                Console.WriteLine($"Base {basePositions.Count()} surface {surfacePositions.Count()}");
 
                 foreach (var position in basePositions.
                     Where(p => 
@@ -540,9 +531,6 @@ namespace Operations.ParallelSurfaces
                     replacementPositions[position.Id] = Vector3D.Zero;
                 }
 
-                Console.WriteLine($"Replacement positions {replacementPositions.Count()}");
-                Console.WriteLine($"Base point cardinalities \n{string.Join("\n", basePositions.Select(b => $"[{string.Join(",", b.PositionNormals.Select(p => $"<{string.Join(",", p.Triangles.Select(t => t.Trace).Distinct().OrderBy(s => s))}>"))}]"))}");
-                Console.WriteLine($"Surface point cardinalities \n{string.Join("\n", surfacePositions.Select(b => $"[{string.Join(",", b.PositionNormals.Select(p => $"<{string.Join(",", p.Triangles.Select(t => t.Trace).Distinct().OrderBy(s => s))}>"))}]"))}");
 
                 foreach (var triangle in triangles)
                 {
@@ -592,8 +580,6 @@ namespace Operations.ParallelSurfaces
                     removals.Add(triangle);
                 }
 
-                Console.WriteLine($"Triangle replacements {replacements.Count()}");
-
                 mesh.RemoveAllTriangles(removals);
                 foreach (var triangle in replacements)
                 {
@@ -605,7 +591,6 @@ namespace Operations.ParallelSurfaces
         private static void PlateSidesNormalReplacement(IWireFrameMesh mesh)
         {
             var zeroTriangles = mesh.Triangles.Where(t => t.A.Normal == Vector3D.Zero || t.B.Normal == Vector3D.Zero || t.C.Normal == Vector3D.Zero).ToArray();
-            Console.WriteLine($"Zero triangles {zeroTriangles.Length}");
             if (!zeroTriangles.Any()) { return; }
 
             var space = new Space(mesh.Triangles.Select(t => t.Triangle));

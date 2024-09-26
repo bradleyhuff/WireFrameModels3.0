@@ -31,18 +31,18 @@ namespace Projects.Projects
             //AddPath(curvedFace, 1);
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
-            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.10, -0.6)));
+            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.05, -0.6)));
 
             curvedFace.AddGrid(cube);
             //curvedFace.AddGrid(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
             curvedFace = curvedFace.Difference(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
-            WavefrontFile.Export(curvedFace, "Wavefront/CurvedFace");
+            //WavefrontFile.Export(curvedFace, "Wavefront/CurvedFace");
             //WavefrontFile.Export(NormalOverlay(curvedFace, 0.05), "Wavefront/CurvedFaceNormals");
             //WavefrontFileGroups.ExportByFaceFolds(curvedFace, "Wavefront/FaceFolds");
             //WavefrontFileGroups.ExportByFaces(curvedFace, "Wavefront/Faces");
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.SetFacePlates(0.10);
+            var facePlates = curvedFace.SetFacePlates(0.12);
 
             //var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);
             //cube2.Apply(Transform.Translation(new Vector3D(-0.900001, 0, -1)));
@@ -96,7 +96,7 @@ namespace Projects.Projects
             //WavefrontFile.Export(edgeTriangles, "Wavefront/EdgePlates");
 
             //WavefrontFile.Export(NormalOverlay(parallelSurface, 0.02), "Wavefront/curvedPlateNormals");
-            //WavefrontFileGroups.ExportBySurfaces(parallelSurface, "Wavefront/ParallelSurface");
+            //WavefrontFileGroups.ExportByFaces(facePlates, "Wavefront/Faces");
         }
 
         private void Part2()

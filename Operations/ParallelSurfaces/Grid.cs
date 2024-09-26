@@ -13,6 +13,7 @@ using Operations.PlanarFilling.Basics;
 using Console = BaseObjects.Console;
 using BasicObjects.MathExtensions;
 using Operations.Regions;
+using Operations.Intermesh.Basics;
 
 namespace Operations.ParallelSurfaces
 {
@@ -21,18 +22,12 @@ namespace Operations.ParallelSurfaces
         public static IWireFrameMesh SetFacePlates(this IWireFrameMesh mesh, double thickness)
         {
             FoldPrimming(mesh);
-
             var output = AddParallelSurfaces(mesh, thickness);
-            output.RemoveNearDegenerates();
             output.Intermesh();
 
-            RemoveFoldedSurfaces(output);
-            RemoveClosedSurfaces(output);
-            RemoveUnderLeavingFolds(output);
-
+            RemoveInternalFolds(output, thickness);
             FillPlateSides(output, thickness);
             ObliqueNormalAdjustments(output);
-
             ElbowFill(output, thickness);
             PlateSidesNormalReplacement(output);
             ElbowNormalBlending(output);
@@ -47,116 +42,70 @@ namespace Operations.ParallelSurfaces
 
             foreach (var face in faces.Select((s, i) => new { s, i }))
             {
-                var parallelSurface = CreateParallelSurface(face.s, thickness);
+                var parallelSurface = CreateParallelSurface(face.s, thickness).Where(t => !IsNearDegenerate(t.Triangle));
                 var addedTriangles = output.AddRangeTriangles(parallelSurface);
                 foreach (var triangle in addedTriangles) { triangle.Trace = $"S{face.i}"; }
-                addedTriangles = output.AddRangeTriangles(face.s.Select(PositionTriangle.GetSurfaceTriangle));
+            }
+
+            foreach (var face in faces.Select((s, i) => new { s, i }))
+            {
+                var addedTriangles = output.AddRangeTriangles(face.s.Select(PositionTriangle.GetSurfaceTriangle));
                 foreach (var triangle in addedTriangles) { triangle.Trace = $"B{face.i}"; }
             }
 
             return output;
         }
 
-        private static void RemoveFoldedSurfaces(IWireFrameMesh output)
+        private static bool IsNearDegenerate(Triangle3D triangle)
         {
-            var surfaces = GroupingCollection.ExtractSurfaces(output.Triangles).ToArray();
-            var groups = surfaces.GroupBy(s => s.Triangles.First().Trace);
+            return triangle.LengthAB < GapConstants.Proximity || triangle.LengthBC < GapConstants.Proximity || triangle.LengthCA < GapConstants.Proximity;
+        }
 
-            foreach (var group in groups.Where(g => g.Count() > 1))
+        private static void RemoveInternalFolds(IWireFrameMesh output, double thickness)
+        {
+            var faceGroups = output.Triangles.GroupBy(t => t.Trace.Substring(1));
+            foreach(var faceGroup in faceGroups)
             {
-                foreach (var surface in group.Select((s, i) => new { s, i }))
+                var baseGroups = faceGroup.GroupBy(t => t.Trace[0]);
+
+                var baseTriangles = baseGroups.Single(g => g.Key == 'B').ToArray();
+                var surfaceTriangles = baseGroups.Single(g => g.Key == 'S').ToArray();
+
+                if (surfaceTriangles.Length > baseTriangles.Length) { RemoveInternalFolds(baseTriangles, surfaceTriangles, output, thickness); }
+            }
+        }
+
+        private static void RemoveInternalFolds(IEnumerable<PositionTriangle> baseTriangles, IEnumerable<PositionTriangle> surfaceTriangles, IWireFrameMesh output, double thickness)
+        {
+            var faces = GroupingCollection.ExtractFaces(surfaceTriangles).ToArray();
+            var folds = faces.SelectMany(f => GroupingCollection.ExtractFolds(f)).ToArray();
+            if (folds.Length == 1) { return; }
+
+            var bucket = new BoxBucket<PositionTriangle>(baseTriangles);
+
+            foreach(var fold in folds)
+            {
+                var testPoint = fold.Triangles.First().Triangle.Center;
+
+                var matches = bucket.Fetch(new Rectangle3D(testPoint, thickness + 1e-4));
+
+                bool removeFold = false;
+                int exteriorCount = 0;
+                int count = 0;
+                foreach(var match in matches)
                 {
-                    foreach (var triangle in surface.s.Triangles) { triangle.Trace = surface.i.ToString(); }
+                    var projection = match.Triangle.Plane.Projection(testPoint);
+                    if (!match.Triangle.PointIsOn(projection)) { continue; }
+                    count++;
+                    var distance = Point3D.Distance(testPoint, projection);
+                    if (distance < thickness - 1e-9) { removeFold = true; break; }
+                    if (distance > thickness + 1e-9) { exteriorCount++; }
                 }
-                var foldedSurfaces = group.Where(s => IsFolded(s.Triangles)).ToArray();
-                output.RemoveAllTriangles(foldedSurfaces.SelectMany(s => s.Triangles));
 
-                foreach (var triangle in group.SelectMany(s => s.Triangles)) { triangle.Trace = group.Key; }
+                if (removeFold || count == exteriorCount) { output.RemoveAllTriangles(fold.Triangles); }
             }
         }
 
-        private static void RemoveClosedSurfaces(IWireFrameMesh output)
-        {
-            var surfaces = GroupingCollection.ExtractSurfaces(output.Triangles).ToArray();
-
-            var closedSurfaces = surfaces.Where(s => s.PerimeterEdges.Count == 0 && s.Triangles.First().Trace[0] == 'S').ToArray();
-            output.RemoveAllTriangles(closedSurfaces.SelectMany(s => s.Triangles));
-        }
-
-        private static void RemoveUnderLeavingFolds(IWireFrameMesh output)
-        {
-            var faces = GroupingCollection.ExtractFaces(output.Triangles).ToArray();
-            var foldGroups = faces.Select(f => GroupingCollection.ExtractFolds(f).ToArray()).ToArray();
-            var underleavingGroups = foldGroups.Where(g => g.Length > 1);
-
-            foreach (var group in underleavingGroups)
-            {
-                RemoveUnderLeavingFold(output, group);
-            }
-        }
-
-        private static void RemoveUnderLeavingFold(IWireFrameMesh output, GroupingCollection[] group)
-        {
-            var first = group[0];
-            var upperId = -1;
-            for (int i = 1; i < group.Length; i++)
-            {
-                var order = Order(first, group[i]);
-                if (order is null) { continue; }
-
-                upperId = order[0].Id; break;
-            }
-            if (upperId == -1) { return; }
-
-            foreach (var element in group.Where(g => g.Id != upperId))
-            {
-                output.RemoveAllTriangles(element.Triangles);
-            }
-        }
-
-        private static GroupingCollection[] Order(GroupingCollection a, GroupingCollection b)
-        {
-            var perimeterA = a.PerimeterEdges;
-            var perimeterB = b.PerimeterEdges;
-            var oldTraceA = a.Triangles.First().Trace;
-            var oldTraceB = b.Triangles.First().Trace;
-
-            foreach (var t in a.Triangles) { t.Trace = "A"; }
-            foreach (var t in b.Triangles) { t.Trace = "B"; }
-
-            var common = perimeterA.IntersectBy(perimeterB.Select(p => p.Key), p => p.Key, new Combination2Comparer()).ToArray();
-
-            if (common.Any())
-            {
-                var triangles = common.First().Triangles;
-                // Determine order from here...
-
-                var triangleA = triangles.Single(t => t.Trace == "A");
-                var triangleB = triangles.Single(t => t.Trace == "B");
-
-                var normal = (triangleB.A.Normal + triangleB.B.Normal + triangleB.C.Normal).Direction;
-                var normalLine = new Line3D(triangleB.Triangle.Center, triangleB.Triangle.Center + normal);
-                var intersectionA = triangleA.Triangle.Plane.Intersection(normalLine);
-                var normalIntersection = (intersectionA - triangleB.Triangle.Center).Direction;
-                var polarity = Math.Sign(Vector3D.Dot(normal, normalIntersection));
-
-                foreach (var t in a.Triangles) { t.Trace = oldTraceA; }
-                foreach (var t in b.Triangles) { t.Trace = oldTraceB; }
-
-                if (polarity == 1)
-                {
-                    //A is upper
-                    return [a, b];
-                }
-                if (polarity == -1)
-                {
-                    //B is upper
-                    return [b, a];
-                }
-            }
-
-            return null;
-        }
 
         private static void FoldPrimming(IWireFrameMesh output)
         {
@@ -211,17 +160,6 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        private static void ApplyPrincipleNormal(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal, double weight)
-        {
-            if (!straightenedNormals.ContainsKey(position.PositionObject.Id))
-            {
-                straightenedNormals[position.PositionObject.Id] = weight * principleNormal;
-            }
-            else
-            {
-                straightenedNormals[position.PositionObject.Id] += weight * principleNormal;
-            }
-        }
 
         private static void FillPlateSides(IWireFrameMesh output, double thickness)
         {
@@ -450,7 +388,7 @@ namespace Operations.ParallelSurfaces
                         UnwrapToBeginning((p, i) => IsSurfacePosition(p)).
                         Reverse().
                         ToArray();
-       
+
                     var basePoints = element.s.PerimeterLoops[0].
                         Select(p => p.Reference).ToArray().
                         UnwrapToBeginning((p, i) => IsBasePosition(p)).
@@ -468,6 +406,12 @@ namespace Operations.ParallelSurfaces
                             s++;
                         }
                         elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, basePoints[b + 1].Point, surfacePoints[s].Point, $"F{element.i}"));
+                    }
+
+                    while (s + 1 < surfacePoints.Length)
+                    {
+                        elbowTriangles.Add(new TriangleTrace(basePoints[basePoints.Length - 1].Point, surfacePoints[s].Point, surfacePoints[s + 1].Point, $"F{element.i}"));
+                        s++;
                     }
                 }
             }
@@ -518,14 +462,14 @@ namespace Operations.ParallelSurfaces
                 var basePositions = perimeter.Where(IsBasePosition);
 
                 foreach (var position in basePositions.
-                    Where(p => 
+                    Where(p =>
                         p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'E')) == 1))
                 {
                     replacementPositions[position.Id] = Vector3D.Zero;
                 }
                 foreach (var position in surfacePositions.
-                    Where(p => 
-                        p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'S')) == 1 && 
+                    Where(p =>
+                        p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'S')) == 1 &&
                         !p.Triangles.Any(t => t.Trace[0] == 'E')))
                 {
                     replacementPositions[position.Id] = Vector3D.Zero;
@@ -620,11 +564,6 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        private static Ray3D NormalLookups(PositionNormal p, Dictionary<int, Vector3D> normals)
-        {
-            if (normals.ContainsKey(p.PositionObject.Id)) { return new Ray3D(p.Position, normals[p.PositionObject.Id].Direction); }
-            return PositionNormal.GetRay(p);
-        }
 
         private static bool IsBasePosition(Position p)
         {
@@ -712,21 +651,6 @@ namespace Operations.ParallelSurfaces
 
                 yield return new SurfaceTriangle(aa, bb, cc);
             }
-        }
-
-        private static bool IsFolded(IEnumerable<PositionTriangle> triangles)
-        {
-            if (!triangles.Any()) { return false; }
-
-            var trace = triangles.First().Trace;
-
-            foreach (var triangle in triangles)
-            {
-                if (triangle.ABadjacents.Count() > 1 && triangle.ABadjacents.Any(a => a.Trace == trace)) { return true; }
-                if (triangle.BCadjacents.Count() > 1 && triangle.BCadjacents.Any(a => a.Trace == trace)) { return true; }
-                if (triangle.CAadjacents.Count() > 1 && triangle.CAadjacents.Any(a => a.Trace == trace)) { return true; }
-            }
-            return false;
         }
 
         private static SurfaceSegmentSets<Empty, Position> CreateSurfaceSegmentSet(IEnumerable<GroupEdge> perimeterEdges)

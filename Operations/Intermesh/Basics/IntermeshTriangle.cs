@@ -201,7 +201,7 @@ namespace Operations.Intermesh.Basics
             {
                 if (_adjacents is null)
                 {
-                    _adjacents = Averticies.Concat(Bverticies).Concat(Cverticies).DistinctBy(t => t.Id).ToList();
+                    _adjacents = ABadjacents.Concat(BCadjacents).Concat(CAadjacents).DistinctBy(t => t.Id).ToList();
                 }
                 return _adjacents;
             }

@@ -1,9 +1,51 @@
 ﻿using BaseObjects.Transformations.Interfaces;
+using System.Numerics;
 using E = BasicObjects.Math;
 using SMath = System.Math;
 
 namespace BasicObjects.GeometricObjects
 {
+    public class BasisPlane: Plane
+    {
+        public BasisPlane(Point3D P, Point3D PX, Point3D Q):base(P, PX, Q)
+        {
+            BasisX = (PX - P).Direction;
+
+            var basisPlaneY = new Plane(P, BasisX);
+            var basisLine = Intersection(this, basisPlaneY);
+            BasisY = basisLine.Vector.Direction;
+        }
+
+        public Vector3D BasisX { get; }
+        public Vector3D BasisY { get; }
+        public Vector3D BasisZ { get { return Normal; } }
+
+        public Point3D ToSpaceCoordinates(Point2D point)
+        {
+            return Center + point.X * BasisX + point.Y * BasisY;
+        }
+
+        public Point2D ToSurfaceCoordinates(Point3D point)
+        {
+            var surface = ToSurfaceCoordinates(point, out double distance);
+            if (distance > E.Double.DifferenceError) { return null; }
+            return surface;
+        }
+
+        public Point2D ToSurfaceCoordinates(Point3D point, out double zz)
+        {
+            var delta = new Point3D(point.X - Center.X, point.Y - Center.Y, point.Z - Center.Z);
+            E.LinearSystems.Solve3x3(
+                BasisX.X, BasisY.X, BasisZ.X,
+                BasisX.Y, BasisY.Y, BasisZ.Y,
+                BasisX.Z, BasisY.Z, BasisZ.Z,
+                delta.X, delta.Y, delta.Z,
+                out double x, out double y, out double z);
+            zz = z;
+            return new Point2D(x, y);
+        }
+    }
+
     public class Plane : IShape3D<Plane>
     {
         public Plane(Point3D P, Point3D Q, Point3D R) : this(P, Q - P, R - P) { }
@@ -12,11 +54,11 @@ namespace BasicObjects.GeometricObjects
 
         public Plane(Ray3D ray) : this(ray.Point, ray.Normal) { }
 
-        public Plane(Point3D P, Vector3D vector)
+        public Plane(Point3D P, Vector3D normal)
         {
-            A = vector.X;
-            B = vector.Y;
-            C = vector.Z;
+            A = normal.X;
+            B = normal.Y;
+            C = normal.Z;
             D = E.Double.RoundToZero(A * P.X + B * P.Y + C * P.Z);
             Center = P;
         }

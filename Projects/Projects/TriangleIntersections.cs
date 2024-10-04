@@ -42,9 +42,15 @@ namespace Projects.Projects
             //    WavefrontFile.Export(mesh, "Wavefront/TriangleIntersectionSegments");
             //}
 
-            var a = new Rectangle3D(new Point3D(0.19999899999999998, 0.079999,-1E-06), new Point3D(0.200001, 1.000001, 0.400001));
-            var b = new Rectangle3D(new Point3D(-1E-06, 0.079999, 0.19999899999999998), new Point3D(0.400001, 1.000001, 0.200001));
-            Console.WriteLine($"Overlaps {Rectangle3D.Overlaps(a, b)}");
+            //var a = new Rectangle3D(new Point3D(0.19999899999999998, 0.079999,-1E-06), new Point3D(0.200001, 1.000001, 0.400001));
+            //var b = new Rectangle3D(new Point3D(-1E-06, 0.079999, 0.19999899999999998), new Point3D(0.400001, 1.000001, 0.200001));
+            //Console.WriteLine($"Overlaps {Rectangle3D.Overlaps(a, b)}");
+
+            var plane = new BasisPlane(new Point3D(3, 3, 3), new Point3D(4, 5, 6), new Point3D(5, 2, 1));
+
+            //
+            var space = plane.ToSpaceCoordinates(new Point2D(-0.5, 8.4));
+            var surface = plane.ToSurfaceCoordinates(space);
 
             //Rectangle3D.Overlaps(input.Box, n.Box)
 

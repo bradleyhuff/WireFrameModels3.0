@@ -42,7 +42,8 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportByFaces(curvedFace, "Wavefront/Faces");
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.SetFacePlates(0.300);
+            var facePlates = curvedFace.SetFacePlates(0.050);
+            facePlates.FacePlatesRounding();
 
             //var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);
             //cube2.Apply(Transform.Translation(new Vector3D(-0.900001, 0, -1)));

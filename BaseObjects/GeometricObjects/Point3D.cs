@@ -151,9 +151,7 @@ namespace BasicObjects.GeometricObjects
         }
         public override string ToString()
         {
-            return $"[ X: {X/*.ToString("#,##0.000000000000000000")*/} Y: {Y/*.ToString("#,##0.000000000000000000")*/} Z: {Z/*.ToString("#,##0.000000000000000000")*/} ]";
-            //return $"[ X: {X.ToString("#,##0.0000000000")} Y: {Y.ToString("#,##0.0000000000")} Z: {Z.ToString("#,##0.0000000000")} ]";
-            //return $"[ X: {X.ToString("#,##0.0000")} Y: {Y.ToString("#,##0.0000")} Z: {Z.ToString("#,##0.0000")} ]";
+            return $"[ X: {X.ToString("#,##0.0000000000")} Y: {Y.ToString("#,##0.0000000000")} Z: {Z.ToString("#,##0.0000000000")} ]";
         }
     }
 }

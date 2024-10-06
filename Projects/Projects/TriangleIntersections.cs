@@ -49,8 +49,9 @@ namespace Projects.Projects
             var plane = new BasisPlane(new Point3D(3, 3, 3), new Point3D(4, 5, 6), new Point3D(5, 2, 1));
 
             //
-            var space = plane.ToSpaceCoordinates(new Point2D(-0.5, 8.4));
-            var surface = plane.ToSurfaceCoordinates(space);
+            //var space = plane.MapToSpaceCoordinates(new Point2D(-0.5, 8.4));
+            var surface = plane.MapToSurfaceCoordinates(new Point3D(4, 5, 6));
+            var space = plane.MapToSpaceCoordinates(surface);
 
             //Rectangle3D.Overlaps(input.Box, n.Box)
 

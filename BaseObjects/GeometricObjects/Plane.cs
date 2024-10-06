@@ -20,19 +20,33 @@ namespace BasicObjects.GeometricObjects
         public Vector3D BasisY { get; }
         public Vector3D BasisZ { get { return Normal; } }
 
-        public Point3D ToSpaceCoordinates(Point2D point)
+        public Point3D MapToSpaceCoordinates(Point2D point)
         {
             return Center + point.X * BasisX + point.Y * BasisY;
         }
 
-        public Point2D ToSurfaceCoordinates(Point3D point)
+        public Ray3D MapToSpaceCoordinates(Ray2D ray)
         {
-            var surface = ToSurfaceCoordinates(point, out double distance);
+            var point = MapToSpaceCoordinates(ray.Point);
+            var endPoint = MapToSpaceCoordinates(ray.Point + ray.Normal);
+            return new Ray3D(point, endPoint - point);
+        }
+
+        public Point2D MapToSurfaceCoordinates(Point3D point)
+        {
+            var surface = MapToSurfaceCoordinates(point, out double distance);
             if (distance > E.Double.DifferenceError) { return null; }
             return surface;
         }
 
-        public Point2D ToSurfaceCoordinates(Point3D point, out double zz)
+        public Ray2D MapToSurfaceCoordinates(Ray3D ray)
+        {
+            var point = MapToSurfaceCoordinates(ray.Point);
+            var endPoint = MapToSurfaceCoordinates(ray.Point + ray.Normal);
+            return new Ray2D(point, endPoint - point);
+        }
+
+        public Point2D MapToSurfaceCoordinates(Point3D point, out double zz)
         {
             var delta = new Point3D(point.X - Center.X, point.Y - Center.Y, point.Z - Center.Z);
             E.LinearSystems.Solve3x3(

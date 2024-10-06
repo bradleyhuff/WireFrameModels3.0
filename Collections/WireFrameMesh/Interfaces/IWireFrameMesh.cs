@@ -36,10 +36,5 @@ namespace Collections.WireFrameMesh.Interfaces
         public IWireFrameMesh CreateNewInstance();
         public void Apply(ITransform transform);
         public IWireFrameMesh Clone(ITransform transform);
-
-        //public static IWireFrameMesh operator +(IWireFrameMesh a, IWireFrameMesh b)
-        //{
-        //    return a;
-        //}
     }
 }

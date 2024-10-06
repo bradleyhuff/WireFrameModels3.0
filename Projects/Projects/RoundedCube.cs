@@ -65,16 +65,6 @@ namespace Projects.Projects
                 var normals = corner.PositionNormals.Select(p => p.Normal).ToArray();
 
                 BuildSection(roundedCube, radius, steps, corner.Point, normals[0], normals[1], normals[2]);
-
-                //var part = (double)1 / normals.Length;
-                //var pole = part * Vector3D.Sum(normals);
-
-                //BuildSection(roundedCube, radius, corner.Point, pole, normals[normals.Length - 1], normals[0]);
-
-                //for (int i = 1; i < normals.Length; i++)
-                //{
-                //    BuildSection(roundedCube, radius, corner.Point, pole, normals[i - 1], normals[i]);
-                //}
             }
 
             roundedCube.ShowVitals();

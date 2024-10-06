@@ -4,14 +4,8 @@ using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using Console = BaseObjects.Console;
 using E = BasicObjects.Math;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 using BaseObjects.Transformations;
-using Operations.SetOperators;
+using Operations.Intermesh;
 
 namespace Operations.ParallelSurfaces
 {
@@ -19,9 +13,11 @@ namespace Operations.ParallelSurfaces
     {
         public static void FacePlatesRounding(this IWireFrameMesh mesh)
         {
-            var positions = mesh.Positions.Where(p => p.PositionNormals.All(pn => pn.Triangles.Any(t => IsEdgeTriangle(t)))).ToArray();
-            var edgePositions = positions.Where(p => p.Cardinality > 1);
-            var cornerPositions = edgePositions.Where(p => p.Cardinality > 2);
+            var positions = mesh.Positions.
+                Where(p => !p.PositionNormals.Any(pn => pn.Triangles.Any(t => t.Trace[0] == 'S'))).
+                Where(p => p.PositionNormals.Any(pn => pn.Triangles.Any(t => IsEdgeTriangle(t)))).ToArray();
+            var edgePositions = positions.Where(p => p.PositionNormals.Count(pn => !pn.Triangles.All(t => t.Trace[0] == 'B')) > 1);
+            var cornerPositions = edgePositions.Where(p => p.PositionNormals.Count(pn => !pn.Triangles.All(t => t.Trace[0] == 'B')) > 2);
 
             var surroundingPositions = new Dictionary<int, Position[]>();
             foreach (var edgePosition in edgePositions)
@@ -36,11 +32,21 @@ namespace Operations.ParallelSurfaces
             foreach (var edgePair in edgePairs) { PlotEdgeSegment(edgePair, surroundingPositions, mesh); }
             foreach (var corner in cornerPositions) { PlotCorner(corner, surroundingPositions, mesh); }
 
+            mesh.Intermesh();
+
+            //var test = mesh.CreateNewInstance();
+            //test.AddRangeTriangles(mesh.Triangles.Where(t => !string.IsNullOrWhiteSpace(t.Trace) &&t.Trace.Any() && t.Trace == "F1"));
+            //WavefrontFile.Export(test, "Wavefront/ElbowTriangles");
+            //test = mesh.CreateNewInstance();
+            //var sideTriangles = mesh.Triangles.Where(t => !string.IsNullOrWhiteSpace(t.Trace) && t.Trace.Any() && t.Trace == "E5");
+            //test.AddRangeTriangles(mesh.Triangles.Where(t => !string.IsNullOrWhiteSpace(t.Trace) && t.Trace.Any() && t.Trace == "E5"));
+            //WavefrontFile.Export(test, "Wavefront/SideTriangles");
+
         }
 
         private static bool IsEdgeTriangle(PositionTriangle triangle)
         {
-            return !string.IsNullOrEmpty(triangle.Trace) && triangle.Trace.Length > 0 && triangle.Trace[0] == 'E' || triangle.Trace[0] == 'F';
+            return !string.IsNullOrEmpty(triangle.Trace) && triangle.Trace.Length > 0 && (triangle.Trace[0] == 'E' || triangle.Trace[0] == 'F');
         }
 
         private static IEnumerable<Position> SurroundingPositions(Position position)
@@ -77,23 +83,17 @@ namespace Operations.ParallelSurfaces
 
             GetMatchingGroups(surfaceGroupsA, surfaceGroupsB);
             //Console.WriteLine($"Surface groups A {edgePair[0].Id} {string.Join(",", surfaceGroupsA.Select(g => g.Key))} Surface groups B {edgePair[1].Id} {string.Join(",", surfaceGroupsB.Select(g => g.Key))}", ConsoleColor.Green);
-            if (surfaceGroupsA.Count != 2) { return; }
+            if (surfaceGroupsA.Count != 2) { /*Console.WriteLine($"Surface groups {surfaceGroupsA.Count} {surfaceGroupsB.Count}");*/ return; }
 
             var keys = surfaceGroupsA.Keys.ToArray();
-            var radiiA = Radii(edgePair[0].Point, surfaceGroupsA.Values.Select(v => v.Point).ToArray()).ToArray();
-            var radiiB = Radii(edgePair[1].Point, surfaceGroupsB.Values.Select(v => v.Point).ToArray()).ToArray();
+            var vectorA1 = (surfaceGroupsA[keys[0]].Point - edgePair[0].Point);
+            var vectorA2 = (surfaceGroupsA[keys[1]].Point - edgePair[0].Point);
 
-            if (!E.Double.IsEqual(radiiA[0], radiiA[1])) { return; }
-            if (!E.Double.IsEqual(radiiB[0], radiiB[1])) { return; }
-
-            var vectorA1 = (surfaceGroupsA[keys[0]].Point - edgePair[0].Point).Direction;
-            var vectorA2 = (surfaceGroupsA[keys[1]].Point - edgePair[0].Point).Direction;
-
-            var vectorB1 = (surfaceGroupsB[keys[0]].Point - edgePair[1].Point).Direction;
-            var vectorB2 = (surfaceGroupsB[keys[1]].Point - edgePair[1].Point).Direction;
+            var vectorB1 = (surfaceGroupsB[keys[0]].Point - edgePair[1].Point);
+            var vectorB2 = (surfaceGroupsB[keys[1]].Point - edgePair[1].Point);
 
             int steps = 8;
-            BuildEdgeSegment(mesh, steps, edgePair[0].Point,  radiiA[0], vectorA1, vectorA2, edgePair[1].Point, radiiA[1], vectorB1, vectorB2);
+            BuildEdgeSegment(mesh, steps, edgePair[0].Point, vectorA1, vectorA2, edgePair[1].Point, vectorB1, vectorB2);
         }
 
         private static void PlotCorner(Position corner, Dictionary<int, Position[]> surroundingPositions, IWireFrameMesh mesh)
@@ -101,31 +101,109 @@ namespace Operations.ParallelSurfaces
             var surfaceGroups = GetSurfacePoints(corner, surroundingPositions);
             if (surfaceGroups.Count != 3) { return; }
 
+            int steps = 8;
+
             var radii = Radii(corner.Point, surfaceGroups.Values.Select(v => v.Point).ToArray()).ToArray();
-            if (!E.Double.IsEqual(radii[0], radii[1])) { return; }
-            if (!E.Double.IsEqual(radii[0], radii[2])) { return; }
+            if (!E.Double.IsEqual(radii[0], radii[1]) ||
+                !E.Double.IsEqual(radii[0], radii[2])) {
+                EllipsoidSection(mesh, steps, corner.Point, surfaceGroups.Values.Select(v => v.Point - corner.Point).ToArray());
+                return; 
+            }
 
             var keys = surfaceGroups.Keys.ToArray();
             var vector1 = (surfaceGroups[keys[0]].Point - corner.Point).Direction;
             var vector2 = (surfaceGroups[keys[1]].Point - corner.Point).Direction;
             var vector3 = (surfaceGroups[keys[2]].Point - corner.Point).Direction;
 
-            int steps = 8;
+            
             BuildCorner(mesh, radii[0], steps, corner.Point, vector1, vector2, vector3);
         }
 
-        private static void BuildEdgeSegment(IWireFrameMesh mesh, int steps, Point3D pointA, double radiusA, Vector3D vectorA1, Vector3D vectorA2, Point3D pointB, double radiusB, Vector3D vectorB1, Vector3D vectorB2)
+        private static void BuildEdgeSegment(IWireFrameMesh mesh, int steps, Point3D pointA, Vector3D vectorA1, Vector3D vectorA2, Point3D pointB, Vector3D vectorB1, Vector3D vectorB2)
         {
-            var arcA = VectorTransform3D.BarycentricArc(vectorA1, vectorA2, steps).ToArray();
-            var arcB = VectorTransform3D.BarycentricArc(vectorB1, vectorB2, steps).ToArray();
+            if (!E.Double.IsEqual(vectorA1.Magnitude, vectorA2.Magnitude) || 
+                !E.Double.IsEqual(vectorB1.Magnitude, vectorB2.Magnitude))
+            {
+                var plotA = EllipticalSection(mesh, steps, pointA, vectorA1, vectorA2);
+                var plotB = EllipticalSection(mesh, steps, pointB, vectorB1, vectorB2);
+                for (int i = 0; i < plotA.Length; i++)
+                {
+                    mesh.AddPoint(plotA[i].Point, plotA[i].Normal);
+                    mesh.AddPoint(plotB[i].Point, plotB[i].Normal);
+                    mesh.EndRow();
+                }
+                mesh.EndGrid();
+                return;
+            }
+
+            var arcA = VectorTransform3D.BarycentricArc(vectorA1.Direction, vectorA2.Direction, steps).ToArray();
+            var arcB = VectorTransform3D.BarycentricArc(vectorB1.Direction, vectorB2.Direction, steps).ToArray();
 
             for (int i = 0; i < arcA.Length; i++)
             {
-                mesh.AddPoint(pointA + radiusA * arcA[i], arcA[i]);
-                mesh.AddPoint(pointB + radiusB * arcB[i], arcB[i]);
+                mesh.AddPoint(pointA + vectorA1.Magnitude * arcA[i], arcA[i]);
+                mesh.AddPoint(pointB + vectorB1.Magnitude * arcB[i], arcB[i]);
                 mesh.EndRow();
             }
             mesh.EndGrid();
+        }
+
+        private static int i = 0;
+        private static Ray3D[] EllipticalSection(IWireFrameMesh mesh, int steps, Point3D c, Vector3D v1, Vector3D v2)
+        {
+            Console.WriteLine($"{c} Elliptical section Radii {v1.Magnitude} {v2.Magnitude}");
+
+            var p1 = c + v1;
+            var p2 = c + v2;
+
+            var basisPlane = new BasisPlane(c, p1, p2);
+
+            var cc = basisPlane.MapToSurfaceCoordinates(c);
+            var pp1 = basisPlane.MapToSurfaceCoordinates(p1);
+            var pp2 = basisPlane.MapToSurfaceCoordinates(p2);
+
+            var a = v1.Magnitude;
+
+            var vv1 = pp1 - cc;
+            var vv2 = pp2 - cc;
+
+            var rr = v2.Magnitude / v1.Magnitude;
+
+            var vvv1 = vv1;
+            var vvv2 = new Vector2D(vv2.X, Math.Sqrt(a * a - vv2.X * vv2.X));
+
+            var r = vv2.Y / vvv2.Y;
+            var b = a * r;
+
+            var arc = VectorTransform2D.BarycentricArc(vvv1.Direction, vvv2.Direction, steps).ToArray();
+            var arcEllipse = arc.Select(p => new Ray2D(new Point2D(a * p.X, b * p.Y), new Vector2D(a * p.X, b * p.Y).Direction)).ToArray();
+            var plot = arcEllipse.Select(basisPlane.MapToSpaceCoordinates).ToArray();
+
+
+            //var test = mesh.CreateNewInstance();
+            ////test.AddTriangle(new Triangle3D(c, p1, p2));
+            //foreach (var p in plot) { test.AddPoint(p.Point); }
+            //test.EndRow();
+            //test.AddPoint(c);
+            //test.EndRow();
+            //test.EndGrid();
+            //WavefrontFile.Export(test, $"Wavefront/EllipticalPlane-{i}");
+
+            //test = mesh.CreateNewInstance();
+            //foreach (var p in plot) { test.AddTriangle(p.Point, p.Point + 0.05 * p.Normal, p.Point + 0.1 * p.Normal); }
+
+            //WavefrontFile.Export(test, $"Wavefront/EllipticalPlaneNormals-{i}");
+
+            //i++;
+
+            return plot;
+        }
+
+        private static Ray3D[] EllipsoidSection(IWireFrameMesh mesh, int steps, Point3D c, params Vector3D[] v)
+        {
+            Console.WriteLine($"{c} Ellipsoid section Radii {string.Join(' ', v.Select(v => v.Magnitude))}");
+
+            return null;
         }
 
         private static void BuildCorner(IWireFrameMesh mesh, double radius, int steps, Point3D point, Vector3D n0, Vector3D n1, Vector3D n2)
@@ -210,7 +288,5 @@ namespace Operations.ParallelSurfaces
                 b.Remove(key);
             }
         }
-
-
     }
 }

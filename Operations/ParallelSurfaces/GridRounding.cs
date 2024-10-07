@@ -105,9 +105,22 @@ namespace Operations.ParallelSurfaces
 
             var radii = Radii(corner.Point, surfaceGroups.Values.Select(v => v.Point).ToArray()).ToArray();
             if (!E.Double.IsEqual(radii[0], radii[1]) ||
-                !E.Double.IsEqual(radii[0], radii[2])) {
-                EllipsoidSection(mesh, steps, corner.Point, surfaceGroups.Values.Select(v => v.Point - corner.Point).ToArray());
-                return; 
+                !E.Double.IsEqual(radii[0], radii[2]))
+            {
+                var triangle = EllipsoidSection(mesh, steps, corner.Point, surfaceGroups.Values.Select(v => v.Point - corner.Point).ToArray());
+
+                for (int i = 0; i < triangle.Length - 1; i++)
+                {
+                    var row = triangle[i];
+                    var nextRow = triangle[i + 1];
+
+                    for (int j = 0; j < row.Length - 1; j++)
+                    {
+                        AddTriangle(mesh, row[j], row[j + 1], nextRow[j]);
+                        if (j < row.Length - 2) { AddTriangle(mesh, row[j + 1], nextRow[j], nextRow[j + 1]); }
+                    }
+                }
+                return;
             }
 
             var keys = surfaceGroups.Keys.ToArray();
@@ -115,17 +128,18 @@ namespace Operations.ParallelSurfaces
             var vector2 = (surfaceGroups[keys[1]].Point - corner.Point).Direction;
             var vector3 = (surfaceGroups[keys[2]].Point - corner.Point).Direction;
 
-            
+
             BuildCorner(mesh, radii[0], steps, corner.Point, vector1, vector2, vector3);
         }
 
         private static void BuildEdgeSegment(IWireFrameMesh mesh, int steps, Point3D pointA, Vector3D vectorA1, Vector3D vectorA2, Point3D pointB, Vector3D vectorB1, Vector3D vectorB2)
         {
-            if (!E.Double.IsEqual(vectorA1.Magnitude, vectorA2.Magnitude) || 
+            if (!E.Double.IsEqual(vectorA1.Magnitude, vectorA2.Magnitude) ||
                 !E.Double.IsEqual(vectorB1.Magnitude, vectorB2.Magnitude))
             {
-                var plotA = EllipticalSection(mesh, steps, pointA, vectorA1, vectorA2);
-                var plotB = EllipticalSection(mesh, steps, pointB, vectorB1, vectorB2);
+                var plotA = EllipticalSection2(mesh, steps, pointA, vectorA1, vectorA2);
+                var plotB = EllipticalSection2(mesh, steps, pointB, vectorB1, vectorB2);
+
                 for (int i = 0; i < plotA.Length; i++)
                 {
                     mesh.AddPoint(plotA[i].Point, plotA[i].Normal);
@@ -167,8 +181,6 @@ namespace Operations.ParallelSurfaces
             var vv1 = pp1 - cc;
             var vv2 = pp2 - cc;
 
-            var rr = v2.Magnitude / v1.Magnitude;
-
             var vvv1 = vv1;
             var vvv2 = new Vector2D(vv2.X, Math.Sqrt(a * a - vv2.X * vv2.X));
 
@@ -177,8 +189,9 @@ namespace Operations.ParallelSurfaces
 
             var arc = VectorTransform2D.BarycentricArc(vvv1.Direction, vvv2.Direction, steps).ToArray();
             var arcEllipse = arc.Select(p => new Ray2D(new Point2D(a * p.X, b * p.Y), new Vector2D(a * p.X, b * p.Y).Direction)).ToArray();
-            var plot = arcEllipse.Select(basisPlane.MapToSpaceCoordinates).ToArray();
+            var plot = arcEllipse.Select(basisPlane.MapToSpaceCoordinates).ToArray(); //var plot = weights.Select(w => new Ray3D(c + w.Y * v1 + w.X * v2, w.Y * v1 + w.X * v2)).ToArray();
 
+            return plot;
 
             //var test = mesh.CreateNewInstance();
             ////test.AddTriangle(new Triangle3D(c, p1, p2));
@@ -196,14 +209,49 @@ namespace Operations.ParallelSurfaces
 
             //i++;
 
-            return plot;
+            //return plot;
         }
 
-        private static Ray3D[] EllipsoidSection(IWireFrameMesh mesh, int steps, Point3D c, params Vector3D[] v)
+        private static Ray3D[] EllipticalSection2(IWireFrameMesh mesh, int steps, Point3D c, Vector3D v1, Vector3D v2)
+        {
+            Console.WriteLine($"{c} Elliptical section Radii {v1.Magnitude} {v2.Magnitude}");
+
+            var weights = VectorTransform3D.BarycentricSteradianWeights(v1, v2, Vector3D.Cross(v1, v2), steps);
+
+            var row = weights[0];
+            var rowOutput = new Ray3D[row.Length];
+            for (int j = 0; j < row.Length; j++)
+            {
+                var col = row[j];
+
+                var vector = col.X * v1 + col.Y * v2;
+                rowOutput[j] = new Ray3D(c + vector, vector);
+            }
+            return rowOutput;
+        }
+
+        private static Ray3D[][] EllipsoidSection(IWireFrameMesh mesh, int steps, Point3D c, params Vector3D[] v)
         {
             Console.WriteLine($"{c} Ellipsoid section Radii {string.Join(' ', v.Select(v => v.Magnitude))}");
 
-            return null;
+            var weights = VectorTransform3D.BarycentricSteradianWeights(v[0], v[1], v[2], steps);
+
+            var output = new Ray3D[weights.Length][];
+
+            for (int i = 0; i < weights.Length; i++)
+            {
+                var row = weights[i];
+                var rowOutput = new Ray3D[row.Length];
+                for (int j = 0; j < row.Length; j++)
+                {
+                    var col = row[j];
+
+                    var vector = col.X * v[0] + col.Y * v[1] + col.Z * v[2];
+                    rowOutput[j] = new Ray3D(c + vector, vector);
+                }
+                output[i] = rowOutput;
+            }
+            return output;
         }
 
         private static void BuildCorner(IWireFrameMesh mesh, double radius, int steps, Point3D point, Vector3D n0, Vector3D n1, Vector3D n2)
@@ -228,6 +276,11 @@ namespace Operations.ParallelSurfaces
             mesh.AddTriangle(point + radius * n0.Direction, n0.Direction,
                 point + radius * n1.Direction, n1.Direction,
                 point + radius * n2.Direction, n2.Direction);
+        }
+
+        private static void AddTriangle(IWireFrameMesh mesh, Ray3D a, Ray3D b, Ray3D c)
+        {
+            mesh.AddTriangle(a, b, c);
         }
 
         private static IEnumerable<double> Radii(Point3D origin, params Point3D[] positions)

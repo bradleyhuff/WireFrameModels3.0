@@ -1,37 +1,10 @@
 ﻿using BasicObjects.GeometricObjects;
+using E = BasicObjects.Math;
 
 namespace BaseObjects.Transformations
 {
     public static class VectorTransform3D
     {
-        public static IEnumerable<Vector3D> Arc(Vector3D start, Vector3D end, double maxSteppingAngle)
-        {
-            double angle = Vector3D.Angle(start, end);
-            start = start.Direction;
-            end = end.Direction;
-            Vector3D cross = Vector3D.Cross(start, end).Direction;
-            int steps = (int)Math.Ceiling(angle / maxSteppingAngle);
-            for (int i = 0; i <= steps; i++)
-            {
-                double stepAngle = angle * i / steps;
-                yield return Transform.Rotation(cross, stepAngle).Apply(start);
-            }
-
-        }
-
-        public static IEnumerable<Vector3D> Arc(Vector3D start, Vector3D end, int steps)
-        {
-            double angle = Vector3D.Angle(start, end);
-            start = start.Direction;
-            end = end.Direction;
-            Vector3D cross = Vector3D.Cross(start, end).Direction;
-            for (int i = 0; i <= steps; i++)
-            {
-                double stepAngle = angle * i / steps;
-                yield return Transform.Rotation(cross, stepAngle).Apply(start);
-            }
-        }
-
         public static IEnumerable<Vector3D> BarycentricArc(Vector3D start, Vector3D end, int steps)
         {
             var theta = Vector3D.Angle(start, end);
@@ -41,9 +14,24 @@ namespace BaseObjects.Transformations
             {
                 double alpha = (double)i / steps;
                 double angle = theta * alpha;
-                double beta = Math.Sin(angle) /(D * Math.Sin(Math.PI/2  + theta/2 - angle));
+                double beta = Math.Sin(angle) / (D * Math.Sin(Math.PI / 2 + theta / 2 - angle));
 
                 yield return ((1 - beta) * start + beta * end).Direction;
+            }
+        }
+
+        public static IEnumerable<Vector3D> BarycentricArc2(Vector3D start, Vector3D end, int steps)
+        {
+            var theta = Vector3D.Angle(start, end);
+            var D = Math.Sqrt(2 - 2 * Math.Cos(theta));
+
+            for (int i = 0; i <= steps; i++)
+            {
+                double alpha = (double)i / steps;
+                double angle = theta * alpha;
+                double beta = Math.Sin(angle) / (D * Math.Sin(Math.PI / 2 + theta / 2 - angle));
+                
+                yield return (start.Magnitude * (1 - beta) * start.Direction + end.Magnitude * beta * end.Direction);
             }
         }
 
@@ -58,6 +46,57 @@ namespace BaseObjects.Transformations
             }
 
             return triangle.Select(r => r.Select(t => t.Vector).ToArray()).ToArray();
+        }
+
+        public static IEnumerable<Vector2D> BarycentricArcWeights(Vector3D start, Vector3D end, int steps)
+        {
+            var theta = Vector3D.Angle(start.Direction, end.Direction);
+            var D = Math.Sqrt(2 - 2 * Math.Cos(theta));
+            var cross = Vector3D.Cross(start, end).Direction;
+
+            for (int i = 0; i <= steps; i++)
+            {
+                double alpha = (double)i / steps;
+                double angle = theta * alpha;
+                double beta = Math.Sin(angle) / (D * Math.Sin(Math.PI / 2 + theta / 2 - angle));
+
+                var vector = ((1 - beta) * start + beta * end).Direction;
+                E.LinearSystems.Solve3x3(
+                    start.Direction.X, end.Direction.X, cross.X,
+                    start.Direction.Y, end.Direction.Y, cross.Y,
+                    start.Direction.Z, end.Direction.Z, cross.Z,
+                    vector.X, vector.Y, vector.Z,
+                    out double x, out double y, out double z);
+
+                yield return new Vector2D(vector.X, vector.Y);
+            }
+        }
+
+        public static Vector3D[][] BarycentricSteradianWeights(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
+        {
+            var plot = BarycentricSteradian(n0.Direction, n1.Direction, n2.Direction, steps);
+            var output = new Vector3D[plot.Length][];
+
+            for (int i = 0; i < plot.Length; i++)
+            {
+                var row = plot[i];
+                var rowOutput = new Vector3D[row.Length];
+                for (int j = 0; j < row.Length; j++)
+                {
+                    var col = row[j];
+
+                    E.LinearSystems.Solve3x3(
+                        n0.Direction.X, n1.Direction.X, n2.Direction.X,
+                        n0.Direction.Y, n1.Direction.Y, n2.Direction.Y,
+                        n0.Direction.Z, n1.Direction.Z, n2.Direction.Z,
+                        col.X, col.Y, col.Z,
+                        out double x, out double y, out double z);
+
+                    rowOutput[j] = new Vector3D(x, y, z);
+                }
+                output[i] = rowOutput;
+            }
+            return output;
         }
 
         private static VectorContainer[][] BuildVectorTriangle(int n, Vector3D n0, Vector3D n1, Vector3D n2)
@@ -101,40 +140,5 @@ namespace BaseObjects.Transformations
                 row[i].Vector = interpolation.Direction;
             }
         }
-
-
-        //public static IEnumerable<Vector3D[]> Steradian(Vector3D pole, Vector3D surfaceStart, Vector3D surfaceEnd, double maxSteppingAngle)
-        //{
-        //    double angle = Vector3D.Angle(pole, surfaceStart);
-
-        //    int lateralSteps = (int)Math.Ceiling(angle / maxSteppingAngle);
-        //    return Steradian(pole, surfaceStart, surfaceEnd, lateralSteps, maxSteppingAngle);
-        //}
-
-        //public static IEnumerable<Vector3D[]> Steradian(Vector3D pole, Vector3D surfaceStart, Vector3D surfaceEnd, int lateralSteps, double maxSteppingAngle)
-        //{
-        //    var surfaceStartArc = Arc(pole, surfaceStart, lateralSteps).ToArray();
-        //    var surfaceEndArc = Arc(pole, surfaceEnd, lateralSteps).ToArray();
-
-        //    yield return new[] { pole };
-
-        //    for (int i = 1; i <= lateralSteps; i++)
-        //    {
-        //        yield return Arc(surfaceStartArc[i], surfaceEndArc[i], maxSteppingAngle).ToArray();
-        //    }
-        //}
-
-        //public static IEnumerable<Vector3D[]> Steradian(Vector3D pole, Vector3D surfaceStart, Vector3D surfaceEnd, int lateralSteps, int steps)
-        //{
-        //    var surfaceStartArc = Arc(pole, surfaceStart, lateralSteps).ToArray();
-        //    var surfaceEndArc = Arc(pole, surfaceEnd, lateralSteps).ToArray();
-
-        //    yield return new[] { pole };
-
-        //    for (int i = 1; i <= lateralSteps; i++)
-        //    {
-        //        yield return Arc(surfaceStartArc[i], surfaceEndArc[i], steps).ToArray();
-        //    }
-        //}
     }
 }

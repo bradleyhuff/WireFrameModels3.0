@@ -42,7 +42,7 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportByFaces(curvedFace, "Wavefront/Faces");
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.SetFacePlates(0.150);
+            var facePlates = curvedFace.SetFacePlates(0.120);
             facePlates.FacePlatesRounding();
 
             //var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);

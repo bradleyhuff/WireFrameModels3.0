@@ -15,6 +15,24 @@ namespace BasicObjects.Math
             return absoluteDifference < epsilon;
         }
 
+        public static bool AreEqual(params double[] v)
+        {
+            for (int i = 1; i < v.Length; i++)
+            {
+                if (!IsEqual(v[0], v[i])) { return false; }
+            }
+            return true;
+        }
+
+        public static bool AreEqualWithEpsilon(double epsilon, params double[] v)
+        {
+            for (int i = 1; i < v.Length; i++)
+            {
+                if (!IsEqual(v[0], v[i], epsilon)) { return false; }
+            }
+            return true;
+        }
+
         public static double RoundToZero(double x)
         {
             if (System.Math.Abs(x) < DifferenceError) { return 0; }

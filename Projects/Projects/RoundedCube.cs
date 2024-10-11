@@ -48,8 +48,8 @@ namespace Projects.Projects
                 var groups = edgeGroup.ToArray();
                 var pointA = groups[0].A.Position;
                 var pointB = groups[1].B.Position;
-                var arcA = VectorTransform3D.UnitCircularArc(groups[0].A.Normal, groups[1].A.Normal, steps).ToArray();
-                var arcB = VectorTransform3D.UnitCircularArc(groups[0].B.Normal, groups[1].B.Normal, steps).ToArray();
+                var arcA = VectorTransform3D.UnitCircularArcPlot(groups[0].A.Normal, groups[1].A.Normal, steps).ToArray();
+                var arcB = VectorTransform3D.UnitCircularArcPlot(groups[0].B.Normal, groups[1].B.Normal, steps).ToArray();
 
                 for (int i = 0; i < arcA.Length; i++)
                 {
@@ -75,7 +75,7 @@ namespace Projects.Projects
 
         private static void BuildSection(IWireFrameMesh mesh, double radius, int steps, Point3D point, Vector3D n0, Vector3D n1, Vector3D n2)
         {
-            var triangle = VectorTransform3D.UnitSphericalTriangle(n0, n1, n2, steps);
+            var triangle = VectorTransform3D.UnitSphericalTrianglePlot(n0, n1, n2, steps);
 
             for (int i = 0; i < triangle.Length - 1; i++)
             {

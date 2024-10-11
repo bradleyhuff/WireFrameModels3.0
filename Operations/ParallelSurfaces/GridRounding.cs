@@ -2,8 +2,6 @@
 using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
-using Console = BaseObjects.Console;
-using E = BasicObjects.Math;
 using BaseObjects.Transformations;
 using Operations.Intermesh;
 
@@ -14,10 +12,10 @@ namespace Operations.ParallelSurfaces
         public static void FacePlatesRounding(this IWireFrameMesh mesh)
         {
             var positions = mesh.Positions.
-                Where(p => !p.PositionNormals.Any(pn => pn.Triangles.Any(t => t.Trace[0] == 'S'))).
+                Where(p => !p.PositionNormals.Any(pn => pn.Triangles.Any(t => IsSurfaceTriangle(t)))).
                 Where(p => p.PositionNormals.Any(pn => pn.Triangles.Any(t => IsEdgeTriangle(t)))).ToArray();
-            var edgePositions = positions.Where(p => p.PositionNormals.Count(pn => !pn.Triangles.All(t => t.Trace[0] == 'B')) > 1);
-            var cornerPositions = edgePositions.Where(p => p.PositionNormals.Count(pn => !pn.Triangles.All(t => t.Trace[0] == 'B')) > 2);
+            var edgePositions = positions.Where(p => p.PositionNormals.Count(pn => !pn.Triangles.All(t => IsBaseTriangle(t))) > 1);
+            var cornerPositions = edgePositions.Where(p => p.PositionNormals.Count(pn => !pn.Triangles.All(t => IsBaseTriangle(t))) > 2);
 
             var surroundingPositions = new Dictionary<int, Position[]>();
             foreach (var edgePosition in edgePositions)
@@ -27,26 +25,37 @@ namespace Operations.ParallelSurfaces
 
             var edgePairs = GetEdgePairs(edgePositions, surroundingPositions).ToArray();
 
-            Console.WriteLine($"Edge positions {edgePositions.Count()} Corner positions {cornerPositions.Count()} Edge pairs {edgePairs.Length}");
+            //Console.WriteLine($"Edge positions {edgePositions.Count()} Corner positions {cornerPositions.Count()} Edge pairs {edgePairs.Length}");
 
             foreach (var edgePair in edgePairs) { PlotEdgeSegment(mesh, edgePair, surroundingPositions); }
             foreach (var corner in cornerPositions) { PlotCornerBlock(mesh, corner, surroundingPositions); }
 
             mesh.Intermesh();
-
-            //var test = mesh.CreateNewInstance();
-            //test.AddRangeTriangles(mesh.Triangles.Where(t => !string.IsNullOrWhiteSpace(t.Trace) &&t.Trace.Any() && t.Trace == "F1"));
-            //WavefrontFile.Export(test, "Wavefront/ElbowTriangles");
-            //test = mesh.CreateNewInstance();
-            //var sideTriangles = mesh.Triangles.Where(t => !string.IsNullOrWhiteSpace(t.Trace) && t.Trace.Any() && t.Trace == "E5");
-            //test.AddRangeTriangles(mesh.Triangles.Where(t => !string.IsNullOrWhiteSpace(t.Trace) && t.Trace.Any() && t.Trace == "E5"));
-            //WavefrontFile.Export(test, "Wavefront/SideTriangles");
-
         }
 
+        private static bool IsSurfaceTriangle(PositionTriangle triangle)
+        {
+            return IsSurfaceTriangle(triangle.Trace);
+        }
+        private static bool IsSurfaceTriangle(string trace)
+        {
+            return !string.IsNullOrEmpty(trace) && trace.Length > 0 && trace[0] == 'S';
+        }
+        private static bool IsBaseTriangle(PositionTriangle triangle)
+        {
+            return IsBaseTriangle(triangle.Trace);
+        }
+        private static bool IsBaseTriangle(string trace)
+        {
+            return !string.IsNullOrEmpty(trace) && trace.Length > 0 && trace[0] == 'B';
+        }
         private static bool IsEdgeTriangle(PositionTriangle triangle)
         {
-            return !string.IsNullOrEmpty(triangle.Trace) && triangle.Trace.Length > 0 && (triangle.Trace[0] == 'E' || triangle.Trace[0] == 'F');
+            return IsEdgeTriangle(triangle.Trace);
+        }
+        private static bool IsEdgeTriangle(string trace)
+        {
+            return !string.IsNullOrEmpty(trace) && trace.Length > 0 && (trace[0] == 'E' || trace[0] == 'F');
         }
 
         private static IEnumerable<Position> SurroundingPositions(Position position)
@@ -82,20 +91,22 @@ namespace Operations.ParallelSurfaces
             if (surfaceGroupsA.Count != 2) { return; }
 
             var keys = surfaceGroupsA.Keys.ToArray();
-            var vectorA1 = (surfaceGroupsA[keys[0]].Point - edgePair[0].Point);
-            var vectorA2 = (surfaceGroupsA[keys[1]].Point - edgePair[0].Point);
+            var vectorA1 = surfaceGroupsA[keys[0]].Point - edgePair[0].Point;
+            var vectorA2 = surfaceGroupsA[keys[1]].Point - edgePair[0].Point;
 
-            var vectorB1 = (surfaceGroupsB[keys[0]].Point - edgePair[1].Point);
-            var vectorB2 = (surfaceGroupsB[keys[1]].Point - edgePair[1].Point);
+            var vectorB1 = surfaceGroupsB[keys[0]].Point - edgePair[1].Point;
+            var vectorB2 = surfaceGroupsB[keys[1]].Point - edgePair[1].Point;
 
             int steps = 8;
             PlotEdgeSegment(mesh, steps, edgePair[0].Point, vectorA1, vectorA2, edgePair[1].Point, vectorB1, vectorB2);
         }
 
-        private static void PlotEdgeSegment(IWireFrameMesh mesh, int steps, Point3D pointA, Vector3D vectorA1, Vector3D vectorA2, Point3D pointB, Vector3D vectorB1, Vector3D vectorB2)
+        private static void PlotEdgeSegment(IWireFrameMesh mesh, int steps, 
+            Point3D pointA, Vector3D vectorA1, Vector3D vectorA2, 
+            Point3D pointB, Vector3D vectorB1, Vector3D vectorB2)
         {
-            var plotA = VectorTransform3D.PlanarArc(vectorA1, vectorA2, steps).Select(v => new Ray3D(pointA + v, v)).ToArray();
-            var plotB = VectorTransform3D.PlanarArc(vectorB1, vectorB2, steps).Select(v => new Ray3D(pointB + v, v)).ToArray();
+            var plotA = VectorTransform3D.PlanarArcPlot(vectorA1, vectorA2, steps).Select(v => new Ray3D(pointA + v, v)).ToArray();
+            var plotB = VectorTransform3D.PlanarArcPlot(vectorB1, vectorB2, steps).Select(v => new Ray3D(pointB + v, v)).ToArray();
 
             for (int i = 0; i < plotA.Length; i++)
             {
@@ -108,22 +119,75 @@ namespace Operations.ParallelSurfaces
 
         private static void PlotCornerBlock(IWireFrameMesh mesh, Position corner, Dictionary<int, Position[]> surroundingPositions)
         {
-            var surfaceGroups = GetSurfacePoints(corner, surroundingPositions);
-            if (surfaceGroups.Count != 3) { return; }
-
             int steps = 8;
 
-            var keys = surfaceGroups.Keys.ToArray();
-            var vector1 = surfaceGroups[keys[0]].Point - corner.Point;
-            var vector2 = surfaceGroups[keys[1]].Point - corner.Point;
-            var vector3 = surfaceGroups[keys[2]].Point - corner.Point;
+            var surfaceGroups = GetSurfacePoints(corner, surroundingPositions);
+            if (surfaceGroups.Count < 3) { return; }
+            if(surfaceGroups.Count == 3)
+            {
+                var vectors = surfaceGroups.Select(g => g.Value.Point - corner.Point).ToArray();
+                PlotCornerBlock(mesh, steps, corner.Point, vectors[0], vectors[1], vectors[2]);
+                return;
+            }
 
-            PlotCornerBlock(mesh, steps, corner.Point, vector1, vector2, vector3);
+            var edgePositions = new Dictionary<string, Position>();
+            foreach (var position in surfaceGroups.Values)
+            {
+                var edgeTrace = position.Triangles.First(IsEdgeTriangle).Trace;
+                edgePositions[edgeTrace] = position;
+            }
+
+            var edgeRelations = new Dictionary<string, List<string>>();
+            foreach (var group in corner.Triangles.GroupBy(t => t.Trace).Where(g => IsEdgeTriangle(g.Key)))
+            {
+                var relations = group.SelectMany(g => g.AllAdjacents).Select(t => t.Trace).
+                    Where(t => IsEdgeTriangle(t) && t != group.Key).Distinct().ToList();
+                edgeRelations[group.Key] = relations;
+            }
+
+            var orderedPositions = IterateEdges(edgeRelations).Select(e => edgePositions[e]).ToArray();
+            var positionPairs = PullPositionPairs(orderedPositions);
+            var listing = orderedPositions.Select(p => p.Point - corner.Point).ToArray();
+            var radius = listing.Select(v => v.Magnitude).Average();
+            var poleVector =  radius * Vector3D.Sum(listing).Direction;
+
+            foreach(var positionPair in positionPairs)
+            {
+                PlotCornerBlock(mesh, steps, corner.Point, poleVector, positionPair[0].Point - corner.Point, positionPair[1].Point - corner.Point);
+            }
+        }
+
+        private static IEnumerable<string> IterateEdges(Dictionary<string, List<string>> edges)
+        {
+            if (!edges.Any()) { yield break; }
+
+            var firstEdge = edges.Keys.First();
+            var currentEdge = firstEdge;
+            var lastEdge = string.Empty;
+
+            do
+            {
+                yield return currentEdge;
+                var nextEdge = edges[currentEdge].First(e => e != lastEdge);
+                lastEdge = currentEdge;
+                currentEdge = nextEdge;
+            }
+            while (firstEdge != currentEdge);
+        }
+
+        private static IEnumerable<Position[]> PullPositionPairs(Position[] orderedPositions)
+        {
+            if (!orderedPositions.Any()) { yield break; }
+            for (int i = 0; i < orderedPositions.Length - 1; i++)
+            {
+                yield return [orderedPositions[i], orderedPositions[i + 1]];
+            }
+            yield return [orderedPositions[orderedPositions.Length - 1], orderedPositions[0]];
         }
 
         private static void PlotCornerBlock(IWireFrameMesh mesh, int steps, Point3D point, Vector3D n0, Vector3D n1, Vector3D n2)
         {
-            var triangle = VectorTransform3D.CurvedSurfaceTriangle(n0, n1, n2, steps);
+            var triangle = VectorTransform3D.CurvedSurfaceTrianglePlot(n0, n1, n2, steps);
 
             for (int i = 0; i < triangle.Length - 1; i++)
             {
@@ -132,16 +196,23 @@ namespace Operations.ParallelSurfaces
 
                 for (int j = 0; j < row.Length - 1; j++)
                 {
-                    mesh.AddTriangle(point + row[j], row[j], point + row[j + 1], row[j + 1], point + nextRow[j], nextRow[j]);
-                    if (j < row.Length - 2) { mesh.AddTriangle(point + row[j + 1], row[j + 1], point + nextRow[j], nextRow[j], point + nextRow[j + 1], nextRow[j + 1]); }
+                    var a = row[j];
+                    var b = row[j + 1];
+                    var c = nextRow[j];
+                    mesh.AddTriangle(point + a, a, point + b, b, point + c, c);
+
+                    if (j < row.Length - 2) {
+                        var d = nextRow[j + 1];
+                        mesh.AddTriangle(point + b, b, point + c, c, point + d, d); 
+                    }
                 }
             }
         }
 
         private static Dictionary<string, Position> GetSurfacePoints(Position position, Dictionary<int, Position[]> surroundingPositions)
         {
-            var surfacePoints = surroundingPositions[position.Id].Where(p => p.Triangles.Any(t => t.Trace[0] == 'S'));
-            var surfaceGroups = surfacePoints.GroupBy(p => p.Triangles.Where(t => t.Trace[0] == 'S').First().Trace).ToArray();
+            var surfacePoints = surroundingPositions[position.Id].Where(p => p.Triangles.Any(t => IsSurfaceTriangle(t)));
+            var surfaceGroups = surfacePoints.GroupBy(p => p.Triangles.Where(t => IsSurfaceTriangle(t)).First().Trace).ToArray();
 
             var nearestPointTable = new Dictionary<string, Position>();
             foreach (var group in surfaceGroups)

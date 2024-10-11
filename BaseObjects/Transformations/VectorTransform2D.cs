@@ -9,7 +9,7 @@ namespace BaseObjects.Transformations
 {
     public static class VectorTransform2D
     {
-        public static IEnumerable<Vector2D> BarycentricArc(Vector2D start, Vector2D end, int steps)
+        public static IEnumerable<Vector2D> UnitCircularArc(Vector2D start, Vector2D end, int steps)
         {
             var theta = Vector2D.Angle(start, end);
             var D = Math.Sqrt(2 - 2 * Math.Cos(theta));

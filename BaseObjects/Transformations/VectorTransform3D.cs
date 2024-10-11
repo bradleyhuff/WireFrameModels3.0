@@ -5,7 +5,7 @@ namespace BaseObjects.Transformations
 {
     public static class VectorTransform3D
     {
-        public static IEnumerable<Vector3D> UnitCircularArc(Vector3D start, Vector3D end, int steps)
+        public static IEnumerable<Vector3D> UnitCircularArcPlot(Vector3D start, Vector3D end, int steps)
         {
             var theta = Vector3D.Angle(start, end);
             var D = Math.Sqrt(2 - 2 * Math.Cos(theta));
@@ -20,22 +20,22 @@ namespace BaseObjects.Transformations
             }
         }
 
-        public static Vector3D[][] UnitSphericalTriangle(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
+        public static Vector3D[][] UnitSphericalTrianglePlot(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
         {
             var triangle = BuildVectorTriangle(steps, n0, n1, n2);
-            UnitCircularArc(triangle.Select(r => r[0]).ToArray());
-            UnitCircularArc(triangle.Select(r => r[r.Length - 1]).ToArray());
+            UnitCircularArcPlot(triangle.Select(r => r[0]).ToArray());
+            UnitCircularArcPlot(triangle.Select(r => r[r.Length - 1]).ToArray());
             foreach (var row in triangle)
             {
-                UnitCircularArc(row);
+                UnitCircularArcPlot(row);
             }
 
             return triangle.Select(r => r.Select(t => t.Vector.Direction).ToArray()).ToArray();
         }
 
-        public static Vector3D[][] CurvedSurfaceTriangle(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
+        public static Vector3D[][] CurvedSurfaceTrianglePlot(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
         {
-            var plot = UnitSphericalTriangle(n0.Direction, n1.Direction, n2.Direction, steps);
+            var plot = UnitSphericalTrianglePlot(n0.Direction, n1.Direction, n2.Direction, steps);
             var isSpherical = E.Double.AreEqual(n0.Magnitude, n1.Magnitude, n2.Magnitude);
 
             var output = new Vector3D[plot.Length][];
@@ -64,9 +64,9 @@ namespace BaseObjects.Transformations
             return output; //ellipsoid triangle
         }
 
-        public static IEnumerable<Vector3D> PlanarArc(Vector3D n0, Vector3D n1, int steps)
+        public static IEnumerable<Vector3D> PlanarArcPlot(Vector3D n0, Vector3D n1, int steps)
         {
-            var plot = UnitCircularArc(n0.Direction, n1.Direction, steps).ToArray();
+            var plot = UnitCircularArcPlot(n0.Direction, n1.Direction, steps).ToArray();
             if (E.Double.IsEqual(n0.Magnitude, n1.Magnitude)) { foreach (var p in plot) { yield return n0.Magnitude * p; } yield break; } //circular arc
 
             var cross = Vector3D.Cross(n0.Direction, n1.Direction);
@@ -107,7 +107,7 @@ namespace BaseObjects.Transformations
             public Vector3D Vector { get; set; }
         }
 
-        private static void UnitCircularArc(VectorContainer[] row)
+        private static void UnitCircularArcPlot(VectorContainer[] row)
         {
             var steps = row.Length;
             var start = row[0].Vector.Direction;

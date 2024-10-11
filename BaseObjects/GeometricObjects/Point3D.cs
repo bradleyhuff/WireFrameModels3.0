@@ -149,6 +149,12 @@ namespace BasicObjects.GeometricObjects
                 return new Point3D(0, 0, 0);
             }
         }
+
+        public static Point3D Interpolation(Point3D a, Point3D b, double alpha) //alpha = 0 returns a, alpha = 1 return b
+        {
+            return (1 - alpha) * a + alpha * b;
+        }
+
         public override string ToString()
         {
             return $"[ X: {X.ToString("#,##0.0000000000")} Y: {Y.ToString("#,##0.0000000000")} Z: {Z.ToString("#,##0.0000000000")} ]";

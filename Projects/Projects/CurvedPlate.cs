@@ -5,6 +5,7 @@ using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using FundamentalMeshes;
+using FundamentalMeshes.PlatonicSolids;
 using Operations.Basics;
 using Operations.Groupings.Basics;
 using Operations.Groupings.FileExportImport;
@@ -20,6 +21,7 @@ namespace Projects.Projects
         {
             Part1();
             //Part2();
+            //Part3();
         }
 
         private void Part1() { 
@@ -42,7 +44,7 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportByFaces(curvedFace, "Wavefront/Faces");
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.SetFacePlates(0.020);
+            var facePlates = curvedFace.SetFacePlates(0.090);
             facePlates.FacePlatesRounding();
 
             //var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);
@@ -107,6 +109,33 @@ namespace Projects.Projects
             var folds = GroupingCollection.ExtractFolds(facePlate.Triangles).ToArray();
             WavefrontFileGroups.ExportByFolds(facePlate, "Wavefront/Folds");
             Console.WriteLine($"Folds {folds.Length}");
+        }
+
+        private void Part3()
+        {
+            var tetrahedron = Tetrahedron.Build(5);
+            tetrahedron = tetrahedron.SetFacePlates(0.200);
+            tetrahedron.FacePlatesRounding();
+            WavefrontFile.Export(tetrahedron, "Wavefront/Tetrahedron");
+            WavefrontFile.Export(NormalOverlay(tetrahedron, 0.2), "Wavefront/TetrahedronNormals");
+
+            var octahedron = Octahedron.Build(5);
+            octahedron = octahedron.SetFacePlates(0.200);
+            octahedron.FacePlatesRounding();
+            WavefrontFile.Export(octahedron, "Wavefront/Octahedron");
+            WavefrontFile.Export(NormalOverlay(octahedron, 0.2), "Wavefront/OctahedronNormals");
+
+            var dodecahedron = Dodecahedron.Build(5);
+            dodecahedron = dodecahedron.SetFacePlates(0.200);
+            dodecahedron.FacePlatesRounding();
+            WavefrontFile.Export(dodecahedron, "Wavefront/Dodecahedron");
+            WavefrontFile.Export(NormalOverlay(dodecahedron, 0.2), "Wavefront/DodecahedronNormals");
+
+            var icosahedron = Icosahedron.Build(5);
+            icosahedron = icosahedron.SetFacePlates(0.200);
+            icosahedron.FacePlatesRounding();
+            WavefrontFile.Export(icosahedron, "Wavefront/Icosahedron");
+            WavefrontFile.Export(NormalOverlay(icosahedron, 0.2), "Wavefront/IcosahedronNormals");
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

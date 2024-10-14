@@ -124,7 +124,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         }
 
         private int virtualIndex = 0;
-        private Dictionary<int, Ray3D> _virtualPoints = new Dictionary<int, Ray3D>();
+        private Dictionary<int, SurfaceRayContainer<T>> _virtualPoints = new Dictionary<int, SurfaceRayContainer<T>>();
 
         private void AddEndPointSegments()
         {
@@ -138,7 +138,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 var rayM = new Ray3D(0.5 * (rayA.Point + rayB.Point), (rayA.Normal + rayB.Normal).Direction);
                 var vectorAB = rayA.Point - rayB.Point;
                 var offsetDirection = Vector3D.Cross(vectorAB.Direction, rayM.Normal).Direction;
-                var rayOffset = new Ray3D(rayM.Point + vectorAB.Magnitude * 1e-3 * offsetDirection, rayM.Normal);
+                var rayOffset = new SurfaceRayContainer<T>(new Ray3D(rayM.Point + vectorAB.Magnitude * 1e-3 * offsetDirection, rayM.Normal), rayA.TriangleNormal, 0, rayA.Reference);
                 virtualIndex--;
                 _virtualPoints[virtualIndex] = rayOffset;
 
@@ -375,22 +375,26 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             double minAngle = 2 * Math.PI;
             double maxAngle = 0;
 
-            Ray3D head = _referenceArray.ElementAtOrDefault(currentPoint) ?? _virtualPoints[currentPoint];
-            Plane plane = new Plane(head);
-            Point3D headPoint = head.Point;
+            var head = _referenceArray.ElementAtOrDefault(currentPoint) ?? _virtualPoints[currentPoint];
             int tailIndex = current.Opposite(currentPoint);
             Ray3D tail = _referenceArray.ElementAtOrDefault(tailIndex) ?? _virtualPoints[tailIndex];
-            Point3D tailPoint = plane.Projection(tail.Point);
-            Vector3D tailDirection = (tailPoint - headPoint).Direction;
+            Vector3D tailDirection = (tail.Point - head.Point).Direction;
+            var tailTest = tail.Point - head.Point;
+            //if (tailTest.Magnitude < 1e-8) { 
+            //    Console.WriteLine($"Small tail {tailTest.Magnitude}");
+            //    //tailDirection = (head.Point - tail.Point).Direction;
+            //}
 
             foreach (var forwardLink in forwardLinks)
             {
                 var forwardLinkIndex = forwardLink.Opposite(currentPoint);
                 Ray3D link = _referenceArray.ElementAtOrDefault(forwardLinkIndex) ?? _virtualPoints[forwardLinkIndex];
-                Point3D linkPoint = plane.Projection(link.Point);
-                Vector3D linkDirection = (linkPoint - headPoint).Direction;
+                Vector3D linkDirection = (link.Point - head.Point).Direction;
+                var linkTest = link.Point - head.Point;
+                //if (linkTest.Magnitude < 1e-8) { Console.WriteLine($"Small link {linkTest.Magnitude}"); }
 
-                var angle = Vector3D.SignedAngle(head.Normal, tailDirection, linkDirection);
+                var angle = Vector3D.SignedAngle(head.TriangleNormal, tailDirection, linkDirection);
+                //var angle = Vector3D.SignedAngle(head.Normal, tailDirection, linkDirection);
 
                 if (angle < 0) { angle += 2 * Math.PI; }
 

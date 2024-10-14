@@ -71,14 +71,14 @@ namespace Operations.ParallelSurfaces
                 var baseTriangles = baseGroups.Single(g => g.Key == 'B').ToArray();
                 var surfaceTriangles = baseGroups.Single(g => g.Key == 'S').ToArray();
 
-                if (surfaceTriangles.Length > baseTriangles.Length) { RemoveInternalFolds(baseTriangles, surfaceTriangles, output, thickness); }
+                RemoveInternalFolds(baseTriangles, surfaceTriangles, output, thickness);
             }
         }
 
         private static void RemoveInternalFolds(IEnumerable<PositionTriangle> baseTriangles, IEnumerable<PositionTriangle> surfaceTriangles, IWireFrameMesh output, double thickness)
         {
             var faces = GroupingCollection.ExtractFaces(surfaceTriangles).ToArray();
-            var folds = faces.SelectMany(f => GroupingCollection.ExtractFolds(f)).ToArray();
+            var folds = faces.SelectMany(GroupingCollection.ExtractFolds).ToArray();
             if (folds.Length == 1) { return; }
 
             var bucket = new BoxBucket<PositionTriangle>(baseTriangles);
@@ -98,8 +98,8 @@ namespace Operations.ParallelSurfaces
                     if (!match.Triangle.PointIsOn(projection)) { continue; }
                     count++;
                     var distance = Point3D.Distance(testPoint, projection);
-                    if (distance < thickness - 1e-9) { removeFold = true; break; }
-                    if (distance > thickness + 1e-9) { exteriorCount++; }
+                    if (distance < thickness - GapConstants.Proximity) { removeFold = true; break; }
+                    if (distance > thickness + GapConstants.Proximity) { exteriorCount++; }
                 }
 
                 if (removeFold || count == exteriorCount) { output.RemoveAllTriangles(fold.Triangles); }
@@ -359,7 +359,8 @@ namespace Operations.ParallelSurfaces
                 if (!openEdges.Any()) { continue; }
 
                 var baseGroup = group.Single(g => g.Triangles.Any(t => t.Trace[0] == 'B'));
-                var surfaceGroup = group.Single(g => g.Triangles.Any(t => t.Trace[0] == 'S'));
+                var surfaceGroup = group.SingleOrDefault(g => g.Triangles.Any(t => t.Trace[0] == 'S'));
+                if (surfaceGroup is null) { continue; }
                 var basePositions = baseGroup.PerimeterEdges.SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToArray();
                 var surfacePositions = surfaceGroup.PerimeterEdges.SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToArray();
                 var bucket = new BoxBucket<PositionNormal>(surfacePositions);
@@ -580,11 +581,11 @@ namespace Operations.ParallelSurfaces
             return new SurfaceSegmentSets<PlanarFillingGroup, Position>
             {
                 DividingSegments = dividerEdges.Select(e => new SurfaceSegmentContainer<Position>(
-                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
-                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray(),
+                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.Normal, e.A.PositionObject.Id, e.A.PositionObject),
+                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.Normal, e.B.PositionObject.Id, e.B.PositionObject))).ToArray(),
                 PerimeterSegments = openEdges.Select(e => new SurfaceSegmentContainer<Position>(
-                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
-                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray(),
+                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.Normal, e.A.PositionObject.Id, e.A.PositionObject),
+                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.Normal, e.B.PositionObject.Id, e.B.PositionObject))).ToArray(),
             };
         }
 
@@ -630,7 +631,8 @@ namespace Operations.ParallelSurfaces
             foreach (var pair in pairs)
             {
                 var basePair = pair.Single(p => p.Key[0] == 'B');
-                var surfacePair = pair.Single(p => p.Key[0] == 'S');
+                var surfacePair = pair.SingleOrDefault(p => p.Key[0] == 'S');
+                if (surfacePair is null) { continue; }
                 var baseFaces = GroupingCollection.ExtractFaces(basePair).ToArray();
                 var parallelSurfaces = GroupingCollection.ExtractSurfaces(surfacePair).ToArray();
 
@@ -659,8 +661,8 @@ namespace Operations.ParallelSurfaces
             {
                 DividingSegments = Array.Empty<SurfaceSegmentContainer<Position>>(),
                 PerimeterSegments = perimeterEdges.Select(e => new SurfaceSegmentContainer<Position>(
-                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.PositionObject.Id, e.A.PositionObject),
-                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.PositionObject.Id, e.B.PositionObject))).ToArray()
+                    new SurfaceRayContainer<Position>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.Normal, e.A.PositionObject.Id, e.A.PositionObject),
+                    new SurfaceRayContainer<Position>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.Normal, e.B.PositionObject.Id, e.B.PositionObject))).ToArray()
             };
         }
     }

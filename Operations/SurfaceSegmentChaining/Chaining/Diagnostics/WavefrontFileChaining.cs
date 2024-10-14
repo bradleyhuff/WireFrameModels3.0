@@ -70,7 +70,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
         {
             {
                 var mesh = WireFrameMesh.Create();
-                triangle.ExportWithSegments(mesh);
+                triangle.ExportWithPerimeters(mesh);
                 WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/Triangle-{triangle.Id}");
             }
 
@@ -136,7 +136,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
         {
             {
                 var mesh = WireFrameMesh.Create();
-                triangle.ExportWithSegments(mesh);
+                triangle.ExportWithPerimeters(mesh);
                 WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/Triangle-{triangle.Id}");
             }
             foreach (var spurredLoop in e.Chain.SpurredLoops)

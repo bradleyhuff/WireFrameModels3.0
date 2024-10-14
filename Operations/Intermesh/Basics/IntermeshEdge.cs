@@ -83,13 +83,10 @@ namespace Operations.Intermesh.Basics
 
         internal IEnumerable<IntersectionVertexContainer> GetPerimeterPoints()
         {
-            foreach (var point in GetLinkedPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
+            var linkedPerimeterPoints = GetLinkedPerimeterPointsIterate().ToArray();
+            foreach (var point in linkedPerimeterPoints.DistinctBy(p => p.Vertex.Id)) { yield return point; }
         }
 
-        internal IEnumerable<IntersectionVertexContainer> GetLinkedPerimeterPoints()
-        {
-            foreach (var point in GetLinkedPerimeterPointsIterate().DistinctBy(p => p.Vertex.Id)) { yield return point; }
-        }
         private IEnumerable<IntersectionVertexContainer> GetLinkedPerimeterPointsIterate()
         {
             if (_adjacents.Count() < 2) { yield break; }

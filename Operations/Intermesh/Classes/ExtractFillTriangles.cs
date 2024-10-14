@@ -182,6 +182,16 @@ namespace Operations.Intermesh.Classes
 
         private static IEnumerable<FillTriangle> ComplexSegmentFills(ElasticTriangle triangle)
         {
+            //if(triangle.Id == 130)
+            //{
+            //    var test = WireFrameMesh.Create();
+            //    triangle.ExportWithPerimeters(test);
+            //    WavefrontFile.Export(test,$"Wavefront/ElasticTriangle{triangle.Id}");
+
+            //    test = WireFrameMesh.Create();
+            //    triangle.ExportWithDivisions(test);
+            //    WavefrontFile.Export(test, $"Wavefront/ElasticTriangleDivision{triangle.Id}");
+            //}
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, ElasticVertexCore>(surfaceSet);
 

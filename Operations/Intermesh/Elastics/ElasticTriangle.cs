@@ -154,7 +154,43 @@ namespace Operations.Intermesh.Elastics
         private void SetDividingLinks()
         {
             var perimeterSegments = GetPerimeterSegments().ToArray();
-            _dividingSegments = Segments.Where(s => !perimeterSegments.Any(p => p.Id == s.Id)).Select(s => new ElasticVertexLink(s.VertexA.Vertex, s.VertexB.Vertex)).ToArray();
+
+            var dividingSegments = new List<ElasticVertexLink>();
+            foreach (var segment in Segments.Where(s => !perimeterSegments.Any(p => p.Id == s.Id)))
+            {
+                var proximityA = GetNearestAnchorInProximity(segment.VertexA);
+                var proximityB = GetNearestAnchorInProximity(segment.VertexB);
+
+                if (proximityA is not null && proximityB is not null) { continue; }
+
+                if (proximityA is null && proximityB is not null)
+                {
+                    dividingSegments.Add(new ElasticVertexLink(segment.VertexA.Vertex, proximityB));
+                    continue;
+                }
+
+                if (proximityA is not null && proximityB is null)
+                {
+                    dividingSegments.Add(new ElasticVertexLink(proximityA, segment.VertexB.Vertex));
+                    continue;
+                }
+
+                dividingSegments.Add(new ElasticVertexLink(segment.VertexA.Vertex, segment.VertexB.Vertex));
+            }
+
+            _dividingSegments = dividingSegments.ToArray();
+        }
+
+        private ElasticVertexAnchor GetNearestAnchorInProximity(ElasticVertexContainer container)
+        {
+            var distanceA = Point3D.Distance(container.Point, AnchorA.Point);
+            var distanceB = Point3D.Distance(container.Point, AnchorB.Point);
+            var distanceC = Point3D.Distance(container.Point, AnchorC.Point);
+
+            if (distanceA < distanceB && distanceA < distanceC && distanceA < GapConstants.Proximity) { return AnchorA; }
+            if (distanceB < distanceA && distanceB < distanceC && distanceB < GapConstants.Proximity) { return AnchorB; }
+            if (distanceC < distanceA && distanceC < distanceB && distanceC < GapConstants.Proximity) { return AnchorC; }
+            return null;
         }
 
         public IEnumerable<SurfaceSegmentContainer<ElasticVertexCore>> GetDividingSurfaceSegments()
@@ -165,8 +201,8 @@ namespace Operations.Intermesh.Elastics
             foreach (var segment in _dividingSegments)
             {
                 yield return new SurfaceSegmentContainer<ElasticVertexCore>(
-                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id, segment.PointA),
-                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id, segment.PointB));
+                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointA.Point), Triangle.Triangle.Normal, segment.PointA.Id, segment.PointA),
+                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointB.Point), Triangle.Triangle.Normal, segment.PointB.Id, segment.PointB));
             }
         }
 
@@ -177,8 +213,8 @@ namespace Operations.Intermesh.Elastics
             foreach (var segment in _perimeterLinks)
             {
                 yield return new SurfaceSegmentContainer<ElasticVertexCore>(
-                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointA.Point), segment.PointA.Id, segment.PointA),
-                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointB.Point), segment.PointB.Id, segment.PointB));
+                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointA.Point), Triangle.Triangle.Normal, segment.PointA.Id, segment.PointA),
+                    new SurfaceRayContainer<ElasticVertexCore>(RayFromProjectedPoint(segment.PointB.Point), Triangle.Triangle.Normal, segment.PointB.Id, segment.PointB));
             }
         }
 
@@ -193,25 +229,50 @@ namespace Operations.Intermesh.Elastics
             };
         }
 
-        public void ExportWithSegments(IWireFrameMesh mesh, double height = 2e-4)
+        public void ExportWithPerimeters(IWireFrameMesh mesh, double height = 5e-5)
         {
             mesh.AddTriangle(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal, SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal, SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal);
 
-            foreach(var segment in Segments)
+            foreach (var segment in GetPerimeterSurfaceSegments())
             {
-                var normalA = NormalFromProjectedPoint(segment.VertexA.Point);
-                var normalB = NormalFromProjectedPoint(segment.VertexB.Point);
+                var normalA = SurfaceTriangle.Triangle.Normal;
+                var normalB = SurfaceTriangle.Triangle.Normal;
 
-                mesh.AddPoint(segment.VertexA.Point + -height * normalA, normalA);
-                mesh.AddPoint(segment.VertexB.Point + -height * normalB, normalB);
+                mesh.AddPoint(segment.A.Point + -height * normalA, normalA);
+                mesh.AddPoint(segment.B.Point + -height * normalB, normalB);
                 mesh.EndRow();
 
-                mesh.AddPoint(segment.VertexA.Point, normalA);
-                mesh.AddPoint(segment.VertexB.Point, normalB);
+                mesh.AddPoint(segment.A.Point, normalA);
+                mesh.AddPoint(segment.B.Point, normalB);
                 mesh.EndRow();
 
-                mesh.AddPoint(segment.VertexA.Point + height * normalA, normalA);
-                mesh.AddPoint(segment.VertexB.Point + height * normalB, normalB);
+                mesh.AddPoint(segment.A.Point + height * normalA, normalA);
+                mesh.AddPoint(segment.B.Point + height * normalB, normalB);
+                mesh.EndRow();
+                mesh.EndGrid();
+            }
+        }
+
+        public void ExportWithDivisions(IWireFrameMesh mesh, double height = 5e-5)
+        {
+            mesh.AddTriangle(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal, SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal, SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal);
+
+            var dividingSegments = GetDividingSurfaceSegments();
+            foreach (var segment in dividingSegments)
+            {
+                var normalA = SurfaceTriangle.Triangle.Normal;
+                var normalB = SurfaceTriangle.Triangle.Normal;
+
+                mesh.AddPoint(segment.A.Point + -height * normalA, normalA);
+                mesh.AddPoint(segment.B.Point + -height * normalB, normalB);
+                mesh.EndRow();
+
+                mesh.AddPoint(segment.A.Point, normalA);
+                mesh.AddPoint(segment.B.Point, normalB);
+                mesh.EndRow();
+
+                mesh.AddPoint(segment.A.Point + height * normalA, normalA);
+                mesh.AddPoint(segment.B.Point + height * normalB, normalB);
                 mesh.EndRow();
                 mesh.EndGrid();
             }

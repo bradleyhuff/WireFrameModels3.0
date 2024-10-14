@@ -33,7 +33,7 @@ namespace Projects.Projects
             //AddPath(curvedFace, 1);
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
-            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.090, -0.6)));
+            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.0997, -0.6)));
 
             curvedFace.AddGrid(cube);
             //curvedFace.AddGrid(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
@@ -44,7 +44,7 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportByFaces(curvedFace, "Wavefront/Faces");
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.SetFacePlates(0.090);
+            var facePlates = curvedFace.SetFacePlates(0.1000);
             facePlates.FacePlatesRounding();
 
             //var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);
@@ -89,17 +89,15 @@ namespace Projects.Projects
             //WavefrontFile.Export(parallelSurface, "Wavefront/ParallelSurface");
             WavefrontFile.Export(NormalOverlay(facePlates, 0.05), "Wavefront/FacePlatesNormals");
 
-            //var faceTriangles = facePlates.Triangles.Where(t => t.Trace == "F0");
-            //var faceTriangles = WireFrameMesh.Create();
-            //faceTriangles.AddRangeTriangles(facePlates.Triangles.Where(t => t.Trace == "E6"));
-
-            //WavefrontFileGroups.ExportByFaces(faceTriangles,"Wavefront/TraceE6");
-            //var edgeTriangles = WireFrameMesh.Create();
-            //edgeTriangles.AddRangeTriangles(facePlates.Triangles.Where(t => t.Trace[0] == 'E'));
-            //WavefrontFile.Export(edgeTriangles, "Wavefront/EdgePlates");
-
-            //WavefrontFile.Export(NormalOverlay(parallelSurface, 0.02), "Wavefront/curvedPlateNormals");
-            //WavefrontFileGroups.ExportByFaces(facePlates, "Wavefront/Faces");
+            
+            //int i = 0;
+            //foreach(var triangle in facePlates.Triangles)
+            //{
+            //    var test = WireFrameMesh.Create();
+            //    test.AddTriangle(triangle.Triangle);
+            //    WavefrontFile.Export(test,$"Wavefront/Triangle-{i}");
+            //    i++;
+            //}
         }
 
         private void Part2()

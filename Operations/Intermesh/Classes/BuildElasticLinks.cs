@@ -156,14 +156,14 @@ namespace Operations.Intermesh.Classes
             }
         }
 
-        private static IEnumerable<ElasticSegment> GetSegments(IEnumerable<IntermeshDivision> divisionNodes, 
+        private static IEnumerable<ElasticSegment> GetSegments(IEnumerable<IntermeshDivision> divisionNodes,
             Dictionary<int, ElasticVertexContainer> containerTable, Dictionary<int, ElasticSegment> segmentTable)
         {
             foreach (var divisionNode in divisionNodes)
             {
-                if (!segmentTable.ContainsKey(divisionNode.Id)) 
-                { 
-                    segmentTable[divisionNode.Id] = new ElasticSegment(containerTable[divisionNode.VertexA.Id], containerTable[divisionNode.VertexB.Id]); 
+                if (!segmentTable.ContainsKey(divisionNode.Id))
+                {
+                    segmentTable[divisionNode.Id] = new ElasticSegment(containerTable[divisionNode.VertexA.Id], containerTable[divisionNode.VertexB.Id]);
                 }
 
                 yield return segmentTable[divisionNode.Id];
@@ -186,9 +186,13 @@ namespace Operations.Intermesh.Classes
                 {
                     var elasticTriangle = triangleTable[triangle.Id];
 
-                    var perimeterABpoints = MapPerimeterPoints(triangle.EdgeAB.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
-                    var perimeterBCpoints = MapPerimeterPoints(triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
-                    var perimeterCApoints = MapPerimeterPoints(triangle.EdgeCA.GetPerimeterPoints().Select(c => c.Vertex), containerTable);
+                    var edgeABPoints = triangle.EdgeAB.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
+                    var edgeBCPoints = triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
+                    var edgeCAPoints = triangle.EdgeCA.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
+
+                    var perimeterABpoints = MapPerimeterPoints(edgeABPoints, containerTable);//.Where(p => p.Id != 183).ToList();
+                    var perimeterBCpoints = MapPerimeterPoints(edgeBCPoints, containerTable);//.Where(p => p.Id != 183).ToList();
+                    var perimeterCApoints = MapPerimeterPoints(edgeCAPoints, containerTable);
 
                     var perimeterABsegments = new List<ElasticSegment>();
                     var perimeterBCsegments = new List<ElasticSegment>();

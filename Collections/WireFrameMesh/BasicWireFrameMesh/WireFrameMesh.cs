@@ -218,7 +218,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 positionObject.Disabled = false;
             }
 
-            var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.DirectionsEqual(pn.Normal, normal));
+            var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.AreParallel(pn.Normal, normal));
             if (existingPositionNormal is not null) { return existingPositionNormal; }
             {
                 var positionNormal = new PositionNormal(position, normal, this);
@@ -246,7 +246,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 positionObject.Disabled = false;
             }
 
-            var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.DirectionsEqual(pn.Normal, positionNormal.Normal));
+            var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.AreParallel(pn.Normal, positionNormal.Normal));
             if (existingPositionNormal is not null) { return existingPositionNormal; }
             {
                 var clone = new PositionNormal(positionNormal.Position, positionNormal.Normal, this);

@@ -75,7 +75,7 @@ namespace Projects.Projects
 
         private static void BuildSection(IWireFrameMesh mesh, double radius, int steps, Point3D point, Vector3D n0, Vector3D n1, Vector3D n2)
         {
-            var triangle = VectorTransform3D.UnitSphericalTrianglePlot(n0, n1, n2, steps);
+            var triangle = VectorTransform3D.UnitSphericalPlot(n0, n1, n2, steps);
 
             for (int i = 0; i < triangle.Length - 1; i++)
             {

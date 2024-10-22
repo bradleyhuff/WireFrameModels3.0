@@ -400,7 +400,7 @@ namespace Operations.ParallelSurfaces
                     var lastSurfacePoint = surfacePoints.Last().Id;
                     for (int b = 0; b < basePoints.Length - 1; b++)
                     {
-                        if (s + 1 < surfacePoints.Length &&
+                        while (s + 1 < surfacePoints.Length &&
                             Point3D.Distance(basePoints[b + 1].Point, surfacePoints[s].Point) > Point3D.Distance(basePoints[b + 1].Point, surfacePoints[s + 1].Point))
                         {
                             elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, surfacePoints[s].Point, surfacePoints[s + 1].Point, $"F{element.i}"));

@@ -67,7 +67,7 @@ namespace BasicObjects.GeometricObjects
         {
             if (obj == null || obj is not Ray3D) { return false; }
             Ray3D compare = (Ray3D)obj;
-            return compare.Point.Equals(Point) && Vector3D.DirectionsEqual(compare.Normal, Normal);
+            return compare.Point.Equals(Point) && Vector3D.AreParallel(compare.Normal, Normal);
         }
 
         public override int GetHashCode()

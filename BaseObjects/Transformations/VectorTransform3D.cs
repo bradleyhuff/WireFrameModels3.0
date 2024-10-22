@@ -20,7 +20,7 @@ namespace BaseObjects.Transformations
             }
         }
 
-        public static Vector3D[][] UnitSphericalTrianglePlot(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
+        public static Vector3D[][] UnitSphericalPlot(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
         {
             var triangle = BuildVectorTriangle(steps, n0, n1, n2);
             UnitCircularArcPlot(triangle.Select(r => r[0]).ToArray());
@@ -33,9 +33,9 @@ namespace BaseObjects.Transformations
             return triangle.Select(r => r.Select(t => t.Vector.Direction).ToArray()).ToArray();
         }
 
-        public static Vector3D[][] CurvedSurfaceTrianglePlot(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
+        public static Vector3D[][] CurvedSurfacePlot(Vector3D n0, Vector3D n1, Vector3D n2, int steps)
         {
-            var plot = UnitSphericalTrianglePlot(n0.Direction, n1.Direction, n2.Direction, steps);
+            var plot = UnitSphericalPlot(n0.Direction, n1.Direction, n2.Direction, steps);
             var isSpherical = E.Double.AreEqual(n0.Magnitude, n1.Magnitude, n2.Magnitude);
 
             var output = new Vector3D[plot.Length][];

@@ -190,8 +190,8 @@ namespace Operations.Intermesh.Classes
                     var edgeBCPoints = triangle.EdgeBC.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
                     var edgeCAPoints = triangle.EdgeCA.GetPerimeterPoints().Select(c => c.Vertex).ToArray();
 
-                    var perimeterABpoints = MapPerimeterPoints(edgeABPoints, containerTable);//.Where(p => p.Id != 183).ToList();
-                    var perimeterBCpoints = MapPerimeterPoints(edgeBCPoints, containerTable);//.Where(p => p.Id != 183).ToList();
+                    var perimeterABpoints = MapPerimeterPoints(edgeABPoints, containerTable);
+                    var perimeterBCpoints = MapPerimeterPoints(edgeBCPoints, containerTable);
                     var perimeterCApoints = MapPerimeterPoints(edgeCAPoints, containerTable);
 
                     var perimeterABsegments = new List<ElasticSegment>();

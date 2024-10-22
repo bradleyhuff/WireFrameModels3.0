@@ -14,21 +14,30 @@ namespace Operations.ParallelSurfaces
             var positions = mesh.Positions.
                 Where(p => !p.PositionNormals.Any(pn => pn.Triangles.Any(t => IsSurfaceTriangle(t)))).
                 Where(p => p.PositionNormals.Any(pn => pn.Triangles.Any(t => IsEdgeTriangle(t)))).ToArray();
-            var edgePositions = positions.Where(p => p.PositionNormals.Count(pn => !pn.Triangles.All(t => IsBaseTriangle(t))) > 1);
-            var cornerPositions = edgePositions.Where(p => p.PositionNormals.Count(pn => !pn.Triangles.All(t => IsBaseTriangle(t))) > 2);
-
+ 
             var surroundingPositions = new Dictionary<int, Position[]>();
-            foreach (var edgePosition in edgePositions)
+            foreach (var position in positions)
             {
-                surroundingPositions[edgePosition.Id] = SurroundingPositions(edgePosition).ToArray();
+                surroundingPositions[position.Id] = SurroundingPositions(position).ToArray();
             }
 
-            var edgePairs = GetEdgePairs(edgePositions, surroundingPositions).ToArray();
+            var edgePositions = positions.Where(p => p.PositionNormals.Any(pn => pn.Triangles.Any(t => !IsBaseTriangle(t))));
+            var cornerPositions = edgePositions.Where(p => p.PositionNormals.Count(pn => pn.Triangles.Any(t => !IsBaseTriangle(t))) > 2);
 
-            //Console.WriteLine($"Edge positions {edgePositions.Count()} Corner positions {cornerPositions.Count()} Edge pairs {edgePairs.Length}");
+            var edgePairs = PullEdgePairs(edgePositions, surroundingPositions).ToArray();
 
-            foreach (var edgePair in edgePairs) { PlotEdgeSegment(mesh, edgePair, surroundingPositions); }
-            foreach (var corner in cornerPositions) { PlotCornerBlock(mesh, corner, surroundingPositions); }
+            var edgePlots = new Combination2Dictionary<EdgePlot>();
+            var edgeSegments = PullEdgeSegments(edgePairs, surroundingPositions, edgePlots).ToArray();
+            var cornerBlocks = PullCornerBlocks(cornerPositions, surroundingPositions, edgePlots).ToArray();
+
+            Console.WriteLine($"Edge positions {edgePositions.Count()} Corner positions {cornerPositions.Count()} Edge pairs {edgePairs.Length}");
+
+            foreach (var edgeSegment in edgeSegments.Where(e => e[0].IsPolar && e[1].IsPolar)) { DetermineSplitVectors(edgeSegment); }
+            foreach (var edgeSegment in edgeSegments) { PlotEdgeSegment(mesh, edgeSegment); }
+            foreach (var cornerBlock in cornerBlocks) { PlotCornerBlock(mesh, cornerBlock); }
+
+            //foreach (var edgePair in edgePairs) { PlotEdgeSegment(mesh, edgePair, surroundingPositions); }
+            //foreach (var corner in cornerPositions) { PlotCornerBlock(mesh, corner, surroundingPositions); }
 
             mesh.Intermesh();
         }
@@ -63,7 +72,7 @@ namespace Operations.ParallelSurfaces
             return position.Triangles.SelectMany(t => t.Positions.Select(pn => pn.PositionObject)).DistinctBy(p => p.Id).Where(p => p.Id != position.Id);
         }
 
-        private static IEnumerable<Position[]> GetEdgePairs(IEnumerable<Position> edgePositions, Dictionary<int, Position[]> surroundingPositions)
+        private static IEnumerable<Position[]> PullEdgePairs(IEnumerable<Position> edgePositions, Dictionary<int, Position[]> surroundingPositions)
         {
             var usedKeys = new Combination2Dictionary<bool>();
             var edgePositionTable = edgePositions.ToDictionary(p => p.Id, p => true);
@@ -82,27 +91,211 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        private static void PlotEdgeSegment(IWireFrameMesh mesh, Position[] edgePair, Dictionary<int, Position[]> surroundingPositions)
+        private static IEnumerable<EdgePlot[]> PullEdgeSegments(IEnumerable<Position[]> edgePairs, Dictionary<int, Position[]> surroundingPositions, Combination2Dictionary<EdgePlot> edgePlots)
         {
-            var surfaceGroupsA = GetSurfacePoints(edgePair[0], surroundingPositions);
-            var surfaceGroupsB = GetSurfacePoints(edgePair[1], surroundingPositions);
+            foreach (var edgePair in edgePairs)
+            {
+                var surfaceGroupsA = GetSurfacePoints(edgePair[0], surroundingPositions);
+                var surfaceGroupsB = GetSurfacePoints(edgePair[1], surroundingPositions);
 
-            RemoveNonMatchingGroups(surfaceGroupsA, surfaceGroupsB);
-            if (surfaceGroupsA.Count != 2) { return; }
+                RemoveNonMatchingGroups(surfaceGroupsA, surfaceGroupsB);
+                if (surfaceGroupsA.Count != 2) { continue; }
 
-            var keys = surfaceGroupsA.Keys.ToArray();
-            var vectorA1 = surfaceGroupsA[keys[0]].Point - edgePair[0].Point;
-            var vectorA2 = surfaceGroupsA[keys[1]].Point - edgePair[0].Point;
+                var keys = surfaceGroupsA.Keys.OrderBy(g => g).ToArray();
 
-            var vectorB1 = surfaceGroupsB[keys[0]].Point - edgePair[1].Point;
-            var vectorB2 = surfaceGroupsB[keys[1]].Point - edgePair[1].Point;
+                var keyA = new Combination2(surfaceGroupsA[keys[0]].Id, surfaceGroupsA[keys[1]].Id);
+                var keyB = new Combination2(surfaceGroupsB[keys[0]].Id, surfaceGroupsB[keys[1]].Id);
 
-            int steps = 8;
-            PlotEdgeSegment(mesh, steps, edgePair[0].Point, vectorA1, vectorA2, edgePair[1].Point, vectorB1, vectorB2);
+                if (!edgePlots.ContainsKey(keyA))
+                {
+                    var edgePlot = new EdgePlot(surfaceGroupsA[keys[0]], edgePair[0], surfaceGroupsA[keys[1]]);
+                    edgePlots[keyA] = edgePlot;
+                }
+
+                if (!edgePlots.ContainsKey(keyB))
+                {
+                    var edgePlot = new EdgePlot(surfaceGroupsB[keys[0]], edgePair[1], surfaceGroupsB[keys[1]]);
+                    edgePlots[keyB] = edgePlot;
+                }
+
+                yield return new EdgePlot[] { edgePlots[keyA], edgePlots[keyB] };
+            }
+            yield break;
         }
 
-        private static void PlotEdgeSegment(IWireFrameMesh mesh, int steps, 
-            Point3D pointA, Vector3D vectorA1, Vector3D vectorA2, 
+        private static IEnumerable<EdgePlot[]> PullCornerBlocks(IEnumerable<Position> corners, Dictionary<int, Position[]> surroundingPositions, Combination2Dictionary<EdgePlot> edgePlots)
+        {
+            foreach (var corner in corners)
+            {
+                var surfaceGroups = GetSurfacePoints(corner, surroundingPositions);
+                if (surfaceGroups.Count < 3) { continue; }
+                if (surfaceGroups.Count == 3)
+                {
+                    var surfacePositions = surfaceGroups.Values.ToArray();
+                    var edgePlotA = edgePlots[surfacePositions[0].Id, surfacePositions[1].Id];
+                    var edgePlotB = edgePlots[surfacePositions[1].Id, surfacePositions[2].Id];
+                    var edgePlotC = edgePlots[surfacePositions[0].Id, surfacePositions[2].Id];
+                    yield return new EdgePlot[] { edgePlotA, edgePlotB, edgePlotC };
+                    continue;
+                }
+
+                var edgePositions = new Dictionary<string, Position>();
+                foreach (var position in surfaceGroups.Values)
+                {
+                    var edgeTrace = position.Triangles.First(IsEdgeTriangle).Trace;
+                    edgePositions[edgeTrace] = position;
+                }
+
+                var edgeRelations = new Dictionary<string, List<string>>();
+                foreach (var group in corner.Triangles.GroupBy(t => t.Trace).Where(g => IsEdgeTriangle(g.Key)))
+                {
+                    var relations = group.SelectMany(g => g.AllAdjacents).Select(t => t.Trace).
+                        Where(t => IsEdgeTriangle(t) && t != group.Key).Distinct().ToList();
+                    edgeRelations[group.Key] = relations;
+                }
+
+                var orderedPositions = IterateEdges(edgeRelations).Select(e => edgePositions[e]).ToArray();
+                var positionPairs = PullPositionPairs(orderedPositions);
+
+                var cornerPlots = new List<EdgePlot>();
+                foreach (var positionPair in positionPairs)
+                {
+                    var edgePlot = edgePlots[positionPair[0].Id, positionPair[1].Id];
+                    cornerPlots.Add(edgePlot);
+                }
+                yield return cornerPlots.ToArray();
+            }
+            yield break;
+        }
+
+        private class EdgePlot
+        {
+            public EdgePlot(Position upperSurface, Position position, Position lowerSurface)
+            {
+                UpperSurface = upperSurface;
+                Position = position;
+                LowerSurface = lowerSurface;
+
+                UpperVector = UpperSurface.Point - Position.Point;
+                LowerVector = LowerSurface.Point - Position.Point;
+                IsPolar = Vector3D.ArePolar(UpperVector, LowerVector);
+            }
+
+            private List<Vector3D> _splits = new List<Vector3D>();
+            public Position UpperSurface { get; }
+            public Position Position { get; }
+            public Position LowerSurface { get; }
+            public IEnumerable<Position> SurfacePositions { get { yield return UpperSurface; yield return LowerSurface; } }
+            public Vector3D UpperVector { get; }
+            public Vector3D LowerVector { get; }
+            public bool IsPolar { get; }
+            public IReadOnlyList<Vector3D> Splits { get { return _splits; } }
+            public void AddSplit(Vector3D split)
+            {
+                if (_splits.Any(s => Vector3D.AreParallel(s, split))) { return; }
+                _splits.Add(split);
+            }
+
+            public Vector3D GetSplit(Vector3D cross)
+            {
+                return Splits.MaxBy(s => Math.Abs(Vector3D.Dot(s, cross)));
+            }
+        }
+
+        private static void PlotEdgeSegment(IWireFrameMesh mesh, EdgePlot[] edgeSegment)
+        {
+            var plotA = edgeSegment[0];
+            var plotB = edgeSegment[1];
+
+            int steps = 8;
+
+            if (plotA.Splits.Any() && plotB.Splits.Any())
+            {
+                var cross = Vector3D.Cross(plotA.Position.Point - plotB.Position.Point, plotA.UpperVector);
+
+                var splitA = plotA.GetSplit(cross);
+                var splitB = plotB.GetSplit(cross);
+
+                PlotEdgeSegment(mesh, steps, plotA.Position.Point, plotA.UpperVector, splitA, plotB.Position.Point, plotB.UpperVector, splitB);
+                PlotEdgeSegment(mesh, steps, plotA.Position.Point, splitA, plotA.LowerVector, plotB.Position.Point, splitB, plotB.LowerVector);
+                return;
+            }
+            if (plotA.IsPolar || plotB.IsPolar) { return; }
+            PlotEdgeSegment(mesh, steps, plotA.Position.Point, plotA.UpperVector, plotA.LowerVector, plotB.Position.Point, plotB.UpperVector, plotB.LowerVector);
+        }
+
+        private static void DetermineSplitVectors(EdgePlot[] edgePlot)
+        {
+            if (edgePlot.Length != 2 || !edgePlot[0].IsPolar || !edgePlot[1].IsPolar) { return; }
+
+            var crossVector = edgePlot[0].Position.Point - edgePlot[1].Position.Point;
+            var splitA = Vector3D.Cross(edgePlot[0].UpperVector, crossVector).Direction;
+            var splitB = Vector3D.Cross(edgePlot[1].UpperVector, crossVector).Direction;
+
+            splitA = edgePlot[0].Position.PositionNormals.MaxBy(pn => Math.Abs(Vector3D.Dot(pn.Normal, splitA))).Normal.Direction;
+            splitB = edgePlot[1].Position.PositionNormals.MaxBy(pn => Math.Abs(Vector3D.Dot(pn.Normal, splitB))).Normal.Direction;
+
+            splitA = edgePlot[0].UpperVector.Magnitude * splitA;
+            splitB = edgePlot[1].UpperVector.Magnitude * splitB;
+
+            edgePlot[0].AddSplit(splitA);
+            edgePlot[1].AddSplit(splitB);
+        }
+
+        private static void PlotCornerBlock(IWireFrameMesh mesh, EdgePlot[] cornerBlock)
+        {
+            if (cornerBlock.Length < 3) { return; }
+
+            int steps = 8;
+
+            var surfacePositions = cornerBlock.SelectMany(c => c.SurfacePositions).DistinctBy(p => p.Id);
+            var surfaceVectors = surfacePositions.Select(s => s.Point - cornerBlock[0].Position.Point).ToArray();
+
+            if (cornerBlock.Length == 3)
+            {
+                var polarEdgePlot = cornerBlock.SingleOrDefault(c => c.IsPolar);
+                if (polarEdgePlot != null)
+                {
+                    if (polarEdgePlot.Splits.Any())
+                    {
+                        var baseVector = surfaceVectors.Single(s => !Vector3D.AreParallel(s, polarEdgePlot.UpperVector) && !Vector3D.AreParallel(s, polarEdgePlot.LowerVector));
+                        PlotCornerBlock(mesh, steps, cornerBlock[0].Position.Point, polarEdgePlot.UpperVector, polarEdgePlot.Splits.Single(), baseVector);
+                        PlotCornerBlock(mesh, steps, cornerBlock[0].Position.Point, polarEdgePlot.LowerVector, polarEdgePlot.Splits.Single(), baseVector);
+                    }
+                    else
+                    {
+                        var baseVector = surfaceVectors.Single(s => !Vector3D.AreParallel(s, polarEdgePlot.UpperVector) && !Vector3D.AreParallel(s, polarEdgePlot.LowerVector));
+                        var crossA = Vector3D.Cross(baseVector.Direction, polarEdgePlot.UpperVector.Direction);
+                        var crossB = -crossA;
+
+                        var cross = crossA;
+                        var basePosition = surfacePositions.Single(s => s.Id != polarEdgePlot.UpperSurface.Id && s.Id != polarEdgePlot.LowerSurface.Id);
+                        var surfaceDirection = GetSurfaceDirection(basePosition);
+                        if (Vector3D.Dot(crossB, surfaceDirection) < 0) { cross = crossB; }
+                        var splitVector = baseVector.Magnitude * cross;
+                        PlotCornerBlock(mesh, steps, cornerBlock[0].Position.Point, polarEdgePlot.UpperVector, splitVector, baseVector);
+                        PlotCornerBlock(mesh, steps, cornerBlock[0].Position.Point, polarEdgePlot.LowerVector, splitVector, baseVector);
+                    }
+                    return;
+                }
+                {
+                    PlotCornerBlock(mesh, steps, cornerBlock[0].Position.Point, surfaceVectors[0], surfaceVectors[1], surfaceVectors[2]);
+                    return;
+                }
+            }
+            {
+                var radius = surfaceVectors.Select(v => v.Magnitude).Average();
+                var poleVector = radius * Vector3D.Sum(surfaceVectors).Direction;
+
+                foreach (var edgePlot in cornerBlock)
+                {
+                    PlotCornerBlock(mesh, 8, cornerBlock[0].Position.Point, poleVector, edgePlot.UpperVector, edgePlot.LowerVector);
+                }
+            }
+        }
+
+        private static void PlotEdgeSegment(IWireFrameMesh mesh, int steps,
+            Point3D pointA, Vector3D vectorA1, Vector3D vectorA2,
             Point3D pointB, Vector3D vectorB1, Vector3D vectorB2)
         {
             var plotA = VectorTransform3D.PlanarArcPlot(vectorA1, vectorA2, steps).Select(v => new Ray3D(pointA + v, v)).ToArray();
@@ -115,46 +308,6 @@ namespace Operations.ParallelSurfaces
                 mesh.EndRow();
             }
             mesh.EndGrid();
-        }
-
-        private static void PlotCornerBlock(IWireFrameMesh mesh, Position corner, Dictionary<int, Position[]> surroundingPositions)
-        {
-            int steps = 8;
-
-            var surfaceGroups = GetSurfacePoints(corner, surroundingPositions);
-            if (surfaceGroups.Count < 3) { return; }
-            if(surfaceGroups.Count == 3)
-            {
-                var vectors = surfaceGroups.Select(g => g.Value.Point - corner.Point).ToArray();
-                PlotCornerBlock(mesh, steps, corner.Point, vectors[0], vectors[1], vectors[2]);
-                return;
-            }
-
-            var edgePositions = new Dictionary<string, Position>();
-            foreach (var position in surfaceGroups.Values)
-            {
-                var edgeTrace = position.Triangles.First(IsEdgeTriangle).Trace;
-                edgePositions[edgeTrace] = position;
-            }
-
-            var edgeRelations = new Dictionary<string, List<string>>();
-            foreach (var group in corner.Triangles.GroupBy(t => t.Trace).Where(g => IsEdgeTriangle(g.Key)))
-            {
-                var relations = group.SelectMany(g => g.AllAdjacents).Select(t => t.Trace).
-                    Where(t => IsEdgeTriangle(t) && t != group.Key).Distinct().ToList();
-                edgeRelations[group.Key] = relations;
-            }
-
-            var orderedPositions = IterateEdges(edgeRelations).Select(e => edgePositions[e]).ToArray();
-            var positionPairs = PullPositionPairs(orderedPositions);
-            var listing = orderedPositions.Select(p => p.Point - corner.Point).ToArray();
-            var radius = listing.Select(v => v.Magnitude).Average();
-            var poleVector =  radius * Vector3D.Sum(listing).Direction;
-
-            foreach(var positionPair in positionPairs)
-            {
-                PlotCornerBlock(mesh, steps, corner.Point, poleVector, positionPair[0].Point - corner.Point, positionPair[1].Point - corner.Point);
-            }
         }
 
         private static IEnumerable<string> IterateEdges(Dictionary<string, List<string>> edges)
@@ -187,7 +340,7 @@ namespace Operations.ParallelSurfaces
 
         private static void PlotCornerBlock(IWireFrameMesh mesh, int steps, Point3D point, Vector3D n0, Vector3D n1, Vector3D n2)
         {
-            var triangle = VectorTransform3D.CurvedSurfaceTrianglePlot(n0, n1, n2, steps);
+            var triangle = VectorTransform3D.CurvedSurfacePlot(n0, n1, n2, steps);
 
             for (int i = 0; i < triangle.Length - 1; i++)
             {
@@ -201,9 +354,10 @@ namespace Operations.ParallelSurfaces
                     var c = nextRow[j];
                     mesh.AddTriangle(point + a, a, point + b, b, point + c, c);
 
-                    if (j < row.Length - 2) {
+                    if (j < row.Length - 2)
+                    {
                         var d = nextRow[j + 1];
-                        mesh.AddTriangle(point + b, b, point + c, c, point + d, d); 
+                        mesh.AddTriangle(point + b, b, point + c, c, point + d, d);
                     }
                 }
             }
@@ -258,6 +412,16 @@ namespace Operations.ParallelSurfaces
                 a.Remove(key);
                 b.Remove(key);
             }
+        }
+
+        private static Vector3D GetSurfaceDirection(Position position)
+        {
+            var surfaceTriangles = position.Triangles.Where(t => t.Trace is not null && t.Trace.Any() && t.Trace[0] == 'S');
+            if (!surfaceTriangles.Any()) { return null; }
+
+            var aggregatePoint = Point3D.Average(surfaceTriangles.Select(t => t.Triangle.Center));
+
+            return (aggregatePoint - position.Point).Direction;
         }
     }
 }

@@ -115,10 +115,16 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
-        public static bool DirectionsEqual(Vector3D a, Vector3D b, double ε = E.Double.RadianDifferenceError)
+        public static bool AreParallel(Vector3D a, Vector3D b, double ε = E.Double.RadianDifferenceError)
         {
             var cross = Cross(a.Direction, b.Direction);
             return cross.Magnitude < ε && System.Math.Sign(Dot(a.Direction, b.Direction)) == 1;
+        }
+
+        public static bool ArePolar(Vector3D a, Vector3D b, double ε = E.Double.RadianDifferenceError)
+        {
+            var cross = Cross(a.Direction, b.Direction);
+            return cross.Magnitude < ε && System.Math.Sign(Dot(a.Direction, b.Direction)) == -1;
         }
 
         public override string ToString()

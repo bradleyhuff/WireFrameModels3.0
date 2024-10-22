@@ -30,6 +30,36 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var triangle in elasticTriangles)
             {
+                //if (triangle.Triangle.Id == 2612)
+                //{
+                //    var test = WireFrameMesh.Create();
+                //    triangle.Triangle.ExportWithDivisions(test);
+                //    WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Triangle.Id}");
+
+                //}
+                //if (triangle.Triangle.Id == 2295)
+                //{
+                //    var test = WireFrameMesh.Create();
+                //    triangle.Triangle.ExportWithDivisions(test);
+                //    WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Triangle.Id}");
+
+                //}
+                //if (triangle.Triangle.Id == 2613)
+                //{
+                //    var test = WireFrameMesh.Create();
+                //    triangle.Triangle.ExportWithDivisions(test);
+                //    WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Triangle.Id}");
+
+                //}
+                //if (triangle.Triangle.Id == 2266)
+                //{
+                //    var test = WireFrameMesh.Create();
+                //    triangle.Triangle.ExportWithDivisions(test);
+                //    WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Triangle.Id}");
+
+                //}
+
+
                 var segments = triangle.SegmentsCount;
                 switch (segments)
                 {
@@ -182,16 +212,6 @@ namespace Operations.Intermesh.Classes
 
         private static IEnumerable<FillTriangle> ComplexSegmentFills(ElasticTriangle triangle)
         {
-            //if(triangle.Id == 130)
-            //{
-            //    var test = WireFrameMesh.Create();
-            //    triangle.ExportWithPerimeters(test);
-            //    WavefrontFile.Export(test,$"Wavefront/ElasticTriangle{triangle.Id}");
-
-            //    test = WireFrameMesh.Create();
-            //    triangle.ExportWithDivisions(test);
-            //    WavefrontFile.Export(test, $"Wavefront/ElasticTriangleDivision{triangle.Id}");
-            //}
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, ElasticVertexCore>(surfaceSet);
 

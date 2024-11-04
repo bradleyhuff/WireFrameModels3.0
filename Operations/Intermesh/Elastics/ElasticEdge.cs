@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 
 namespace Operations.Intermesh.Elastics
 {
@@ -17,6 +18,8 @@ namespace Operations.Intermesh.Elastics
         public ElasticVertexAnchor AnchorA { get; }
         public ElasticVertexAnchor AnchorB { get; }
 
+        public Combination2 PositionKey { get { return new Combination2(AnchorA.Id, AnchorB.Id); } }
+
         internal void AddPerimeterPoints(IEnumerable<ElasticVertexCore> perimeterPoints, IEnumerable<ElasticSegment> perimeterSegments)
         {
             Segments = Segments.Concat(perimeterSegments).ToList();
@@ -33,6 +36,16 @@ namespace Operations.Intermesh.Elastics
         internal void RemovePerimeterPoint(ElasticVertexCore perimeterPoint)
         {
             _perimeterPoints = PerimeterPoints.Where(p => p.Id != perimeterPoint.Id).ToList();
+        }
+
+        internal void RemovePerimeterSegments(IEnumerable<ElasticSegment> perimeterSegments)
+        {
+            var segments = Segments.ToList();
+            foreach(var perimeterSegment in perimeterSegments)
+            {
+                segments.Remove(perimeterSegment);
+            }
+            Segments = segments;
         }
 
         internal void ReplacePerimeterPoint(ElasticVertexCore perimeterPoint, ElasticVertexCore newPoint)
@@ -61,5 +74,6 @@ namespace Operations.Intermesh.Elastics
 
             yield return new ElasticVertexLink(lastPoint, AnchorB);
         }
+        public LineSegment3D PerimeterSegment { get { return new LineSegment3D(AnchorA.Point, AnchorB.Point); } }
     }
 }

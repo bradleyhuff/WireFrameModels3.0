@@ -30,37 +30,13 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var triangle in elasticTriangles)
             {
-                //if (triangle.Triangle.Id == 2612)
-                //{
-                //    var test = WireFrameMesh.Create();
-                //    triangle.Triangle.ExportWithDivisions(test);
-                //    WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Triangle.Id}");
-
-                //}
-                //if (triangle.Triangle.Id == 2295)
-                //{
-                //    var test = WireFrameMesh.Create();
-                //    triangle.Triangle.ExportWithDivisions(test);
-                //    WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Triangle.Id}");
-
-                //}
-                //if (triangle.Triangle.Id == 2613)
-                //{
-                //    var test = WireFrameMesh.Create();
-                //    triangle.Triangle.ExportWithDivisions(test);
-                //    WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Triangle.Id}");
-
-                //}
-                //if (triangle.Triangle.Id == 2266)
-                //{
-                //    var test = WireFrameMesh.Create();
-                //    triangle.Triangle.ExportWithDivisions(test);
-                //    WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Triangle.Id}");
-
-                //}
-
-
-                var segments = triangle.SegmentsCount;
+                if (triangle.Id == 97)
+                {
+                    //var test = WireFrameMesh.Create();
+                    //triangle.ExportWithDivisions(test);
+                    //WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Id}");
+                }
+                    var segments = triangle.SegmentsCount;
                 switch (segments)
                 {
                     case 0:
@@ -212,6 +188,17 @@ namespace Operations.Intermesh.Classes
 
         private static IEnumerable<FillTriangle> ComplexSegmentFills(ElasticTriangle triangle)
         {
+            if(triangle.Id == 97)
+            {
+                //var t = triangle.SurfaceTriangle.Triangle;
+                //var points = triangle.Segments.SelectMany(s => s.VerticiesAB);
+                //Console.WriteLine($"Triangle {t}");
+                //Console.WriteLine($"{string.Join("\n", points.Select(p => $"{p.Point} is perimeter {t.PointIsOnPerimeter(p.Point)} is in {t.PointIsIn(p.Point)}"))}");
+                //var test = WireFrameMesh.Create();
+                //triangle.ExportWithDivisions(test);
+                //WavefrontFile.Export(test, $"Wavefront/ErrorTriangle-{triangle.Id}");
+
+            }
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, ElasticVertexCore>(surfaceSet);
 

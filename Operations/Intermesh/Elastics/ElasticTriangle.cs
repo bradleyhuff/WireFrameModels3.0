@@ -109,6 +109,18 @@ namespace Operations.Intermesh.Elastics
             _dividingSegments = null;
         }
 
+        internal void RemoveSegments(IEnumerable<ElasticSegment> segments)
+        {
+            PerimeterEdgeAB.RemovePerimeterSegments(segments);
+            PerimeterEdgeBC.RemovePerimeterSegments(segments);
+            PerimeterEdgeCA.RemovePerimeterSegments(segments);
+            foreach (var segment in segments)
+            {
+                _segments.Remove(segment);
+            }
+
+        }
+
         public void SetAdjacents(IEnumerable<ElasticTriangle> abAdjacents, IEnumerable<ElasticTriangle> bcAdjacents, IEnumerable<ElasticTriangle> caAdjacents)
         {
             ABadjacents = abAdjacents.ToList();

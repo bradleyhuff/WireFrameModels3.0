@@ -41,6 +41,17 @@ namespace Operations.Intermesh.Classes
                     }
                 }
             }
+            foreach (var elasticTriangle in elasticTriangles)
+            {
+                var duplicateSegments = elasticTriangle.Segments.Where(s =>
+                s.PositionKey == elasticTriangle.PerimeterEdgeAB.PositionKey || 
+                s.PositionKey == elasticTriangle.PerimeterEdgeBC.PositionKey || 
+                s.PositionKey == elasticTriangle.PerimeterEdgeCA.PositionKey).ToArray();
+
+                if (duplicateSegments.Any()) { 
+                    elasticTriangle.RemoveSegments(duplicateSegments);
+                }
+            }
         }
 
         private static Dictionary<int, List<ElasticEdge>> GetPerimeterTable(IEnumerable<ElasticTriangle> elasticTriangles)

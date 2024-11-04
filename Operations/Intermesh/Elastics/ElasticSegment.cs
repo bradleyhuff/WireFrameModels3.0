@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 
 namespace Operations.Intermesh.Elastics
 {
@@ -16,6 +17,8 @@ namespace Operations.Intermesh.Elastics
 
         public ElasticVertexContainer VertexA { get; }
         public ElasticVertexContainer VertexB { get; }
+
+        public Combination2 PositionKey { get { return new Combination2(VertexA.Vertex.Id, VertexB.Vertex.Id); } }
         internal IEnumerable<ElasticVertexContainer> VerticiesAB
         {
             get

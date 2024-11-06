@@ -30,13 +30,7 @@ namespace Operations.Intermesh.Classes
         {
             foreach (var triangle in elasticTriangles)
             {
-                if (triangle.Id == 97)
-                {
-                    //var test = WireFrameMesh.Create();
-                    //triangle.ExportWithDivisions(test);
-                    //WavefrontFile.Export(test, $"Wavefront/TriangleDivisions{triangle.Id}");
-                }
-                    var segments = triangle.SegmentsCount;
+                var segments = triangle.SegmentsCount;
                 switch (segments)
                 {
                     case 0:
@@ -188,17 +182,6 @@ namespace Operations.Intermesh.Classes
 
         private static IEnumerable<FillTriangle> ComplexSegmentFills(ElasticTriangle triangle)
         {
-            if(triangle.Id == 97)
-            {
-                //var t = triangle.SurfaceTriangle.Triangle;
-                //var points = triangle.Segments.SelectMany(s => s.VerticiesAB);
-                //Console.WriteLine($"Triangle {t}");
-                //Console.WriteLine($"{string.Join("\n", points.Select(p => $"{p.Point} is perimeter {t.PointIsOnPerimeter(p.Point)} is in {t.PointIsIn(p.Point)}"))}");
-                //var test = WireFrameMesh.Create();
-                //triangle.ExportWithDivisions(test);
-                //WavefrontFile.Export(test, $"Wavefront/ErrorTriangle-{triangle.Id}");
-
-            }
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, ElasticVertexCore>(surfaceSet);
 
@@ -210,7 +193,7 @@ namespace Operations.Intermesh.Classes
             //catch (ChainingException<ElasticVertexCore> e)
             //{
             //    Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-            //    WavefrontFileChaining.Export(triangle, e, $"Wavefront/SurfaceChainingError");
+            //    WavefrontFileChaining.Export(triangle, e, $"Wavefront/SurfaceChainingError", 1e-3);
             //    LoopError++;
             //    yield break;
             //}

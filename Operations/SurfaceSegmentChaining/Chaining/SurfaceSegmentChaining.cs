@@ -288,7 +288,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
             do
             {
-                nextSegment = GetNextSegment(currentSegment, currentPoint, ref traversal, linkConstraint, false);
+                nextSegment = GetNextSegment(currentSegment, currentPoint, ref traversal, linkConstraint, true);
 
                 var nextPoint = GetOppositeIndex(nextSegment, currentPoint);
                 // set second point here...
@@ -320,12 +320,10 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             LinkedIndexSurfaceSegment<G, T> currentSegment,
             int currentPoint, ref Traversal traversal,
             Func<LinkedIndexSurfaceSegment<G, T>, bool> linkConstraint,
-            bool allowCompletedSegments,
             bool throwExceptions = true)
         {
-            var forwardLinks = currentSegment.GetLinksAtIndex(currentPoint).Where(l => linkConstraint(l));//.Where(l => l.Passes < 2);
-            //if (!allowCompletedSegments) { forwardLinks = forwardLinks.Where(l => l.Passes < 2); }
-            //if (!forwardLinks.Any()) { return null; }
+            var forwardLinks = currentSegment.GetLinksAtIndex(currentPoint).Where(l => linkConstraint(l));
+
             var nextSegment = forwardLinks.First();
             if (forwardLinks.Count() > 1)
             {
@@ -367,8 +365,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             Func<LinkedIndexSurfaceSegment<G, T>, bool> linkConstraint)
         {
             if (firstPoint != currentPoint) { return true; }
-
-            var nextSegment = GetNextSegment(currentSegment, currentPoint, ref traversal, linkConstraint, true, throwExceptions: false);
+            var nextSegment = GetNextSegment(currentSegment, currentPoint, ref traversal, linkConstraint, throwExceptions: false);
             if (nextSegment is null) { return false; }
             var nextPoint = GetOppositeIndex(nextSegment, currentPoint);
             return secondPoint != nextPoint;
@@ -394,7 +391,6 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 var forwardLinkIndex = forwardLink.Opposite(currentPoint);
                 Ray3D link = _referenceArray.ElementAtOrDefault(forwardLinkIndex) ?? _virtualPoints[forwardLinkIndex];
                 Vector3D linkDirection = (link.Point - head.Point).Direction;
-                Vector3D link2 = (link.Point - head.Point);
 
                 var angle = Vector3D.SignedAngle(head.TriangleNormal, tailDirection, linkDirection);
                 //Console.WriteLine($"Angle 0 found. ");
@@ -417,12 +413,6 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                     maxOption = forwardLink;
                 }
             }
-
-            //if (backLink is null && minOption.Key == maxOption.Key)
-            //{
-            //    _loggingElements.Add(_loggingElement);
-            //    throw new ChainingException<T>($"Forward link options are matching. {minOption.Key}", _loggingElements, _referenceArray);
-            //}
 
             leftMostLink = maxOption;
             rightMostLink = minOption;

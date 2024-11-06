@@ -84,7 +84,6 @@ namespace Operations.PositionRemovals
             mesh.RemovePositions(qualifiedClusters.Select(c => c.Position));
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"Remove collinear edge points: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
-
         }
 
         private static void ShowRemainingGroups(PositionEdge[] shortSegments)

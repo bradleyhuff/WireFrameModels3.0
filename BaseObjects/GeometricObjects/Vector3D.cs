@@ -127,6 +127,17 @@ namespace BasicObjects.GeometricObjects
             return cross.Magnitude < ε && System.Math.Sign(Dot(a.Direction, b.Direction)) == -1;
         }
 
+        public static bool AreOpposite(Vector3D a, Vector3D b, double ε = E.Double.RadianDifferenceError)
+        {
+            return System.Math.Sign(Dot(a.Direction, b.Direction)) == -1;
+        }
+
+        public static bool ArePerpendicular(Vector3D a, Vector3D b, double ε = E.Double.RadianDifferenceError)
+        {
+            var dot = System.Math.Abs(Dot(a.Direction, b.Direction));
+            return dot < ε;
+        }
+
         public override string ToString()
         {
             return $"[ X: {X.ToString("##0.000000")} Y: {Y.ToString("##0.000000")} Z: {Z.ToString("##0.000000")} ]";

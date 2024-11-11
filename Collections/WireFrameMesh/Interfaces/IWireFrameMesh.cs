@@ -27,8 +27,8 @@ namespace Collections.WireFrameMesh.Interfaces
         public bool RemoveTriangle(PositionNormal a, PositionNormal b, PositionNormal c);
         public bool RemoveTriangle(PositionTriangle removalTriangle);
         public int RemoveAllTriangles(IEnumerable<PositionTriangle> removalTriangles);
-        public void EndRow();
-        public void EndGrid();
+        public IEnumerable<PositionTriangle> EndRow();
+        public IEnumerable<PositionTriangle> EndGrid();
         public void AddGrid(IWireFrameMesh inputMesh);
         public void AddGrids(IEnumerable<IWireFrameMesh> grids);
         public IWireFrameMesh Clone();

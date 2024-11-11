@@ -64,7 +64,7 @@ namespace Operations.ParallelSurfaces
         private static void RemoveInternalFolds(IWireFrameMesh output, double thickness)
         {
             var faceGroups = output.Triangles.GroupBy(t => t.Trace.Substring(1));
-            foreach(var faceGroup in faceGroups)
+            foreach (var faceGroup in faceGroups)
             {
                 var baseGroups = faceGroup.GroupBy(t => t.Trace[0]);
 
@@ -83,7 +83,7 @@ namespace Operations.ParallelSurfaces
 
             var bucket = new BoxBucket<PositionTriangle>(baseTriangles);
 
-            foreach(var fold in folds)
+            foreach (var fold in folds)
             {
                 var testPoint = fold.Triangles.First().Triangle.Center;
 
@@ -92,7 +92,7 @@ namespace Operations.ParallelSurfaces
                 bool removeFold = false;
                 int exteriorCount = 0;
                 int count = 0;
-                foreach(var match in matches)
+                foreach (var match in matches)
                 {
                     var projection = match.Triangle.Plane.Projection(testPoint);
                     if (!match.Triangle.PointIsOn(projection)) { continue; }
@@ -456,6 +456,9 @@ namespace Operations.ParallelSurfaces
             {
                 var triangles = elbowGroup.ToArray();
                 var replacementPositions = new Dictionary<int, Vector3D>();
+                var referencePositions = new Dictionary<int, Vector3D>();
+                var positionHolders = new Dictionary<int, List<PositionNormal>>();
+                var cuspPositions = new Dictionary<int, List<PositionNormal>>();
 
                 var surfaces = GroupingCollection.ExtractSurfaces(triangles);
                 var perimeter = surfaces.Select(f => f.PerimeterEdges).First().SelectMany(e => e.Positions).Select(p => p.PositionObject).DistinctBy(p => p.Id);
@@ -466,30 +469,69 @@ namespace Operations.ParallelSurfaces
                     Where(p =>
                         p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'E')) == 1))
                 {
-                    replacementPositions[position.Id] = Vector3D.Zero;
-                }
-                foreach (var position in surfacePositions.
-                    Where(p =>
-                        p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'S')) == 1 &&
-                        !p.Triangles.Any(t => t.Trace[0] == 'E')))
-                {
-                    replacementPositions[position.Id] = Vector3D.Zero;
+                    positionHolders[position.Id] = position.PositionNormals.ToList();
+                    //Console.WriteLine($"ePosition {position.Id} {positionHolders.Count}");
                 }
 
+                foreach (var position in surfacePositions.
+                    Where(p =>
+                        p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'S')) > 1))
+                {
+                    cuspPositions[position.Id] = position.PositionNormals.ToList();
+                    //Console.WriteLine($"sPosition {position.Id} {positionHolders.Count}");
+                }
+                //Console.WriteLine("Done");
 
                 foreach (var triangle in triangles)
                 {
-                    if (replacementPositions.ContainsKey(triangle.A.PositionObject.Id))
+                    if (positionHolders.ContainsKey(triangle.A.PositionObject.Id))
                     {
-                        replacementPositions[triangle.A.PositionObject.Id] += triangle.Triangle.Area * triangle.A.Normal.Direction;//
+                        positionHolders[triangle.A.PositionObject.Id].RemoveAll(r => r.Id == triangle.A.Id);
+                        referencePositions[triangle.A.PositionObject.Id] = triangle.A.Normal.Direction;
                     }
-                    if (replacementPositions.ContainsKey(triangle.B.PositionObject.Id))
+                    if (positionHolders.ContainsKey(triangle.B.PositionObject.Id))
                     {
-                        replacementPositions[triangle.B.PositionObject.Id] += triangle.Triangle.Area * triangle.B.Normal.Direction;//
+                        positionHolders[triangle.B.PositionObject.Id].RemoveAll(r => r.Id == triangle.B.Id);
+                        referencePositions[triangle.B.PositionObject.Id] = triangle.B.Normal.Direction;
                     }
-                    if (replacementPositions.ContainsKey(triangle.C.PositionObject.Id))
+                    if (positionHolders.ContainsKey(triangle.C.PositionObject.Id))
                     {
-                        replacementPositions[triangle.C.PositionObject.Id] += triangle.Triangle.Area * triangle.C.Normal.Direction;//
+                        positionHolders[triangle.C.PositionObject.Id].RemoveAll(r => r.Id == triangle.C.Id);
+                        referencePositions[triangle.C.PositionObject.Id] = triangle.C.Normal.Direction;
+                    }
+                }
+
+                foreach (var kv in positionHolders.Where(kv => kv.Value.Count == 3))
+                {
+                    var list = kv.Value;
+                    if (Vector3D.ArePerpendicular(list[0].Normal, list[1].Normal))
+                    {
+                        var cross = Vector3D.Cross(list[0].Normal, list[1].Normal).Direction;
+                        var newVector = Vector3D.Cross(cross, list[2].Normal).Direction;
+                        if (Vector3D.AreOpposite(newVector, referencePositions[kv.Key])) { newVector = -newVector; }
+                        //Console.WriteLine($"1 New vector {newVector} Given vectors {string.Join(",", list.Select(pn => pn.Normal))} Cross {cross}");
+                        replacementPositions[kv.Key] = newVector;
+                        continue;
+                    }
+
+                    if (Vector3D.ArePerpendicular(list[1].Normal, list[2].Normal))
+                    {
+                        var cross = Vector3D.Cross(list[1].Normal, list[2].Normal).Direction;
+                        var newVector = Vector3D.Cross(cross, list[0].Normal).Direction;
+                        if (Vector3D.AreOpposite(newVector, referencePositions[kv.Key])) { newVector = -newVector; }
+                        //Console.WriteLine($"3 New vector {newVector} Given vectors {string.Join(",", list.Select(pn => pn.Normal))} Cross {cross}");
+                        replacementPositions[kv.Key] = newVector;
+                        continue;
+                    }
+
+                    if (Vector3D.ArePerpendicular(list[0].Normal, list[2].Normal))
+                    {
+                        var cross = Vector3D.Cross(list[0].Normal, list[2].Normal).Direction;
+                        var newVector = Vector3D.Cross(cross, list[1].Normal).Direction;
+                        if (Vector3D.AreOpposite(newVector, referencePositions[kv.Key])) { newVector = -newVector; }
+                        //Console.WriteLine($"2 New vector {newVector} Given vectors {string.Join(",", list.Select(pn => pn.Normal))} Cross {cross}");
+                        replacementPositions[kv.Key] = newVector;
+                        continue;
                     }
                 }
 

@@ -57,72 +57,38 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             row.Add(element);
         }
 
-        public void EndRow()
+        public IEnumerable<PositionTriangle> EndRow()
         {
+            PositionTriangle[] output = Array.Empty<PositionTriangle>();
             if (_rowIndex > 0)
             {
-                BuildRow(_rowA, _rowB);
+                output = BuildRow(_rowA, _rowB).ToArray();
                 _rowA = _rowB;
                 _rowB = new List<PositionNormal>();
             }
             _rowIndex++;
+            return output;
         }
 
-        public virtual void EndGrid()
+        public virtual IEnumerable<PositionTriangle> EndGrid()
         {
-            EndRow();
+            var output = EndRow();
             _rowIndex = 0;
             _rowA = new List<PositionNormal>();
             _rowB = new List<PositionNormal>();
+            return output;
         }
 
-        private void BuildRow(IEnumerable<PositionNormal> rowA, IEnumerable<PositionNormal> rowB)
+        private IEnumerable<PositionTriangle> BuildRow(IEnumerable<PositionNormal> rowA, IEnumerable<PositionNormal> rowB)
         {
-            if (!rowA.Any() || !rowB.Any()) { return; }
+            if (!rowA.Any() || !rowB.Any()) { return Enumerable.Empty<PositionTriangle>(); }
 
-            //BuildRowOLD(rowA, rowB);
-
-            BuildRow(rowA.ToArray(), rowB.ToArray());
+            return BuildRow(rowA.ToArray(), rowB.ToArray());
         }
 
-        private static void BuildRowOLD(IEnumerable<PositionNormal> rowA, IEnumerable<PositionNormal> rowB)
+        private static IEnumerable<PositionTriangle> BuildRow(PositionNormal[] rowA, PositionNormal[] rowB)
         {
-            var queueA = new Queue<PositionNormal>(rowA);
-            var queueB = new Queue<PositionNormal>(rowB);
-
-            var pointA = queueA.Dequeue();
-            var pointB = queueB.Dequeue();
-
-            while (queueA.Any() || queueB.Any())
-            {
-                var distanceA = double.MaxValue;
-                var distanceB = double.MaxValue;
-
-                if (queueA.Any() && pointB is not null)
-                {
-                    distanceA = Point3D.Distance(pointB.Position, queueA.Peek().Position);
-                }
-                if (queueB.Any() && pointA is not null)
-                {
-                    distanceB = Point3D.Distance(pointA.Position, queueB.Peek().Position);
-                }
-
-                if (distanceA < distanceB)//
-                {
-                    new PositionTriangle(pointA, pointB, queueA.Peek());
-                    pointA = queueA.Dequeue();
-                }
-                else
-                {
-                    new PositionTriangle(pointA, pointB, queueB.Peek());
-                    pointB = queueB.Dequeue();
-                }
-            }
-        }
-
-        private static void BuildRow(PositionNormal[] rowA, PositionNormal[] rowB)
-        {
-            if (rowB.Length > rowA.Length) { BuildRow(rowB, rowA); }
+            if (rowB.Length > rowA.Length) { foreach (var t in BuildRow(rowB, rowA)) { yield return t; }; }
 
             int iA = 0;
             int iB = 0;
@@ -130,30 +96,34 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             do
             {
                 int fork = (int)Math.Round(((iA + 1) * rowA.Length)/(double)rowB.Length) - (int)Math.Round(iA * rowA.Length / (double)rowB.Length);
-                ForkB(fork, rowA, rowB, ref iA, ref iB);
-                Split(rowA, rowB, ref iA, ref iB);
+                foreach (var t in ForkB(fork, rowA, rowB, ref iA, ref iB)) { yield return t; };
+                foreach (var t in Split(rowA, rowB, ref iA, ref iB)){ yield return t; };
 
             } while (iA < rowA.Length - 1 && iB < rowB.Length - 1);
         }
 
-        private static void Split(PositionNormal[] rowA, PositionNormal[] rowB, ref int iA, ref int iB)
+        private static IEnumerable<PositionTriangle> Split(PositionNormal[] rowA, PositionNormal[] rowB, ref int iA, ref int iB)
         {
             int iAplus = (iA + 1) % rowA.Length;
             int iBplus = (iB + 1) % rowB.Length;
-            new PositionTriangle(rowA[iA], rowB[iB], rowB[iBplus]);
-            new PositionTriangle(rowA[iA], rowA[iAplus], rowB[iBplus]);
+            var output = new PositionTriangle[2];
+            output[0] =  new PositionTriangle(rowA[iA], rowB[iB], rowB[iBplus]);
+            output[1] = new PositionTriangle(rowA[iA], rowA[iAplus], rowB[iBplus]);
             iA = iAplus;
             iB = iBplus;
+            return output;
         }
 
-        private static void ForkB(int forkB, PositionNormal[] rowA, PositionNormal[] rowB, ref int iA, ref int iB)
+        private static IEnumerable<PositionTriangle> ForkB(int forkB, PositionNormal[] rowA, PositionNormal[] rowB, ref int iA, ref int iB)
         {
+            var output = new PositionTriangle[forkB - 1];
             for (int i = 0; i < forkB - 1; i++)
             {
                 int iAplus = (iA + 1) % rowA.Length;
-                new PositionTriangle(rowA[iA], rowA[iAplus], rowB[iB]);
+                output[i] = new PositionTriangle(rowA[iA], rowA[iAplus], rowB[iB]);
                 iA = iAplus;
             }
+            return output;
         }
     }
 }

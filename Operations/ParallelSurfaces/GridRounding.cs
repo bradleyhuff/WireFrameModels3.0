@@ -4,6 +4,7 @@ using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using BaseObjects.Transformations;
 using Operations.Intermesh;
+using Operations.Groupings.Basics;
 
 namespace Operations.ParallelSurfaces
 {
@@ -36,10 +37,8 @@ namespace Operations.ParallelSurfaces
             foreach (var edgeSegment in edgeSegments) { PlotEdgeSegment(mesh, edgeSegment); }
             foreach (var cornerBlock in cornerBlocks) { PlotCornerBlock(mesh, cornerBlock); }
 
-            //foreach (var edgePair in edgePairs) { PlotEdgeSegment(mesh, edgePair, surroundingPositions); }
-            //foreach (var corner in cornerPositions) { PlotCornerBlock(mesh, corner, surroundingPositions); }
-
             mesh.Intermesh();
+            RemoveInternalSurfaces(mesh);
         }
 
         private static bool IsSurfaceTriangle(PositionTriangle triangle)
@@ -305,9 +304,14 @@ namespace Operations.ParallelSurfaces
             {
                 mesh.AddPoint(plotA[i].Point, plotA[i].Normal);
                 mesh.AddPoint(plotB[i].Point, plotB[i].Normal);
-                mesh.EndRow();
+                SetRadiusTrace(mesh.EndRow());
             }
-            mesh.EndGrid();
+            SetRadiusTrace(mesh.EndGrid());
+        }
+
+        private static void SetRadiusTrace(IEnumerable<PositionTriangle> traces)
+        {
+            foreach (var t in traces) { t.Trace = "R"; }
         }
 
         private static IEnumerable<string> IterateEdges(Dictionary<string, List<string>> edges)
@@ -352,12 +356,12 @@ namespace Operations.ParallelSurfaces
                     var a = row[j];
                     var b = row[j + 1];
                     var c = nextRow[j];
-                    mesh.AddTriangle(point + a, a, point + b, b, point + c, c);
+                    mesh.AddTriangle(point + a, a, point + b, b, point + c, c, "R");
 
                     if (j < row.Length - 2)
                     {
                         var d = nextRow[j + 1];
-                        mesh.AddTriangle(point + b, b, point + c, c, point + d, d);
+                        mesh.AddTriangle(point + b, b, point + c, c, point + d, d, "R");
                     }
                 }
             }
@@ -422,6 +426,20 @@ namespace Operations.ParallelSurfaces
             var aggregatePoint = Point3D.Average(surfaceTriangles.Select(t => t.Triangle.Center));
 
             return (aggregatePoint - position.Point).Direction;
+        }
+
+        private static void RemoveInternalSurfaces(IWireFrameMesh mesh)
+        {
+            var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles).ToArray();
+
+            foreach(var surface in surfaces)
+            {
+                var isInternalSurface = surface.Triangles.Any(t => t.Trace[0] == 'R') && !surface.PerimeterEdges.Any(e => e.Triangles.Any(t => t.Trace[0] == 'S'));
+                if (isInternalSurface)
+                {
+                    mesh.RemoveAllTriangles(surface.Triangles);
+                }                
+            }
         }
     }
 }

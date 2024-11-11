@@ -33,8 +33,8 @@ namespace Projects.Projects
             //AddPath(curvedFace, 1);
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
-            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.2998, -0.6)));
-            //cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.0500, -0.6)));
+            //cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.0999, -0.6)));
+            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.1100, -0.6)));
 
             curvedFace.AddGrid(cube);
             //curvedFace.AddGrid(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
@@ -83,7 +83,7 @@ namespace Projects.Projects
             //WavefrontFile.Export(facePlate, "Wavefront/curvedPlate");
             //WavefrontFile.Export(curvedFace, "Wavefront/CurvedPlate");
             //PntFile.Export(curvedFace, "Pnt/CurvedPlate");
-            //WavefrontFileGroups.ExportByTraces(facePlates, "Wavefront/FacePlates");
+            //WavefrontFileGroups.ExportBySurfaces(facePlates, "Wavefront/FacePlates");
             //PntFileGroups.ExportByFaces(facePlates, "Pnt/FacePlates");
             //WavefrontFileGroups.ExportByFolds(facePlates, "Wavefront/Folds");
             WavefrontFile.Export(facePlates, "Wavefront/FacePlates");

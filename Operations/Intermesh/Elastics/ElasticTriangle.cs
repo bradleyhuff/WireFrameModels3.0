@@ -11,7 +11,7 @@ namespace Operations.Intermesh.Elastics
     {
         private static int _id = 0;
         public ElasticTriangle(IntermeshTriangle triangle, ElasticVertexAnchor anchorA, Vector3D normalA, ElasticVertexAnchor anchorB, Vector3D normalB, ElasticVertexAnchor anchorC, Vector3D normalC,
-            ElasticEdge perimeterEdgeAB, ElasticEdge perimeterEdgeBC, ElasticEdge perimeterEdgeCA, string trace)
+            ElasticEdge perimeterEdgeAB, ElasticEdge perimeterEdgeBC, ElasticEdge perimeterEdgeCA, string trace, int tag)
         {
             Id = _id++;
 
@@ -30,6 +30,7 @@ namespace Operations.Intermesh.Elastics
             PerimeterEdgeCA = perimeterEdgeCA;
 
             Trace = trace;
+            Tag = tag;
 
             anchorA.AddCapping(this);
             anchorB.AddCapping(this);
@@ -40,6 +41,7 @@ namespace Operations.Intermesh.Elastics
 
         public int Id { get; }
         public string Trace { get; }
+        public int Tag { get; }
 
         public IntermeshTriangle Triangle { get; }
 
@@ -243,7 +245,7 @@ namespace Operations.Intermesh.Elastics
 
         public void ExportWithPerimeters(IWireFrameMesh mesh, double height = 5e-5)
         {
-            mesh.AddTriangle(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal, SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal, SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal);
+            mesh.AddTriangle(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal, SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal, SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal, "", 0);
 
             foreach (var segment in GetPerimeterSurfaceSegments())
             {
@@ -267,7 +269,7 @@ namespace Operations.Intermesh.Elastics
 
         public void ExportWithDivisions(IWireFrameMesh mesh, double height = 5e-5)
         {
-            mesh.AddTriangle(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal, SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal, SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal);
+            mesh.AddTriangle(SurfaceTriangle.A.Point, SurfaceTriangle.A.Normal, SurfaceTriangle.B.Point, SurfaceTriangle.B.Normal, SurfaceTriangle.C.Point, SurfaceTriangle.C.Normal, "", 0);
 
             var dividingSegments = GetDividingSurfaceSegments();
             foreach (var segment in dividingSegments)

@@ -20,11 +20,11 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 for (int j = 0; j < perimeterLoop.Length - 1; j++)
                 {
                     var segment = new LineSegment3D(perimeterLoop[j].Point, perimeterLoop[j + 1].Point);
-                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End, "", 0);
                 }
                 {
                     var segment = new LineSegment3D(perimeterLoop.Last().Point, perimeterLoop.First().Point);
-                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End, "", 0);
                 }
 
                 WavefrontFile.Export(mesh, $"{fileName}/PerimeterLoop-{i}");
@@ -38,11 +38,11 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 for (int j = 0; j < loop.Length - 1; j++)
                 {
                     var segment = new LineSegment3D(loop[j].Point, loop[j + 1].Point);
-                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End, "", 0);
                 }
                 {
                     var segment = new LineSegment3D(loop.Last().Point, loop.First().Point);
-                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End, "", 0);
                 }
 
                 WavefrontFile.Export(mesh, $"{fileName}/Loop-{i}");
@@ -57,7 +57,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 for (int j = 0; j < loop.Length - 1; j++)
                 {
                     var segment = new LineSegment3D(loop[j].Point, loop[j + 1].Point);
-                    mesh.AddTriangle(segment.Start, segment.Center, segment.End);
+                    mesh.AddTriangle(segment.Start, segment.Center, segment.End, "", 0);
                 }
 
                 WavefrontFile.Export(mesh, $"{fileName}/SpurredLoop-{i}");
@@ -147,7 +147,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 foreach (var freeSpur in freeSpurs)
                 {
                     var mesh = WireFrameMesh.Create();
-                    mesh.AddTriangle(freeSpur.Point + -2 * height * triangle.Triangle.Triangle.Normal, freeSpur.Point, freeSpur.Point + 2 * height * triangle.Triangle.Triangle.Normal);
+                    mesh.AddTriangle(freeSpur.Point + -2 * height * triangle.Triangle.Triangle.Normal, freeSpur.Point, freeSpur.Point + 2 * height * triangle.Triangle.Triangle.Normal, "", 0);
 
                     WavefrontFile.ErrorExport(mesh, $"{fileName}-{triangle.Id}/FreeSpurs-{triangle.Id}-{freeSpur.Index as int?}");
                 }
@@ -186,11 +186,11 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 for (int i = 0; i < chainLoop.Length - 1; i++)
                 {
                     var segment = new LineSegment3D(chainLoop[i].Point, chainLoop[i + 1].Point);
-                    mesh.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
+                    mesh.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End), "", 0);
                 }
                 {
                     var segment = new LineSegment3D(chainLoop[0].Point, chainLoop[chainLoop.Length - 1].Point);
-                    mesh.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End));
+                    mesh.AddTriangle(new Triangle3D(segment.Start, segment.Center, segment.End), "", 0);
                 }
             }
             WavefrontFile.ErrorExport(mesh, $"{fileName}/Chains-Loop");

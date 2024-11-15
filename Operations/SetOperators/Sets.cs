@@ -37,10 +37,10 @@ namespace Operations.SetOperators
             ConsoleLog.MaximumLevels = 1;
             DateTime start = DateTime.Now;
             ConsoleLog.Push(note);
-            var sum = CombineAndMark(gridA, gridB, out Space spaceA, out Space spaceB);
+            var sum = CombineAndMark(gridA, gridB, out Space space);
             sum.Intermesh();
             var groups = GroupExtraction(sum);
-            var remainingGroups = TestAndRemoveGroups(sum, groups, spaceA, spaceB, includeGroup);
+            var remainingGroups = TestAndRemoveGroups(sum, groups, space, includeGroup);
             IncludedGroupInverts(remainingGroups);
 
             ConsoleLog.MaximumLevels = 8;
@@ -54,15 +54,14 @@ namespace Operations.SetOperators
             return sum;
         }
 
-        private static IWireFrameMesh CombineAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space spaceA, out Space spaceB)
+        private static IWireFrameMesh CombineAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space space)
         {
             var start = DateTime.Now;
 
-            foreach (var triangle in gridA.Triangles) { triangle.Trace = "A"; }
-            foreach (var triangle in gridB.Triangles) { triangle.Trace = "B"; }
+            foreach (var triangle in gridA.Triangles) { triangle.Tag = 1; }
+            foreach (var triangle in gridB.Triangles) { triangle.Tag = 2; }
 
-            spaceA = new Space(gridA.Triangles.Select(t => t.Triangle).ToArray());
-            spaceB = new Space(gridB.Triangles.Select(t => t.Triangle).ToArray());
+            space = new Space(gridA.Triangles.Select(t => t).Concat(gridB.Triangles.Select(t => t)).ToArray());
 
             var result = gridA.Clone();
             result.AddGrid(gridB);
@@ -79,7 +78,7 @@ namespace Operations.SetOperators
             return groups;
         }
 
-        private static List<GroupingCollection> TestAndRemoveGroups(IWireFrameMesh grid, GroupingCollection[] groups, Space spaceA, Space spaceB, Func<Region, Region, bool> includeGroup)
+        private static List<GroupingCollection> TestAndRemoveGroups(IWireFrameMesh grid, GroupingCollection[] groups, Space space, Func<Region, Region, bool> includeGroup)
         {
             var start = DateTime.Now;
             var remainingGroups = new List<GroupingCollection>();
@@ -87,12 +86,12 @@ namespace Operations.SetOperators
             {
                 var triangles = group.Triangles.ToArray();
                 var testPoint = GetTestPoint(triangles);
-                var spaceAregion = Region.OnBoundary;
-                var spaceBregion = Region.OnBoundary;
-                var trace = triangles.First().Trace;
-                if (trace == "A") { spaceBregion = spaceB.RegionOfPoint(testPoint); }
-                if (trace == "B") { spaceAregion = spaceA.RegionOfPoint(testPoint); }
-                if (!includeGroup(spaceAregion, spaceBregion))
+                var tag1Region = Region.OnBoundary;
+                var tag2Rregion = Region.OnBoundary;
+                var tag = triangles.First().Tag;
+                if (tag == 1) { tag2Rregion = space.RegionOfPoint(testPoint, 2); }
+                if (tag == 2) { tag1Region = space.RegionOfPoint(testPoint, 1); }
+                if (!includeGroup(tag1Region, tag2Rregion))
                 {
                     grid.RemoveAllTriangles(triangles);
                 }

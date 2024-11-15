@@ -232,7 +232,7 @@ namespace Operations.PositionRemovals
             var tagTriangles = mesh.Triangles.Where(t => t.AdjacentAnyCount <= 2).ToArray();
             Console.WriteLine($"Tag triangles {string.Join(",", tagTriangles.Select(t => t.Key))}");
             var test = WireFrameMesh.Create();
-            test.AddRangeTriangles(tagTriangles.Select(t => t.Triangle));
+            test.AddRangeTriangles(tagTriangles.Select(t => t.Triangle), "", 0);
             WavefrontFile.Export(test, "Wavefront/TagTriangles");
             return tagTriangles.Length;
         }
@@ -244,7 +244,7 @@ namespace Operations.PositionRemovals
                 Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => o.Segment))}");
                 Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.PositionObject.Point}<{o.A.PositionObject.Id}>, {o.B.PositionObject.Point}<{o.B.PositionObject.Id}>]"))}");
                 Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.Normal}<{o.A.PositionObject.Id}>, {o.B.Normal}<{o.B.PositionObject.Id}>]"))}");
-                test.AddRangeTriangles(openEdges.Select(e => e.Plot));
+                test.AddRangeTriangles(openEdges.Select(e => e.Plot), "", 0);
                 WavefrontFile.Export(test, $"Wavefront/TagOpenEdges");
         }
 
@@ -340,7 +340,7 @@ namespace Operations.PositionRemovals
 
             foreach (var filling in fillingsToAdd)
             {
-                mesh.AddTriangle(filling[0], filling[1], filling[2]);
+                mesh.AddTriangle(filling[0], filling[1], filling[2], "", 0);
             }
             mesh.RemoveAllTriangles(trianglesToRemove);
         }
@@ -424,7 +424,7 @@ namespace Operations.PositionRemovals
 
                 foreach (var filling in fillingsToAdd)
                 {
-                    mesh.AddTriangle(filling[0], filling[1], filling[2]);
+                    mesh.AddTriangle(filling[0], filling[1], filling[2], "", 0);
                 }
                 mesh.RemoveAllTriangles(trianglesToRemove);
 

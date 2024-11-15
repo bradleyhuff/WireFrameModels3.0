@@ -39,7 +39,7 @@ namespace Projects.Projects
             //var sum = WireFrameMesh.Create();
             //sum.AddGrid(part1);
             //sum.AddGrid(part2);
-            cross.Trim();
+            //cross.Trim();
 
             WavefrontFile.Export(cross, "Wavefront/CrossTest");
             //{
@@ -65,7 +65,7 @@ namespace Projects.Projects
                 var test = WireFrameMesh.Create();
                 var testSegment = new LineSegment3D(new Point3D(-1, 3.5, 2), new Point3D(0, 3.5, 2.5));
                 Console.WriteLine($"Test segment {testSegment}");
-                test.AddTriangle(testSegment.Start, testSegment.Center, testSegment.End);
+                test.AddTriangle(testSegment.Start, testSegment.Center, testSegment.End, "", 0);
                 WavefrontFile.Export(test, "Wavefront/CrossTest_TestSegment");
             }
             //{

@@ -74,7 +74,7 @@ namespace Projects.Projects
                 Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => o.Segment))}");
                 Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.PositionObject.Point}<{o.A.PositionObject.Id}>, {o.B.PositionObject.Point}<{o.B.PositionObject.Id}>]"))}");
                 Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.Normal}<{o.A.PositionObject.Id}>, {o.B.Normal}<{o.B.PositionObject.Id}>]"))}");
-                test.AddRangeTriangles(openEdges.Select(e => e.Plot));
+                test.AddRangeTriangles(openEdges.Select(e => e.Plot), "", 0);
                 WavefrontFile.Export(test, $"Wavefront/TagOpenEdges");
             }
         }
@@ -85,7 +85,7 @@ namespace Projects.Projects
 
             foreach (var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
             {
-                output.AddTriangle(positionNormal.Position, Vector3D.Zero, positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero, positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
+                output.AddTriangle(positionNormal.Position, Vector3D.Zero, positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero, positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero, "", 0);
             }
 
             return output;

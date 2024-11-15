@@ -84,8 +84,9 @@ namespace Operations.Regions
 
         private class TriangleNode : ITriangle
         {
-            public TriangleNode(Triangle3D triangle) { Triangle = triangle; }
+            public TriangleNode(Triangle3D triangle, int tag) { Triangle = triangle; Tag = tag; }
             public Triangle3D Triangle { get; }
+            public int Tag { get; }
         }
 
         private class Triangle3DNodeBucketX : BoxBucket<Triangle3DNodeX>
@@ -112,9 +113,9 @@ namespace Operations.Regions
 
         public Space(IEnumerable<Triangle3D> triangles)
         {
-            _bucketX = new Triangle3DNodeBucketX(triangles.Select(t => new TriangleNode(t)));
-            _bucketY = new Triangle3DNodeBucketY(triangles.Select(t => new TriangleNode(t)));
-            _bucketZ = new Triangle3DNodeBucketZ(triangles.Select(t => new TriangleNode(t)));
+            _bucketX = new Triangle3DNodeBucketX(triangles.Select(t => new TriangleNode(t, 0)));
+            _bucketY = new Triangle3DNodeBucketY(triangles.Select(t => new TriangleNode(t, 0)));
+            _bucketZ = new Triangle3DNodeBucketZ(triangles.Select(t => new TriangleNode(t, 0)));
         }
 
         public Space(IEnumerable<ITriangle> triangles)
@@ -127,6 +128,11 @@ namespace Operations.Regions
         public Region RegionOfPoint(Point3D point)
         {
             return RegionOfPoint(point, t => t);
+        }
+
+        public Region RegionOfPoint(Point3D point, int tag)
+        {
+            return RegionOfPoint(point, t => t.Where(t => t.Tag == tag));
         }
 
         public Region RegionOfPoint(Point3D point, Func<IEnumerable<ITriangle>, IEnumerable<ITriangle>> filter)

@@ -8,10 +8,10 @@ namespace Operations.Intermesh.Basics
     {
         private static int _id = 0;
         public FillTriangle(ElasticTriangle triangle, ElasticVertexCore pointA, ElasticVertexCore pointB, ElasticVertexCore pointC) :
-            this(pointA, triangle.NormalFromProjectedPoint(pointA.Point), pointB, triangle.NormalFromProjectedPoint(pointB.Point), pointC, triangle.NormalFromProjectedPoint(pointC.Point), triangle.Trace)
+            this(pointA, triangle.NormalFromProjectedPoint(pointA.Point), pointB, triangle.NormalFromProjectedPoint(pointB.Point), pointC, triangle.NormalFromProjectedPoint(pointC.Point), triangle.Trace, triangle.Tag)
         { }
-        public FillTriangle(ElasticTriangle node) : this(node.AnchorA, node.NormalA, node.AnchorB, node.NormalB, node.AnchorC, node.NormalC, node.Trace) { }
-        public FillTriangle(ElasticVertexCore pointA, Vector3D normalA, ElasticVertexCore pointB, Vector3D normalB, ElasticVertexCore pointC, Vector3D normalC, string trace)
+        public FillTriangle(ElasticTriangle node) : this(node.AnchorA, node.NormalA, node.AnchorB, node.NormalB, node.AnchorC, node.NormalC, node.Trace, node.Tag) { }
+        public FillTriangle(ElasticVertexCore pointA, Vector3D normalA, ElasticVertexCore pointB, Vector3D normalB, ElasticVertexCore pointC, Vector3D normalC, string trace, int tag)
         {
             Id = _id++;
             PointA = pointA;
@@ -21,10 +21,12 @@ namespace Operations.Intermesh.Basics
             NormalB = normalB;
             NormalC = normalC;
             Trace = trace;
+            Tag = tag;
         }
 
         public int Id { get; }
         public string Trace { get; }
+        public int Tag { get; }
 
         public ElasticVertexCore PointA { get; }
         public Vector3D NormalA { get; }
@@ -49,7 +51,7 @@ namespace Operations.Intermesh.Basics
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            mesh.AddTriangle(PointA.Point, NormalA, PointB.Point, NormalB, PointC.Point, NormalC, Trace);
+            mesh.AddTriangle(PointA.Point, NormalA, PointB.Point, NormalB, PointC.Point, NormalC, Trace, Tag);
         }
     }
 }

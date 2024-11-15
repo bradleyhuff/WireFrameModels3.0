@@ -69,7 +69,7 @@ namespace FileExportImport
                         var y = int.Parse(parts[2]);
                         var z = int.Parse(parts[3]);
 
-                        mesh.AddTriangle(positions[x], normals[x], positions[y], normals[y], positions[z], normals[z]);
+                        mesh.AddTriangle(positions[x], normals[x], positions[y], normals[y], positions[z], normals[z], "", 0);
                     }
                 }
             }

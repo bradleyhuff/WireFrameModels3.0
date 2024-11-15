@@ -35,6 +35,43 @@ namespace Operations.ParallelSurfaces
             return output;
         }
 
+        public static IEnumerable<IWireFrameMesh> BuildFacePlates(this IWireFrameMesh mesh, double thickness)
+        {
+            FoldPrimming(mesh);
+            var output = BuildParallelSurfaces(mesh, thickness).ToArray();
+            foreach (var facePlate in output)
+            {
+                facePlate.Intermesh();
+                RemoveInternalFolds(facePlate, thickness);
+                FillPlateSides(facePlate, thickness);
+                ObliqueNormalAdjustments(facePlate);
+                ElbowFill(facePlate, thickness);
+                PlateSidesNormalReplacement(facePlate);
+                ElbowNormalBlending(facePlate);
+            }
+            return output;
+        }
+
+        public static IWireFrameMesh CombineFacePlates(IEnumerable<IWireFrameMesh> facePlates)
+        {
+            var output = facePlates.First().CreateNewInstance();
+            foreach(var facePlate in facePlates)
+            {
+                output.AddGrid(facePlate);
+            }
+
+            //output.Intermesh();
+
+            return output;
+        }
+
+        public static void GiveOnlySurfaces(IWireFrameMesh input)
+        {
+            var nonSurfaces = input.Triangles.Where(t => t.Trace[0] == 'B' || t.Trace[0] == 'F');
+            input.RemoveAllTriangles(nonSurfaces);
+            input.Intermesh();
+        }
+
         private static IWireFrameMesh AddParallelSurfaces(IWireFrameMesh mesh, double thickness)
         {
             var output = mesh.CreateNewInstance();
@@ -43,17 +80,36 @@ namespace Operations.ParallelSurfaces
             foreach (var face in faces.Select((s, i) => new { s, i }))
             {
                 var parallelSurface = CreateParallelSurface(face.s, thickness).Where(t => !IsNearDegenerate(t.Triangle));
-                var addedTriangles = output.AddRangeTriangles(parallelSurface);
-                foreach (var triangle in addedTriangles) { triangle.Trace = $"S{face.i}"; }
+                {
+                    var addedTriangles = output.AddRangeTriangles(parallelSurface, "", 0);
+                    foreach (var triangle in addedTriangles) { triangle.Trace = $"S{face.i}"; }
+                }
+                {
+                    var addedTriangles = output.AddRangeTriangles(face.s.Select(PositionTriangle.GetSurfaceTriangle), "", 0);
+                    foreach (var triangle in addedTriangles) { triangle.Trace = $"B{face.i}"; }
+                }
             }
+            return output;
+        }
+
+        private static IEnumerable<IWireFrameMesh> BuildParallelSurfaces(IWireFrameMesh mesh, double thickness)
+        {           
+            var faces = GroupingCollection.ExtractFaces(mesh.Triangles).Select(f => f.Triangles).ToArray();
 
             foreach (var face in faces.Select((s, i) => new { s, i }))
             {
-                var addedTriangles = output.AddRangeTriangles(face.s.Select(PositionTriangle.GetSurfaceTriangle));
-                foreach (var triangle in addedTriangles) { triangle.Trace = $"B{face.i}"; }
+                var output = mesh.CreateNewInstance();
+                var parallelSurface = CreateParallelSurface(face.s, thickness).Where(t => !IsNearDegenerate(t.Triangle));
+                {
+                    var addedTriangles = output.AddRangeTriangles(parallelSurface, "", 0);
+                    foreach (var triangle in addedTriangles) { triangle.Trace = $"S{face.i}"; }
+                }
+                {
+                    var addedTriangles = output.AddRangeTriangles(face.s.Select(PositionTriangle.GetSurfaceTriangle), "", 0);
+                    foreach (var triangle in addedTriangles) { triangle.Trace = $"B{face.i}"; }
+                }
+                yield return output;
             }
-
-            return output;
         }
 
         private static bool IsNearDegenerate(Triangle3D triangle)
@@ -110,7 +166,7 @@ namespace Operations.ParallelSurfaces
         private static void FoldPrimming(IWireFrameMesh output)
         {
             var foldedTriangles = output.Triangles.Where(t => t.IsFolded).ToArray();
-            if (!foldedTriangles.Any()) { Console.WriteLine(); return; }
+            if (!foldedTriangles.Any()) { return; }
 
             var space = new Space(output.Triangles.Select(t => t.Triangle).ToArray());
             var straightenedNormals = new Dictionary<int, Vector3D>();
@@ -140,7 +196,7 @@ namespace Operations.ParallelSurfaces
             }
 
             output.RemoveAllTriangles(foldedTriangles);
-            output.AddRangeTriangles(replacements);
+            output.AddRangeTriangles(replacements, "", 0);
 
             Console.WriteLine();
         }
@@ -280,7 +336,7 @@ namespace Operations.ParallelSurfaces
                 new Ray3D(t.C.Position, adjustedNormals.ContainsKey(t.C.Id) ? adjustedNormals[t.C.Id] : t.C.Normal)));
 
             output.RemoveAllTriangles(trianglesToReplace);
-            output.AddRangeTriangles(replacements, sideTriangleSet.Key);
+            output.AddRangeTriangles(replacements, sideTriangleSet.Key, 0);
         }
 
         private static Point3D SolveForOrthogonalPoint(Point3D a, Point3D b, Point3D center)
@@ -341,7 +397,7 @@ namespace Operations.ParallelSurfaces
 
                 var triangle1 = new SurfaceTriangle(new Ray3D(position.Point, surfaceNormal), new Ray3D(surfacePoint, surfaceNormal), new Ray3D(nextPosition.Point, nextSurfaceNormal));
                 var triangle2 = new SurfaceTriangle(new Ray3D(surfacePoint, surfaceNormal), new Ray3D(nextSurfacePoint, nextSurfaceNormal), new Ray3D(nextPosition.Point, nextSurfaceNormal));
-                var addedTriangles = grid.AddRangeTriangles([triangle1, triangle2]);
+                var addedTriangles = grid.AddRangeTriangles([triangle1, triangle2], "", 0);
                 foreach (var triangle in addedTriangles) { triangle.Trace = edgeTrace.Replace('B', 'E'); }
             }
         }
@@ -358,8 +414,9 @@ namespace Operations.ParallelSurfaces
                 var openEdges = triangles.SelectMany(t => OpenEdges(t, group.Key)).ToArray();
                 if (!openEdges.Any()) { continue; }
 
-                var baseGroup = group.Single(g => g.Triangles.Any(t => t.Trace[0] == 'B'));
-                var surfaceGroup = group.SingleOrDefault(g => g.Triangles.Any(t => t.Trace[0] == 'S'));
+                var baseGroup = group.FirstOrDefault(g => g.Triangles.Any(t => t.Trace[0] == 'B'));
+                if (baseGroup is null) { continue; }
+                var surfaceGroup = group.FirstOrDefault(g => g.Triangles.Any(t => t.Trace[0] == 'S'));
                 if (surfaceGroup is null) { continue; }
                 var basePositions = baseGroup.PerimeterEdges.SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToArray();
                 var surfacePositions = surfaceGroup.PerimeterEdges.SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToArray();
@@ -403,15 +460,15 @@ namespace Operations.ParallelSurfaces
                         while (s + 1 < surfacePoints.Length &&
                             Point3D.Distance(basePoints[b + 1].Point, surfacePoints[s].Point) > Point3D.Distance(basePoints[b + 1].Point, surfacePoints[s + 1].Point))
                         {
-                            elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, surfacePoints[s].Point, surfacePoints[s + 1].Point, $"F{element.i}"));
+                            elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, surfacePoints[s].Point, surfacePoints[s + 1].Point, $"F{element.i}", 0));
                             s++;
                         }
-                        elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, basePoints[b + 1].Point, surfacePoints[s].Point, $"F{element.i}"));
+                        elbowTriangles.Add(new TriangleTrace(basePoints[b].Point, basePoints[b + 1].Point, surfacePoints[s].Point, $"F{element.i}", 0));
                     }
 
                     while (s + 1 < surfacePoints.Length)
                     {
-                        elbowTriangles.Add(new TriangleTrace(basePoints[basePoints.Length - 1].Point, surfacePoints[s].Point, surfacePoints[s + 1].Point, $"F{element.i}"));
+                        elbowTriangles.Add(new TriangleTrace(basePoints[basePoints.Length - 1].Point, surfacePoints[s].Point, surfacePoints[s + 1].Point, $"F{element.i}", 0));
                         s++;
                     }
                 }
@@ -419,30 +476,34 @@ namespace Operations.ParallelSurfaces
 
             foreach (var triangle in elbowTriangles)
             {
-                mesh.AddTriangle(triangle.Triangle, triangle.Trace);
+                mesh.AddTriangle(triangle.Triangle, triangle.Trace, triangle.Tag);
             }
         }
 
         private class TriangleTrace
         {
-            public TriangleTrace(Point3D a, Point3D b, Point3D c, string trace)
+            public TriangleTrace(Point3D a, Point3D b, Point3D c, string trace, int tag)
             {
                 Triangle = new Triangle3D(a, b, c);
                 Trace = trace;
+                Tag = tag;
             }
             public Triangle3D Triangle { get; }
             public string Trace { get; }
+            public int Tag { get; }
         }
 
         private class SurfaceTriangleTrace
         {
-            public SurfaceTriangleTrace(Ray3D a, Ray3D b, Ray3D c, string trace)
+            public SurfaceTriangleTrace(Ray3D a, Ray3D b, Ray3D c, string trace, int tag)
             {
                 Triangle = new SurfaceTriangle(a, b, c);
                 Trace = trace;
+                Tag = tag;
             }
             public SurfaceTriangle Triangle { get; }
             public string Trace { get; }
+            public int Tag { get; }
         }
 
 
@@ -563,14 +624,14 @@ namespace Operations.ParallelSurfaces
                     if (b is null) { b = PositionNormal.GetRay(triangle.B); }
                     if (c is null) { c = PositionNormal.GetRay(triangle.C); }
 
-                    replacements.Add(new SurfaceTriangleTrace(a, b, c, triangle.Trace));
+                    replacements.Add(new SurfaceTriangleTrace(a, b, c, triangle.Trace, triangle.Tag));
                     removals.Add(triangle);
                 }
 
                 mesh.RemoveAllTriangles(removals);
                 foreach (var triangle in replacements)
                 {
-                    mesh.AddTriangle(triangle.Triangle, triangle.Trace);
+                    mesh.AddTriangle(triangle.Triangle, triangle.Trace, triangle.Tag);
                 }
             }
         }
@@ -597,13 +658,13 @@ namespace Operations.ParallelSurfaces
                 if (triangle.B.Normal == Vector3D.Zero) { b = new Ray3D(b.Point, principleNormal); }
                 if (triangle.C.Normal == Vector3D.Zero) { c = new Ray3D(c.Point, principleNormal); }
 
-                replacements.Add(new SurfaceTriangleTrace(a, b, c, triangle.Trace));
+                replacements.Add(new SurfaceTriangleTrace(a, b, c, triangle.Trace, triangle.Tag));
             }
 
             mesh.RemoveAllTriangles(zeroTriangles);
             foreach (var triangle in replacements)
             {
-                mesh.AddTriangle(triangle.Triangle, triangle.Trace);
+                mesh.AddTriangle(triangle.Triangle, triangle.Trace, triangle.Tag);
             }
         }
 

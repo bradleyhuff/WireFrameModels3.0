@@ -34,7 +34,7 @@ namespace Projects.Projects
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
             //cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.0999, -0.6)));
-            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.1100, -0.6)));
+            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.1010, -0.6)));
 
             curvedFace.AddGrid(cube);
             //curvedFace.AddGrid(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
@@ -45,8 +45,10 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportByFaces(curvedFace, "Wavefront/Faces");
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.SetFacePlates(0.1000);
-            facePlates.FacePlatesRounding();
+            var facePlates = curvedFace.BuildFacePlates(-0.1000);
+            var combinedFacePlates = Grid.CombineFacePlates(facePlates);
+            Grid.GiveOnlySurfaces(combinedFacePlates);
+            //facePlates.FacePlatesRounding();
 
             //var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);
             //cube2.Apply(Transform.Translation(new Vector3D(-0.900001, 0, -1)));
@@ -73,7 +75,7 @@ namespace Projects.Projects
             //A: [ X: 0.015643446504023068 Y: 1 Z: 0.09876883405951378 ][ X: -0.156434 Y: -0.000000 Z: -0.987688 ] B: [ X: -1.270620473691705E-05 Y: 0 Z: 0.09999899999999995 ][ X: 0.000127 Y: -0.000000 Z: -1.000000 ] C: [ X: 0.015643446504023068 Y: 0 Z: 0.09876883405951378 ][ X: -0.156434 Y: -0.000000 Z: -0.987688 ]
 
             //curvedFace.ShowVitals();
-            facePlates.ShowVitals();
+            //facePlates.ShowVitals();
 
             //Console.WriteLine($"{string.Join("\n", curvedFace.Positions.Where(p => p.Cardinality == 2).Select(q => $" {q.Id} [{string.Join(",", q.PositionNormals.Select(n => $"{n.Id}: {n.Normal}"))}]"))}");
 
@@ -83,12 +85,12 @@ namespace Projects.Projects
             //WavefrontFile.Export(facePlate, "Wavefront/curvedPlate");
             //WavefrontFile.Export(curvedFace, "Wavefront/CurvedPlate");
             //PntFile.Export(curvedFace, "Pnt/CurvedPlate");
-            //WavefrontFileGroups.ExportBySurfaces(facePlates, "Wavefront/FacePlates");
+            //WavefrontFileGroups.ExportBySurfaces(combinedFacePlates, "Wavefront/FacePlates");
             //PntFileGroups.ExportByFaces(facePlates, "Pnt/FacePlates");
             //WavefrontFileGroups.ExportByFolds(facePlates, "Wavefront/Folds");
-            WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
+            WavefrontFile.Export(combinedFacePlates, "Wavefront/FacePlates");
             //WavefrontFile.Export(parallelSurface, "Wavefront/ParallelSurface");
-            WavefrontFile.Export(NormalOverlay(facePlates, 0.05), "Wavefront/FacePlatesNormals");
+            //WavefrontFile.Export(NormalOverlay(facePlates, 0.05), "Wavefront/FacePlatesNormals");
 
             
             //int i = 0;
@@ -147,7 +149,7 @@ namespace Projects.Projects
 
             foreach (var positionNormal in input.Positions.SelectMany(p => p.PositionNormals))
             {
-                output.AddTriangle(positionNormal.Position, Vector3D.Zero, positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero, positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero);
+                output.AddTriangle(positionNormal.Position, Vector3D.Zero, positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero, positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero, "", 0);
             }
 
             return output;

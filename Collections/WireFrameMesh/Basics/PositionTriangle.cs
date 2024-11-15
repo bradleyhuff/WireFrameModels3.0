@@ -23,13 +23,15 @@ namespace Collections.WireFrameMesh.Basics
             B._triangles.Add(this);
             C._triangles.Add(this);
         }
-        internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace) : this(a, b, c)
+        internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace, int tag) : this(a, b, c)
         {
             Trace = trace;
+            Tag = tag;
         }
 
         public int Id { get; }
         public string Trace { get; set; }
+        public int Tag { get; set; }
 
         public int ParentGrid { get; private set; }
 
@@ -43,13 +45,12 @@ namespace Collections.WireFrameMesh.Basics
         {
             _mark = A.Mesh.Mark;
         }
-
         public void ClearMark()
         {
             _mark--;
         }
         public bool IsMarked { get { return _mark == A.Mesh.Mark; } }
-
+       
         public Combination3 Key { get; }
 
         public override int GetHashCode()
@@ -266,8 +267,8 @@ namespace Collections.WireFrameMesh.Basics
 
         public void ExportWithCenterNormal(IWireFrameMesh mesh)
         {
-            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal);
-            mesh.AddTriangle(Triangle.Center, Vector3D.Zero, Triangle.Center + 0.005 * Triangle.Normal.Direction, Vector3D.Zero, Triangle.Center + 0.01 * Triangle.Normal.Direction, Vector3D.Zero);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, "", 0);
+            mesh.AddTriangle(Triangle.Center, Vector3D.Zero, Triangle.Center + 0.005 * Triangle.Normal.Direction, Vector3D.Zero, Triangle.Center + 0.01 * Triangle.Normal.Direction, Vector3D.Zero, "", 0);
         }
     }
 }

@@ -356,12 +356,12 @@ namespace Operations.ParallelSurfaces
                     var a = row[j];
                     var b = row[j + 1];
                     var c = nextRow[j];
-                    mesh.AddTriangle(point + a, a, point + b, b, point + c, c, "R");
+                    mesh.AddTriangle(point + a, a, point + b, b, point + c, c, "R", 0);
 
                     if (j < row.Length - 2)
                     {
                         var d = nextRow[j + 1];
-                        mesh.AddTriangle(point + b, b, point + c, c, point + d, d, "R");
+                        mesh.AddTriangle(point + b, b, point + c, c, point + d, d, "R", 0);
                     }
                 }
             }

@@ -39,7 +39,7 @@ namespace Projects.Projects
                     roundedCube.AddTriangle(
                         triangle.A.Position + radius * triangle.A.Normal, triangle.A.Normal,
                         triangle.B.Position + radius * triangle.B.Normal, triangle.B.Normal,
-                        triangle.C.Position + radius * triangle.C.Normal, triangle.C.Normal);
+                        triangle.C.Position + radius * triangle.C.Normal, triangle.C.Normal, "", 0);
                 }
             }
 
@@ -94,7 +94,7 @@ namespace Projects.Projects
         {
             mesh.AddTriangle(point + radius * n0.Direction, n0.Direction,
                 point + radius * n1.Direction, n1.Direction,
-                point + radius * n2.Direction, n2.Direction);
+                point + radius * n2.Direction, n2.Direction, "", 0);
         }
     }
 }

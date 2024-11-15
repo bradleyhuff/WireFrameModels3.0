@@ -17,11 +17,13 @@ namespace Operations.Groupings.Basics
             _triangle = triangle;
             _lookup = lookup;
             Trace = triangle.Trace;
+            Tag = triangle.Tag;
             Id = _id++;
         }
 
         public int Id { get; }
         public string Trace { get; }
+        public int Tag { get; }
 
         public PositionNormal A { get; private set; }
         public PositionNormal B { get; private set; }
@@ -110,7 +112,7 @@ namespace Operations.Groupings.Basics
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, Trace);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, Trace, Tag);
         }
     }
 }

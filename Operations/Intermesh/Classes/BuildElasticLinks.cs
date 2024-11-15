@@ -142,7 +142,7 @@ namespace Operations.Intermesh.Classes
                 var edgeCA = GetPerimeterEdge(anchors[2], anchors[0], edgeTable);
                 triangleTable[triangle.Id] = new ElasticTriangle(triangle,
                     anchors[0], triangle.A.Normal, anchors[1], triangle.B.Normal, anchors[2], triangle.C.Normal,
-                    edgeAB, edgeBC, edgeCA, triangle.Trace);
+                    edgeAB, edgeBC, edgeCA, triangle.Trace, triangle.Tag);
             }
             return triangleTable[triangle.Id];
         }

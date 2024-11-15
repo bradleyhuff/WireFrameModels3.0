@@ -112,7 +112,7 @@ namespace Operations.Groupings.FileExportImport
         private static IWireFrameMesh CreateTraceMesh(IEnumerable<PositionTriangle> t)
         {
             var output = WireFrameMesh.Create();
-            output.AddRangeTriangles(t);
+            output.AddRangeTriangles(t, "", 0);
 
             return output;
         }

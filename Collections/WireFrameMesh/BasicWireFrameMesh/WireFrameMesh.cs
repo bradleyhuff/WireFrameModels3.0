@@ -65,68 +65,68 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             return AddPoint(transform.Apply(position), transform.Apply(normal));
         }
 
-        public PositionTriangle AddTriangle(Point3D a, Point3D b, Point3D c, string trace = "")
+        public PositionTriangle AddTriangle(Point3D a, Point3D b, Point3D c, string trace, int tag)
         {
-            return AddTriangle(a, Vector3D.Zero, b, Vector3D.Zero, c, Vector3D.Zero, trace);
+            return AddTriangle(a, Vector3D.Zero, b, Vector3D.Zero, c, Vector3D.Zero, trace, tag);
         }
 
-        public PositionTriangle AddTriangle(Ray3D a, Ray3D b, Ray3D c, string trace = "")
+        public PositionTriangle AddTriangle(Ray3D a, Ray3D b, Ray3D c, string trace, int tag)
         {
-            return AddTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, trace);
+            return AddTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, trace, tag);
         }
 
-        public PositionTriangle AddTriangle(Triangle3D triangle, string trace = "")
+        public PositionTriangle AddTriangle(Triangle3D triangle, string trace, int tag)
         {
-            return AddTriangle(triangle.A, triangle.B, triangle.C, trace);
+            return AddTriangle(triangle.A, triangle.B, triangle.C, trace, tag);
         }
 
-        public PositionTriangle AddTriangle(SurfaceTriangle triangle, string trace = "")
+        public PositionTriangle AddTriangle(SurfaceTriangle triangle, string trace, int tag)
         {
-            return AddTriangle(triangle.A, triangle.B, triangle.C, trace);
+            return AddTriangle(triangle.A, triangle.B, triangle.C, trace, tag);
         }
 
-        public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<Triangle3D> triangles, string trace = "")
+        public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<Triangle3D> triangles, string trace, int tag)
         {
-            return AddRangeTrianglesIterate(triangles, trace).ToArray();
+            return AddRangeTrianglesIterate(triangles, trace, tag).ToArray();
         }
 
-        public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<PositionTriangle> triangles, string trace = "")
+        public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<PositionTriangle> triangles, string trace, int tag)
         {
-            return AddRangeTrianglesIterate(triangles.Select(PositionTriangle.GetSurfaceTriangle), trace).ToArray();
+            return AddRangeTrianglesIterate(triangles.Select(PositionTriangle.GetSurfaceTriangle), trace, tag).ToArray();
         }
 
-        private IEnumerable<PositionTriangle> AddRangeTrianglesIterate(IEnumerable<Triangle3D> triangles, string trace = "")
-        {
-            foreach (var triangle in triangles)
-            {
-                yield return AddTriangle(triangle, trace);
-            }
-        }
-
-        public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<SurfaceTriangle> triangles, string trace = "")
-        {
-            return AddRangeTrianglesIterate(triangles, trace).ToArray();
-        }
-
-        private IEnumerable<PositionTriangle> AddRangeTrianglesIterate(IEnumerable<SurfaceTriangle> triangles, string trace = "")
+        private IEnumerable<PositionTriangle> AddRangeTrianglesIterate(IEnumerable<Triangle3D> triangles, string trace, int tag)
         {
             foreach (var triangle in triangles)
             {
-                yield return AddTriangle(triangle, trace);
+                yield return AddTriangle(triangle, trace, tag);
             }
         }
 
-        public PositionTriangle AddTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace = "")
+        public IEnumerable<PositionTriangle> AddRangeTriangles(IEnumerable<SurfaceTriangle> triangles, string trace, int tag)
         {
-            return new PositionTriangle(a, b, c, trace);
+            return AddRangeTrianglesIterate(triangles, trace, tag).ToArray();
         }
 
-        public PositionTriangle AddTriangle(Point3D a, Vector3D aN, Point3D b, Vector3D bN, Point3D c, Vector3D cN, string trace = "")
+        private IEnumerable<PositionTriangle> AddRangeTrianglesIterate(IEnumerable<SurfaceTriangle> triangles, string trace, int tag)
+        {
+            foreach (var triangle in triangles)
+            {
+                yield return AddTriangle(triangle, trace, tag);
+            }
+        }
+
+        public PositionTriangle AddTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace, int tag)
+        {
+            return new PositionTriangle(a, b, c, trace, tag);
+        }
+
+        public PositionTriangle AddTriangle(Point3D a, Vector3D aN, Point3D b, Vector3D bN, Point3D c, Vector3D cN, string trace, int tag)
         {
             var aa = AddPointNoRow(a, aN);
             var bb = AddPointNoRow(b, bN);
             var cc = AddPointNoRow(c, cN);
-            return new PositionTriangle(aa, bb, cc, trace);
+            return new PositionTriangle(aa, bb, cc, trace, tag);
         }
 
         public bool RemoveTriangle(Point3D a, Point3D b, Point3D c)
@@ -271,12 +271,13 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                         var element = mapping[triangle.Id];
                         element.PositionNormals.Add(CloneAddOrExisting(positionNormal));
                         element.Trace = triangle.Trace;
+                        element.Tag = triangle.Tag;
                     }
                 }
             }
             foreach (var element in mapping.Values.Where(v => v.PositionNormals.Count == 3))
             {
-                new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace);
+                new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace, element.Tag);
             }
             EndGrid();
         }
@@ -291,6 +292,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         {
             public List<PositionNormal> PositionNormals { get; set; } = new List<PositionNormal>(3);
             public string Trace { get; set; }
+            public int Tag { get; set; }
         }
 
         public IWireFrameMesh Clone()
@@ -309,13 +311,14 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                         var element = mapping[triangle.Id];
                         element.PositionNormals.Add(clone.CloneAddOrExisting(positionNormal));
                         element.Trace = triangle.Trace;
+                        element.Tag = triangle.Tag;
                     }
                 }
             }
 
             foreach (var element in mapping.Values.Where(v => v.PositionNormals.Count == 3))
             {
-                new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace);
+                new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace, element.Tag);
             }
 
             return clone;

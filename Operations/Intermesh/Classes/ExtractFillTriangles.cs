@@ -240,7 +240,7 @@ namespace Operations.Intermesh.Classes
             foreach (var filling in fillings)
             {
                 yield return new FillTriangle(filling.A.Reference, filling.A.Normal,
-                    filling.B.Reference, filling.B.Normal, filling.C.Reference, filling.C.Normal, triangle.Trace);
+                    filling.B.Reference, filling.B.Normal, filling.C.Reference, filling.C.Normal, triangle.Trace, triangle.Tag);
             }
 
             yield break;

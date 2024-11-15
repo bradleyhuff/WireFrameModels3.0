@@ -24,6 +24,7 @@ namespace Operations.Intermesh.Basics
         public PositionTriangle PositionTriangle { get { return _triangle; } }
 
         public string Trace { get { return _triangle.Trace; } }
+        public int Tag { get { return _triangle.Tag; } }
 
         public override int GetHashCode()
         {
@@ -346,30 +347,30 @@ namespace Operations.Intermesh.Basics
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, Trace);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, Trace, Tag);
         }
 
         public void ExportWithDivisions(IWireFrameMesh mesh)
         {
-            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, "", 0);
 
             foreach (var division in Divisions)
             {
                 var mid = (division.VertexA.Point + division.VertexB.Point) / 2;
 
-                mesh.AddTriangle(division.VertexA.Point, Triangle.Normal, division.VertexB.Point, Triangle.Normal, mid, Triangle.Normal);
+                mesh.AddTriangle(division.VertexA.Point, Triangle.Normal, division.VertexB.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
             }
         }
 
         public void ExportWithIntersections(IWireFrameMesh mesh)
         {
-            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal);
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, "", 0);
 
             foreach (var intersection in Intersections)
             {
                 var mid = (intersection.VertexA.Point + intersection.VertexB.Point) / 2;
 
-                mesh.AddTriangle(intersection.VertexA.Point, Triangle.Normal, intersection.VertexB.Point, Triangle.Normal, mid, Triangle.Normal);
+                mesh.AddTriangle(intersection.VertexA.Point, Triangle.Normal, intersection.VertexB.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
             }
         }
     }

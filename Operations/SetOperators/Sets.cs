@@ -3,6 +3,7 @@ using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
+using FileExportImport;
 using Operations.Groupings.Basics;
 using Operations.Intermesh;
 using Operations.PositionRemovals;
@@ -26,6 +27,44 @@ namespace Operations.SetOperators
         public static IWireFrameMesh Union(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
             return Run("Union", gridA, gridB, (a, b) => (a == Region.OnBoundary && b != Region.Interior) || (a != Region.Interior && b == Region.OnBoundary));
+        }
+
+        public static IWireFrameMesh Union(params IWireFrameMesh[] grids)
+        {
+            ConsoleLog.MaximumLevels = 1;
+            DateTime start = DateTime.Now;
+            string note = "Params Union";
+            ConsoleLog.Push(note);
+
+            var output = WireFrameMesh.Create();
+            int index = 0;
+            foreach(var grid in grids)
+            {
+                foreach(var triangle in output.AddGrid(grid))
+                {
+                    triangle.Tag = index;
+                }
+                index++;
+            }
+            {
+                WavefrontFile.Export(output, "Wavefront/BeforeIntermesh");
+            }
+            var space = new Space(output.Triangles.ToArray());
+            output.Intermesh();
+            WavefrontFile.Export(output, "Wavefront/AfterIntermesh");
+            var groups = GroupingCollection.ExtractFaces(output.Triangles).ToArray();
+            var remainingGroups = UnionTestAndRemoveGroups(output, groups, space);
+            IncludedGroupInverts(remainingGroups);
+
+            ConsoleLog.MaximumLevels = 8;
+            output.RemoveShortSegments(1e-7);
+            output.RemoveCollinearEdgePoints();
+            output.RemoveCoplanarSurfacePoints();
+
+            ConsoleLog.Pop();
+            ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
+            ConsoleLog.MaximumLevels = 1;
+            return output;
         }
 
         public static IWireFrameMesh Sum(this IWireFrameMesh gridA, IWireFrameMesh gridB)
@@ -84,16 +123,15 @@ namespace Operations.SetOperators
             var remainingGroups = new List<GroupingCollection>();
             foreach (var group in groups)
             {
-                var triangles = group.Triangles.ToArray();
-                var testPoint = GetTestPoint(triangles);
+                var testPoint = GetTestPoint(group.Triangles);
                 var tag1Region = Region.OnBoundary;
                 var tag2Rregion = Region.OnBoundary;
-                var tag = triangles.First().Tag;
+                var tag = group.Triangles.First().Tag;
                 if (tag == 1) { tag2Rregion = space.RegionOfPoint(testPoint, 2); }
                 if (tag == 2) { tag1Region = space.RegionOfPoint(testPoint, 1); }
                 if (!includeGroup(tag1Region, tag2Rregion))
                 {
-                    grid.RemoveAllTriangles(triangles);
+                    grid.RemoveAllTriangles(group.Triangles);
                 }
                 else
                 {
@@ -101,6 +139,25 @@ namespace Operations.SetOperators
                 }
             }
             ConsoleLog.WriteLine($"Test and remove groups: Remaining groups {remainingGroups.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            return remainingGroups;
+        }
+
+        private static List<GroupingCollection> UnionTestAndRemoveGroups(IWireFrameMesh grid, GroupingCollection[] groups, Space space)
+        {
+            var remainingGroups = new List<GroupingCollection>();
+            foreach (var group in groups)
+            {
+                var testPoint = GetTestPoint(group.Triangles);
+                var tag = group.Triangles.First().Tag;
+                if (!space.PointIsExteriorAt(testPoint, tag))
+                {
+                    grid.RemoveAllTriangles(group.Triangles);
+                }
+                else
+                {
+                    remainingGroups.Add(group);
+                }
+            }
             return remainingGroups;
         }
 

@@ -2,6 +2,7 @@
 using Collections.Buckets.Interfaces;
 using Collections.Buckets;
 using Collections.WireFrameMesh.Basics;
+using System;
 
 namespace Operations.Regions
 {
@@ -135,16 +136,58 @@ namespace Operations.Regions
             return RegionOfPoint(point, t => t.Where(t => t.Tag == tag));
         }
 
+        public bool PointIsExteriorAt(Point3D point, int tag)
+        {
+            int voteForInterior = 0;
+
+            {
+                var matches = _bucketX.Fetch(new Point3DNodeX(point));               
+                var lineX = new Line3D(point, Vector3D.BasisX);
+                var tagGroups = matches.GroupBy(m => m.Tag);
+                foreach (var tagGroup in tagGroups.Where(g => g.Key != tag))
+                {
+                    var intersections = GetIntersections(lineX, tagGroup.Select(m => m.Triangle)).ToArray();
+                    var region = Manifold.GetRegion(point, intersections);
+                    if (region != Region.Exterior) { voteForInterior++; break; }
+                }
+            }
+
+            {
+                var matches = _bucketY.Fetch(new Point3DNodeY(point));               
+                var lineY = new Line3D(point, Vector3D.BasisY);
+                var tagGroups = matches.GroupBy(m => m.Tag);
+                foreach (var tagGroup in tagGroups.Where(g => g.Key != tag))
+                {
+                    var intersections = GetIntersections(lineY, tagGroup.Select(m => m.Triangle)).ToArray();
+                    var region = Manifold.GetRegion(point, intersections);
+                    if (region != Region.Exterior) { voteForInterior++; break; }
+                }
+            }
+
+            if (voteForInterior > 1) { return false; }
+
+            {
+                var matches = _bucketZ.Fetch(new Point3DNodeZ(point));
+                var lineZ = new Line3D(point, Vector3D.BasisZ);
+                var tagGroups = matches.GroupBy(m => m.Tag);
+                foreach (var tagGroup in tagGroups.Where(g => g.Key != tag))
+                {
+                    var intersections = GetIntersections(lineZ, tagGroup.Select(m => m.Triangle)).ToArray();
+                    var region = Manifold.GetRegion(point, intersections);
+                    if (region != Region.Exterior) { voteForInterior++; break; }
+                }
+            }
+
+            return voteForInterior < 2;
+        }
+
         public Region RegionOfPoint(Point3D point, Func<IEnumerable<ITriangle>, IEnumerable<ITriangle>> filter)
         {
-            var lineX = new Line3D(point, Vector3D.BasisX);
-            var lineY = new Line3D(point, Vector3D.BasisY);
-            var lineZ = new Line3D(point, Vector3D.BasisZ);
-
             int voteForInterior = 0;
             int voteForExterior = 0;
 
             {
+                var lineX = new Line3D(point, Vector3D.BasisX);
                 var matches = filter(_bucketX.Fetch(new Point3DNodeX(point)));
 
                 var intersections = GetIntersections(lineX, matches.Select(m => m.Triangle)).ToArray();
@@ -154,6 +197,7 @@ namespace Operations.Regions
                 if (region == Region.OnBoundary) { return Region.OnBoundary; }
             }
             {
+                var lineY = new Line3D(point, Vector3D.BasisY);
                 var matches = filter(_bucketY.Fetch(new Point3DNodeY(point)));
 
                 var intersections = GetIntersections(lineY, matches.Select(m => m.Triangle)).ToArray();
@@ -165,6 +209,7 @@ namespace Operations.Regions
             if (voteForInterior >= 2) { return Region.Interior; }
             if (voteForExterior >= 2) { return Region.Exterior; }
             {
+                var lineZ = new Line3D(point, Vector3D.BasisZ);
                 var matches = filter(_bucketZ.Fetch(new Point3DNodeZ(point)));
 
                 var intersections = GetIntersections(lineZ, matches.Select(m => m.Triangle)).ToArray();

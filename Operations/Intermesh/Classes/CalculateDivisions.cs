@@ -2,6 +2,8 @@
 using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Collections.Threading;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using FileExportImport;
 using Operations.Intermesh.Basics;
 using Console = BaseObjects.Console;
 
@@ -16,13 +18,6 @@ namespace Operations.Intermesh.Classes
             var divisionIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             divisionIterator.RunSingle<DivisionState, DivisionThread>(DivisionAction, divisionState);
             ConsoleLog.WriteLine($"Calculate divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {divisionState.Threads}");
-            ////Notes.CalculateDivisionNotes(intermeshTriangles);
-            //var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);
-            ////var divisionsNotZeroAndBordered = intersectionNodes.SelectMany(i => i.DivisionFilter());
-            //var divisionNodes = intersectionNodes.SelectMany(i => i.Divisions);
-            ////Console.WriteLine($"Divisions not zero and bordered {divisionsNotZeroAndBordered.Count()}");
-            //Console.WriteLine($"Divisions {divisionNodes.Count()}");
-            //TableDisplays.ShowCountSpreadWithSum("Divisions", intersectionNodes, e => e.Divisions.Count);
         }
 
         private static void DivisionAction(IntermeshTriangle node, DivisionThread threadState, DivisionState state)

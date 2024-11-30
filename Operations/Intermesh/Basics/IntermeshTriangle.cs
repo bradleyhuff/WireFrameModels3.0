@@ -1,6 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 
 namespace Operations.Intermesh.Basics
@@ -362,15 +363,41 @@ namespace Operations.Intermesh.Basics
             }
         }
 
+        public IEnumerable<IWireFrameMesh> ExportWithDivisionsSplit(IWireFrameMesh mesh)
+        {
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, "", 0);
+
+            foreach (var division in Divisions)
+            {
+                var mid = (division.VertexA.Point + division.VertexB.Point) / 2;
+                var newMesh = WireFrameMesh.Create();
+                newMesh.AddTriangle(division.VertexA.Point, Triangle.Normal, division.VertexB.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
+                yield return newMesh;
+            }
+        }
+
         public void ExportWithIntersections(IWireFrameMesh mesh)
+        {
+            mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, "", 0);
+
+            foreach (var intersection in Intersections.Where(i => !i.Disabled))
+            {
+                var mid = (intersection.VertexA.Point + intersection.VertexB.Point) / 2;
+
+                mesh.AddTriangle(intersection.VertexA.Point, Triangle.Normal, intersection.VertexB.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
+            }
+        }
+
+        public IEnumerable<IWireFrameMesh> ExportWithIntersectionsSplit(IWireFrameMesh mesh)
         {
             mesh.AddTriangle(A.Position, A.Normal, B.Position, B.Normal, C.Position, C.Normal, "", 0);
 
             foreach (var intersection in Intersections)
             {
                 var mid = (intersection.VertexA.Point + intersection.VertexB.Point) / 2;
-
-                mesh.AddTriangle(intersection.VertexA.Point, Triangle.Normal, intersection.VertexB.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
+                var newMesh = WireFrameMesh.Create();
+                newMesh.AddTriangle(intersection.VertexA.Point, Triangle.Normal, intersection.VertexB.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
+                yield return newMesh;
             }
         }
     }

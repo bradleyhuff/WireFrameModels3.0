@@ -11,6 +11,7 @@ using Operations.Groupings.Basics;
 using Operations.Groupings.FileExportImport;
 using Operations.ParallelSurfaces;
 using Operations.SetOperators;
+using System.IO;
 using WireFrameModels3._0;
 
 namespace Projects.Projects
@@ -34,7 +35,7 @@ namespace Projects.Projects
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
             //cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.0999, -0.6)));
-            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.1010, -0.6)));
+            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.2500, -0.6)));
 
             curvedFace.AddGrid(cube);
             //curvedFace.AddGrid(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
@@ -45,9 +46,12 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportByFaces(curvedFace, "Wavefront/Faces");
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.BuildFacePlates(-0.1000);
-            var combinedFacePlates = Grid.CombineFacePlates(facePlates);
-            Grid.GiveOnlySurfaces(combinedFacePlates);
+            var facePlates = curvedFace.BuildFacePlates(-0.1500).ToArray();
+            //facePlates[2].Apply(Transform.Translation(new Vector3D(1e-3, 1e-3, 1e-3)));
+            //var facePlate = facePlates[0].Union(facePlates[2]);
+            //var facePlate = Sets.Union2(facePlates.ToArray());
+            //var combinedFacePlates = Grid.CombineFacePlates(facePlates);
+            //Grid.GiveOnlySurfaces(combinedFacePlates);
             //facePlates.FacePlatesRounding();
 
             //var cube2 = Cuboid.Create(1, 1, 1, 1, 1, 1);
@@ -88,7 +92,7 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportBySurfaces(combinedFacePlates, "Wavefront/FacePlates");
             //PntFileGroups.ExportByFaces(facePlates, "Pnt/FacePlates");
             //WavefrontFileGroups.ExportByFolds(facePlates, "Wavefront/Folds");
-            WavefrontFile.Export(combinedFacePlates, "Wavefront/FacePlates");
+            WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
             //WavefrontFile.Export(parallelSurface, "Wavefront/ParallelSurface");
             //WavefrontFile.Export(NormalOverlay(facePlates, 0.05), "Wavefront/FacePlatesNormals");
 

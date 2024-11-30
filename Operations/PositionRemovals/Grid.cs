@@ -99,13 +99,13 @@ namespace Operations.PositionRemovals
         {
             var plane = new Plane(pp.PositionNormals[0].Position, pp.PositionNormals[0].Normal.Direction);
             var points = pp.PositionNormals[0].Triangles.SelectMany(p => p.Positions).DistinctBy(p => p.Id).Select(p => p.Position).ToArray();
-            return plane.AllPointsOnPlane(points);
+            return plane.AllPointsOnPlane(1e-6, points);
         }
 
         private static bool IsCollinear(EdgeCluster cluster)
         {
             var line = new Line3D(cluster.Cluster[0].Point, cluster.Cluster[1].Point);
-            return line.PointIsOnLine(cluster.Position.Point);
+            return line.PointIsOnLine(cluster.Position.Point, 1e-6);
         }
 
         private static void ShortEdgeSegmentRemoval(IWireFrameMesh mesh, double minimumLength)

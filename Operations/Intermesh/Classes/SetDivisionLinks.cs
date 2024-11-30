@@ -1,6 +1,9 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using Collections.Buckets;
+using Collections.WireFrameMesh.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using FileExportImport;
 using Operations.Intermesh.Basics;
 
 namespace Operations.Intermesh.Classes
@@ -51,7 +54,6 @@ namespace Operations.Intermesh.Classes
                             divisionNode.AddMultiple(match); 
                         }
                     }
-
                 }
             }
 
@@ -94,7 +96,7 @@ namespace Operations.Intermesh.Classes
         private static void LinkDivisionNodeEnds(IntermeshIntersection[] intersectionNodes)
         {
             int count = 0;
-            foreach (var intersectionNode in intersectionNodes)
+            foreach (var intersectionNode in intersectionNodes.Where(i => !i.Disabled))
             {
                 VertexCore.Link(intersectionNode.VertexA, intersectionNode.Divisions.First().VertexA);
                 VertexCore.Link(intersectionNode.VertexB, intersectionNode.Divisions.Last().VertexB);

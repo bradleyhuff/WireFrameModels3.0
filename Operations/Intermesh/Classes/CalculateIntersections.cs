@@ -16,11 +16,6 @@ namespace Operations.Intermesh.Classes
             intersectionIterator.RunSingle<IntersectionState, IntersectionThread>(IntersectionAction, intersectionState);
             foreach (var triangle in intermeshTriangles) { triangle.ClearNullIntersections(); }
             ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {intersectionState.Threads}");
-
-            //Console.WriteLine($"Non distinct intersections {intermeshTriangles.SelectMany(t => t.Intersections).Count()}");
-            //var intersectionNodes = intermeshTriangles.SelectMany(t => t.Intersections).DistinctBy(t => t.Id);
-            //Console.WriteLine($"Gatherings {intersectionState.Gatherings} Intersections {intersectionNodes.Count()}:{intersectionState.Intersections}");
-            //Console.WriteLine();
         }
         private static void IntersectionAction(IntermeshTriangle node, IntersectionThread threadState, IntersectionState state)
         {
@@ -36,8 +31,8 @@ namespace Operations.Intermesh.Classes
                     if (!intersectionSet.IsSet)
                     {
                         intersectionSet.IsSet = true;
-                        intersectionSet.Intersections = intersections.Length > 0 ? intersections.Select(i => 
-                            new IntermeshIntersection() { Intersection = i, IntersectorA = node, IntersectorB = gathering}).ToArray() : null;
+                        intersectionSet.Intersections = intersections.Length > 0 ? intersections.Select(i =>
+                            new IntermeshIntersection() { Intersection = i, IntersectorA = node, IntersectorB = gathering }).ToArray() : null;
                         if (intersectionSet.Intersections is not null) { threadState.Intersections += intersectionSet.Intersections.Length; }
                     }
                 }

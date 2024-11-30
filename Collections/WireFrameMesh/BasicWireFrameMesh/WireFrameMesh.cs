@@ -255,11 +255,12 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             }
         }
 
-        public void AddGrid(IWireFrameMesh inputMesh)
+        public IEnumerable<PositionTriangle> AddGrid(IWireFrameMesh inputMesh)
         {
             EndGrid();
 
             Dictionary<int, Element> mapping = new Dictionary<int, Element>();
+            var output = new List<PositionTriangle>();
 
             foreach (var position in inputMesh.Positions)
             {
@@ -277,9 +278,10 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
             }
             foreach (var element in mapping.Values.Where(v => v.PositionNormals.Count == 3))
             {
-                new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace, element.Tag);
+                output.Add(new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace, element.Tag));
             }
             EndGrid();
+            return output;
         }
         public void AddGrids(IEnumerable<IWireFrameMesh> grids)
         {

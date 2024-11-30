@@ -135,16 +135,16 @@ namespace BasicObjects.GeometricObjects
             return Distance(point) * System.Math.Sign(Vector3D.Dot(Normal, vector.Direction));
         }
 
-        public bool PointIsOnPlane(Point3D point)
+        public bool PointIsOnPlane(Point3D point, double error = E.Double.ProximityError)
         {
-            return Distance(point) < E.Double.ProximityError;
+            return Distance(point) < error;
         }
 
-        public bool AllPointsOnPlane(params Point3D[] points)
+        public bool AllPointsOnPlane(double error = E.Double.ProximityError, params Point3D[] points)
         {
             foreach(var point in points)
             {
-                if (!PointIsOnPlane(point)) { return false; }
+                if (!PointIsOnPlane(point,error)) { return false; }
             }
             return true;
         }

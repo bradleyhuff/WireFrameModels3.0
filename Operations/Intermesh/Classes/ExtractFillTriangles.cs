@@ -45,7 +45,8 @@ namespace Operations.Intermesh.Classes
                                 Console.WriteLine(ex.Message);
                             }
 
-                            if (fills.Any()) { foreach (var fill in fills) { yield return fill; } break; }
+                            if (fills.Any()) {
+                                foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     case 1:
@@ -60,7 +61,8 @@ namespace Operations.Intermesh.Classes
                                 Console.WriteLine(ex.Message);
                             }
 
-                            if (fills.Any()) { foreach (var fill in fills) { yield return fill; } break; }
+                            if (fills.Any()) {
+                                foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     case 2:
@@ -75,7 +77,8 @@ namespace Operations.Intermesh.Classes
                                 Console.WriteLine(ex.Message);
                             }
 
-                            if (fills.Any()) { foreach (var fill in fills) { yield return fill; } break; }
+                            if (fills.Any()) {
+                                foreach (var fill in fills) { yield return fill; } break; }
                             goto default;
                         }
                     default:

@@ -220,10 +220,10 @@ namespace BasicObjects.MathExtensions
 
             switch (caseNumber)
             {
-                case  0: A = d; B = c; C = b; D = a; break;
-                case  4: A = c; B = d; C = b; D = a; break;
-                case  6: A = c; B = b; C = d; D = a; break;
-                case  7: A = c; B = b; C = a; D = d; break;
+                case 0: A = d; B = c; C = b; D = a; break;
+                case 4: A = c; B = d; C = b; D = a; break;
+                case 6: A = c; B = b; C = d; D = a; break;
+                case 7: A = c; B = b; C = a; D = d; break;
                 case 16: A = d; B = b; C = c; D = a; break;
                 case 18: A = b; B = d; C = c; D = a; break;
 
@@ -237,12 +237,12 @@ namespace BasicObjects.MathExtensions
                 case 32: A = d; B = c; C = a; D = b; break;
                 case 36: A = c; B = d; C = a; D = b; break;
                 case 37: A = c; B = a; C = d; D = b; break;
-                case 39: A = c; B = a; C = b; D = d; break;                
+                case 39: A = c; B = a; C = b; D = d; break;
                 case 40: A = d; B = a; C = c; D = b; break;
                 case 41: A = a; B = d; C = c; D = b; break;
 
                 case 45: A = a; B = c; C = d; D = b; break;
-                case 47: A = a; B = c; C = b; D = d; break;                
+                case 47: A = a; B = c; C = b; D = d; break;
                 case 56: A = d; B = a; C = b; D = c; break;
                 case 57: A = a; B = d; C = b; D = c; break;
                 case 59: A = a; B = b; C = d; D = c; break;
@@ -420,7 +420,17 @@ namespace BasicObjects.MathExtensions
 
         public int GetHashCode(Combination obj)
         {
-            return obj.Array[0] ^ obj.Array[obj.Array.Length - 1];
+            unchecked
+            {
+                if (obj.Array.Length == 0) { return 0; }
+                int sum = obj.Array[0];
+                for (int i = 1; i < obj.Array.Length; i++)
+                {
+                    sum = sum << 3;
+                    sum = sum ^ obj.Array[i];
+                }
+                return sum;
+            }
         }
     }
 

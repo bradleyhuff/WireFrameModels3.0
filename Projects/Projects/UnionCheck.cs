@@ -38,8 +38,8 @@ namespace Projects.Projects
             var union = Sets.Union(facePlates);
             union.ShowVitals();
 
-            WavefrontFile.Export(output, "Wavefront/UnionCheck");
-            WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
+            //WavefrontFile.Export(output, "Wavefront/UnionCheck");
+            //WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
             WavefrontFile.Export(union, "Wavefront/Union");
             WavefrontFile.Export(NormalOverlay(union, 0.05), "Wavefront/UnionNormals");
         }

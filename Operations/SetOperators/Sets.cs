@@ -5,6 +5,7 @@ using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Groupings.Basics;
+using Operations.Groupings.FileExportImport;
 using Operations.Intermesh;
 using Operations.PositionRemovals;
 using Operations.Regions;
@@ -50,13 +51,15 @@ namespace Operations.SetOperators
                 WavefrontFile.Export(output, "Wavefront/BeforeIntermesh");
             }
             var space = new Space(output.Triangles.ToArray());
-            output.Intermesh();
+            
+            output.Intermesh2();
             WavefrontFile.Export(output, "Wavefront/AfterIntermesh");
+            //WavefrontFileGroups.ExportByFaces(output,"Wavefront/Faces");
             var groups = GroupingCollection.ExtractFaces(output.Triangles).ToArray();
             var remainingGroups = UnionTestAndRemoveGroups(output, groups, space);
             IncludedGroupInverts(remainingGroups);
 
-            ConsoleLog.MaximumLevels = 8;
+            //ConsoleLog.MaximumLevels = 8;
             output.RemoveShortSegments(1e-7);
             output.RemoveCollinearEdgePoints();
             output.RemoveCoplanarSurfacePoints();
@@ -73,11 +76,11 @@ namespace Operations.SetOperators
         }
         private static IWireFrameMesh Run(string note, IWireFrameMesh gridA, IWireFrameMesh gridB, Func<Region, Region, bool> includeGroup)
         {
-            ConsoleLog.MaximumLevels = 1;
+            ConsoleLog.MaximumLevels = 8;
             DateTime start = DateTime.Now;
             ConsoleLog.Push(note);
             var sum = CombineAndMark(gridA, gridB, out Space space);
-            sum.Intermesh();
+            sum.Intermesh2();
             var groups = GroupExtraction(sum);
             var remainingGroups = TestAndRemoveGroups(sum, groups, space, includeGroup);
             IncludedGroupInverts(remainingGroups);

@@ -16,6 +16,7 @@ namespace Collections.Buckets
     {
         private BoxBucketInternal<T>? _boxBuckets = null;
         private List<T>? _boxNodes = null;
+        public BoxBucket():this(Enumerable.Empty<T>()) { }
         public BoxBucket(IEnumerable<T> boxes)
         {
             if (boxes.Count() < BoxBucketInternal<T>.MAX_GROUP)

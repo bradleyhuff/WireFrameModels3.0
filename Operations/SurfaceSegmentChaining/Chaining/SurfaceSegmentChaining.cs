@@ -142,7 +142,6 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 virtualIndex--;
                 _virtualPoints[virtualIndex] = rayOffset;
 
-
                 var segmentA = new LinkedIndexSurfaceSegment<G, T>(endPointSegment.GroupKey, endPointSegment.GroupObject, endPointSegment.IndexPointA, virtualIndex, endPointSegment.Rank);
                 var segmentB = new LinkedIndexSurfaceSegment<G, T>(endPointSegment.GroupKey, endPointSegment.GroupObject, virtualIndex, endPointSegment.IndexPointB, endPointSegment.Rank);
 

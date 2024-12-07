@@ -1,4 +1,5 @@
-﻿using BaseObjects.Transformations;
+﻿using BaseObjects;
+using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
@@ -59,6 +60,7 @@ namespace Projects.Projects
             allSpheres.AddGrid(spheres[7]);
             allSpheres.AddGrid(spheres[8]);
 
+            ConsoleLog.MaximumLevels = 8;
             var grid = cube.Difference(allSpheres);
 
             grid.ShowVitals();
@@ -71,9 +73,9 @@ namespace Projects.Projects
                 var test = WireFrameMesh.Create();
                 var openEdges = grid.Triangles.SelectMany(t => t.OpenEdges);
                 //Console.WriteLine($"Triangles {string.Join(",", output.Triangles.Select(t => t.Key))}");
-                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => o.Segment))}");
-                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.PositionObject.Point}<{o.A.PositionObject.Id}>, {o.B.PositionObject.Point}<{o.B.PositionObject.Id}>]"))}");
-                Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.Normal}<{o.A.PositionObject.Id}>, {o.B.Normal}<{o.B.PositionObject.Id}>]"))}");
+                System.Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => o.Segment))}");
+                System.Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.PositionObject.Point}<{o.A.PositionObject.Id}>, {o.B.PositionObject.Point}<{o.B.PositionObject.Id}>]"))}");
+                System.Console.WriteLine($"Open edges {string.Join(",", openEdges.Select(o => $"[{o.A.Normal}<{o.A.PositionObject.Id}>, {o.B.Normal}<{o.B.PositionObject.Id}>]"))}");
                 test.AddRangeTriangles(openEdges.Select(e => e.Plot), "", 0);
                 WavefrontFile.Export(test, $"Wavefront/TagOpenEdges");
             }

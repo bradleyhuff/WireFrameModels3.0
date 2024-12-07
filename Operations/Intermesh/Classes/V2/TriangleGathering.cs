@@ -3,45 +3,49 @@ using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Collections.Threading;
 using Operations.Intermesh.Basics;
-using Console = BaseObjects.Console;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Operations.Intermesh.Classes
+namespace Operations.Intermesh.Classes.V2
 {
-    internal static class TriangleGathering
+    internal class TriangleGathering
     {
-        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        internal static void Action(IEnumerable<Basics.V2.IntermeshTriangle> intermeshTriangles)
         {
             var start = DateTime.Now;
             var gatheringState = new GatheringState(intermeshTriangles);
-            var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
+            var gatheringIterator = new Iterator<Basics.V2.IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.Run<GatheringState, GatheringThread>(GatheringAction, gatheringState);
             AssignIntersectionNodes(intermeshTriangles);
             ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
         }
 
-        private static void GatheringAction(IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)
+        private static void GatheringAction(Basics.V2.IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)
         {
-            var boxMatches = state.Bucket.Fetch(triangle).Where(m => m.Id != triangle.Id && !m.AdjacentTriangles.Any(t => t.Id == triangle.Id));
+            var boxMatches = state.Bucket.Fetch(triangle).Where(m => m.Id != triangle.Id);
             var planarMatches = boxMatches.Where(b => triangle.Triangle.Plane.Intersects(b.Box.Margin(BoxBucket.MARGINS)));
             var marginMatches = MarginMatches(triangle, planarMatches);
 
             triangle.Gathering.AddRange(marginMatches);
         }
 
-        private static void AssignIntersectionNodes(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        private static void AssignIntersectionNodes(IEnumerable<Basics.V2.IntermeshTriangle> intermeshTriangles)
         {
-            foreach (var node in intermeshTriangles)
+            foreach (var element in intermeshTriangles)
             {
-                foreach (var gathering in node.Gathering)
+                foreach (var gathering in element.Gathering)
                 {
-                    var intersectionSet = new IntermeshIntersectionSet();
-                    node.IntersectionTable[gathering.Id] = intersectionSet;
-                    gathering.IntersectionTable[node.Id] = intersectionSet;
+                    var intersection = new Basics.V2.IntermeshIntersection();
+                    element.GatheringSets[gathering.Id] = intersection;
+                    gathering.GatheringSets[element.Id] = intersection;
                 }
             }
         }
 
-        private static IEnumerable<IntermeshTriangle> MarginMatches(IntermeshTriangle node, IEnumerable<IntermeshTriangle> matches)
+        private static IEnumerable<Basics.V2.IntermeshTriangle> MarginMatches(Basics.V2.IntermeshTriangle node, IEnumerable<Basics.V2.IntermeshTriangle> matches)
         {
             var triangle = node.Triangle.Margin(BoxBucket.MARGINS);
             var plane = triangle.Plane;
@@ -71,12 +75,12 @@ namespace Operations.Intermesh.Classes
 
         private class GatheringState : BaseState<GatheringThread>
         {
-            public GatheringState(IEnumerable<IntermeshTriangle> triangles)
+            public GatheringState(IEnumerable<Basics.V2.IntermeshTriangle> triangles)
             {
-                Bucket = new BoxBucket<IntermeshTriangle>(triangles.ToArray());
+                Bucket = new BoxBucket<Basics.V2.IntermeshTriangle>(triangles.ToArray());
             }
 
-            public BoxBucket<IntermeshTriangle> Bucket { get; }
+            public BoxBucket<Basics.V2.IntermeshTriangle> Bucket { get; }
         }
     }
 }

@@ -148,7 +148,7 @@ namespace Operations.Regions
                 {
                     var intersections = GetIntersections(lineX, tagGroup.Select(m => m.Triangle)).ToArray();
                     var region = Manifold.GetRegion(point, intersections);
-                    if (region != Region.Exterior) { voteForInterior++; break; }
+                    if (region == Region.Interior) { voteForInterior++; break; }
                 }
             }
 
@@ -160,7 +160,7 @@ namespace Operations.Regions
                 {
                     var intersections = GetIntersections(lineY, tagGroup.Select(m => m.Triangle)).ToArray();
                     var region = Manifold.GetRegion(point, intersections);
-                    if (region != Region.Exterior) { voteForInterior++; break; }
+                    if (region == Region.Interior) { voteForInterior++; break; }
                 }
             }
 
@@ -174,7 +174,7 @@ namespace Operations.Regions
                 {
                     var intersections = GetIntersections(lineZ, tagGroup.Select(m => m.Triangle)).ToArray();
                     var region = Manifold.GetRegion(point, intersections);
-                    if (region != Region.Exterior) { voteForInterior++; break; }
+                    if (region == Region.Interior) { voteForInterior++; break; }
                 }
             }
 

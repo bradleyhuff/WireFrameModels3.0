@@ -30,14 +30,14 @@ namespace BasicObjects.GeometricObjects
             return AreEqual(this, compare);
         }
 
-        public static bool AreEqual(Point3D a, Point3D b)
+        public static bool AreEqual(Point3D a, Point3D b, double error = Double.DifferenceError)
         {
             var distanceX = System.Math.Abs(a.X - b.X);
-            if (distanceX > Double.DifferenceError) { return false; }
+            if (distanceX > error) { return false; }
             var distanceY = System.Math.Abs(a.Y - b.Y);
-            if (distanceY > Double.DifferenceError) { return false; }
+            if (distanceY > error) { return false; }
             var distanceZ = System.Math.Abs(a.Z - b.Z);
-            if (distanceZ > Double.DifferenceError) { return false; }
+            if (distanceZ > error) { return false; }
             return System.Math.Sqrt(distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ) < Double.DifferenceError;
         }
 

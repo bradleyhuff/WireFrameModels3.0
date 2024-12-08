@@ -4,11 +4,6 @@ using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Basics.V2;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Classes.V2
 {
@@ -32,7 +27,9 @@ namespace Operations.Intermesh.Classes.V2
                 c.Add(element);
             }
 
-            var segmentsBucket = new BoxBucket<IntermeshSegment>();
+            ConsoleLog.WriteLine($"Link intersections 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+
+            var table = new Combination2Dictionary<IntermeshSegment>();
             foreach (var element in intermeshTriangles)
             {
                 foreach (var gathering in element.GatheringSets.Values.SelectMany(g => g.Intersections))
@@ -41,8 +38,11 @@ namespace Operations.Intermesh.Classes.V2
                     var b = FetchPointAt(gathering.End, pointsBucket);
 
                     if (a.Id == b.Id) { continue; }
+                    var key = new Combination2(a.Id, b.Id);
+                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(a, b); }
 
-                    var segment = FetchSegmentAt(a, b, segmentsBucket);
+                    var segment = table[key];
+
                     a.Add(segment);
                     b.Add(segment);
                     segment.Add(element);
@@ -50,37 +50,39 @@ namespace Operations.Intermesh.Classes.V2
                 }
             }
 
-            foreach (var element in intermeshTriangles)
-            {
-                foreach(var segment in element.Segments)
-                {
-                    var matches = segmentsBucket.Fetch(segment).Where(m => m.Id != segment.Id);
-                    foreach(var match in matches)
-                    {
-                        var intersection = LineSegment3D.PointIntersection(match.Segment, segment.Segment);
-                        if(intersection is not null)
-                        {
-                            var i = FetchPointAt(intersection, pointsBucket);
-                            segment.Add(i);
-                            i.Add(segment);
-                            continue;
-                        }
+            ConsoleLog.WriteLine($"Link intersections 2. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
-                        var intersection2 = LineSegment3D.LineSegmentIntersection(match.Segment, segment.Segment);
-                        if (intersection2 is not null)
-                        {
-                            var i = FetchPointAt(intersection2.Start, pointsBucket);
-                            var j = FetchPointAt(intersection2.End, pointsBucket);
-                            segment.Add(i);
-                            i.Add(segment);
-                            segment.Add(j);
-                            j.Add(segment);
-                        }
+            var segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
+            var segmentsBucket = new BoxBucket<IntermeshSegment>(segments);
+
+            foreach (var segment in segments)
+            {
+                var matches = segmentsBucket.Fetch(segment).Where(m => m.Id != segment.Id);
+                foreach (var match in matches)
+                {
+                    var intersection = LineSegment3D.PointIntersection(match.Segment, segment.Segment);
+                    if (intersection is not null)
+                    {
+                        var i = FetchPointAt(intersection, pointsBucket);
+                        segment.Add(i);
+                        i.Add(segment);
+                        continue;
+                    }
+
+                    var intersection2 = LineSegment3D.LineSegmentIntersection(match.Segment, segment.Segment);
+                    if (intersection2 is not null)
+                    {
+                        var i = FetchPointAt(intersection2.Start, pointsBucket);
+                        var j = FetchPointAt(intersection2.End, pointsBucket);
+                        segment.Add(i);
+                        i.Add(segment);
+                        segment.Add(j);
+                        j.Add(segment);
                     }
                 }
             }
 
-            ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            ConsoleLog.WriteLine($"Link intersections 3. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static IntermeshPoint FetchPointAt(Point3D point, BoxBucket<IntermeshPoint> bucket)
@@ -94,20 +96,6 @@ namespace Operations.Intermesh.Classes.V2
             var intermeshPoint = new IntermeshPoint(point);
             bucket.Add(intermeshPoint);
             return intermeshPoint;
-        }
-
-        private static IntermeshSegment FetchSegmentAt(IntermeshPoint a, IntermeshPoint b, BoxBucket<IntermeshSegment> bucket)
-        {
-            var key = new Combination2(a.Id, b.Id);
-            var match = bucket.Fetch(Rectangle3D.Containing(a.Point, b.Point));
-            var found = match.FirstOrDefault(m => m.Key == key);
-            if (found is not null)
-            {
-                return found;
-            }
-            var intermeshSegment = new IntermeshSegment(a, b);
-            bucket.Add(intermeshSegment);
-            return intermeshSegment;
         }
     }
 }

@@ -205,22 +205,6 @@ namespace Operations.Intermesh.Classes.V2
             try
             {
                 chain = SurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>.Create(collection);
-
-                //if (chain.Loops.Count == 0) { loopCount += 1; }
-
-                //foreach (var loop in chain.Loops)
-                //{
-                //    loopCount++;
-                //    var array = loop.Select(l => l.Reference.Id).ToArray();
-                //    if (table.ContainsKey(array)) { var combination = new Combination(array); var hash = combination.GetHashCode(); Console.WriteLine($"Loop [{string.Join(",", array)}] Hash {hash}", ConsoleColor.Red); continue; }
-                //    table[array] = true;
-                //    var combination2 = new Combination(array);
-
-                //    var hash2 = combination2.GetHashCode();                    
-                //    Console.WriteLine($"Loop [{string.Join(",", array)}] Hash {hash2}", ConsoleColor.Green);
-                //    Console.WriteLine($"Loop count {loopCount}", ConsoleColor.Yellow);
-                //}
-
             }
             catch (Exception e)
             {

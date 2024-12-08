@@ -38,7 +38,7 @@ namespace BasicObjects.GeometricObjects
             if (distanceY > error) { return false; }
             var distanceZ = System.Math.Abs(a.Z - b.Z);
             if (distanceZ > error) { return false; }
-            return System.Math.Sqrt(distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ) < Double.DifferenceError;
+            return System.Math.Sqrt(distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ) < error;
         }
 
         public override int GetHashCode()

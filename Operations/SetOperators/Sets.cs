@@ -47,22 +47,22 @@ namespace Operations.SetOperators
                 }
                 index++;
             }
-            {
-                WavefrontFile.Export(output, "Wavefront/BeforeIntermesh");
-            }
+            //{
+            //    WavefrontFile.Export(output, "Wavefront/BeforeIntermesh");
+            //}
             var space = new Space(output.Triangles.ToArray());
             
             output.Intermesh2();
-            WavefrontFile.Export(output, "Wavefront/AfterIntermesh");
+            //WavefrontFile.Export(output, "Wavefront/AfterIntermesh");
             //WavefrontFileGroups.ExportByFaces(output,"Wavefront/Faces");
             var groups = GroupingCollection.ExtractFaces(output.Triangles).ToArray();
             var remainingGroups = UnionTestAndRemoveGroups(output, groups, space);
             IncludedGroupInverts(remainingGroups);
 
             //ConsoleLog.MaximumLevels = 8;
-            output.RemoveShortSegments(1e-7);
-            output.RemoveCollinearEdgePoints();
-            output.RemoveCoplanarSurfacePoints();
+            //output.RemoveShortSegments(1e-7);
+            //output.RemoveCollinearEdgePoints();
+            //output.RemoveCoplanarSurfacePoints();
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
@@ -86,9 +86,9 @@ namespace Operations.SetOperators
             IncludedGroupInverts(remainingGroups);
 
             ConsoleLog.MaximumLevels = 8;
-            sum.RemoveShortSegments(1e-4);
-            sum.RemoveCollinearEdgePoints();
-            sum.RemoveCoplanarSurfacePoints();
+            //sum.RemoveShortSegments(1e-4);
+            //sum.RemoveCollinearEdgePoints();
+            //sum.RemoveCoplanarSurfacePoints();
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
@@ -127,6 +127,11 @@ namespace Operations.SetOperators
             foreach (var group in groups)
             {
                 var testPoint = GetTestPoint(group.Triangles);
+                if (testPoint is null) {
+                    //remainingGroups.Add(group);
+                    continue;
+                }
+
                 var tag1Region = Region.OnBoundary;
                 var tag2Rregion = Region.OnBoundary;
                 var tag = group.Triangles.First().Tag;
@@ -151,6 +156,12 @@ namespace Operations.SetOperators
             foreach (var group in groups)
             {
                 var testPoint = GetTestPoint(group.Triangles);
+                if (testPoint is null)
+                {
+                    //remainingGroups.Add(group);
+                    continue;
+                }
+
                 var tag = group.Triangles.First().Tag;
                 if (!space.PointIsExteriorAt(testPoint, tag))
                 {
@@ -173,6 +184,10 @@ namespace Operations.SetOperators
             foreach (var group in remainingGroups)
             {
                 var interiorTestPoint = GetInternalTestPoint(group.Triangles);
+                if(interiorTestPoint is null)
+                {
+                    continue;
+                }
                 var region = resultShell.RegionOfPoint(interiorTestPoint);
                 if (region == Region.Exterior)
                 {
@@ -204,13 +219,17 @@ namespace Operations.SetOperators
 
         private static Point3D GetTestPoint(IEnumerable<PositionTriangle> triangles)
         {
-            var internalTriangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
-            return internalTriangle.Triangle.Center;
+            var internalTriangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).FirstOrDefault();
+            return internalTriangle?.Triangle.Center;
         }
 
         private static Point3D GetInternalTestPoint(IEnumerable<PositionTriangle> triangles)
         {
-            var triangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).First();
+            var triangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).FirstOrDefault();
+            if(triangle is null)
+            {
+                return null;
+            }
 
             var direction = Vector3D.Average([triangle.A.Normal, triangle.B.Normal, triangle.C.Normal]);
             return triangle.Triangle.Center + -1e-4 * direction;

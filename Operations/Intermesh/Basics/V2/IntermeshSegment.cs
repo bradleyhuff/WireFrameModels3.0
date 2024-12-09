@@ -39,6 +39,9 @@ namespace Operations.Intermesh.Basics.V2
             get { return _divisionPoints; }
         }
 
+        public bool HasDivisionPoints { get { return InternalDivisions > 0; } }
+        public int InternalDivisions { get { return _divisionPoints.Count() - 2; } }
+
         public bool Add(IntermeshPoint division)
         {
             if (_divisionPoints.Any(t => t.Id == division.Id)) { return false; }

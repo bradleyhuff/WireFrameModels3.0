@@ -59,6 +59,7 @@ internal static class Grid
         Classes.V2.TriangleGathering.Action(collection);
         Classes.V2.CalculateIntersections.Action(collection);
         Classes.V2.LinkIntersections.Action(collection);
+        collection = collection.Where(t => t.HasDivisions).ToArray();
         Classes.V2.BuildDivisions.Action(collection);
         Classes.V2.ExtractFillTriangles.Action(collection);
         Classes.V2.FillOverlapRemoval.Action(collection);

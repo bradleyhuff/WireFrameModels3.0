@@ -25,13 +25,24 @@ namespace Operations.Intermesh.Classes.V2
 
             GetFillTriangles(triangles);
 
-            ConsoleLog.WriteLine($"Extract fill triangles. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");           
+            ConsoleLog.WriteLine($"Extract fill triangles. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static void GetFillTriangles(IEnumerable<IntermeshTriangle> triangles)
         {
             foreach (var triangle in triangles)
             {
+                if (!triangle.HasDivisions) { triangle.Fillings.Add(new FillTriangle(triangle)); continue; }
+                var internalSegments = triangle.InternalSegments.ToArray();
+                if (internalSegments.Length == 1 && internalSegments.All(s => s.InternalDivisions == 0))
+                {
+                    if (SingleSegmentFill(triangle)) { continue; }
+                }
+                //if(internalDivisions == 2)
+                //{
+                //    if (DoubleSegmentFill(triangle)) { return; }
+                //}
+
                 //var segments = triangle.SegmentsCount;
                 //switch (segments)
                 //{
@@ -100,7 +111,7 @@ namespace Operations.Intermesh.Classes.V2
                 //        break;
                 //}
 
-                ComplexSegmentFills(triangle);       
+                ComplexSegmentFills(triangle);
             }
         }
 
@@ -113,6 +124,32 @@ namespace Operations.Intermesh.Classes.V2
         //    }
         //    yield break;
         //}
+
+        private static bool SingleSegmentFill(IntermeshTriangle triangle)
+        {
+            //if (triangle.AB.InternalDivisions == 1 && triangle.BC.InternalDivisions == 1 && triangle.CA.InternalDivisions == 0)
+            //{
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.AB.DivisionPoints[1], triangle.BC.DivisionPoints[1]));
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.AB.DivisionPoints[1], triangle.BC.DivisionPoints[1]));
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.C, triangle.BC.DivisionPoints[1]));
+            //    return true;
+            //}
+            //if (triangle.AB?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1 && triangle.BC?.InternalDivisions == 0)
+            //{
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.AB.DivisionPoints[1], triangle.CA.DivisionPoints[1]));
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.AB.DivisionPoints[1], triangle.CA.DivisionPoints[1]));
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.C, triangle.CA.DivisionPoints[1]));
+            //    return true;
+            //}
+            //if (triangle.BC?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1 && triangle.AB?.InternalDivisions == 0)
+            //{
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.BC.DivisionPoints[1], triangle.CA.DivisionPoints[1]));
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.BC.DivisionPoints[1], triangle.CA.DivisionPoints[1]));
+            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.A, triangle.BC.DivisionPoints[1]));
+            //    return true;
+            //}
+            return false;
+        }
 
         //private static IEnumerable<FillTriangle> SingleSegmentFills(IntermeshTriangle triangle)
         //{
@@ -149,6 +186,13 @@ namespace Operations.Intermesh.Classes.V2
 
         //    yield break;
         //}
+
+        private static bool DoubleSegmentFill(IntermeshTriangle triangle)
+        {
+
+
+            return false;
+        }
 
         //private static IEnumerable<FillTriangle> DoubleSegmentFills(IntermeshTriangle triangle)
         //{
@@ -243,7 +287,7 @@ namespace Operations.Intermesh.Classes.V2
             foreach (var filling in fillings)
             {
                 var fillTriangle = new FillTriangle(filling.A.Reference, filling.A.Normal,
-                    filling.B.Reference, filling.B.Normal, filling.C.Reference, filling.C.Normal, triangle.Id, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag);
+                    filling.B.Reference, filling.B.Normal, filling.C.Reference, filling.C.Normal, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag);
                 triangle.Fillings.Add(fillTriangle);
             }
         }

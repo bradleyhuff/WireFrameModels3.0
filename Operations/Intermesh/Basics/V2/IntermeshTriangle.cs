@@ -59,6 +59,34 @@ namespace Operations.Intermesh.Basics.V2
             }
         }
 
+        public IEnumerable<IntermeshSegment> PerimeterSegments
+        {
+            get
+            {
+                if (AB is not null) { yield return AB; }
+                if (BC is not null) { yield return BC; }
+                if (CA is not null) { yield return CA; }
+            }
+        }
+
+        public IEnumerable<IntermeshSegment> InternalSegments
+        {
+            get
+            {
+                return Segments.Where(s => !PerimeterSegments.Any(p => p.Id == s.Id));
+            }
+        }
+
+        public bool HasDivisions
+        {
+            get
+            {
+                if (InternalDivisions.Any()) { return true; }
+
+                return PerimeterSegments.Any(p => p.HasDivisionPoints);
+            }
+        }
+
         public Triangle3D Triangle
         {
             get { return _triangle.Triangle; }

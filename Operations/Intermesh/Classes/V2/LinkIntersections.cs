@@ -51,33 +51,36 @@ namespace Operations.Intermesh.Classes.V2
             }
 
             ConsoleLog.WriteLine($"Link intersections 2. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
-
-            var segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
-            var segmentsBucket = new BoxBucket<IntermeshSegment>(segments);
-
-            foreach (var segment in segments)
+            var segmentTable = new Dictionary<int, bool>();
+            foreach(var triangle in intermeshTriangles)
             {
-                var matches = segmentsBucket.Fetch(segment).Where(m => m.Id != segment.Id);
-                foreach (var match in matches)
+                var gatherings = triangle.Gathering.Where(t => t.Id != triangle.Id).SelectMany(t => t.Segments).DistinctBy(g => g.Id).ToArray();
+                foreach(var segment in triangle.Segments)
                 {
-                    var intersection = LineSegment3D.PointIntersection(match.Segment, segment.Segment);
-                    if (intersection is not null)
-                    {
-                        var i = FetchPointAt(intersection, pointsBucket);
-                        segment.Add(i);
-                        i.Add(segment);
-                        continue;
-                    }
+                    if (segmentTable.ContainsKey(segment.Id)) { continue; }
+                    segmentTable[segment.Id] = true;
 
-                    var intersection2 = LineSegment3D.LineSegmentIntersection(match.Segment, segment.Segment);
-                    if (intersection2 is not null)
+                    foreach(var match in gatherings.Where(g => Rectangle3D.Overlaps(g.Box, segment.Box)))
                     {
-                        var i = FetchPointAt(intersection2.Start, pointsBucket);
-                        var j = FetchPointAt(intersection2.End, pointsBucket);
-                        segment.Add(i);
-                        i.Add(segment);
-                        segment.Add(j);
-                        j.Add(segment);
+                        var intersection = LineSegment3D.PointIntersection(match.Segment, segment.Segment);
+                        if (intersection is not null)
+                        {
+                            var i = FetchPointAt(intersection, pointsBucket);
+                            segment.Add(i);
+                            i.Add(segment);
+                            continue;
+                        }
+
+                        var intersection2 = LineSegment3D.LineSegmentIntersection(match.Segment, segment.Segment);
+                        if (intersection2 is not null)
+                        {
+                            var i = FetchPointAt(intersection2.Start, pointsBucket);
+                            var j = FetchPointAt(intersection2.End, pointsBucket);
+                            segment.Add(i);
+                            i.Add(segment);
+                            segment.Add(j);
+                            j.Add(segment);
+                        }
                     }
                 }
             }

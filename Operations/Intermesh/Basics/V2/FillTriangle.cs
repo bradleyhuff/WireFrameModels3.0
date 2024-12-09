@@ -13,16 +13,17 @@ namespace Operations.Intermesh.Basics.V2
     internal class FillTriangle
     {
         private static int _id = 0;
-        //public FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, IntermeshPoint pointB, IntermeshPoint pointC) :
-        //    this(pointA, triangle.NormalFromProjectedPoint(pointA.Point), 
-        //        pointB, triangle.NormalFromProjectedPoint(pointB.Point), 
-        //        pointC, triangle.NormalFromProjectedPoint(pointC.Point), triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag)
-        //{ }
-        //public FillTriangle(IntermeshTriangle node) : 
-        //    this(node.A, node.PositionTriangle.A.Normal, 
-        //        node.B, node.PositionTriangle.B.Normal, 
-        //        node.C, node.PositionTriangle.C.Normal, node.PositionTriangle.Trace, node.PositionTriangle.Tag) { }
-        public FillTriangle(IntermeshPoint pointA, Vector3D normalA, IntermeshPoint pointB, Vector3D normalB, IntermeshPoint pointC, Vector3D normalC, int triangleId, string trace, int tag)
+        public FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, IntermeshPoint pointB, IntermeshPoint pointC) :
+            this(pointA, triangle.NormalFromProjectedPoint(pointA.Point),
+                pointB, triangle.NormalFromProjectedPoint(pointB.Point),
+                pointC, triangle.NormalFromProjectedPoint(pointC.Point), triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag)
+        { }
+        public FillTriangle(IntermeshTriangle node) :
+            this(node.A, node.PositionTriangle.A.Normal,
+                node.B, node.PositionTriangle.B.Normal,
+                node.C, node.PositionTriangle.C.Normal, node.PositionTriangle.Trace, node.PositionTriangle.Tag)
+        { }
+        public FillTriangle(IntermeshPoint pointA, Vector3D normalA, IntermeshPoint pointB, Vector3D normalB, IntermeshPoint pointC, Vector3D normalC, /*int triangleId,*/ string trace, int tag)
         {
             Id = _id++;
             PointA = pointA;
@@ -33,13 +34,11 @@ namespace Operations.Intermesh.Basics.V2
             NormalC = normalC;
             Trace = trace;
             Tag = tag;
-            TriangleId = triangleId;
         }
 
         public int Id { get; }
         public string Trace { get; }
         public int Tag { get; }
-        public int TriangleId { get; }
         public bool Disabled { get; set; }
 
         public IntermeshPoint PointA { get; }

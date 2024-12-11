@@ -1,12 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Interfaces;
-using Operations.Intermesh.Elastics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Operations.Intermesh.Basics.V2
 {
@@ -23,7 +17,7 @@ namespace Operations.Intermesh.Basics.V2
                 node.B, node.PositionTriangle.B.Normal,
                 node.C, node.PositionTriangle.C.Normal, node.PositionTriangle.Trace, node.PositionTriangle.Tag)
         { }
-        public FillTriangle(IntermeshPoint pointA, Vector3D normalA, IntermeshPoint pointB, Vector3D normalB, IntermeshPoint pointC, Vector3D normalC, /*int triangleId,*/ string trace, int tag)
+        public FillTriangle(IntermeshPoint pointA, Vector3D normalA, IntermeshPoint pointB, Vector3D normalB, IntermeshPoint pointC, Vector3D normalC, string trace, int tag)
         {
             Id = _id++;
             PointA = pointA;

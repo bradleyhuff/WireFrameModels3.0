@@ -138,6 +138,11 @@ namespace Operations.Intermesh.Basics.V2
             {
                 if (_divisionTable.ContainsKey(division.Key)) { continue; }
                 _divisions.Add(division);
+
+                _abInternalPoints = null;
+                _bcInternalPoints = null;
+                _caInternalPoints = null;
+
                 _divisionTable[division.Key] = true;
             }
         }
@@ -171,17 +176,45 @@ namespace Operations.Intermesh.Basics.V2
             get { return ABDivisions.Union(BCDivisions).Union(CADivisions); }
         }
 
-        public IEnumerable<IntermeshPoint> ABInternalPoints
+        private IntermeshPoint[] _abInternalPoints;
+        private IntermeshPoint[] _bcInternalPoints;
+        private IntermeshPoint[] _caInternalPoints;
+
+        public IntermeshPoint[] ABInternalPoints
         {
-            get { return ABDivisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != A.Id && p.Id != B.Id); }
+            get 
+            { 
+                if (_abInternalPoints == null)
+                {
+                    _abInternalPoints = ABDivisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != A.Id && p.Id != B.Id).
+                        OrderBy(p => Point3D.Distance(p.Point, A.Point)).ToArray();
+                }
+                return _abInternalPoints;
+            }
         }
-        public IEnumerable<IntermeshPoint> BCInternalPoints
+        public IntermeshPoint[] BCInternalPoints
         {
-            get { return BCDivisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != B.Id && p.Id != C.Id); }
+            get
+            {
+                if (_bcInternalPoints == null)
+                {
+                    _bcInternalPoints = BCDivisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != B.Id && p.Id != C.Id).
+                        OrderBy(p => Point3D.Distance(p.Point, B.Point)).ToArray();
+                }
+                return _bcInternalPoints;
+            }
         }
-        public IEnumerable<IntermeshPoint> CAInternalPoints
+        public IntermeshPoint[] CAInternalPoints
         {
-            get { return CADivisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != C.Id && p.Id != A.Id); }
+            get
+            {
+                if (_caInternalPoints == null)
+                {
+                    _caInternalPoints = CADivisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != C.Id && p.Id != A.Id).
+                        OrderBy(p => Point3D.Distance(p.Point, C.Point)).ToArray();
+                }
+                return _caInternalPoints;
+            }
         }
 
         private bool PointIsOnAB(IntermeshPoint point)
@@ -213,7 +246,7 @@ namespace Operations.Intermesh.Basics.V2
 
             var c = Triangle.GetBarycentricCoordinate(projection);
 
-            return (c.λ1 * PositionTriangle.A.Normal.Direction + c.λ2 * PositionTriangle.B.Normal.Direction + c.λ3 * PositionTriangle.B.Normal.Direction).Direction;
+            return (c.λ1 * PositionTriangle.A.Normal.Direction + c.λ2 * PositionTriangle.B.Normal.Direction + c.λ3 * PositionTriangle.C.Normal.Direction).Direction;
         }
 
         public IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetPerimeterSurfaceSegments()

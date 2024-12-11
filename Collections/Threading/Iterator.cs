@@ -110,7 +110,7 @@ namespace Collections.Threading
 
         public void Run()
         {
-            Run(4096, Action);
+            Run(256, Action);
         }
 
         private void Run(int groupSize, Action<R, TS, S> action)

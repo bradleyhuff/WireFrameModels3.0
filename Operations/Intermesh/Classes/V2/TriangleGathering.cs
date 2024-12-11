@@ -19,8 +19,9 @@ namespace Operations.Intermesh.Classes.V2
             var gatheringState = new GatheringState(intermeshTriangles);
             var gatheringIterator = new Iterator<Basics.V2.IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.Run<GatheringState, GatheringThread>(GatheringAction, gatheringState);
+            ConsoleLog.WriteLine($"Triangle gathering 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
             AssignIntersectionNodes(intermeshTriangles);
-            ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
+            ConsoleLog.WriteLine($"Triangle gathering 2. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
         }
 
         private static void GatheringAction(Basics.V2.IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)
@@ -38,6 +39,7 @@ namespace Operations.Intermesh.Classes.V2
             {
                 foreach (var gathering in element.Gathering)
                 {
+                    if (element.GatheringSets.ContainsKey(gathering.Id)) { continue; }
                     var intersection = new Basics.V2.IntermeshIntersection();
                     element.GatheringSets[gathering.Id] = intersection;
                     gathering.GatheringSets[element.Id] = intersection;

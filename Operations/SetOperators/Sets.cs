@@ -52,7 +52,7 @@ namespace Operations.SetOperators
             //}
             var space = new Space(output.Triangles.ToArray());
             
-            output.Intermesh2();
+            output.Intermesh();
             //WavefrontFile.Export(output, "Wavefront/AfterIntermesh");
             //WavefrontFileGroups.ExportByFaces(output,"Wavefront/Faces");
             var groups = GroupingCollection.ExtractFaces(output.Triangles).ToArray();
@@ -60,9 +60,9 @@ namespace Operations.SetOperators
             IncludedGroupInverts(remainingGroups);
 
             //ConsoleLog.MaximumLevels = 8;
-            //output.RemoveShortSegments(1e-7);
-            //output.RemoveCollinearEdgePoints();
-            //output.RemoveCoplanarSurfacePoints();
+            output.RemoveShortSegments(1e-4);
+            output.RemoveCollinearEdgePoints();
+            output.RemoveCoplanarSurfacePoints();
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
@@ -80,15 +80,15 @@ namespace Operations.SetOperators
             DateTime start = DateTime.Now;
             ConsoleLog.Push(note);
             var sum = CombineAndMark(gridA, gridB, out Space space);
-            sum.Intermesh2();
+            sum.Intermesh();
             var groups = GroupExtraction(sum);
             var remainingGroups = TestAndRemoveGroups(sum, groups, space, includeGroup);
             IncludedGroupInverts(remainingGroups);
 
             ConsoleLog.MaximumLevels = 8;
-            //sum.RemoveShortSegments(1e-4);
-            //sum.RemoveCollinearEdgePoints();
-            //sum.RemoveCoplanarSurfacePoints();
+            sum.RemoveShortSegments(1e-4);
+            sum.RemoveCollinearEdgePoints();
+            sum.RemoveCoplanarSurfacePoints();
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");

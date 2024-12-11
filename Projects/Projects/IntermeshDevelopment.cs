@@ -21,7 +21,7 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             ConsoleLog.MaximumLevels = 1;
-            CubeSphereTestOne(14);
+            CubeSphereTestOne(64);
             //CubeSphereTestOne(64);
             //CubeSphereTestTwo(179);
         }

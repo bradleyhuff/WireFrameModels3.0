@@ -8,12 +8,6 @@ using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Collections;
 using Operations.SurfaceSegmentChaining.Interfaces;
 using Console = BaseObjects.Console;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BasicObjects.MathExtensions;
 
 namespace Operations.Intermesh.Classes.V2
 {
@@ -22,226 +16,229 @@ namespace Operations.Intermesh.Classes.V2
         internal static void Action(IEnumerable<IntermeshTriangle> triangles)
         {
             var start = DateTime.Now;
-
+            ResetCounts();
             GetFillTriangles(triangles);
 
+            //ConsoleLog.WriteLine($"No divisions {noDivisions}\nProspective Single Segments {singleSegment}\nSingle Segment One {singleSegmentOneDivision}\nSingle Segment Two {singleSegmentTwoDivision}\nProspective Double Segments {doubleSegment}\nDouble Segment One {doubleSegmentOneDivision}\nDouble Segment Two {doubleSegmentTwoDivision}\nComplex {complexDivision}");
             ConsoleLog.WriteLine($"Extract fill triangles. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+        }
+
+        private static int noDivisions = 0;
+        private static int singleSegment = 0;
+        private static int singleSegmentOneDivision = 0;
+        private static int singleSegmentTwoDivision = 0;
+        private static int doubleSegment = 0;
+        private static int doubleSegmentOneDivision = 0;
+        private static int doubleSegmentTwoDivision = 0;
+        private static int complexDivision = 0;
+
+        private static void ResetCounts()
+        {
+            noDivisions = 0;
+            singleSegment = 0;
+            singleSegmentOneDivision = 0;
+            singleSegmentTwoDivision = 0;
+            doubleSegment = 0;
+            doubleSegmentOneDivision = 0;
+            doubleSegmentTwoDivision = 0;
+            complexDivision = 0;
         }
 
         private static void GetFillTriangles(IEnumerable<IntermeshTriangle> triangles)
         {
             foreach (var triangle in triangles)
             {
-                if (!triangle.HasDivisions) { triangle.Fillings.Add(new FillTriangle(triangle)); continue; }
+                if (!triangle.HasDivisions) { noDivisions++; triangle.Fillings.Add(new FillTriangle(triangle)); continue; }
                 var internalSegments = triangle.InternalSegments.ToArray();
-                if (internalSegments.Length == 1 && internalSegments.All(s => s.InternalDivisions == 0))
+                if (internalSegments.Length == 1 && !internalSegments.Any(s => s.InternalDivisions > 0))
                 {
+                    singleSegment++;
                     if (SingleSegmentFill(triangle)) { continue; }
                 }
-                //if(internalDivisions == 2)
-                //{
-                //    if (DoubleSegmentFill(triangle)) { return; }
-                //}
-
-                //var segments = triangle.SegmentsCount;
-                //switch (segments)
-                //{
-                //    case 0:
-                //        {
-                //            FillTriangle[] fills = [];
-                //            try
-                //            {
-                //                fills = NoSegmentFills(triangle).ToArray();
-                //            }
-                //            catch (Exception ex)
-                //            {
-                //                Console.WriteLine(ex.Message);
-                //            }
-
-                //            if (fills.Any())
-                //            {
-                //                foreach (var fill in fills) { yield return fill; }
-                //                break;
-                //            }
-                //            goto default;
-                //        }
-                //    case 1:
-                //        {
-                //            FillTriangle[] fills = [];
-                //            try
-                //            {
-                //                fills = SingleSegmentFills(triangle).ToArray();
-                //            }
-                //            catch (Exception ex)
-                //            {
-                //                Console.WriteLine(ex.Message);
-                //            }
-
-                //            if (fills.Any())
-                //            {
-                //                foreach (var fill in fills) { yield return fill; }
-                //                break;
-                //            }
-                //            goto default;
-                //        }
-                //    case 2:
-                //        {
-                //            FillTriangle[] fills = [];
-                //            try
-                //            {
-                //                fills = DoubleSegmentFills(triangle).ToArray();
-                //            }
-                //            catch (Exception ex)
-                //            {
-                //                Console.WriteLine(ex.Message);
-                //            }
-
-                //            if (fills.Any())
-                //            {
-                //                foreach (var fill in fills) { yield return fill; }
-                //                break;
-                //            }
-                //            goto default;
-                //        }
-                //    default:
-                //        {
-                //            var fills = ComplexSegmentFills(triangle);
-                //            if (fills.Any()) { foreach (var fill in fills) { yield return fill; } }
-                //        }
-                //        break;
-                //}
+                if (internalSegments.Length == 2 && !internalSegments.Any(s => s.InternalDivisions > 0))
+                {
+                    doubleSegment++;
+                    if (DoubleSegmentFill(triangle)) { continue; }
+                }
 
                 ComplexSegmentFills(triangle);
             }
         }
 
-        //private static IEnumerable<FillTriangle> NoSegmentFills(IntermeshTriangle triangle)
-        //{
-        //    var perimeter = triangle.PerimeterPointsCount;
-        //    if (perimeter == 0)
-        //    {
-        //        yield return new FillTriangle(triangle);
-        //    }
-        //    yield break;
-        //}
-
         private static bool SingleSegmentFill(IntermeshTriangle triangle)
         {
-            //if (triangle.AB.InternalDivisions == 1 && triangle.BC.InternalDivisions == 1 && triangle.CA.InternalDivisions == 0)
-            //{
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.AB.DivisionPoints[1], triangle.BC.DivisionPoints[1]));
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.AB.DivisionPoints[1], triangle.BC.DivisionPoints[1]));
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.C, triangle.BC.DivisionPoints[1]));
-            //    return true;
-            //}
-            //if (triangle.AB?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1 && triangle.BC?.InternalDivisions == 0)
-            //{
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.AB.DivisionPoints[1], triangle.CA.DivisionPoints[1]));
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.AB.DivisionPoints[1], triangle.CA.DivisionPoints[1]));
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.C, triangle.CA.DivisionPoints[1]));
-            //    return true;
-            //}
-            //if (triangle.BC?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1 && triangle.AB?.InternalDivisions == 0)
-            //{
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.BC.DivisionPoints[1], triangle.CA.DivisionPoints[1]));
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.BC.DivisionPoints[1], triangle.CA.DivisionPoints[1]));
-            //    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.A, triangle.BC.DivisionPoints[1]));
-            //    return true;
-            //}
+            if (triangle.AB?.InternalDivisions == 1 && (triangle.BC?.InternalDivisions ?? 0) == 0 && (triangle.CA?.InternalDivisions ?? 0) == 0)
+            {
+                singleSegmentOneDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.A, triangle.ABInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.B, triangle.ABInternalPoints[0]));
+                return true;
+            }
+            if (triangle.BC?.InternalDivisions == 1 && (triangle.AB?.InternalDivisions ?? 0) == 0 && (triangle.CA?.InternalDivisions ?? 0) == 0)
+            {
+                singleSegmentOneDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.B, triangle.BCInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.C, triangle.BCInternalPoints[0]));
+                return true;
+            }
+            if (triangle.CA?.InternalDivisions == 1 && (triangle.AB?.InternalDivisions ?? 0) == 0 && (triangle.BC?.InternalDivisions ?? 0) == 0)
+            {
+                singleSegmentOneDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.C, triangle.CAInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.A, triangle.CAInternalPoints[0]));
+                return true;
+            }
+
+            if (triangle.AB?.InternalDivisions == 1 && triangle.BC?.InternalDivisions == 1 && (triangle.CA?.InternalDivisions ?? 0) == 0)
+            {
+                singleSegmentTwoDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.ABInternalPoints[0], triangle.BCInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.ABInternalPoints[0], triangle.BCInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.C, triangle.BCInternalPoints[0]));
+                return true;
+            }
+            if (triangle.AB?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1 && (triangle.BC?.InternalDivisions ?? 0) == 0)
+            {
+                singleSegmentTwoDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.ABInternalPoints[0], triangle.CAInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.ABInternalPoints[0], triangle.CAInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.C, triangle.CAInternalPoints[0]));
+                return true;
+            }
+            if (triangle.BC?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1 && (triangle.AB?.InternalDivisions ?? 0) == 0)
+            {
+                singleSegmentTwoDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.BCInternalPoints[0], triangle.CAInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.BCInternalPoints[0], triangle.CAInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.A, triangle.BCInternalPoints[0]));
+                return true;
+            }
+            //Console.WriteLine($"Single segment extra {(triangle.AB?.InternalDivisions) ?? 0} {(triangle.BC?.InternalDivisions) ?? 0} {(triangle.CA?.InternalDivisions) ?? 0}");
             return false;
         }
-
-        //private static IEnumerable<FillTriangle> SingleSegmentFills(IntermeshTriangle triangle)
-        //{
-        //    if (triangle.PerimeterPointsCount == 2 && triangle.VertexPointsCount == 0)
-        //    {
-        //        var divisionsAB = triangle.ABInternalPoints.ToArray();
-        //        var divisionsBC = triangle.BCInternalPoints.ToArray();
-        //        var divisionsCA = triangle.CAInternalPoints.ToArray();
-        //        if (divisionsAB.Length == 1 && divisionsBC.Length == 1)
-        //        {
-        //            yield return new FillTriangle(triangle, triangle.B, divisionsAB[0], divisionsBC[0]);
-        //            yield return new FillTriangle(triangle, triangle.A, divisionsAB[0], divisionsBC[0]);
-        //            yield return new FillTriangle(triangle, triangle.A, triangle.C, divisionsBC[0]);
-
-        //            yield break;
-        //        }
-        //        if (divisionsAB.Length == 1 && divisionsCA.Length == 1)
-        //        {
-        //            yield return new FillTriangle(triangle, triangle.A, divisionsAB[0], divisionsCA[0]);
-        //            yield return new FillTriangle(triangle, triangle.B, divisionsAB[0], divisionsCA[0]);
-        //            yield return new FillTriangle(triangle, triangle.B, triangle.C, divisionsCA[0]);
-
-        //            yield break;
-        //        }
-        //        if (divisionsBC.Length == 1 && divisionsCA.Length == 1)
-        //        {
-        //            yield return new FillTriangle(triangle, triangle.C, divisionsBC[0], divisionsCA[0]);
-        //            yield return new FillTriangle(triangle, triangle.A, divisionsBC[0], divisionsCA[0]);
-        //            yield return new FillTriangle(triangle, triangle.B, triangle.A, divisionsBC[0]);
-
-        //            yield break;
-        //        }
-        //    }
-
-        //    yield break;
-        //}
 
         private static bool DoubleSegmentFill(IntermeshTriangle triangle)
         {
+            if (triangle.AB?.InternalDivisions == 2)
+            {
+                if (triangle.BC?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1)
+                {
+                    doubleSegmentOneDivision++;
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.ABInternalPoints[0], triangle.CAInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.ABInternalPoints[1], triangle.BCInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.CAInternalPoints[0], triangle.BCInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.ABInternalPoints[0], triangle.CAInternalPoints[0], triangle.ABInternalPoints[1]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.CAInternalPoints[0], triangle.BCInternalPoints[0], triangle.ABInternalPoints[1]));
+                    return true;
+                }
+                if (triangle.BC?.InternalDivisions == 2 && (triangle.CA?.InternalDivisions ?? 0) == 0)
+                {
+                    doubleSegmentOneDivision++;
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.ABInternalPoints[1], triangle.BCInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.ABInternalPoints[1], triangle.BCInternalPoints[0], triangle.BCInternalPoints[1]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.ABInternalPoints[1], triangle.BCInternalPoints[1], triangle.ABInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.ABInternalPoints[0], triangle.BCInternalPoints[1], triangle.C));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.ABInternalPoints[0], triangle.C, triangle.A));
+                    return true;
+                }
+            }
+            if (triangle.BC?.InternalDivisions == 2)
+            {
+                if (triangle.AB?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1)
+                {
+                    doubleSegmentOneDivision++;
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.BCInternalPoints[0], triangle.ABInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.BCInternalPoints[1], triangle.CAInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.ABInternalPoints[0], triangle.CAInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.BCInternalPoints[0], triangle.ABInternalPoints[0], triangle.BCInternalPoints[1]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.ABInternalPoints[0], triangle.CAInternalPoints[0], triangle.BCInternalPoints[1]));
+                    return true;
+                }
+                if (triangle.CA?.InternalDivisions == 2 && (triangle.AB?.InternalDivisions ?? 0) == 0)
+                {
+                    doubleSegmentOneDivision++;
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.BCInternalPoints[1], triangle.CAInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.BCInternalPoints[1], triangle.CAInternalPoints[0], triangle.CAInternalPoints[1]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.BCInternalPoints[1], triangle.CAInternalPoints[1], triangle.BCInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.BCInternalPoints[0], triangle.CAInternalPoints[1], triangle.A));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.BCInternalPoints[0], triangle.A, triangle.B));
+                    return true;
+                }
+            }
+            if (triangle.CA?.InternalDivisions == 2)
+            {
+                if (triangle.AB?.InternalDivisions == 1 && triangle.BC?.InternalDivisions == 1)
+                {
+                    doubleSegmentOneDivision++;
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, triangle.CAInternalPoints[0], triangle.BCInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.CAInternalPoints[1], triangle.ABInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.BCInternalPoints[0], triangle.ABInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.CAInternalPoints[0], triangle.BCInternalPoints[0], triangle.CAInternalPoints[1]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.BCInternalPoints[0], triangle.ABInternalPoints[0], triangle.CAInternalPoints[1]));
+                    return true;
+                }
+                if (triangle.AB?.InternalDivisions == 2 && (triangle.BC?.InternalDivisions ?? 0) == 0)
+                {
+                    doubleSegmentOneDivision++;
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, triangle.CAInternalPoints[1], triangle.ABInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.CAInternalPoints[1], triangle.ABInternalPoints[0], triangle.ABInternalPoints[1]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.CAInternalPoints[1], triangle.ABInternalPoints[1], triangle.CAInternalPoints[0]));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.CAInternalPoints[0], triangle.ABInternalPoints[1], triangle.B));
+                    triangle.Fillings.Add(new FillTriangle(triangle, triangle.CAInternalPoints[0], triangle.B, triangle.C));
+                    return true;
+                }
+            }
 
+            var points = triangle.InternalSegments.SelectMany(s => s.DivisionPoints).ToArray();
+            var groups = points.GroupBy(p => p.Id);
+            var commonPoint = groups.SingleOrDefault(g => g.Count() == 2)?.FirstOrDefault();
+            if (commonPoint is null) {
+                //Console.WriteLine($"Double segment no common point {(triangle.AB?.InternalDivisions) ?? 0} {(triangle.BC?.InternalDivisions) ?? 0} {(triangle.CA?.InternalDivisions) ?? 0}");
+                return false; 
+            }
+
+            if (triangle.AB?.InternalDivisions == 1 && triangle.BC?.InternalDivisions == 1 && (triangle.CA?.InternalDivisions ?? 0) == 0)
+            {
+                doubleSegmentTwoDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, commonPoint, triangle.ABInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, commonPoint, triangle.BCInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.ABInternalPoints[0], commonPoint, triangle.A));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.BCInternalPoints[0], commonPoint, triangle.C));
+                triangle.Fillings.Add(new FillTriangle(triangle, commonPoint, triangle.A, triangle.C));
+                return true;
+            }
+            if (triangle.AB?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1 && (triangle.BC?.InternalDivisions ?? 0) == 0)
+            {
+                doubleSegmentTwoDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, commonPoint, triangle.ABInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.A, commonPoint, triangle.CAInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.ABInternalPoints[0], commonPoint, triangle.B));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.CAInternalPoints[0], commonPoint, triangle.C));
+                triangle.Fillings.Add(new FillTriangle(triangle, commonPoint, triangle.B, triangle.C));
+                return true;
+            }
+            if (triangle.BC?.InternalDivisions == 1 && triangle.CA?.InternalDivisions == 1 && (triangle.AB?.InternalDivisions ?? 0) == 0)
+            {
+                doubleSegmentTwoDivision++;
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, commonPoint, triangle.CAInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.C, commonPoint, triangle.BCInternalPoints[0]));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.BCInternalPoints[0], commonPoint, triangle.B));
+                triangle.Fillings.Add(new FillTriangle(triangle, triangle.CAInternalPoints[0], commonPoint, triangle.A));
+                triangle.Fillings.Add(new FillTriangle(triangle, commonPoint, triangle.A, triangle.B));
+                return true;
+            }
+
+            //Console.WriteLine($"Double segment extra {(triangle.AB?.InternalDivisions) ?? 0} {(triangle.BC?.InternalDivisions) ?? 0} {(triangle.CA?.InternalDivisions) ?? 0}");
 
             return false;
         }
-
-        //private static IEnumerable<FillTriangle> DoubleSegmentFills(IntermeshTriangle triangle)
-        //{
-        //    if (triangle.PerimeterPointsCount == 2 && triangle.VertexPointsCount == 0)
-        //    {
-        //        var X = triangle.Segments[0].VerticiesAB.Select(v => v.Vertex).Intersect(triangle.Segments[1].VerticiesAB.Select(v => v.Vertex)).SingleOrDefault();
-        //        if (X is null) yield break;
-        //        var divisionsAB = triangle.ABInternalPoints.ToArray();
-        //        var divisionsBC = triangle.BCInternalPoints.ToArray();
-        //        var divisionsCA = triangle.CAInternalPoints.ToArray();
-        //        if (divisionsAB.Length == 1 && divisionsBC.Length == 1)
-        //        {
-        //            yield return new FillTriangle(triangle, triangle.B, X, divisionsAB[0]);
-        //            yield return new FillTriangle(triangle, triangle.B, X, divisionsBC[0]);
-        //            yield return new FillTriangle(triangle, divisionsAB[0], X, triangle.A);
-        //            yield return new FillTriangle(triangle, divisionsBC[0], X, triangle.C);
-        //            yield return new FillTriangle(triangle, X, triangle.A, triangle.C);
-
-        //            yield break;
-        //        }
-        //        if (divisionsAB.Length == 1 && divisionsCA.Length == 1)
-        //        {
-        //            yield return new FillTriangle(triangle, triangle.A, X, divisionsAB[0]);
-        //            yield return new FillTriangle(triangle, triangle.A, X, divisionsCA[0]);
-        //            yield return new FillTriangle(triangle, divisionsAB[0], X, triangle.B);
-        //            yield return new FillTriangle(triangle, divisionsCA[0], X, triangle.C);
-        //            yield return new FillTriangle(triangle, X, triangle.B, triangle.C);
-
-        //            yield break;
-        //        }
-        //        if (divisionsBC.Length == 1 && divisionsCA.Length == 1)
-        //        {
-        //            yield return new FillTriangle(triangle, triangle.C, X, divisionsCA[0]);
-        //            yield return new FillTriangle(triangle, triangle.C, X, divisionsBC[0]);
-        //            yield return new FillTriangle(triangle, divisionsBC[0], X, triangle.B);
-        //            yield return new FillTriangle(triangle, divisionsCA[0], X, triangle.A);
-        //            yield return new FillTriangle(triangle, X, triangle.A, triangle.B);
-
-        //            yield break;
-        //        }
-        //    }
-        //    yield break;
-        //}
 
         public static int LoopError = 0;
         public static int SpurredLoopError = 0;
 
         private static void ComplexSegmentFills(IntermeshTriangle triangle)
         {
+            complexDivision++;
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, IntermeshPoint>(surfaceSet);
 

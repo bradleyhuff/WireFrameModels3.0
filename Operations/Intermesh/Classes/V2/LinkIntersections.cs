@@ -12,6 +12,7 @@ namespace Operations.Intermesh.Classes.V2
         internal static void Action(IEnumerable<Basics.V2.IntermeshTriangle> intermeshTriangles)
         {
             DateTime start = DateTime.Now;
+
             var pointsBucket = new BoxBucket<IntermeshPoint>();
             foreach (var element in intermeshTriangles)
             {
@@ -25,6 +26,13 @@ namespace Operations.Intermesh.Classes.V2
                 a.Add(element);
                 b.Add(element);
                 c.Add(element);
+            }
+
+            foreach (var element in intermeshTriangles)
+            {
+                if (element.AB == null) { element.Add(new IntermeshSegment(element.A, element.B)); }
+                if (element.BC == null) { element.Add(new IntermeshSegment(element.B, element.C)); }
+                if (element.CA == null) { element.Add(new IntermeshSegment(element.C, element.A)); }
             }
 
             ConsoleLog.WriteLine($"Link intersections 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");

@@ -35,7 +35,7 @@ namespace Projects.Projects
 
             var cube = Cuboid.Create(1, 2, 1, 2, 1, 2);
             //cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.0999, -0.6)));
-            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.2500, -0.6)));
+            cube.Apply(Transform.Translation(new Vector3D(-0.6, 0.1000, -0.6)));
 
             curvedFace.AddGrid(cube);
             //curvedFace.AddGrid(PntFile.Import(WireFrameMesh.Create, "Pnt/RoundedCube"));
@@ -46,7 +46,8 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportByFaces(curvedFace, "Wavefront/Faces");
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
-            var facePlates = curvedFace.BuildFacePlates(-0.1500).ToArray();
+            var facePlates = curvedFace.BuildFacePlates(0.1000).ToArray();
+            //WavefrontFile.Export(curvedFace, "Wavefront/CurvedFace");
             //facePlates[2].Apply(Transform.Translation(new Vector3D(1e-3, 1e-3, 1e-3)));
             //var facePlate = facePlates[0].Union(facePlates[2]);
             //var facePlate = Sets.Union2(facePlates.ToArray());
@@ -94,7 +95,7 @@ namespace Projects.Projects
             //WavefrontFileGroups.ExportByFolds(facePlates, "Wavefront/Folds");
             WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
             //WavefrontFile.Export(parallelSurface, "Wavefront/ParallelSurface");
-            //WavefrontFile.Export(NormalOverlay(facePlates, 0.05), "Wavefront/FacePlatesNormals");
+            WavefrontFile.Export(NormalOverlay(facePlates, 0.05), "Wavefront/FacePlatesNormals");
 
             
             //int i = 0;
@@ -145,6 +146,19 @@ namespace Projects.Projects
             icosahedron.ShowVitals();
             WavefrontFile.Export(icosahedron, "Wavefront/Icosahedron");
             WavefrontFile.Export(NormalOverlay(icosahedron, 0.2), "Wavefront/IcosahedronNormals");
+        }
+
+        private IWireFrameMesh NormalOverlay(IEnumerable<IWireFrameMesh> input, double radius)
+        {
+            var output = WireFrameMesh.Create();
+            foreach (var element in input)
+            {
+                foreach (var positionNormal in element.Positions.SelectMany(p => p.PositionNormals))
+                {
+                    output.AddTriangle(positionNormal.Position, Vector3D.Zero, positionNormal.Position + 0.5 * radius * positionNormal.Normal.Direction, Vector3D.Zero, positionNormal.Position + radius * positionNormal.Normal.Direction, Vector3D.Zero, "", 0);
+                }
+            }
+            return output;
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

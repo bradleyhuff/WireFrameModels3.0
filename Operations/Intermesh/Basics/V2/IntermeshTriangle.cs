@@ -125,7 +125,7 @@ namespace Operations.Intermesh.Basics.V2
         public List<FillTriangle> Fillings { get; set; } = new List<FillTriangle>();
         public bool Add(IntermeshSegment segment)
         {
-            if (_segments.Any(t => t.Id == segment.Id)) { return false; }
+            if (_segments.Any(t => t.Key == segment.Key)) { return false; }
             _segments.Add(segment);
             return true;
         }
@@ -280,15 +280,39 @@ namespace Operations.Intermesh.Basics.V2
             };
         }
 
-        public IEnumerable<IWireFrameMesh> ExportWithDivisionsSplit(IWireFrameMesh mesh)
+        public void ExportTriangle(IWireFrameMesh mesh)
         {
             mesh.AddTriangle(A.Point, Triangle.Normal, B.Point, Triangle.Normal, C.Point, Triangle.Normal, "", 0);
+        }
 
+        public IEnumerable<IWireFrameMesh> ExportWithDivisionsSplit(IWireFrameMesh mesh)
+        {
             foreach (var division in PerimeterDivisions)
             {
                 var mid = (division.A.Point + division.B.Point) / 2;
                 var newMesh = WireFrameMesh.Create();
                 newMesh.AddTriangle(division.A.Point, Triangle.Normal, division.B.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
+                yield return newMesh;
+            }
+        }
+
+        public IEnumerable<IWireFrameMesh> ExportWithInternalDivisionsSplit(IWireFrameMesh mesh)
+        {
+            foreach (var division in InternalDivisions)
+            {
+                var mid = (division.A.Point + division.B.Point) / 2;
+                var newMesh = WireFrameMesh.Create();
+                newMesh.AddTriangle(division.A.Point, Triangle.Normal, division.B.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
+                yield return newMesh;
+            }
+        }
+
+        public IEnumerable<IWireFrameMesh> ExportWithGatheringSplit(IWireFrameMesh mesh)
+        {
+            foreach (var gathering in Gathering)
+            {
+                var newMesh = WireFrameMesh.Create();
+                newMesh.AddTriangle(gathering.A.Point, gathering.Triangle.Normal, gathering.B.Point, gathering.Triangle.Normal, gathering.C.Point, gathering.Triangle.Normal, "", 0);
                 yield return newMesh;
             }
         }

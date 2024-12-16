@@ -22,7 +22,7 @@ namespace Operations.SetOperators
 
         public static IWireFrameMesh Intersection(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
-            return Run("Interesection", gridA, gridB, (a, b) => (a == Region.OnBoundary && b != Region.Exterior) || (a != Region.Exterior && b == Region.OnBoundary));
+            return Run("Intersection", gridA, gridB, (a, b) => (a == Region.OnBoundary && b != Region.Exterior) || (a != Region.Exterior && b == Region.OnBoundary));
         }
 
         public static IWireFrameMesh Union(this IWireFrameMesh gridA, IWireFrameMesh gridB)
@@ -89,6 +89,8 @@ namespace Operations.SetOperators
             sum.RemoveShortSegments(1e-4);
             sum.RemoveCollinearEdgePoints();
             sum.RemoveCoplanarSurfacePoints();
+
+            FoldPrimming(sum);
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
@@ -233,6 +235,59 @@ namespace Operations.SetOperators
 
             var direction = Vector3D.Average([triangle.A.Normal, triangle.B.Normal, triangle.C.Normal]);
             return triangle.Triangle.Center + -1e-4 * direction;
+        }
+
+        internal static void FoldPrimming(IWireFrameMesh output)
+        {
+            var foldedTriangles = output.Triangles.Where(t => t.IsFolded).ToArray();
+            if (!foldedTriangles.Any()) { return; }
+
+            var space = new Space(output.Triangles.Select(t => t.Triangle).ToArray());
+            var straightenedNormals = new Dictionary<int, Vector3D>();
+            foreach (var foldedTriangle in foldedTriangles)
+            {
+                var principleNormal = foldedTriangle.Triangle.Normal.Direction;
+                var testPoint = foldedTriangle.Triangle.Center + 1e-6 * principleNormal;
+                var spaceRegion = space.RegionOfPoint(testPoint);
+                if (spaceRegion == Region.Interior) { principleNormal = -principleNormal; }
+
+                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.A, principleNormal);
+                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.B, principleNormal);
+                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.C, principleNormal);
+            }
+
+            var replacements = new List<SurfaceTriangle>();
+
+            foreach (var foldedTriangle in foldedTriangles)
+            {
+                Ray3D a = PositionNormal.GetRay(foldedTriangle.A);
+                Ray3D b = PositionNormal.GetRay(foldedTriangle.B);
+                Ray3D c = PositionNormal.GetRay(foldedTriangle.C);
+                if (straightenedNormals.ContainsKey(foldedTriangle.A.Id)) { a = new Ray3D(foldedTriangle.A.Position, straightenedNormals[foldedTriangle.A.Id].Direction); }
+                if (straightenedNormals.ContainsKey(foldedTriangle.B.Id)) { b = new Ray3D(foldedTriangle.B.Position, straightenedNormals[foldedTriangle.B.Id].Direction); }
+                if (straightenedNormals.ContainsKey(foldedTriangle.C.Id)) { c = new Ray3D(foldedTriangle.C.Position, straightenedNormals[foldedTriangle.C.Id].Direction); }
+                replacements.Add(new SurfaceTriangle(a, b, c));
+            }
+
+            output.RemoveAllTriangles(foldedTriangles);
+            output.AddRangeTriangles(replacements, "", 0);
+
+            Console.WriteLine();
+        }
+
+        private static void ApplyPrincipleNormal(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal)
+        {
+            if (Vector3D.Dot(position.Normal, principleNormal) < 0)
+            {
+                if (!straightenedNormals.ContainsKey(position.Id))
+                {
+                    straightenedNormals[position.Id] = principleNormal;
+                }
+                else
+                {
+                    straightenedNormals[position.Id] += principleNormal;
+                }
+            }
         }
     }
 }

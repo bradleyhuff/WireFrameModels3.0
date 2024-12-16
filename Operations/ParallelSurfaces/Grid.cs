@@ -14,6 +14,9 @@ using Console = BaseObjects.Console;
 using BasicObjects.MathExtensions;
 using Operations.Regions;
 using Operations.Intermesh.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using FileExportImport;
+using Operations.SetOperators;
 
 namespace Operations.ParallelSurfaces
 {
@@ -21,7 +24,7 @@ namespace Operations.ParallelSurfaces
     {
         public static IWireFrameMesh SetFacePlates(this IWireFrameMesh mesh, double thickness)
         {
-            FoldPrimming(mesh);
+            Sets.FoldPrimming(mesh);
             var output = AddParallelSurfaces(mesh, thickness);
             output.Intermesh();
 
@@ -37,7 +40,7 @@ namespace Operations.ParallelSurfaces
 
         public static IEnumerable<IWireFrameMesh> BuildFacePlates(this IWireFrameMesh mesh, double thickness)
         {
-            FoldPrimming(mesh);
+            Sets.FoldPrimming(mesh);
             var output = BuildParallelSurfaces(mesh, thickness).ToArray();
             foreach (var facePlate in output)
             {
@@ -60,7 +63,7 @@ namespace Operations.ParallelSurfaces
                 output.AddGrid(facePlate);
             }
 
-            //output.Intermesh();
+            output.Intermesh();
 
             return output;
         }
@@ -161,61 +164,6 @@ namespace Operations.ParallelSurfaces
                 if (removeFold || count == exteriorCount) { output.RemoveAllTriangles(fold.Triangles); }
             }
         }
-
-
-        private static void FoldPrimming(IWireFrameMesh output)
-        {
-            var foldedTriangles = output.Triangles.Where(t => t.IsFolded).ToArray();
-            if (!foldedTriangles.Any()) { return; }
-
-            var space = new Space(output.Triangles.Select(t => t.Triangle).ToArray());
-            var straightenedNormals = new Dictionary<int, Vector3D>();
-            foreach (var foldedTriangle in foldedTriangles)
-            {
-                var principleNormal = foldedTriangle.Triangle.Normal.Direction;
-                var testPoint = foldedTriangle.Triangle.Center + 1e-6 * principleNormal;
-                var spaceRegion = space.RegionOfPoint(testPoint);
-                if (spaceRegion == Region.Interior) { principleNormal = -principleNormal; }
-
-                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.A, principleNormal);
-                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.B, principleNormal);
-                ApplyPrincipleNormal(straightenedNormals, foldedTriangle.C, principleNormal);
-            }
-
-            var replacements = new List<SurfaceTriangle>();
-
-            foreach (var foldedTriangle in foldedTriangles)
-            {
-                Ray3D a = PositionNormal.GetRay(foldedTriangle.A);
-                Ray3D b = PositionNormal.GetRay(foldedTriangle.B);
-                Ray3D c = PositionNormal.GetRay(foldedTriangle.C);
-                if (straightenedNormals.ContainsKey(foldedTriangle.A.Id)) { a = new Ray3D(foldedTriangle.A.Position, straightenedNormals[foldedTriangle.A.Id].Direction); }
-                if (straightenedNormals.ContainsKey(foldedTriangle.B.Id)) { b = new Ray3D(foldedTriangle.B.Position, straightenedNormals[foldedTriangle.B.Id].Direction); }
-                if (straightenedNormals.ContainsKey(foldedTriangle.C.Id)) { c = new Ray3D(foldedTriangle.C.Position, straightenedNormals[foldedTriangle.C.Id].Direction); }
-                replacements.Add(new SurfaceTriangle(a, b, c));
-            }
-
-            output.RemoveAllTriangles(foldedTriangles);
-            output.AddRangeTriangles(replacements, "", 0);
-
-            Console.WriteLine();
-        }
-
-        private static void ApplyPrincipleNormal(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal)
-        {
-            if (Vector3D.Dot(position.Normal, principleNormal) < 0)
-            {
-                if (!straightenedNormals.ContainsKey(position.Id))
-                {
-                    straightenedNormals[position.Id] = principleNormal;
-                }
-                else
-                {
-                    straightenedNormals[position.Id] += principleNormal;
-                }
-            }
-        }
-
 
         private static void FillPlateSides(IWireFrameMesh output, double thickness)
         {

@@ -371,14 +371,16 @@ namespace Operations.ParallelSurfaces
                 var bucket = new BoxBucket<PositionNormal>(surfacePositions);
 
                 var dividerEdges = new List<PositionEdge>();
+                var usedSurfacePoint = new Dictionary<int, bool>();
                 foreach (var position in basePositions)
                 {
                     var surfacePoint = position.Position + thickness * position.Normal.Direction;
                     var matchingSurfacePoint = bucket.Fetch(new PointNode(surfacePoint)).FirstOrDefault(p => p.Position == surfacePoint);
-                    if (matchingSurfacePoint != null)
+                    if (matchingSurfacePoint != null && !usedSurfacePoint.ContainsKey(matchingSurfacePoint.Id)) // Avoid divisions sharing a common point.
                     {
                         var positionEdge = new PositionEdge(position, matchingSurfacePoint);
                         dividerEdges.Add(positionEdge);
+                        usedSurfacePoint[matchingSurfacePoint.Id] = true;
                     }
                 }
 
@@ -479,7 +481,6 @@ namespace Operations.ParallelSurfaces
                         p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'E')) == 1))
                 {
                     positionHolders[position.Id] = position.PositionNormals.ToList();
-                    //Console.WriteLine($"ePosition {position.Id} {positionHolders.Count}");
                 }
 
                 foreach (var position in surfacePositions.
@@ -487,9 +488,7 @@ namespace Operations.ParallelSurfaces
                         p.PositionNormals.Count(pn => pn.Triangles.Any(t => t.Trace[0] == 'S')) > 1))
                 {
                     cuspPositions[position.Id] = position.PositionNormals.ToList();
-                    //Console.WriteLine($"sPosition {position.Id} {positionHolders.Count}");
                 }
-                //Console.WriteLine("Done");
 
                 foreach (var triangle in triangles)
                 {
@@ -518,7 +517,6 @@ namespace Operations.ParallelSurfaces
                         var cross = Vector3D.Cross(list[0].Normal, list[1].Normal).Direction;
                         var newVector = Vector3D.Cross(cross, list[2].Normal).Direction;
                         if (Vector3D.AreOpposite(newVector, referencePositions[kv.Key])) { newVector = -newVector; }
-                        //Console.WriteLine($"1 New vector {newVector} Given vectors {string.Join(",", list.Select(pn => pn.Normal))} Cross {cross}");
                         replacementPositions[kv.Key] = newVector;
                         continue;
                     }
@@ -528,7 +526,6 @@ namespace Operations.ParallelSurfaces
                         var cross = Vector3D.Cross(list[1].Normal, list[2].Normal).Direction;
                         var newVector = Vector3D.Cross(cross, list[0].Normal).Direction;
                         if (Vector3D.AreOpposite(newVector, referencePositions[kv.Key])) { newVector = -newVector; }
-                        //Console.WriteLine($"3 New vector {newVector} Given vectors {string.Join(",", list.Select(pn => pn.Normal))} Cross {cross}");
                         replacementPositions[kv.Key] = newVector;
                         continue;
                     }
@@ -538,7 +535,6 @@ namespace Operations.ParallelSurfaces
                         var cross = Vector3D.Cross(list[0].Normal, list[2].Normal).Direction;
                         var newVector = Vector3D.Cross(cross, list[1].Normal).Direction;
                         if (Vector3D.AreOpposite(newVector, referencePositions[kv.Key])) { newVector = -newVector; }
-                        //Console.WriteLine($"2 New vector {newVector} Given vectors {string.Join(",", list.Select(pn => pn.Normal))} Cross {cross}");
                         replacementPositions[kv.Key] = newVector;
                         continue;
                     }

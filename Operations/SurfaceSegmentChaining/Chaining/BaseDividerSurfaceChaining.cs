@@ -1,12 +1,6 @@
 ﻿using BasicObjects.MathExtensions;
 using Operations.SurfaceSegmentChaining.Basics;
-using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
 using Operations.SurfaceSegmentChaining.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.SurfaceSegmentChaining.Chaining
 {

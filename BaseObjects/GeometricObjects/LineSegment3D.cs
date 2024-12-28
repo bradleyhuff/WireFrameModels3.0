@@ -1,5 +1,6 @@
 ﻿using BaseObjects.Transformations.Interfaces;
 using E = BasicObjects.Math;
+using Double = BasicObjects.Math.Double;
 
 namespace BasicObjects.GeometricObjects
 {
@@ -99,6 +100,11 @@ namespace BasicObjects.GeometricObjects
             LineSegment3D compare = (LineSegment3D)obj;
             return (compare.Start.Equals(Start) && compare.End.Equals(End)) ||
                 (compare.Start.Equals(End) && compare.End.Equals(Start));
+        }
+
+        public static bool AreEqual(LineSegment3D a, LineSegment3D b, double error = Double.DifferenceError)
+        {
+            return (Point3D.AreEqual(a.Start, b.Start, error) && Point3D.AreEqual(a.End, b.End, error)) || (Point3D.AreEqual(a.Start, b.End, error) && Point3D.AreEqual(a.End, b.Start, error));
         }
 
         public static bool operator ==(LineSegment3D a, LineSegment3D b)

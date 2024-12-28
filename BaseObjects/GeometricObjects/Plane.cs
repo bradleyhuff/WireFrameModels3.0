@@ -207,6 +207,13 @@ namespace BasicObjects.GeometricObjects
             return new Triangle3D(Projection(triangle.A), Projection(triangle.B), Projection(triangle.C));
         }
 
+        public Vector3D Projection(Vector3D vector)
+        {
+            var point = Point3D.Zero + vector.Direction;
+            var projection = Projection(point);
+            return (projection - Point3D.Zero).Direction;
+        }
+
         public bool Intersects(Rectangle3D box)
         {
             var diagonal0 = new LineSegment3D(box.GetVertex(0), box.GetVertex(7));

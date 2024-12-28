@@ -112,7 +112,7 @@ namespace Operations.Groupings.Basics
             return mesh;
         }
 
-        private IReadOnlyList<GroupingTriangle> GroupingTriangles
+        internal IReadOnlyList<GroupingTriangle> GroupingTriangles
         {
             get
             {
@@ -162,17 +162,22 @@ namespace Operations.Groupings.Basics
 
         private IEnumerable<GroupEdge> GetPerimeterEdges()
         {
-            var table = GroupingTriangles.Select(v => new KeyValuePair<int, bool>(v.PositionTriangle.Id, true)).ToDictionary(p => p.Key, p => p.Value);
-            foreach (var triangle in GroupingTriangles)
+            return GetPerimeterEdges(GroupingTriangles.Select(g => g.PositionTriangle));
+        }
+
+        public static IEnumerable<GroupEdge> GetPerimeterEdges(IEnumerable<PositionTriangle> groupTriangles)
+        {
+            var table = groupTriangles.Select(v => new KeyValuePair<int, bool>(v.Id, true)).ToDictionary(p => p.Key, p => p.Value);
+            foreach (var triangle in groupTriangles)
             {
-                if (!triangle.PositionTriangle.ABadjacents.Any() ||
-                    triangle.PositionTriangle.ABadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.A, triangle.B); }
+                if (!triangle.ABadjacents.Any() ||
+                    triangle.ABadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.A, triangle.B); }
 
-                if (!triangle.PositionTriangle.BCadjacents.Any() ||
-                    triangle.PositionTriangle.BCadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.B, triangle.C); }
+                if (!triangle.BCadjacents.Any() ||
+                    triangle.BCadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.B, triangle.C); }
 
-                if (!triangle.PositionTriangle.CAadjacents.Any() ||
-                    triangle.PositionTriangle.CAadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.C, triangle.A); }
+                if (!triangle.CAadjacents.Any() ||
+                    triangle.CAadjacents.All(t => !table.ContainsKey(t.Id))) { yield return new GroupEdge(triangle.C, triangle.A); }
             }
         }
 

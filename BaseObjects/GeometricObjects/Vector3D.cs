@@ -109,6 +109,7 @@ namespace BasicObjects.GeometricObjects
             {
                 if (_direction is null)
                 {
+                    if (E.Double.IsEqual(Magnitude, 0)) { return Vector3D.Zero; }
                     _direction = this / Magnitude;
                 }
                 return _direction;

@@ -9,13 +9,19 @@ namespace Operations.SurfaceSegmentChaining.Basics
 {
     internal class SurfaceTriangleContainer<T>
     {
-        public SurfaceTriangleContainer(SurfaceRayContainer<T> a, SurfaceRayContainer<T> b, SurfaceRayContainer<T> c)
+        private static int _id = 0;
+        public SurfaceTriangleContainer(SurfaceRayContainer<T> a, SurfaceRayContainer<T> b, SurfaceRayContainer<T> c, int fillId)
         {
             A = a;
             B = b;
             C = c;
             Triangle = new SurfaceTriangle(a, b, c);
+            Id = _id++;
+            FillId = fillId;
         }
+
+        public int Id { get; }
+        public int FillId { get; }
         public SurfaceTriangle Triangle { get; }
 
         public SurfaceRayContainer<T> A { get; }

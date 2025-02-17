@@ -446,7 +446,7 @@ namespace Operations.PositionRemovals
             var endPoints = arc.SelectMany(s => s.Positions).GroupBy(g => g.PositionObject.Id).Where(g => g.Count() == 1).Select(g => g.First()).ToArray();
             if (endPoints.Any())
             {
-                arc.Add(new PositionEdge(endPoints[0], endPoints[1]));//Connect gap left by removed position.
+                arc.Add(new PositionEdge(endPoints[0], endPoints[1], null));//Connect gap left by removed position.
             }
 
             return new SurfaceSegmentSets<PlanarFillingGroup, PositionNormal>
@@ -476,7 +476,7 @@ namespace Operations.PositionRemovals
 
             var endPointGroups = perimeterArc.SelectMany(p => p.Positions).GroupBy(p => p.PositionObject.Id);
             var endPoints = endPointGroups.Where(g => g.Count() == 1).Select(g => g.Single());
-            var links = endPoints.Select(e => new PositionEdge(e, antipode)).Where(l => l.A.PositionObject.Id != l.B.PositionObject.Id).ToArray();
+            var links = endPoints.Select(e => new PositionEdge(e, antipode, null)).Where(l => l.A.PositionObject.Id != l.B.PositionObject.Id).ToArray();
 
             var perimeter = perimeterArc.Concat(links).DistinctBy(p => p.Key, new Combination2Comparer()).ToArray();
             if (perimeter.Length < 3) { return null; }

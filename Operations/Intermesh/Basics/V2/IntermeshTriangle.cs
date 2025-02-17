@@ -285,7 +285,7 @@ namespace Operations.Intermesh.Basics.V2
             mesh.AddTriangle(A.Point, Triangle.Normal, B.Point, Triangle.Normal, C.Point, Triangle.Normal, "", 0);
         }
 
-        public IEnumerable<IWireFrameMesh> ExportWithDivisionsSplit(IWireFrameMesh mesh)
+        public IEnumerable<IWireFrameMesh> ExportWithDivisionsSplit()
         {
             foreach (var division in PerimeterDivisions)
             {
@@ -296,7 +296,7 @@ namespace Operations.Intermesh.Basics.V2
             }
         }
 
-        public IEnumerable<IWireFrameMesh> ExportWithInternalDivisionsSplit(IWireFrameMesh mesh)
+        public IEnumerable<IWireFrameMesh> ExportWithInternalDivisionsSplit()
         {
             foreach (var division in InternalDivisions)
             {
@@ -307,7 +307,7 @@ namespace Operations.Intermesh.Basics.V2
             }
         }
 
-        public IEnumerable<IWireFrameMesh> ExportWithGatheringSplit(IWireFrameMesh mesh)
+        public IEnumerable<IWireFrameMesh> ExportWithGatheringSplit()
         {
             foreach (var gathering in Gathering)
             {

@@ -5,7 +5,9 @@ using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using FundamentalMeshes;
 using Operations.Basics;
+using Operations.Groupings.Basics;
 using Operations.ParallelSurfaces;
+using Operations.PositionRemovals;
 using Operations.SetOperators;
 using System;
 using System.Collections.Generic;
@@ -20,28 +22,48 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
-            var part1 = Cuboid.Create(1, 2, 1, 2, 1, 2);
-            var part2 = Cuboid.Create(1, 2, 1, 2, 1, 2);
-            part2.Apply(Transform.Translation(new Vector3D(0.4, 0.4, 0)));
+            //var part1 = Cuboid.Create(1, 2, 1, 2, 1, 2);
+            //var part2 = Cuboid.Create(1, 2, 1, 2, 1, 2);
+            //part2.Apply(Transform.Translation(new Vector3D(0.4, 0.4, 0)));
 
-            var output = part1;//.Difference(part2);
+            //var output = part1.Difference(part2);
+
+            var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
+            var clusters = GroupingCollection.ExtractClusters(import.Triangles).ToArray();
+            //var output = clusters[180].Create();
+            //var output = clusters[137].Create();
+            var output = clusters[68].Create();
+
+
+            //WavefrontFile.Export(output, "Wavefront/Output");
             //var output = WireFrameMesh.Create();
             //output.AddGrid(part1);
             //output.AddGrid(part2);
-            var facePlates = output.BuildFacePlates(-0.1000).ToArray();
-            //facePlates[0].Apply(Transform.Translation(new Vector3D(-4e-8, -5e-8, -6e-8)));
-            //facePlates[1].Apply(Transform.Translation(new Vector3D(-1e-8, -2e-8, -3e-8)));
-            //facePlates[2].Apply(Transform.Translation(new Vector3D(1e-8, 2e-8, 3e-8)));
-            //facePlates[3].Apply(Transform.Translation(new Vector3D(4e-8, 5e-8, 6e-8)));
-            //facePlates[4].Apply(Transform.Translation(new Vector3D(7e-8, 8e-8, 9e-8)));
-            //facePlates[5].Apply(Transform.Translation(new Vector3D(10e-8, 11e-8, 12e-8)));
-            var union = Sets.Union(facePlates);
-            union.ShowVitals();
+
+            double offset = -0.0150;
+            var facePlates = output.BuildFacePlates(offset).ToArray();
+            WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
+
+            foreach (var facePlate in facePlates.Take(1))
+            {
+                output = output.Difference(facePlate);
+            }
+            //while (output.Triangles.Any(t => t.OpenEdges.Any())) { output.RemoveAllTriangles(output.Triangles.Where(t => t.OpenEdges.Any())); }
+            //output.RemoveShortSegments(1e-4);
+            //output.RemoveCollinearEdgePoints();
+            //output.RemoveCoplanarSurfacePoints();
+
+            output.ShowVitals();
+            WavefrontFile.Export(output, "Wavefront/Output");
+
+            //var union = Sets.Union(facePlates);
+            //union.BaseStrip();
+            //union.ShowVitals();
 
             //WavefrontFile.Export(output, "Wavefront/UnionCheck");
             //WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
-            WavefrontFile.Export(union, "Wavefront/Union");
-            WavefrontFile.Export(NormalOverlay(union, 0.05), "Wavefront/UnionNormals");
+            //WavefrontFile.Export(union, "Wavefront/Union");
+            //WavefrontFile.Export(NormalOverlay(union, 0.05), "Wavefront/UnionNormals");
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

@@ -1,7 +1,9 @@
 ﻿using BasicObjects;
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
+using Collections.WireFrameMesh.Basics;
 using FileExportImport;
 using Operations.Groupings.Basics;
 using Console = BaseObjects.Console;
@@ -36,10 +38,7 @@ namespace Operations.Basics
             TableDisplays.ShowCountSpread("BC Adjacency counts", mesh.Triangles.Select(t => t.BCadjacents), l => l.Count);
             TableDisplays.ShowCountSpread("CA Adjacency counts", mesh.Triangles.Select(t => t.CAadjacents), l => l.Count);
             var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3);
-            Console.WriteLine($"Collinears {mesh.Triangles.Count(t => t.Triangle.IsCollinear)} Tags {string.Join(",", tags.Select(t => t.Key))}");
             Console.WriteLine();
-            //var tags = mesh.ShowTagTriangles();
-            //Console.WriteLine($"Tags {tags}");
         }
     }
 }

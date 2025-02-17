@@ -85,9 +85,9 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                yield return new PositionEdge(A, B);
-                yield return new PositionEdge(B, C);
-                yield return new PositionEdge(C, A);
+                yield return new PositionEdge(A, B, this);
+                yield return new PositionEdge(B, C, this);
+                yield return new PositionEdge(C, A, this);
             }
         }
 
@@ -95,9 +95,9 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (!ABadjacents.Any()) yield return new PositionEdge(A, B);
-                if (!BCadjacents.Any()) yield return new PositionEdge(B, C);
-                if (!CAadjacents.Any()) yield return new PositionEdge(C, A);
+                if (!ABadjacents.Any()) yield return new PositionEdge(A, B, this);
+                if (!BCadjacents.Any()) yield return new PositionEdge(B, C, this);
+                if (!CAadjacents.Any()) yield return new PositionEdge(C, A, this);
             }
         }
 

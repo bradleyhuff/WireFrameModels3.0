@@ -14,30 +14,12 @@ using Console = BaseObjects.Console;
 using BasicObjects.MathExtensions;
 using Operations.Regions;
 using Operations.Intermesh.Basics;
-using Collections.WireFrameMesh.BasicWireFrameMesh;
-using FileExportImport;
 using Operations.SetOperators;
 
 namespace Operations.ParallelSurfaces
 {
     public static class Grid
     {
-        //public static IWireFrameMesh SetFacePlates(this IWireFrameMesh mesh, double thickness)
-        //{
-        //    Sets.FoldPrimming(mesh);
-        //    var output = AddParallelSurfaces(mesh, thickness);
-        //    output.Intermesh();
-
-        //    RemoveInternalFolds(output, thickness);
-        //    FillPlateSides(output, thickness);
-        //    ObliqueNormalAdjustments(output);
-        //    ElbowFill(output, thickness);
-        //    PlateSidesNormalReplacement(output);
-        //    ElbowNormalBlending(output);
-
-        //    return output;
-        //}
-
         public static IEnumerable<IWireFrameMesh> BuildFacePlates(this IWireFrameMesh mesh, double thickness)
         {
             Sets.FoldPrimming(mesh);
@@ -53,6 +35,25 @@ namespace Operations.ParallelSurfaces
                 FixZeroNormals(facePlate);
             }
             return output.Select(s => s.Mesh);
+        }
+
+        public static void BaseStrip(this IWireFrameMesh mesh)
+        {
+            var faces = GroupingCollection.ExtractFaces(mesh.Triangles).ToArray();
+            var stripping = faces.Where(f => f.Triangles.Any(t => t.Trace[0] == 'B'));
+
+            foreach (var remove in stripping)
+            {
+                mesh.RemoveAllTriangles(remove.Triangles);
+            }
+
+            faces = GroupingCollection.ExtractFaces(mesh.Triangles).ToArray();
+            stripping = faces.Where(f => f.Triangles.Any(t => t.OpenEdges.Any()));
+
+            foreach (var remove in stripping)
+            {
+                mesh.RemoveAllTriangles(remove.Triangles);
+            }
         }
 
         public static IWireFrameMesh CombineFacePlates(IEnumerable<IWireFrameMesh> facePlates)
@@ -143,6 +144,7 @@ namespace Operations.ParallelSurfaces
         private static void AssignSurfacePoints(ParallelSurfaceSet facePlate, double thickness)
         {
             var allSurfacePoints = facePlate.SurfaceLoops.SelectMany(l => l).Select(p => new PointNode(p)).ToArray();
+            if (!allSurfacePoints.Any()) { throw new InvalidDataException("No surface points found."); }
             var bucket = new BoxBucket<PointNode>(allSurfacePoints);
 
             foreach (var loop in facePlate.QuadrangleSets)
@@ -187,29 +189,8 @@ namespace Operations.ParallelSurfaces
             var zeroEdgeTriangles = edgeTriangles.Where(t => t.A.Normal == Vector3D.Zero || t.B.Normal == Vector3D.Zero || t.C.Normal == Vector3D.Zero);
             if (!zeroEdgeTriangles.Any()) { return; }
 
-            //var fullZeroEdgeTriangles = edgeTriangles.Where(t => t.A.Normal == Vector3D.Zero && t.B.Normal == Vector3D.Zero && t.C.Normal == Vector3D.Zero);
-            //Console.WriteLine($"BEFORE Zero triangles {zeroEdgeTriangles.Count()} Full zero triangles {fullZeroEdgeTriangles.Count()}");
-
             var removeTriangles = new List<PositionTriangle>();
             var addTriangles = new List<SurfaceTriangle>();
-
-            //foreach (var triangle in zeroEdgeTriangles.Where(t => t.Positions.Any(p => p.Normal != Vector3D.Zero)))
-            //{
-            //    var defaultNormal = triangle.Triangle.Normal;
-            //    var referenceNormal = triangle.Positions.First(p => p.Normal != Vector3D.Zero).Normal;
-            //    if (Vector3D.Dot(defaultNormal, referenceNormal) < 0)
-            //    {
-            //        defaultNormal = -defaultNormal;
-            //    }
-
-            //    var replacement = new SurfaceTriangle(
-            //        new Ray3D(triangle.A.Position, triangle.A.Normal == Vector3D.Zero ? defaultNormal: triangle.A.Normal), 
-            //        new Ray3D(triangle.B.Position, triangle.B.Normal == Vector3D.Zero ? defaultNormal : triangle.B.Normal), 
-            //        new Ray3D(triangle.C.Position, triangle.C.Normal == Vector3D.Zero ? defaultNormal : triangle.C.Normal));
-
-            //    removeTriangles.Add(triangle);
-            //    //addTriangles.Add(replacement);
-            //}
 
             var space = new Space(facePlate.Mesh.Triangles.ToArray());
             foreach (var triangle in zeroEdgeTriangles)
@@ -230,31 +211,25 @@ namespace Operations.ParallelSurfaces
 
             facePlate.Mesh.RemoveAllTriangles(removeTriangles);
             facePlate.Mesh.AddRangeTriangles(addTriangles, $"F{facePlate.Index}", 0);
-
-            //edgeTriangles = facePlate.Mesh.Triangles.Where(t => t.Trace[0] == 'F').ToArray();
-            //zeroEdgeTriangles = edgeTriangles.Where(t => t.A.Normal == Vector3D.Zero || t.B.Normal == Vector3D.Zero || t.C.Normal == Vector3D.Zero);
-            //fullZeroEdgeTriangles = edgeTriangles.Where(t => t.A.Normal == Vector3D.Zero && t.B.Normal == Vector3D.Zero && t.C.Normal == Vector3D.Zero);
-            //Console.WriteLine($"AFTER Zero triangles {zeroEdgeTriangles.Count()} Full zero triangles {fullZeroEdgeTriangles.Count()}");
         }
 
         private static Point3D GetNearestPoint(Point3D point, BoxBucket<PointNode> bucket, double thickness)
         {
-            var node = new Rectangle3D(point, 2 * thickness);
+            thickness = Math.Abs(thickness);
 
-            var matches = bucket.Fetch(node);
-            if (matches.Any())
+            var multiple = 1.41;
+
+            while (true)
             {
-                return point.GetNearestPoint(matches.Select(m => m.Point).ToArray());
-            }
+                var node = new Rectangle3D(point, multiple * thickness);
 
-            node = new Rectangle3D(point, 4 * thickness);
-            matches = bucket.Fetch(node);
-            if (matches.Any())
-            {
-                return point.GetNearestPoint(matches.Select(m => m.Point).ToArray());
+                var matches = bucket.Fetch(node);
+                if (matches.Any())
+                {
+                    return point.GetNearestPoint(matches.Select(m => m.Point).ToArray());
+                }
+                multiple *= 1.41;
             }
-
-            return null;
         }
 
         private class Quadrangle
@@ -372,31 +347,6 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        private class TriangleTrace
-        {
-            public TriangleTrace(Point3D a, Point3D b, Point3D c, string trace, int tag)
-            {
-                Triangle = new Triangle3D(a, b, c);
-                Trace = trace;
-                Tag = tag;
-            }
-            public Triangle3D Triangle { get; }
-            public string Trace { get; }
-            public int Tag { get; }
-        }
-
-        private class SurfaceTriangleTrace
-        {
-            public SurfaceTriangleTrace(Ray3D a, Ray3D b, Ray3D c, string trace, int tag)
-            {
-                Triangle = new SurfaceTriangle(a, b, c);
-                Trace = trace;
-                Tag = tag;
-            }
-            public SurfaceTriangle Triangle { get; }
-            public string Trace { get; }
-            public int Tag { get; }
-        }
 
         private static SurfaceSegmentSets<PlanarFillingGroup, PositionNormal> CreateSurfaceSegmentSet(IEnumerable<GroupEdge> openEdges, IEnumerable<GroupEdge> dividerEdges)
         {

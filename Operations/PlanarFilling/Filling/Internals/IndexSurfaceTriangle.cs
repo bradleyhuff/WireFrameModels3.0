@@ -3,12 +3,17 @@ namespace Operations.PlanarFilling.Filling.Internals
 {
     internal class IndexSurfaceTriangle
     {
-        public IndexSurfaceTriangle(int indexPointA, int indexPointB, int indexPointC)
+        private static int _id = 0;
+        public IndexSurfaceTriangle(int indexPointA, int indexPointB, int indexPointC, int fillId)
         {
             IndexPointA = indexPointA;
             IndexPointB = indexPointB;
             IndexPointC = indexPointC;
+            Id = _id++;
+            FillId = fillId;
         }
+        public int Id { get; }
+        public int FillId { get; }
         public int IndexPointA { get; }
         public int IndexPointB { get; }
         public int IndexPointC { get; }

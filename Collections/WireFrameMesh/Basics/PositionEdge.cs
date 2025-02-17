@@ -5,15 +5,17 @@ namespace Collections.WireFrameMesh.Basics
 {
     public class PositionEdge
     {
-        public PositionEdge(PositionNormal a, PositionNormal b)
+        public PositionEdge(PositionNormal a, PositionNormal b, PositionTriangle triangle)
         {
             A = a;
             B = b;
+            Triangle = triangle;
             Key = new Combination2(a.PositionObject.Id, b.PositionObject.Id);
         }
 
-        public PositionNormal A { get; private set; }
-        public PositionNormal B { get; private set; }
+        public PositionNormal A { get; }
+        public PositionNormal B { get; }
+        public PositionTriangle Triangle { get; }
 
         public IEnumerable<PositionNormal> Positions
         {

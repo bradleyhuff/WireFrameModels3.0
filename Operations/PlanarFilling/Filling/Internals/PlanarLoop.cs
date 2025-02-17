@@ -156,9 +156,12 @@ namespace Operations.PlanarFilling.Filling.Internals
             get { return _indexedFillTriangles; }
         }
 
+        private static int _basicFillId = 0;
         private List<IndexSurfaceTriangle> BasicFill()
         {
-            if (LoopForFillings(0, false, false)) return _indexedFillTriangles;
+            _basicFillId++;
+            if (LoopForFillings(0, false, false))
+                return _indexedFillTriangles;
 
             for (int i = 1; i <= IndexLoop.Count / 2; i++)
             {
@@ -283,7 +286,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             _passOverCount = 0;
             _tracker.RemoveIndex(index);
             _tracker.AdvanceStep(2);
-            _indexedFillTriangles.Add(new IndexSurfaceTriangle(IndexLoop[leftIndex], IndexLoop[index], IndexLoop[rightIndex]));
+            _indexedFillTriangles.Add(new IndexSurfaceTriangle(IndexLoop[leftIndex], IndexLoop[index], IndexLoop[rightIndex], _basicFillId));
         }
 
         private void Advance(int leftIndex, int index, int rightIndex)

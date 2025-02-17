@@ -283,8 +283,8 @@ namespace Operations.Intermesh.Classes.V2
 
             foreach (var filling in fillings)
             {
-                var fillTriangle = new FillTriangle(filling.A.Reference, filling.A.Normal,
-                    filling.B.Reference, filling.B.Normal, filling.C.Reference, filling.C.Normal, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag);
+                var fillTriangle = new FillTriangle(triangle, filling.A.Reference, filling.A.Normal,
+                    filling.B.Reference, filling.B.Normal, filling.C.Reference, filling.C.Normal, filling.FillId, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag);
                 triangle.Fillings.Add(fillTriangle);
             }
         }

@@ -267,18 +267,18 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
-        public bool PointIsAtOrBetweenEndpoints(Point3D point)
+        public bool PointIsAtOrBetweenEndpoints(Point3D point, double error = E.Double.DifferenceError)
         {
             double distanceStart = Point3D.Distance(Start, point);
             double distanceEnd = Point3D.Distance(End, point);
-            return distanceStart < E.Double.DifferenceError ||
-                distanceEnd < E.Double.DifferenceError ||
+            return distanceStart < error ||
+                distanceEnd < error ||
                 (distanceStart < Length && distanceEnd < Length);
         }
         public bool PointIsOnSegment(Point3D point, double error = E.Double.ProximityError)
         {
             if (!LineExtension.PointIsOnLine(point, error)) { return false; }
-            return PointIsAtOrBetweenEndpoints(point);
+            return PointIsAtOrBetweenEndpoints(point, error);
         }
     }
 }

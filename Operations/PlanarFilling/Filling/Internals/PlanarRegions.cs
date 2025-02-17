@@ -1,5 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets;
+using Operations.Intermesh.Basics;
 using Operations.Regions;
 using Double = BasicObjects.Math.Double;
 
@@ -111,7 +112,7 @@ namespace Operations.PlanarFilling.Filling.Internals
         {
             foreach (var match in matches)
             {
-                if (match.Segment.PointIsOnSegment(point)) { return true; }
+                if (match.Segment.PointIsOnSegment(point, GapConstants.Proximity)) { return true; }
             }
             return false;
         }
@@ -223,7 +224,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             var intersectionDistances = nonLinkingSegments.Select(m => new
             {
                 Distance = Point3D.Distance(testSegment.Segment.Start, LineSegment3D.PointIntersection(m.Segment, testSegment.Segment))
-            }).Where(d => Double.IsValid(d.Distance) && d.Distance > Double.ProximityError);
+            }).Where(d => Double.IsValid(d.Distance) && d.Distance > GapConstants.Proximity);
             return intersectionDistances.Any();
         }
 
@@ -235,7 +236,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 Segment = m,
                 Distance = Point3D.Distance(testSegment.Segment.Start, LineSegment3D.PointIntersection(m.Segment, testSegment.Segment))
-            }).Where(d => Double.IsValid(d.Distance) && d.Distance > Double.ProximityError);
+            }).Where(d => Double.IsValid(d.Distance) && d.Distance > GapConstants.Proximity);
 
             if (!intersectionDistances.Any()) { return null; }
 

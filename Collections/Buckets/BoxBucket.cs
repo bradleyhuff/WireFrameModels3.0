@@ -16,15 +16,22 @@ namespace Collections.Buckets
     {
         private BoxBucketInternal<T>? _boxBuckets = null;
         private List<T>? _boxNodes = null;
+        private IEnumerable<T>? _allNodes = null;
         public BoxBucket():this(Enumerable.Empty<T>()) { }
         public BoxBucket(IEnumerable<T> boxes)
         {
+            _allNodes = boxes;
             if (boxes.Count() < BoxBucketInternal<T>.MAX_GROUP)
             {
                 _boxNodes = boxes.ToList();
                 return;
             }
             _boxBuckets = new BoxBucketInternal<T>(boxes);
+        }
+
+        public IEnumerable<T> AllNodes
+        {
+            get { return _allNodes; }
         }
 
         private IEnumerable<T> FetchInternal(Rectangle3D box)

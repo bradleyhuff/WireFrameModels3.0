@@ -10,7 +10,6 @@ using Operations.SurfaceSegmentChaining.Collections;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
 using Operations.PlanarFilling.Basics;
-using Console = BaseObjects.Console;
 using BasicObjects.MathExtensions;
 using Operations.Regions;
 using Operations.Intermesh.Basics;
@@ -32,6 +31,7 @@ namespace Operations.ParallelSurfaces
                 BuildQuadrangles(facePlate);
                 AssignSurfacePoints(facePlate, thickness);
                 AddSideTriangles(facePlate);
+                SideTriangleAdjustments(facePlate);
                 FixZeroNormals(facePlate);
             }
             return output.Select(s => s.Mesh);
@@ -183,6 +183,61 @@ namespace Operations.ParallelSurfaces
             }
         }
 
+        private static void SideTriangleAdjustments(ParallelSurfaceSet facePlate)
+        {
+            var edgeTriangles = facePlate.Mesh.Triangles.Where(t => t.Trace[0] == 'F').ToArray();
+            var looseTriangles = edgeTriangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
+            //Console.WriteLine($"Loose side triangles {looseTriangles.Count()}");
+            if (!looseTriangles.Any()) { return; }
+
+            var surfaceLoops = facePlate.SurfaceLoops.Select((l, i) => l.Select((p, j) => new SurfacePointNode(p, i, j))).ToArray();
+            var bucket = new BoxBucket<SurfacePointNode>(surfaceLoops.SelectMany(p => p));
+
+            foreach (var triangle in looseTriangles)
+            {
+                var closedPoint = PositionNormal.GetRay(triangle.ClosedPoints.Single());
+                var openEdge = triangle.OpenEdges.Single();
+                var openPointA = bucket.Fetch(new Rectangle3D(openEdge.A.Position, BoxBucket.MARGINS)).Single(p => p.Point == openEdge.A.Position);
+                var openPointB = bucket.Fetch(new Rectangle3D(openEdge.B.Position, BoxBucket.MARGINS)).Single(p => p.Point == openEdge.B.Position);
+                if (openPointA.Circuit != openPointB.Circuit) { throw new InvalidOperationException($"Circuits don't match A: {openPointA.Circuit} B: {openPointB.Circuit}"); }
+                var circuit = surfaceLoops[openPointA.Circuit].ToArray();
+                circuit = circuit.Rotate(openPointA.Index).ToArray();
+                var segment = circuit.SegmentForward(e => e.Index == openPointB.Index).ToArray();
+                if (segment.Length > circuit.Length / 2)
+                {
+                    segment = circuit.SegmentBackward(e => e.Index == openPointB.Index).ToArray();
+                }
+
+                //Console.WriteLine($"Loose edge [{openPointA.Circuit}, {openPointA.Index}] => [{openPointB.Circuit}, {openPointB.Index}]");
+                //Console.WriteLine($"Circuit {circuit.Length} Segment [{string.Join(",", segment.Select(s => s.Index))}]");
+
+                facePlate.Mesh.RemoveTriangle(triangle);
+
+                var rayA = PositionNormal.GetRay(openEdge.A);
+                var rayB = PositionNormal.GetRay(openEdge.B);
+                var distance = Point3D.Distance(openEdge.A.Position, openEdge.B.Position);
+
+                for (int i = 0; i < segment.Length - 1; i++)
+                {
+                    var pointA = segment[i];
+                    var pointB = segment[i + 1];
+                    var distanceA = Point3D.Distance(openEdge.A.Position, pointA.Point);
+                    var distanceB = Point3D.Distance(openEdge.A.Position, pointB.Point);
+                    var vectorA = Vector3D.Interpolation(openEdge.A.Normal, openEdge.B.Normal, distanceA / distance);
+                    var vectorB = Vector3D.Interpolation(openEdge.A.Normal, openEdge.B.Normal, distanceB / distance);
+                    facePlate.Mesh.AddTriangle(new SurfaceTriangle(closedPoint,
+                        new Ray3D(pointA.Point, vectorA),
+                        new Ray3D(pointB.Point, vectorB)), triangle.Trace, triangle.Tag);
+                }
+            }
+
+            facePlate.Mesh.RemoveAllTriangles(facePlate.Mesh.Triangles.Where(t => t.AdjacentAnyCount < 3));
+
+            //var grid = WireFrameMesh.Create();
+            //grid.AddRangeTriangles(looseTriangles, "", 0);
+            //WavefrontFile.Export(grid, $"Wavefront/LooseSideTriangles-{facePlate.Index}");
+        }
+
         private static void FixZeroNormals(ParallelSurfaceSet facePlate)
         {
             var edgeTriangles = facePlate.Mesh.Triangles.Where(t => t.Trace[0] == 'F').ToArray();
@@ -229,6 +284,33 @@ namespace Operations.ParallelSurfaces
                     return point.GetNearestPoint(matches.Select(m => m.Point).ToArray());
                 }
                 multiple *= 1.41;
+            }
+        }
+
+        private class SurfacePointNode : IBox
+        {
+            public SurfacePointNode(Point3D point, int circuit, int index)
+            {
+                Point = point;
+                Circuit = circuit;
+                Index = index;
+            }
+
+            public Point3D Point { get; }
+            public int Circuit { get; }
+            public int Index { get; }
+
+            private Rectangle3D _box;
+            public Rectangle3D Box
+            {
+                get
+                {
+                    if (_box is null && Point is not null)
+                    {
+                        _box = new Rectangle3D(Point, BoxBucket.MARGINS);
+                    }
+                    return _box;
+                }
             }
         }
 

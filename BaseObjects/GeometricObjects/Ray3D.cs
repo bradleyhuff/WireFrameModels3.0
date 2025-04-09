@@ -53,6 +53,11 @@ namespace BasicObjects.GeometricObjects
             return new Ray3D(Point3D.Average(source.Select(s => s.Point)), Vector3D.Average(source.Select(s => s.Normal)));
         }
 
+        public static Ray3D Interpolation(Ray3D a, Ray3D b, double alpha)
+        {
+            return new Ray3D(Point3D.Interpolation(a.Point, b.Point, alpha), Vector3D.Interpolation(a.Normal, b.Normal, alpha));
+        }
+
         private bool _wasInverted = false;
 
         public void InvertNormal()

@@ -86,6 +86,11 @@ namespace BasicObjects.GeometricObjects
             return sum;
         }
 
+        public static Vector3D Interpolation(Vector3D a, Vector3D b, double alpha)
+        {
+            return (1 - alpha) * a + alpha * b;
+        }
+
         private double _magnitude = 0;
         private bool _magnitudeFound = false;
 

@@ -9,10 +9,10 @@
 //var project = new CrossTest();
 //var project = new FlushCubeTest();
 //var project = new PositionRemovals();
-//var project = new CurvedPlate();
+var project = new CurvedPlate();
 //var project = new Combination4Check();
 //var project = new RoundedCube();
-var project = new UnionCheck();
+//var project = new UnionCheck();
 project.Run();
 
 Console.ReadLine();

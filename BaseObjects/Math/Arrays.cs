@@ -81,6 +81,26 @@ namespace BasicObjects.MathExtensions
             }
         }
 
+        public static IEnumerable<T> SegmentForward<T>(this T[] points, Func<T, bool> endCondition, bool includeEndCondition = true)
+        {
+            for (int i = 0; i < points.Length; i++)
+            {
+                if (!includeEndCondition && endCondition(points[i])) { break; }
+                yield return points[i];
+                if (includeEndCondition && endCondition(points[i])) { break; }
+            }
+        }
+
+        public static IEnumerable<T> SegmentBackward<T>(this T[] points, Func<T, bool> endCondition, bool includeEndCondition = true)
+        {
+            for (int i = points.Length - 1; i == 0; i--)
+            {
+                if (!includeEndCondition && endCondition(points[i])) { break; }
+                yield return points[i];
+                if (includeEndCondition && endCondition(points[i])) { break; }
+            }
+        }
+
         public static IEnumerable<T> UnwrapToFirst<T>(this T[] points, Func<T, int, bool> startCondition)
         {
             if (!points.Select((v, i) => new { v, i }).Any(p => startCondition(p.v, p.i))) { return points; }

@@ -38,6 +38,8 @@ namespace Operations.Basics
             TableDisplays.ShowCountSpread("BC Adjacency counts", mesh.Triangles.Select(t => t.BCadjacents), l => l.Count);
             TableDisplays.ShowCountSpread("CA Adjacency counts", mesh.Triangles.Select(t => t.CAadjacents), l => l.Count);
             var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3);
+            Console.WriteLine($"Tags {tags.Count()}");
+            Console.WriteLine(string.Join("\n", tags.Select(e => $"{e.Id}  [{e.A.PositionObject.Id}, {e.B.PositionObject.Id}, {e.C.PositionObject.Id}] [{e.A.PositionObject.Point}, {e.B.PositionObject.Point}, {e.C.PositionObject.Point}]")));
             Console.WriteLine();
         }
     }

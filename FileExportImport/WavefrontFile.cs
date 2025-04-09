@@ -2,11 +2,18 @@
 using Collections.WireFrameMesh.Interfaces;
 using Console = BaseObjects.Console;
 using BaseObjects;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
 
 namespace FileExportImport
 {
     public static class WavefrontFile
     {
+        public static void Export(IEnumerable<PositionTriangle> triangle, string fileName)
+        {
+            var grid = WireFrameMesh.Create();
+            grid.AddRangeTriangles(triangle.Select(t => t.Triangle), "", 0);
+            Export(grid, fileName);
+        }
         public static void Export(IEnumerable<IWireFrameMesh> meshes, string fileName)
         {
             int count = 0;

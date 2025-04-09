@@ -130,8 +130,6 @@ namespace BasicObjects.GeometricObjects
             return PointIsOnLine(segment.Start, error) && PointIsOnLine(segment.End, error);
         }
 
-
-
         internal static Point3D MidPointIntersection(Point3D aStart, Vector3D aVector, Point3D bStart, Vector3D bVector, out double gap)
         {
             var aVectorNormal = aVector.Direction;

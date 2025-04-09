@@ -101,6 +101,26 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
+        public IEnumerable<PositionEdge> ClosedEdges
+        {
+            get
+            {
+                if (ABadjacents.Any()) yield return new PositionEdge(A, B, this);
+                if (BCadjacents.Any()) yield return new PositionEdge(B, C, this);
+                if (CAadjacents.Any()) yield return new PositionEdge(C, A, this);
+            }
+        }
+
+        public IEnumerable<PositionNormal> ClosedPoints
+        {
+            get
+            {
+                if (CAadjacents.Any() && ABadjacents.Any()) yield return A;
+                if (ABadjacents.Any() && BCadjacents.Any()) yield return B;
+                if (BCadjacents.Any() && CAadjacents.Any()) yield return C;
+            }
+        }
+
         public bool Disabled { get; private set; }
         public void Disable()
         {

@@ -32,20 +32,25 @@ namespace Projects.Projects
             var clusters = GroupingCollection.ExtractClusters(import.Triangles).ToArray();
             //var output = clusters[180].Create();
             //var output = clusters[137].Create();
-            var output = clusters[68].Create();
+            //var output = clusters[51].Create();//chaining error
+            //var output = clusters[7].Create();//chaining error
+            var output = clusters[38].Create();//banana with error
+            //var output = clusters[68].Create();
 
 
-            //WavefrontFile.Export(output, "Wavefront/Output");
+            WavefrontFile.Export(output, "Wavefront/Input");
             //var output = WireFrameMesh.Create();
             //output.AddGrid(part1);
             //output.AddGrid(part2);
 
-            double offset = -0.0150;
+            double offset = -0.0080;
             var facePlates = output.BuildFacePlates(offset).ToArray();
             WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
 
-            foreach (var facePlate in facePlates.Take(1))
+            foreach (var facePlate in facePlates)
             {
+                Console.WriteLine("Face plate");
+                facePlate.ShowVitals();
                 output = output.Difference(facePlate);
             }
             //while (output.Triangles.Any(t => t.OpenEdges.Any())) { output.RemoveAllTriangles(output.Triangles.Where(t => t.OpenEdges.Any())); }
@@ -53,6 +58,7 @@ namespace Projects.Projects
             //output.RemoveCollinearEdgePoints();
             //output.RemoveCoplanarSurfacePoints();
 
+            Console.WriteLine("Output");
             output.ShowVitals();
             WavefrontFile.Export(output, "Wavefront/Output");
 
@@ -63,7 +69,7 @@ namespace Projects.Projects
             //WavefrontFile.Export(output, "Wavefront/UnionCheck");
             //WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
             //WavefrontFile.Export(union, "Wavefront/Union");
-            //WavefrontFile.Export(NormalOverlay(union, 0.05), "Wavefront/UnionNormals");
+            WavefrontFile.Export(NormalOverlay(output, 0.05), "Wavefront/UnionNormals");
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

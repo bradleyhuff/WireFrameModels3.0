@@ -1,6 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 
-namespace Operations.Intermesh.Basics
+namespace Operations.Intermesh.Basics.V1
 {
     internal class DivisionVertexContainer
     {

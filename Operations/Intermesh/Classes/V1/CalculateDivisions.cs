@@ -4,10 +4,10 @@ using Collections.Buckets;
 using Collections.Threading;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
-using Operations.Intermesh.Basics;
+using Operations.Intermesh.Basics.V1;
 using Console = BaseObjects.Console;
 
-namespace Operations.Intermesh.Classes
+namespace Operations.Intermesh.Classes.V1
 {
     internal static class CalculateDivisions
     {

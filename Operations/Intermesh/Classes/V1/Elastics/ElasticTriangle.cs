@@ -2,10 +2,11 @@
 using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Interfaces;
 using Operations.Intermesh.Basics;
+using Operations.Intermesh.Basics.V1;
 using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 
-namespace Operations.Intermesh.Elastics
+namespace Operations.Intermesh.Classes.V1.Elastics
 {
     internal class ElasticTriangle
     {

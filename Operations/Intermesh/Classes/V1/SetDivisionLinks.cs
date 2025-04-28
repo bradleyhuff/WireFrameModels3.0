@@ -5,8 +5,9 @@ using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
 using Operations.Intermesh.Basics;
+using Operations.Intermesh.Basics.V1;
 
-namespace Operations.Intermesh.Classes
+namespace Operations.Intermesh.Classes.V1
 {
     internal static class SetDivisionLinks
     {

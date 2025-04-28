@@ -1,10 +1,10 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using Collections.Threading;
-using Operations.Intermesh.Basics;
+using Operations.Intermesh.Basics.V1;
 using Console = BaseObjects.Console;
 
-namespace Operations.Intermesh.Classes
+namespace Operations.Intermesh.Classes.V1
 {
     internal static class CalculateIntersections
     {

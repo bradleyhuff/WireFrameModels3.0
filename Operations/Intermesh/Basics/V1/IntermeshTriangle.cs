@@ -4,7 +4,7 @@ using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 
-namespace Operations.Intermesh.Basics
+namespace Operations.Intermesh.Basics.V1
 {
     internal class IntermeshTriangle : IBox
     {

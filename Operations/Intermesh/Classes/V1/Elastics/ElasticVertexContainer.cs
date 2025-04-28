@@ -1,7 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets.Interfaces;
 
-namespace Operations.Intermesh.Elastics
+namespace Operations.Intermesh.Classes.V1.Elastics
 {
     internal class ElasticVertexContainer
     {

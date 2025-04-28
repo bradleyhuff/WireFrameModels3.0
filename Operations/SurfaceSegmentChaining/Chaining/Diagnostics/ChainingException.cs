@@ -1,4 +1,4 @@
-﻿using Operations.Intermesh.Elastics;
+﻿
 using Operations.SurfaceSegmentChaining.Basics;
 
 namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics

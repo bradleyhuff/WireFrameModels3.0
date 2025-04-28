@@ -1,7 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 
-namespace Operations.Intermesh.Elastics
+namespace Operations.Intermesh.Classes.V1.Elastics
 {
     internal class ElasticVertexLink
     {

@@ -2,7 +2,7 @@
 using Collections.Buckets.Interfaces;
 using Microsoft.VisualBasic;
 
-namespace Operations.Intermesh.Basics
+namespace Operations.Intermesh.Basics.V1
 {
     internal class IntermeshDivision : IBox
     {

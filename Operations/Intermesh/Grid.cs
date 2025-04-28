@@ -1,8 +1,8 @@
 ﻿using BaseObjects;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
-using Operations.Intermesh.Basics;
-using Operations.Intermesh.Classes;
+using Operations.Intermesh.Basics.V1;
+using Operations.Intermesh.Classes.V1;
 using System.Numerics;
 using Console = BaseObjects.Console;
 

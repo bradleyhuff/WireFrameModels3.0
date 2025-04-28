@@ -1,8 +1,8 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Interfaces;
-using Operations.Intermesh.Elastics;
+using Operations.Intermesh.Classes.V1.Elastics;
 
-namespace Operations.Intermesh.Basics
+namespace Operations.Intermesh.Basics.V1
 {
     internal class FillTriangle
     {

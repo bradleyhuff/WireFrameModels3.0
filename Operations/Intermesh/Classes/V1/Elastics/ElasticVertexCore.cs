@@ -2,7 +2,7 @@
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
 
-namespace Operations.Intermesh.Elastics
+namespace Operations.Intermesh.Classes.V1.Elastics
 {
     internal class ElasticVertexCore : IBox
     {

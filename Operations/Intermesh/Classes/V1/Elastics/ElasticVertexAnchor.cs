@@ -1,6 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 
-namespace Operations.Intermesh.Elastics
+namespace Operations.Intermesh.Classes.V1.Elastics
 {
     internal class ElasticVertexAnchor : ElasticVertexCore
     {

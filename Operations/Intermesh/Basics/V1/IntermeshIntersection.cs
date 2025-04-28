@@ -1,7 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets.Interfaces;
 
-namespace Operations.Intermesh.Basics
+namespace Operations.Intermesh.Basics.V1
 {
     internal class IntermeshIntersection : IBox
     {
@@ -70,7 +70,7 @@ namespace Operations.Intermesh.Basics
                 _divisions = _divisions.
                     Select(d => new
                     {
-                        Parity = System.Math.Sign(Vector3D.Dot(d.VertexA.Point - firstPoint, parityDirection)),
+                        Parity = Math.Sign(Vector3D.Dot(d.VertexA.Point - firstPoint, parityDirection)),
                         Distance = Point3D.Distance(firstPoint, d.VertexA.Point),
                         Node = d
                     }).

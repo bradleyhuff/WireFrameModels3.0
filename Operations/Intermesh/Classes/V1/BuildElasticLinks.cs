@@ -4,11 +4,12 @@ using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
 using Operations.Intermesh.Basics;
-using Operations.Intermesh.Elastics;
+using Operations.Intermesh.Basics.V1;
+using Operations.Intermesh.Classes.V1.Elastics;
 using Console = BaseObjects.Console;
 using Double = BasicObjects.Math.Double;
 
-namespace Operations.Intermesh.Classes
+namespace Operations.Intermesh.Classes.V1
 {
     internal static class BuildElasticLinks
     {

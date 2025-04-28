@@ -2,9 +2,10 @@
 using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Operations.Intermesh.Basics;
+using Operations.Intermesh.Basics.V1;
 using Console = BaseObjects.Console;
 
-namespace Operations.Intermesh.Classes
+namespace Operations.Intermesh.Classes.V1
 {
     internal static class SetIntersectionLinks
     {
@@ -191,7 +192,7 @@ namespace Operations.Intermesh.Classes
 
         private static void SegmentLengthNearestCheckLinking(IntersectionVertexContainer vertex, double confirmationRange, IEnumerable<IntersectionVertexContainer> links)
         {
-            NearestInRangeLink(vertex, System.Math.Min(confirmationRange, vertex.Intersection.Intersection.Length * 0.99), links);
+            NearestInRangeLink(vertex, Math.Min(confirmationRange, vertex.Intersection.Intersection.Length * 0.99), links);
         }
         private static void NearestInRangeLink(IntersectionVertexContainer vertex, double radius, IEnumerable<IntersectionVertexContainer> links)
         {

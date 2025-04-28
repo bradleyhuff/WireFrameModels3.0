@@ -2,7 +2,7 @@
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
-using Operations.Intermesh.Elastics;
+using Operations.Intermesh.Classes.V1.Elastics;
 using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Interfaces;
 

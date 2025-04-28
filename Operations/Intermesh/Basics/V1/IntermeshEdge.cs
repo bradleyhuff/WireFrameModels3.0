@@ -1,7 +1,7 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
 
-namespace Operations.Intermesh.Basics
+namespace Operations.Intermesh.Basics.V1
 {
     internal class IntermeshEdge
     {

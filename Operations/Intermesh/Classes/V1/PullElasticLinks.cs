@@ -1,10 +1,10 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using Operations.Intermesh.Basics;
-using Operations.Intermesh.Elastics;
+using Operations.Intermesh.Classes.V1.Elastics;
 using Console = BaseObjects.Console;
 
-namespace Operations.Intermesh.Classes
+namespace Operations.Intermesh.Classes.V1
 {
     internal static class PullElasticLinks
     {

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static Operations.Intermesh.Classes.CalculateIntersections;
+using static Operations.Intermesh.Classes.V1.CalculateIntersections;
 
 namespace Operations.Intermesh.Classes.V2
 {

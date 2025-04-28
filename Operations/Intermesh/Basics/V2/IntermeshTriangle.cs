@@ -4,14 +4,8 @@ using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
-using Operations.Intermesh.Elastics;
 using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics.V2
 {
@@ -31,6 +25,24 @@ namespace Operations.Intermesh.Basics.V2
         public IntermeshPoint A { get; set; }
         public IntermeshPoint B { get; set; }
         public IntermeshPoint C { get; set; }
+
+        public IEnumerable<IntermeshPoint> Verticies
+        {
+            get
+            {
+                yield return A;
+                yield return B;
+                yield return C;
+            }
+        }
+
+        public bool IsNearDegenerate
+        {
+            get
+            {
+                return _triangle.Triangle.AngleAtA < 1e-4 || _triangle.Triangle.AngleAtB < 1e-4 || _triangle.Triangle.AngleAtC < 1e-4 || _triangle.Triangle.MinEdge.Length < 1e-7;
+            }
+        }
 
         public IntermeshSegment AB
         {
@@ -147,10 +159,116 @@ namespace Operations.Intermesh.Basics.V2
             }
         }
 
+        public void ClearDivisions()
+        {
+            _divisions.Clear();
+            _abInternalPoints = null;
+            _bcInternalPoints = null;
+            _caInternalPoints = null;
+            _divisionTable = new Combination2Dictionary<bool>();
+        }
+
         public IReadOnlyList<IntermeshDivision> Divisions
         {
             get { return _divisions; }
         }
+
+        private List<IntermeshPoint> _nonVertexPoints = null;
+        public IReadOnlyList<IntermeshPoint> NonVertexPoints
+        {
+            get
+            {
+                if(_nonVertexPoints is null)
+                {
+                    _nonVertexPoints = _divisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != A.Id && p.Id != B.Id && p.Id != C.Id).ToList();
+                }
+                return _nonVertexPoints;
+            }
+        }
+
+        private List<IntermeshPoint> _points = null;
+
+        public IReadOnlyList<IntermeshPoint> Points
+        {
+            get
+            {
+                if (_points is null)
+                {
+                    _points = _divisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).ToList();
+                }
+                return _points;
+            }
+        }
+
+        private List<IntermeshPoint> _spurPoints = null;
+        private bool _spurOutput = false;
+
+        public IReadOnlyList<IntermeshPoint> SpurPoints
+        {
+            get
+            {
+                if (!_spurOutput)
+                {
+                    GetSpurOutputs(out _spurPoints, out _nonSpurDivisions);
+                    _spurOutput = true;
+                }
+                return _spurPoints;
+            }
+        }
+
+        private List<IntermeshPoint> GetSpurPoints(IEnumerable<IntermeshDivision> divisions)
+        {
+            var table = Points.ToDictionary(p => p.Id, p => p);
+            var countTable = new Dictionary<int, int>();
+            foreach (var division in Divisions)
+            {
+                if (!countTable.ContainsKey(division.A.Id)) { countTable[division.A.Id] = 0; }
+                if (!countTable.ContainsKey(division.B.Id)) { countTable[division.B.Id] = 0; }
+                countTable[division.A.Id]++;
+                countTable[division.B.Id]++;
+            }
+
+            return countTable.Where(p => p.Value <= 1).Select(p => table[p.Key]).ToList();
+        }
+
+        private List<IntermeshDivision> GetNonSpurDivisions(IEnumerable<IntermeshPoint> spurPoints, IEnumerable<IntermeshDivision> divisions)
+        {
+            var spurIndicies = spurPoints.Select(sp => sp.Id);
+            return divisions.Where(d => !spurIndicies.Any(sp => sp == d.A.Id) && !spurIndicies.Any(sp => sp == d.B.Id)).ToList();
+        }
+
+        private void GetSpurOutputs(out List<IntermeshPoint> spurPoints, out List<IntermeshDivision> divisions)
+        {
+            spurPoints = GetSpurPoints(Divisions);
+            divisions = GetNonSpurDivisions(spurPoints, Divisions);
+
+            var divisionCount = divisions.Count;
+            var lastDivisionCount = Divisions.Count;
+            while (divisionCount < lastDivisionCount) // Remove extended tails
+            {
+                lastDivisionCount = divisionCount;
+                spurPoints = GetSpurPoints(divisions);
+                divisions = GetNonSpurDivisions(spurPoints, Divisions);
+                divisionCount = divisions.Count;
+            }
+        }
+
+        private List<IntermeshDivision> _nonSpurDivisions = null;
+
+        public IReadOnlyList<IntermeshDivision> NonSpurDivisions
+        {
+            get
+            {
+                if (!_spurOutput)
+                {
+                    GetSpurOutputs(out _spurPoints, out _nonSpurDivisions);
+                    _spurOutput = true;
+                }
+                return _nonSpurDivisions;
+            }
+        }
+
+
         public IEnumerable<IntermeshDivision> InternalDivisions
         {
             get
@@ -174,6 +292,21 @@ namespace Operations.Intermesh.Basics.V2
         public IEnumerable<IntermeshDivision> PerimeterDivisions
         {
             get { return ABDivisions.Union(BCDivisions).Union(CADivisions); }
+        }
+
+        public override string ToString()
+        {
+            return $"A {A.Id} B {B.Id} C {C.Id} Shortest edge {Triangle.MinEdge.Length}\n AB internal [{string.Join(",", ABInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(A, B, ABInternalPoints))}]\n BC internal [{string.Join(",", BCInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(B, C, BCInternalPoints))}]\n" +
+                $"CA internal [{string.Join(",", CAInternalPoints.Select(p => p.Id))}]  [{string.Join(",", CollinearDistances(C, A, CAInternalPoints))}]\nNon vertex points [{string.Join(",", NonVertexPoints.Select(p => p.Id))}]";
+        }
+
+        private IEnumerable<double> CollinearDistances(IntermeshPoint a, IntermeshPoint b, IntermeshPoint[] points)
+        {
+            var line = new Line3D(a.Point, b.Point);
+            foreach(var point in points)
+            {
+                yield return Point3D.Distance(point.Point, line.Projection(point.Point));
+            }
         }
 
         private IntermeshPoint[] _abInternalPoints;
@@ -214,6 +347,14 @@ namespace Operations.Intermesh.Basics.V2
                         OrderBy(p => Point3D.Distance(p.Point, C.Point)).ToArray();
                 }
                 return _caInternalPoints;
+            }
+        }
+
+        public IntermeshPoint[] InternalPoints
+        {
+            get
+            {
+                return NonVertexPoints.ExceptBy(ABInternalPoints.Union(BCInternalPoints).Union(CAInternalPoints).Select(p => p.Id), p => p.Id).ToArray();
             }
         }
 

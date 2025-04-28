@@ -82,8 +82,8 @@ namespace Projects.Projects
             output.ShowSegmentLengths();
             output.ShowVitals();
 
-            PntFile.Export(output, $"Pnt/SphereDifference8 {resolution}");
-            WavefrontFile.Export(output, $"Wavefront/SphereDifference8 {resolution}");
+            PntFile.Export(output, $"Pnt/SphereDifference8B {resolution}");
+            WavefrontFile.Export(output, $"Wavefront/SphereDifference8B {resolution}");
             //WavefrontFile.Export(spheres3A, $"Wavefront/Sphere3 {resolution}");
             //WavefrontFileGroups.ExportByClusters(output, "Wavefront/Clusters");
             {

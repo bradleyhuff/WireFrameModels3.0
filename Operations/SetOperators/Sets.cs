@@ -9,6 +9,7 @@ using Operations.Groupings.FileExportImport;
 using Operations.Intermesh;
 using Operations.PositionRemovals;
 using Operations.Regions;
+using System.Linq;
 using Console = BaseObjects.Console;
 
 namespace Operations.SetOperators
@@ -84,11 +85,35 @@ namespace Operations.SetOperators
             //sum.RemoveCoplanarSurfacePoints();
 
             FoldPrimming(sum);
+            //RemoveTags(sum);
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
             ConsoleLog.MaximumLevels = 1;
             return sum;
+        }
+
+        public static void Test(this IWireFrameMesh gridA, IWireFrameMesh gridB)
+        {
+            var sum = CombineAndMark(gridA, gridB, out Space space);
+            sum.Intermesh();
+            var groups = GroupExtraction(sum);
+
+            foreach(var set in groups.Select((g, i) => new { Group = g, Index = i}))
+            {
+                var grid = WireFrameMesh.Create();
+                grid.AddRangeTriangles(set.Group.Triangles, "", 0);
+                WavefrontFile.Export(grid, $"Wavefront/DifferenceGroup-{set.Index}");
+
+                grid = WireFrameMesh.Create();
+                var groupGrid = WireFrameMesh.Create();
+                groupGrid.AddRangeTriangles(set.Group.Triangles, "", 0);
+                var tags = groupGrid.Triangles.Where(t => t.AdjacentAnyCount < 3);
+                var openEdges = tags.SelectMany(t => t.OpenEdges);
+                grid.AddRangeTriangles(openEdges.Select(e => new Triangle3D(e.A.Position, Point3D.Average([e.A.Position, e.B.Position]), e.B.Position)), "", 0);
+                WavefrontFile.Export(grid, $"Wavefront/LooseEdgesGroup-{set.Index}");
+            }
+
         }
 
         private static IWireFrameMesh CombineAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space space)
@@ -266,6 +291,16 @@ namespace Operations.SetOperators
 
             Console.WriteLine();
         }
+
+        //private static void RemoveTags(IWireFrameMesh output)
+        //{
+        //    var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
+        //    while (tags.Any())
+        //    {
+        //        output.RemoveAllTriangles(tags);
+        //        tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
+        //    }
+        //}
 
         private static void ApplyPrincipleNormal(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal)
         {

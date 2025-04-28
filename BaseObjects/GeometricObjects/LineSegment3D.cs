@@ -94,6 +94,36 @@ namespace BasicObjects.GeometricObjects
             throw new InvalidOperationException($"Center didn't match either line segment endpoint.");
         }
 
+        public static LineSegment3D MinLength(params LineSegment3D[] source)
+        {
+            double minValue = double.MaxValue;
+            LineSegment3D minSegment = null;
+            foreach (LineSegment3D element in source)
+            {
+                if (element.Length < minValue)
+                {
+                    minValue = element.Length;
+                    minSegment = element;
+                }
+            }
+            return minSegment;
+        }
+
+        public static LineSegment3D MaxLength(params LineSegment3D[] source)
+        {
+            double maxValue = 0;
+            LineSegment3D maxSegment = null;
+            foreach (LineSegment3D element in source)
+            {
+                if (element.Length > maxValue)
+                {
+                    maxValue = element.Length;
+                    maxSegment = element;
+                }
+            }
+            return maxSegment;
+        }
+
         public override bool Equals(object? obj)
         {
             if (obj == null || obj is not LineSegment3D) { return false; }

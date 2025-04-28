@@ -32,6 +32,7 @@ namespace Operations.ParallelSurfaces
                 AssignSurfacePoints(facePlate, thickness);
                 AddSideTriangles(facePlate);
                 SideTriangleAdjustments(facePlate);
+                RemoveTags(facePlate.Mesh);
                 FixZeroNormals(facePlate);
             }
             return output.Select(s => s.Mesh);
@@ -236,6 +237,16 @@ namespace Operations.ParallelSurfaces
             //var grid = WireFrameMesh.Create();
             //grid.AddRangeTriangles(looseTriangles, "", 0);
             //WavefrontFile.Export(grid, $"Wavefront/LooseSideTriangles-{facePlate.Index}");
+        }
+
+        private static void RemoveTags(IWireFrameMesh output)
+        {
+            var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
+            while (tags.Any())
+            {
+                output.RemoveAllTriangles(tags);
+                tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
+            }
         }
 
         private static void FixZeroNormals(ParallelSurfaceSet facePlate)
@@ -467,14 +478,12 @@ namespace Operations.ParallelSurfaces
 
         private static void CreateParallelSurface(IWireFrameMesh newMesh, out List<BasePoint[]> baseLoops, GroupingCollection face, int faceIndex, double displacement)
         {
-            var surfaceTriangles = new List<PositionTriangle>();
-
             foreach (var triangle in face.GroupingTriangles)
             {
-                var baseTriangle = newMesh.AddTriangle(CreateBaseSurface(triangle.PositionTriangle), $"B{faceIndex}", 0);
-                var surfaceTriangle2 = CreateParallelSurface(triangle.PositionTriangle, displacement);
-                if (IsNearDegenerate(surfaceTriangle2.Triangle)) { continue; }
-                surfaceTriangles.Add(newMesh.AddTriangle(surfaceTriangle2, $"S{faceIndex}", 0));
+                var baseTriangle = newMesh.AddTriangle(CreateParallelSurface(triangle.PositionTriangle, 0e-4), $"B{faceIndex}", 0);
+                var surfaceTriangle = CreateParallelSurface(triangle.PositionTriangle, displacement - 0e-4);
+                if (IsNearDegenerate(surfaceTriangle.Triangle)) { continue; }
+                newMesh.AddTriangle(surfaceTriangle, $"S{faceIndex}", 0);
             }
 
             var baseEdgeSurfaceCollection = new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(CreateSurfaceSegmentSet(face.PerimeterEdges, Enumerable.Empty<GroupEdge>()));
@@ -501,14 +510,14 @@ namespace Operations.ParallelSurfaces
             public IReadOnlyList<Vector3D> EdgeNormals { get; }
         }
 
-        private static SurfaceTriangle CreateBaseSurface(PositionTriangle triangle)
-        {
-            var aa = new Ray3D(triangle.A.Position, triangle.A.Normal.Direction);
-            var bb = new Ray3D(triangle.B.Position, triangle.B.Normal.Direction);
-            var cc = new Ray3D(triangle.C.Position, triangle.C.Normal.Direction);
+        //private static SurfaceTriangle CreateBaseSurface(PositionTriangle triangle)
+        //{
+        //    var aa = new Ray3D(triangle.A.Position, triangle.A.Normal.Direction);
+        //    var bb = new Ray3D(triangle.B.Position, triangle.B.Normal.Direction);
+        //    var cc = new Ray3D(triangle.C.Position, triangle.C.Normal.Direction);
 
-            return new SurfaceTriangle(aa, bb, cc);
-        }
+        //    return new SurfaceTriangle(aa, bb, cc);
+        //}
 
         private static SurfaceTriangle CreateParallelSurface(PositionTriangle triangle, double displacement)
         {

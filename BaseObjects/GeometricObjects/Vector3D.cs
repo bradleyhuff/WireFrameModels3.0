@@ -1,4 +1,5 @@
 ﻿using BaseObjects.Transformations.Interfaces;
+using System.Collections.Generic;
 using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
@@ -84,6 +85,36 @@ namespace BasicObjects.GeometricObjects
                 sum += list[i];
             }
             return sum;
+        }
+
+        public static Vector3D MinMagnitude(params Vector3D[] source)
+        {
+            double minValue = double.MaxValue;
+            Vector3D minVector = null;
+            foreach (Vector3D element in source)
+            {
+                if(element.Magnitude < minValue)
+                {
+                    minValue = element.Magnitude;
+                    minVector = element;
+                }
+            }
+            return minVector;
+        }
+
+        public static Vector3D MaxMagnitude(params Vector3D[] source)
+        {
+            double maxValue = 0;
+            Vector3D maxVector = null;
+            foreach (Vector3D element in source)
+            {
+                if (element.Magnitude > maxValue)
+                {
+                    maxValue = element.Magnitude;
+                    maxVector = element;
+                }
+            }
+            return maxVector;
         }
 
         public static Vector3D Interpolation(Vector3D a, Vector3D b, double alpha)

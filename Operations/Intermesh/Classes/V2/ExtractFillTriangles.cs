@@ -1,6 +1,10 @@
 ﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using FileExportImport;
 using Operations.Intermesh.Basics.V2;
-using Operations.Intermesh.Elastics;
+using Operations.Intermesh.Classes.V2Support;
 using Operations.PlanarFilling.Basics;
 using Operations.PlanarFilling.Filling;
 using Operations.SurfaceSegmentChaining.Basics;
@@ -19,7 +23,6 @@ namespace Operations.Intermesh.Classes.V2
             ResetCounts();
             GetFillTriangles(triangles);
 
-            //ConsoleLog.WriteLine($"No divisions {noDivisions}\nProspective Single Segments {singleSegment}\nSingle Segment One {singleSegmentOneDivision}\nSingle Segment Two {singleSegmentTwoDivision}\nProspective Double Segments {doubleSegment}\nDouble Segment One {doubleSegmentOneDivision}\nDouble Segment Two {doubleSegmentTwoDivision}\nComplex {complexDivision}");
             ConsoleLog.WriteLine($"Extract fill triangles. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
@@ -113,7 +116,6 @@ namespace Operations.Intermesh.Classes.V2
                 triangle.Fillings.Add(new FillTriangle(triangle, triangle.B, triangle.A, triangle.BCInternalPoints[0]));
                 return true;
             }
-            //Console.WriteLine($"Single segment extra {(triangle.AB?.InternalDivisions) ?? 0} {(triangle.BC?.InternalDivisions) ?? 0} {(triangle.CA?.InternalDivisions) ?? 0}");
             return false;
         }
 
@@ -192,9 +194,9 @@ namespace Operations.Intermesh.Classes.V2
             var points = triangle.InternalSegments.SelectMany(s => s.DivisionPoints).ToArray();
             var groups = points.GroupBy(p => p.Id);
             var commonPoint = groups.SingleOrDefault(g => g.Count() == 2)?.FirstOrDefault();
-            if (commonPoint is null) {
-                //Console.WriteLine($"Double segment no common point {(triangle.AB?.InternalDivisions) ?? 0} {(triangle.BC?.InternalDivisions) ?? 0} {(triangle.CA?.InternalDivisions) ?? 0}");
-                return false; 
+            if (commonPoint is null)
+            {
+                return false;
             }
 
             if (triangle.AB?.InternalDivisions == 1 && triangle.BC?.InternalDivisions == 1 && (triangle.CA?.InternalDivisions ?? 0) == 0)
@@ -228,8 +230,6 @@ namespace Operations.Intermesh.Classes.V2
                 return true;
             }
 
-            //Console.WriteLine($"Double segment extra {(triangle.AB?.InternalDivisions) ?? 0} {(triangle.BC?.InternalDivisions) ?? 0} {(triangle.CA?.InternalDivisions) ?? 0}");
-
             return false;
         }
 
@@ -242,6 +242,22 @@ namespace Operations.Intermesh.Classes.V2
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, IntermeshPoint>(surfaceSet);
 
+            if (triangle.IsNearDegenerate)
+            {
+                var strategy = new NearDegenerateStrategy<IntermeshPoint>(triangle.NonSpurDivisions.Select(d => (d.A, d.B)), p => p.Id, p => triangle.Verticies.Any(v => v.Id == p.Id));
+
+                //var t = triangle.Triangle;
+                //var scale = 0.25 / triangle.Triangle.AspectRatio;
+                //grid.AddRangeTriangles(triangle.PerimeterDivisions.Select(d => new Triangle3D(t.MinimumHeightScale(d.A.Point, scale), t.MinimumHeightScale(Point3D.Average([d.A.Point, d.B.Point]), scale), t.MinimumHeightScale(d.B.Point, scale))), "", 0);
+
+                foreach (var filling in strategy.GetFill())
+                {
+                    var fillTriangle = new FillTriangle(triangle, filling.Item1, filling.Item2, filling.Item3);
+                    triangle.Fillings.Add(fillTriangle);
+                }
+                return;
+            }
+
             ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint> chain;
             try
             {
@@ -250,24 +266,14 @@ namespace Operations.Intermesh.Classes.V2
             catch (Exception e)
             {
                 Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                Console.WriteLine(triangle.ToString());
+                var errorGrid = WireFrameMesh.Create();
+                errorGrid.AddTriangle(triangle.Triangle, "", 0);
+                WavefrontFile.Export(errorGrid, $"Wavefront/Chaining-error-{triangle.Id}");
                 LoopError++;
                 return;
             }
 
-            if (chain.SpurredLoops.Any())
-            {
-                try
-                {
-                    chain = OpenSpurConnectChaining<PlanarFillingGroup, IntermeshPoint>.Create(chain);
-                    chain = SpurLoopingChaining<PlanarFillingGroup, IntermeshPoint>.Create(chain);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Spurred Loop Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-                    SpurredLoopError++;
-                    return;
-                }
-            }
 
             var fillings = new SurfaceTriangleContainer<IntermeshPoint>[0];
             try

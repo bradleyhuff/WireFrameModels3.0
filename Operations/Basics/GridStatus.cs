@@ -25,7 +25,7 @@ namespace Operations.Basics
             Console.WriteLine();
         }
 
-        public static void ShowVitals(this IWireFrameMesh mesh)
+        public static void ShowVitals(this IWireFrameMesh mesh, int index = -1)
         {
             var clusters = GroupingCollection.ExtractClusters(mesh.Triangles);
             var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles);
@@ -37,10 +37,17 @@ namespace Operations.Basics
             TableDisplays.ShowCountSpread("AB Adjacency counts", mesh.Triangles.Select(t => t.ABadjacents), l => l.Count);
             TableDisplays.ShowCountSpread("BC Adjacency counts", mesh.Triangles.Select(t => t.BCadjacents), l => l.Count);
             TableDisplays.ShowCountSpread("CA Adjacency counts", mesh.Triangles.Select(t => t.CAadjacents), l => l.Count);
-            var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3);
+            var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
             Console.WriteLine($"Tags {tags.Count()}");
-            Console.WriteLine(string.Join("\n", tags.Select(e => $"{e.Id}  [{e.A.PositionObject.Id}, {e.B.PositionObject.Id}, {e.C.PositionObject.Id}] [{e.A.PositionObject.Point}, {e.B.PositionObject.Point}, {e.C.PositionObject.Point}]")));
+            Console.WriteLine(string.Join("\n", tags.Select(e => $"{e.Id}  [{e.A.PositionObject.Id}, {e.B.PositionObject.Id}, {e.C.PositionObject.Id}] [{e.A.PositionObject.Point}, {e.B.PositionObject.Point}, {e.C.PositionObject.Point}] Length: {e.Triangle.MaxEdge.Length} Aspect: {e.Triangle.AspectRatio}")));
             Console.WriteLine();
+
+            if(index > -1)
+            {
+                var grid = WireFrameMesh.Create();
+                grid.AddRangeTriangles(tags, "", 0);
+                WavefrontFile.Export(grid, $"Wavefront/Tags-{index}");
+            }
         }
     }
 }

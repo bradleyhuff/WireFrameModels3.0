@@ -70,6 +70,94 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        private LineSegment3D _minEdge = null;
+        public LineSegment3D MinEdge
+        {
+            get
+            {
+                if(_minEdge is null)
+                {
+                    _minEdge = LineSegment3D.MinLength(EdgeAB, EdgeBC, EdgeCA);
+                }
+                return _minEdge;
+            }
+        }
+
+        private LineSegment3D _maxEdge = null;
+        public LineSegment3D MaxEdge
+        {
+            get
+            {
+                if(_maxEdge is null)
+                {
+                    _maxEdge = LineSegment3D.MaxLength(EdgeAB, EdgeBC, EdgeCA);
+                }
+                return _maxEdge;
+            }
+        }
+
+        /// <summary>
+        /// Skinny triangle Aspect ratio -> 0
+        /// </summary>
+        public double AspectRatio
+        {
+            get
+            {
+                return MinimumHeight.Magnitude / MaxEdge.Length;
+            }
+        }
+
+        private Vector3D _minimumHeight = null;
+
+        public Vector3D MinimumHeight
+        {
+            get
+            {
+                if(_minimumHeight is null)
+                {
+                    var maxEdge = MaxEdge;
+                    var minEdgePoints = MinEdge.Points;
+                    var maxEdgePoints = maxEdge.Points.ToArray();
+                    var loosePoint = minEdgePoints.Single(p => p != maxEdgePoints[0] && p != maxEdgePoints[1]);
+
+                    _minimumHeight = loosePoint - MaxEdge.LineExtension.Projection(loosePoint);
+                }
+                return _minimumHeight;
+            }
+        }
+
+        private BasisPlane _basisPlane = null;
+
+        public Point3D MinimumHeightScale(Point3D p, double scale)
+        {
+            if(_basisPlane is null)
+            {
+                var loosePoint = Verticies.Single(v => v != MaxEdge.Start && v != MaxEdge.End);
+                _basisPlane = new BasisPlane(MaxEdge.Start, MaxEdge.End, loosePoint);
+            }
+
+            var surface = _basisPlane.MapToSurfaceCoordinates(p);
+
+            surface = new Point2D(surface.X, surface.Y * scale);
+
+            return _basisPlane.MapToSpaceCoordinates(surface);
+        }
+
+        public Point3D MinimumHeightScale(Point3D p)
+        {
+            return MinimumHeightScale(p, 1 / AspectRatio);
+        }
+
+        public Triangle3D MinimumHeightScaleImage(double scale)
+        {
+            return new Triangle3D(MinimumHeightScale(A, scale), MinimumHeightScale(B, scale), MinimumHeightScale(C, scale));
+        }
+
+        public Triangle3D MinimumHeightScaleImage()
+        {
+            return MinimumHeightScaleImage(1/ AspectRatio);
+        }
+
         public override bool Equals(object? obj)
         {
             if (obj == null || obj is not Triangle3D) { return false; }

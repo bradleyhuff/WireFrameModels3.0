@@ -28,17 +28,42 @@ namespace Operations.Intermesh.Classes.V2
                 c.Add(element);
             }
 
+            var table = new Combination2Dictionary<IntermeshSegment>();
+
             foreach (var element in intermeshTriangles)
             {
-                if (element.AB == null) { element.Add(new IntermeshSegment(element.A, element.B)); }
-                if (element.BC == null) { element.Add(new IntermeshSegment(element.B, element.C)); }
-                if (element.CA == null) { element.Add(new IntermeshSegment(element.C, element.A)); }
+                if (element.AB == null)
+                {
+                    var key = new Combination2(element.A.Id, element.B.Id);
+                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(element.A, element.B); }
+                    var segment = table[key];
+                    element.A.Add(segment);
+                    element.B.Add(segment);
+                    element.Add(segment);
+                }
+                if (element.BC == null)
+                {
+                    var key = new Combination2(element.B.Id, element.C.Id);
+                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(element.B, element.C); }
+                    var segment = table[key];
+                    element.B.Add(segment);
+                    element.C.Add(segment);
+                    element.Add(segment);
+                }
+                if (element.CA == null)
+                {
+                    var key = new Combination2(element.C.Id, element.A.Id);
+                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(element.C, element.A); }
+                    var segment = table[key];
+                    element.C.Add(segment);
+                    element.A.Add(segment);
+                    element.Add(segment);
+                }
             }
 
             ConsoleLog.WriteLine($"Link intersections 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
-            var table = new Combination2Dictionary<IntermeshSegment>();
-            foreach (var element in intermeshTriangles)
+            foreach (var element in intermeshTriangles/*.Where(t => !t.IsASpike)*/)
             {
                 foreach (var gathering in element.GatheringSets.Values.SelectMany(g => g.Intersections))
                 {
@@ -50,7 +75,6 @@ namespace Operations.Intermesh.Classes.V2
                     if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(a, b); }
 
                     var segment = table[key];
-
                     a.Add(segment);
                     b.Add(segment);
                     segment.Add(element);
@@ -60,15 +84,15 @@ namespace Operations.Intermesh.Classes.V2
 
             ConsoleLog.WriteLine($"Link intersections 2. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
             var segmentTable = new Dictionary<int, bool>();
-            foreach(var triangle in intermeshTriangles)
+            foreach (var triangle in intermeshTriangles/*.Where(t => !t.IsASpike)*/)
             {
                 var gatherings = triangle.Gathering.Where(t => t.Id != triangle.Id).SelectMany(t => t.Segments).DistinctBy(g => g.Id).ToArray();
-                foreach(var segment in triangle.Segments)
+                foreach (var segment in triangle.Segments)
                 {
                     if (segmentTable.ContainsKey(segment.Id)) { continue; }
                     segmentTable[segment.Id] = true;
 
-                    foreach(var match in gatherings.Where(g => Rectangle3D.Overlaps(g.Box, segment.Box)))
+                    foreach (var match in gatherings.Where(g => Rectangle3D.Overlaps(g.Box, segment.Box)))
                     {
                         var intersection = LineSegment3D.PointIntersection(match.Segment, segment.Segment);
                         if (intersection is not null)

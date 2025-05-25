@@ -13,7 +13,7 @@ namespace Operations.Intermesh.Classes.V1
             DateTime start = DateTime.Now;
             var intersectionState = new IntersectionState();
             var intersectionIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
-            intersectionIterator.RunSingle<IntersectionState, IntersectionThread>(IntersectionAction, intersectionState);
+            intersectionIterator.Run<IntersectionState, IntersectionThread>(IntersectionAction, intersectionState);
             foreach (var triangle in intermeshTriangles) { triangle.ClearNullIntersections(); }
             ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {intersectionState.Threads}");
         }

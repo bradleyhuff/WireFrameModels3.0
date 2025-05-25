@@ -16,7 +16,7 @@ namespace Operations.Intermesh.Classes.V1
             DateTime start = DateTime.Now;
             var divisionState = new DivisionState();
             var divisionIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
-            divisionIterator.RunSingle<DivisionState, DivisionThread>(DivisionAction, divisionState);
+            divisionIterator.Run<DivisionState, DivisionThread>(DivisionAction, divisionState);
             ConsoleLog.WriteLine($"Calculate divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {divisionState.Threads}");
         }
 

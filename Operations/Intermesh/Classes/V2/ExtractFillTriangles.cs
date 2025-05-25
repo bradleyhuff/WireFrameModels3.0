@@ -244,17 +244,19 @@ namespace Operations.Intermesh.Classes.V2
 
             if (triangle.IsNearDegenerate)
             {
+                //Console.WriteLine($"Near degenerate {triangle.Id}");
                 var strategy = new NearDegenerateStrategy<IntermeshPoint>(triangle.NonSpurDivisions.Select(d => (d.A, d.B)), p => p.Id, p => triangle.Verticies.Any(v => v.Id == p.Id));
 
                 //var t = triangle.Triangle;
                 //var scale = 0.25 / triangle.Triangle.AspectRatio;
                 //grid.AddRangeTriangles(triangle.PerimeterDivisions.Select(d => new Triangle3D(t.MinimumHeightScale(d.A.Point, scale), t.MinimumHeightScale(Point3D.Average([d.A.Point, d.B.Point]), scale), t.MinimumHeightScale(d.B.Point, scale))), "", 0);
-
+                Console.WriteLine($"Near degenerate {triangle.Id} Fills {strategy.GetFill().Count()}");
                 foreach (var filling in strategy.GetFill())
                 {
                     var fillTriangle = new FillTriangle(triangle, filling.Item1, filling.Item2, filling.Item3);
                     triangle.Fillings.Add(fillTriangle);
                 }
+                //Console.WriteLine($"Fills {strategy.GetFill().Count()}");
                 return;
             }
 

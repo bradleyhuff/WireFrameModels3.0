@@ -28,7 +28,6 @@ namespace Operations.Intermesh.Classes.V2
                     var testPoint = fill.Triangle.Center;
                     var matches = appliedTriangles.Fetch(new Rectangle3D(testPoint, BoxBucket.MARGINS));
                     var alreadyCovered = matches.Any(m => m.Triangle.PointIsIn(testPoint));
-                    //if (alreadyCovered) { BaseObjects.Console.WriteLine("Already covered"); }
                     fill.Disabled = alreadyCovered;
                 }
 

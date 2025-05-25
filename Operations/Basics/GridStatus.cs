@@ -7,6 +7,7 @@ using Collections.WireFrameMesh.Basics;
 using FileExportImport;
 using Operations.Groupings.Basics;
 using Console = BaseObjects.Console;
+using System.Linq;
 
 namespace Operations.Basics
 {
@@ -39,10 +40,14 @@ namespace Operations.Basics
             TableDisplays.ShowCountSpread("CA Adjacency counts", mesh.Triangles.Select(t => t.CAadjacents), l => l.Count);
             var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
             Console.WriteLine($"Tags {tags.Count()}");
-            Console.WriteLine(string.Join("\n", tags.Select(e => $"{e.Id}  [{e.A.PositionObject.Id}, {e.B.PositionObject.Id}, {e.C.PositionObject.Id}] [{e.A.PositionObject.Point}, {e.B.PositionObject.Point}, {e.C.PositionObject.Point}] Length: {e.Triangle.MaxEdge.Length} Aspect: {e.Triangle.AspectRatio}")));
+            foreach(var e in tags)
+            {
+                Console.WriteLine($"{e.Id}  [{e.A.PositionObject.Id}, {e.B.PositionObject.Id}, {e.C.PositionObject.Id}] [{e.A.PositionObject.Point}, {e.B.PositionObject.Point}, {e.C.PositionObject.Point}] Length: {e.Triangle.MaxEdge.Length} Aspect: {e.Triangle.AspectRatio}", e.Triangle.MaxEdge.Length > 0.1 ? ConsoleColor.Red: ConsoleColor.Gray);
+            }
+            //Console.WriteLine(string.Join("\n", tags.Select(e => $"{e.Id}  [{e.A.PositionObject.Id}, {e.B.PositionObject.Id}, {e.C.PositionObject.Id}] [{e.A.PositionObject.Point}, {e.B.PositionObject.Point}, {e.C.PositionObject.Point}] Length: {e.Triangle.MaxEdge.Length} Aspect: {e.Triangle.AspectRatio}")));
             Console.WriteLine();
 
-            if(index > -1)
+            if (index > -1)
             {
                 var grid = WireFrameMesh.Create();
                 grid.AddRangeTriangles(tags, "", 0);

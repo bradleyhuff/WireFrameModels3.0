@@ -32,6 +32,20 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        private Vector3D _normalAB = null;
+
+        public Vector3D NormalAB
+        {
+            get
+            {
+                if (_normalAB is null)
+                {
+                    _normalAB = EdgeAB.LineExtension.Projection(C) - C;
+                }
+                return _normalAB;
+            }
+        }
+
         private LineSegment3D _edgeBC = null;
 
         public LineSegment3D EdgeBC
@@ -46,6 +60,20 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        private Vector3D _normalBC = null;
+
+        public Vector3D NormalBC
+        {
+            get
+            {
+                if (_normalBC is null)
+                {
+                    _normalBC = EdgeBC.LineExtension.Projection(A) - A;
+                }
+                return _normalBC;
+            }
+        }
+
         private LineSegment3D _edgeCA = null;
 
         public LineSegment3D EdgeCA
@@ -57,6 +85,20 @@ namespace BasicObjects.GeometricObjects
                     _edgeCA = new LineSegment3D(C, A);
                 }
                 return _edgeCA;
+            }
+        }
+
+        private Vector3D _normalCA = null;
+
+        public Vector3D NormalCA
+        {
+            get
+            {
+                if (_normalCA is null)
+                {
+                    _normalCA = EdgeCA.LineExtension.Projection(B) - B;
+                }
+                return _normalCA;
             }
         }
 
@@ -75,7 +117,7 @@ namespace BasicObjects.GeometricObjects
         {
             get
             {
-                if(_minEdge is null)
+                if (_minEdge is null)
                 {
                     _minEdge = LineSegment3D.MinLength(EdgeAB, EdgeBC, EdgeCA);
                 }
@@ -88,11 +130,24 @@ namespace BasicObjects.GeometricObjects
         {
             get
             {
-                if(_maxEdge is null)
+                if (_maxEdge is null)
                 {
                     _maxEdge = LineSegment3D.MaxLength(EdgeAB, EdgeBC, EdgeCA);
                 }
                 return _maxEdge;
+            }
+        }
+
+        private LineSegment3D _middleEdge = null;
+        public LineSegment3D MiddleEdge
+        {
+            get
+            {
+                if (_middleEdge is null)
+                {
+                    _middleEdge = Edges.SingleOrDefault(e => e.Length != MaxEdge.Length && e.Length != MinEdge.Length);
+                }
+                return _middleEdge;
             }
         }
 
@@ -113,7 +168,7 @@ namespace BasicObjects.GeometricObjects
         {
             get
             {
-                if(_minimumHeight is null)
+                if (_minimumHeight is null)
                 {
                     var maxEdge = MaxEdge;
                     var minEdgePoints = MinEdge.Points;
@@ -130,7 +185,7 @@ namespace BasicObjects.GeometricObjects
 
         public Point3D MinimumHeightScale(Point3D p, double scale)
         {
-            if(_basisPlane is null)
+            if (_basisPlane is null)
             {
                 var loosePoint = Verticies.Single(v => v != MaxEdge.Start && v != MaxEdge.End);
                 _basisPlane = new BasisPlane(MaxEdge.Start, MaxEdge.End, loosePoint);
@@ -155,7 +210,7 @@ namespace BasicObjects.GeometricObjects
 
         public Triangle3D MinimumHeightScaleImage()
         {
-            return MinimumHeightScaleImage(1/ AspectRatio);
+            return MinimumHeightScaleImage(1 / AspectRatio);
         }
 
         public override bool Equals(object? obj)

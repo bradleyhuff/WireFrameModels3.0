@@ -19,7 +19,7 @@ namespace Operations.Intermesh.Classes.V2
                 }
             }
 
-            AddNearCollinearPointsToPerimeter(intermeshTriangles);
+            //AddNearCollinearPointsToPerimeter(intermeshTriangles);
  
             ConsoleLog.WriteLine($"Build divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
@@ -30,7 +30,7 @@ namespace Operations.Intermesh.Classes.V2
             {
                 foreach (var nonVertexPoint in triangle.NonVertexPoints)
                 {
-                    if (triangle.AB.Segment.PointIsOnSegment(nonVertexPoint.Point))
+                    if (triangle.AB.Segment.PointIsOnSegment(nonVertexPoint.Point, 3e-9))
                     {
                         var line = new Line3D(triangle.A.Point, triangle.B.Point);
                         var projection = line.Projection(nonVertexPoint.Point);
@@ -46,7 +46,7 @@ namespace Operations.Intermesh.Classes.V2
                         }
                         continue;
                     }
-                    if (triangle.BC.Segment.PointIsOnSegment(nonVertexPoint.Point))
+                    if (triangle.BC.Segment.PointIsOnSegment(nonVertexPoint.Point, 3e-9))
                     {
                         var line = new Line3D(triangle.B.Point, triangle.C.Point);
                         var projection = line.Projection(nonVertexPoint.Point);
@@ -62,7 +62,7 @@ namespace Operations.Intermesh.Classes.V2
                         }
                         continue;
                     }
-                    if (triangle.CA.Segment.PointIsOnSegment(nonVertexPoint.Point))
+                    if (triangle.CA.Segment.PointIsOnSegment(nonVertexPoint.Point, 3e-9))
                     {
                         var line = new Line3D(triangle.C.Point, triangle.A.Point);
                         var projection = line.Projection(nonVertexPoint.Point);

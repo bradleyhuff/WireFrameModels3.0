@@ -2,8 +2,10 @@
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
+using Collections.WireFrameMesh.Basics;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Basics.V2;
+using System.Xml.Linq;
 
 namespace Operations.Intermesh.Classes.V2
 {
@@ -14,61 +16,65 @@ namespace Operations.Intermesh.Classes.V2
             DateTime start = DateTime.Now;
 
             var pointsBucket = new BoxBucket<IntermeshPoint>();
-            foreach (var element in intermeshTriangles)
-            {
-                var a = FetchPointAt(element.PositionTriangle.A.Position, pointsBucket);
-                var b = FetchPointAt(element.PositionTriangle.B.Position, pointsBucket);
-                var c = FetchPointAt(element.PositionTriangle.C.Position, pointsBucket);
-                element.A = a;
-                element.B = b;
-                element.C = c;
 
-                a.Add(element);
-                b.Add(element);
-                c.Add(element);
+            //Triangle vertex assignments
+            foreach (var triangle in intermeshTriangles)
+            {
+                var a = FetchPointAt(triangle.PositionTriangle.A.Position, pointsBucket);
+                var b = FetchPointAt(triangle.PositionTriangle.B.Position, pointsBucket);
+                var c = FetchPointAt(triangle.PositionTriangle.C.Position, pointsBucket);
+                triangle.A = a;
+                triangle.B = b;
+                triangle.C = c;
+
+                a.Add(triangle);
+                b.Add(triangle);
+                c.Add(triangle);
             }
 
             var table = new Combination2Dictionary<IntermeshSegment>();
 
-            foreach (var element in intermeshTriangles)
+            //Triangle side assignments
+            foreach (var triangle in intermeshTriangles)
             {
-                if (element.AB == null)
+                if (triangle.AB == null)
                 {
-                    var key = new Combination2(element.A.Id, element.B.Id);
-                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(element.A, element.B); }
+                    var key = new Combination2(triangle.A.Id, triangle.B.Id);
+                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(triangle.A, triangle.B); }
                     var segment = table[key];
-                    element.A.Add(segment);
-                    element.B.Add(segment);
-                    element.Add(segment);
+                    triangle.A.Add(segment);
+                    triangle.B.Add(segment);
+                    triangle.Add(segment);
                 }
-                if (element.BC == null)
+                if (triangle.BC == null)
                 {
-                    var key = new Combination2(element.B.Id, element.C.Id);
-                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(element.B, element.C); }
+                    var key = new Combination2(triangle.B.Id, triangle.C.Id);
+                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(triangle.B, triangle.C); }
                     var segment = table[key];
-                    element.B.Add(segment);
-                    element.C.Add(segment);
-                    element.Add(segment);
+                    triangle.B.Add(segment);
+                    triangle.C.Add(segment);
+                    triangle.Add(segment);
                 }
-                if (element.CA == null)
+                if (triangle.CA == null)
                 {
-                    var key = new Combination2(element.C.Id, element.A.Id);
-                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(element.C, element.A); }
+                    var key = new Combination2(triangle.C.Id, triangle.A.Id);
+                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(triangle.C, triangle.A); }
                     var segment = table[key];
-                    element.C.Add(segment);
-                    element.A.Add(segment);
-                    element.Add(segment);
+                    triangle.C.Add(segment);
+                    triangle.A.Add(segment);
+                    triangle.Add(segment);
                 }
             }
 
             ConsoleLog.WriteLine($"Link intersections 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
-            foreach (var element in intermeshTriangles/*.Where(t => !t.IsASpike)*/)
+            // Triangle intersection assignments
+            foreach (var triangle in intermeshTriangles)
             {
-                foreach (var gathering in element.GatheringSets.Values.SelectMany(g => g.Intersections))
+                foreach (var intersection in triangle.GatheringSets.Values.SelectMany(g => g.Intersections))
                 {
-                    var a = FetchPointAt(gathering.Start, pointsBucket);
-                    var b = FetchPointAt(gathering.End, pointsBucket);
+                    var a = FetchPointAt(intersection.Start, pointsBucket);
+                    var b = FetchPointAt(intersection.End, pointsBucket);
 
                     if (a.Id == b.Id) { continue; }
                     var key = new Combination2(a.Id, b.Id);
@@ -77,14 +83,16 @@ namespace Operations.Intermesh.Classes.V2
                     var segment = table[key];
                     a.Add(segment);
                     b.Add(segment);
-                    segment.Add(element);
-                    element.Add(segment);
+                    segment.Add(triangle);
+                    triangle.Add(segment);
                 }
             }
-
             ConsoleLog.WriteLine($"Link intersections 2. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+
             var segmentTable = new Dictionary<int, bool>();
-            foreach (var triangle in intermeshTriangles/*.Where(t => !t.IsASpike)*/)
+
+            // Nearby triangle intersection assignments
+            foreach (var triangle in intermeshTriangles)
             {
                 var gatherings = triangle.Gathering.Where(t => t.Id != triangle.Id).SelectMany(t => t.Segments).DistinctBy(g => g.Id).ToArray();
                 foreach (var segment in triangle.Segments)
@@ -123,7 +131,7 @@ namespace Operations.Intermesh.Classes.V2
         private static IntermeshPoint FetchPointAt(Point3D point, BoxBucket<IntermeshPoint> bucket)
         {
             var match = bucket.Fetch(new Rectangle3D(point, BoxBucket.MARGINS));
-            var found = match.FirstOrDefault(m => Point3D.AreEqual(m.Point, point, GapConstants.Resolution));
+            var found = match.Where(m => Point3D.AreEqual(m.Point, point, GapConstants.Resolution)).MinBy(p => Point3D.Distance(p.Point, point));
             if (found is not null)
             {
                 return found;

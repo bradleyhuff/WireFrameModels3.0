@@ -38,15 +38,16 @@ namespace Projects.Projects
             //var output = clusters[38].Create();//banana with error
             //var output = clusters[99].Create();
 
-            //output.Apply(Transform.Rotation(Vector3D.BasisX, 1e-1));
+            //output.Apply(Transform.Rotation(Vector3D.BasisX, 1e-2));
 
             WavefrontFile.Export(output, "Wavefront/Input");
+            WavefrontFileGroups.ExportByFaces(output, "Wavefront/Input");
             //var output = WireFrameMesh.Create();
             //output.AddGrid(part1);
             //output.AddGrid(part2);
 
-            double offset = -0.0025;// 7
-            //double offset = -0.0750;
+            //double offset = -0.0002;// 7
+            double offset = -0.0850;
             var facePlates = output.BuildFacePlates(offset).ToArray();
             WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
 
@@ -54,15 +55,16 @@ namespace Projects.Projects
             //WavefrontFile.Export(facePlates.Select(f => { var g = WireFrameMesh.Create(); g.AddRangeTriangles(f.Triangles.Where(t => t.Trace[0] == 'B'), "", 0); return g; }), "Wavefront/FacePlates-Base");
             //WavefrontFile.Export(facePlates.Select(f => { var g = WireFrameMesh.Create(); g.AddRangeTriangles(f.Triangles.Where(t => t.Trace[0] == 'F'), "", 0); return g; }), "Wavefront/FacePlates-Side");
             //facePlates = facePlates.Reverse().ToArray();
-            foreach (var facePlate in facePlates.Select((f, i) => new { Grid = f, Index = i }))
+            foreach (var facePlate in facePlates.Select((f, i) => new { Grid = f, Index = i }).Take(7))
             {
-                //if (facePlate.Index > 4) { break; }
                 Console.WriteLine("Face plate");
-                //RemoveTags(facePlate);
                 facePlate.Grid.ShowVitals(facePlate.Index);
                 output = output.Difference(facePlate.Grid);
                 //RemoveTags(output);
+                output.ShowVitals(99);
             }
+
+            //output.ShowVitals(99);
 
             //output = output.Difference(facePlates[6]);
 
@@ -78,9 +80,9 @@ namespace Projects.Projects
             //output.RemoveCoplanarSurfacePoints();
 
             Console.WriteLine("Output");
-            output.ShowVitals(99);
+            //output.ShowVitals(99);
             WavefrontFile.Export(output, "Wavefront/Output");
-            WavefrontFileGroups.ExportBySurfaces(output, "Wavefront/Output");
+            WavefrontFileGroups.ExportByFaces(output, "Wavefront/Output");
 
             //var union = Sets.Union(facePlates);
             //union.BaseStrip();

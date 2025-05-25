@@ -1,5 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
-using BasicObjects.MathExtensions;
+using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 
 namespace Operations.Intermesh.Basics.V2
@@ -51,10 +51,12 @@ namespace Operations.Intermesh.Basics.V2
             get { return new Triangle3D(PointA.Point, PointB.Point, PointC.Point); }
         }
 
+        public PositionTriangle PositionTriangle { get; private set; }
+
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
             if (Disabled) return;
-            mesh.AddTriangle(PointA.Point, NormalA, PointB.Point, NormalB, PointC.Point, NormalC, Trace, Tag);
+            PositionTriangle = mesh.AddTriangle(PointA.Point, NormalA, PointB.Point, NormalB, PointC.Point, NormalC, Trace, Tag);
         }
 
         public void ExportTriangle(IWireFrameMesh mesh)

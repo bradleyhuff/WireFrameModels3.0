@@ -28,9 +28,8 @@ namespace Operations.Intermesh.Classes.V2
         {
             var boxMatches = state.Bucket.Fetch(triangle).Where(m => m.Id != triangle.Id);
             var planarMatches = boxMatches.Where(b => triangle.Triangle.Plane.Intersects(b.Box.Margin(BoxBucket.MARGINS)));
-            var marginMatches = MarginMatches(triangle, planarMatches);
 
-            triangle.Gathering.AddRange(marginMatches);
+            triangle.Gathering.AddRange(planarMatches);
         }
 
         private static void AssignIntersectionNodes(IEnumerable<Basics.V2.IntermeshTriangle> intermeshTriangles)
@@ -44,30 +43,6 @@ namespace Operations.Intermesh.Classes.V2
                     element.GatheringSets[gathering.Id] = intersection;
                     gathering.GatheringSets[element.Id] = intersection;
                 }
-            }
-        }
-
-        private static IEnumerable<Basics.V2.IntermeshTriangle> MarginMatches(Basics.V2.IntermeshTriangle node, IEnumerable<Basics.V2.IntermeshTriangle> matches)
-        {
-            var triangle = node.Triangle.Margin(BoxBucket.MARGINS);
-            var plane = triangle.Plane;
-
-            foreach (var match in matches)
-            {
-                var projectionA = triangle.EdgeAB.LineExtension.Projection(triangle.C);
-                var planeA = new Plane(projectionA, (triangle.C - projectionA).Direction);
-
-                var projectionB = triangle.EdgeBC.LineExtension.Projection(triangle.A);
-                var planeB = new Plane(projectionB, (triangle.A - projectionB).Direction);
-
-                var projectionC = triangle.EdgeCA.LineExtension.Projection(triangle.B);
-                var planeC = new Plane(projectionC, (triangle.B - projectionC).Direction);
-
-                if (match.Triangle.Verticies.All(v => !planeA.PointIsFrontOfPlane(v))) { continue; }
-                if (match.Triangle.Verticies.All(v => !planeB.PointIsFrontOfPlane(v))) { continue; }
-                if (match.Triangle.Verticies.All(v => !planeC.PointIsFrontOfPlane(v))) { continue; }
-
-                yield return match;
             }
         }
 

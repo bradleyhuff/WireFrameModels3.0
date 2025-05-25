@@ -40,7 +40,7 @@ namespace Operations.Intermesh.Basics.V2
         {
             get
             {
-                return _triangle.Triangle.AngleAtA < 1e-4 || _triangle.Triangle.AngleAtB < 1e-4 || _triangle.Triangle.AngleAtC < 1e-4 || _triangle.Triangle.MinEdge.Length < 1e-7;
+                return _triangle.Triangle.AngleAtA < 1e-4 || _triangle.Triangle.AngleAtB < 1e-4 || _triangle.Triangle.AngleAtC < 1e-4 || _triangle.Triangle.MinEdge.Length < 1e-5;
             }
         }
 
@@ -78,6 +78,38 @@ namespace Operations.Intermesh.Basics.V2
                 if (AB is not null) { yield return AB; }
                 if (BC is not null) { yield return BC; }
                 if (CA is not null) { yield return CA; }
+            }
+        }
+
+        public IEnumerable<IntermeshTriangle> Adjacents
+        {
+            get
+            {
+                return ABadjacents.Union(BCadjacents).Union(CAadjacents);
+            }
+        }
+
+        public IEnumerable<IntermeshTriangle> ABadjacents
+        {
+            get
+            {
+                return AB.Triangles.Where(t => PositionTriangle.ABadjacents.Any(tt => t.PositionTriangle.Id == tt.Id));
+            }
+        }
+
+        public IEnumerable<IntermeshTriangle> BCadjacents
+        {
+            get
+            {
+                return BC.Triangles.Where(t => PositionTriangle.BCadjacents.Any(tt => t.PositionTriangle.Id == tt.Id));
+            }
+        }
+
+        public IEnumerable<IntermeshTriangle> CAadjacents
+        {
+            get
+            {
+                return CA.Triangles.Where(t => PositionTriangle.CAadjacents.Any(tt => t.PositionTriangle.Id == tt.Id));
             }
         }
 
@@ -125,6 +157,7 @@ namespace Operations.Intermesh.Basics.V2
         }
 
         public List<IntermeshTriangle> Gathering { get; } = new List<IntermeshTriangle>();
+        public List<IntermeshTriangle> IntersectingTriangles { get; } = new List<IntermeshTriangle>();
 
         public Dictionary<int, IntermeshIntersection> GatheringSets { get; } = new Dictionary<int, IntermeshIntersection>();
 

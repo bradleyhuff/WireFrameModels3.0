@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-
-namespace Operations.Intermesh.Classes.V2Support
+﻿namespace Operations.Intermesh.Classes.V2Support
 {
     internal class NearDegenerateStrategy<T>
     {
@@ -59,11 +51,15 @@ namespace Operations.Intermesh.Classes.V2Support
             }
         }
 
+        static int _id = 0;
         private Dictionary<int, Node<T>> _referenceMapping;
         public NearDegenerateStrategy(IEnumerable<(T, T)> edges, Func<T, int> getId, Func<T, bool> isVertex)
         {
+            Id = _id++;
             BuildReferenceMapping(edges, getId, isVertex);
         }
+
+        public int Id { get; }
 
         private List<(T, T, T)> _pullList;
 
@@ -112,7 +108,10 @@ namespace Operations.Intermesh.Classes.V2Support
             Node<T>.Unlink(node, node.Left);
             Node<T>.Unlink(node, node.Right);
 
-            if (node.Left.Links.Count == 1)
+            if (node.Left.Links.Count == 1 && 
+                node.Right.Links.Count == 1 && 
+                node.Left.Links[0] == node.Right && 
+                node.Right.Links[0] == node.Left)
             {
                 Node<T>.Unlink(node.Left, node.Right);
                 node.Left.IsRemoved = true;
@@ -122,6 +121,7 @@ namespace Operations.Intermesh.Classes.V2Support
             {
                 Node<T>.Link(node.Left, node.Right);
             }
+
             node.IsRemoved = true;
             output = (node.Reference, node.Left.Reference, node.Right.Reference);
             return true;
@@ -130,7 +130,9 @@ namespace Operations.Intermesh.Classes.V2Support
         private IEnumerable<(T, T, T)> Pull()
         {
             var list = _referenceMapping.Values.ToList();
-
+            if (!list.Any()) { yield break; }
+            int start = list.Count();
+            int count = 0;
             do
             {
                 foreach (var element in list)
@@ -139,6 +141,11 @@ namespace Operations.Intermesh.Classes.V2Support
                     if (RemoveNode(element, out output)) { yield return output; }
                 }
                 list.RemoveAll(n => n.IsRemoved);
+                count++;
+                if (count > start) { 
+                    Console.WriteLine($"{Id} Near Degenerate Infinite loop max links per node {_referenceMapping.Values.MaxBy(n => n.Links.Count)?.Links?.Count ?? 0}"); 
+                    break; 
+                }
             } while (list.Any());
         }
     }

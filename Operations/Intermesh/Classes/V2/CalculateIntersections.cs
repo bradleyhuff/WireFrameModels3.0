@@ -36,6 +36,15 @@ namespace Operations.Intermesh.Classes.V2
                 var intersections = Triangle3D.LineSegmentIntersections(triangle.Triangle, gathering.Triangle).ToArray();
                 intersectionSet.Intersections = intersections;
             }
+            foreach (var gathering in triangle.Gathering)
+            {
+                var intersectionSet = triangle.GatheringSets[gathering.Id];
+                var intersections = intersectionSet.Intersections;
+                if (intersections is not null && intersections.Any())
+                {
+                    triangle.IntersectingTriangles.Add(gathering);
+                }
+            }
         }
 
         private class CalculationThread : BaseThreadState

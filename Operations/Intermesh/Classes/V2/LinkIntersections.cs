@@ -103,7 +103,7 @@ namespace Operations.Intermesh.Classes.V2
                     foreach (var match in gatherings.Where(g => Rectangle3D.Overlaps(g.Box, segment.Box)))
                     {
                         var intersection = LineSegment3D.PointIntersection(match.Segment, segment.Segment);
-                        if (intersection is not null)
+                        if (intersection is not null && triangle.Triangle.PointIsContainedOn(intersection))
                         {
                             var i = FetchPointAt(intersection, pointsBucket);
                             segment.Add(i);
@@ -112,7 +112,7 @@ namespace Operations.Intermesh.Classes.V2
                         }
 
                         var intersection2 = LineSegment3D.LineSegmentIntersection(match.Segment, segment.Segment);
-                        if (intersection2 is not null)
+                        if (intersection2 is not null && triangle.Triangle.PointIsContainedOn(intersection2.Start) && triangle.Triangle.PointIsContainedOn(intersection2.End))
                         {
                             var i = FetchPointAt(intersection2.Start, pointsBucket);
                             var j = FetchPointAt(intersection2.End, pointsBucket);

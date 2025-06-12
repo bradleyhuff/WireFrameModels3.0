@@ -423,6 +423,14 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        public double MinimumAngle
+        {
+            get
+            {
+                return E.Math.Min(AngleAtA, AngleAtB, AngleAtC);
+            }
+        }
+
         private Vector3D _normal = null;
         public Vector3D Normal
         {
@@ -540,6 +548,16 @@ namespace BasicObjects.GeometricObjects
         public bool PointIsOn(Point3D point)
         {
             return Plane.PointIsOnPlane(point) && (PointIsOnPerimeter(point) || GetBarycentricCoordinate(point).IsOnUnitInterval());
+        }
+
+        public bool PointIsContainedOn(Point3D point)
+        {
+            return PointIsOnPerimeter(point) || GetBarycentricCoordinate(point).IsOnUnitInterval();
+        }
+
+        public bool PointIsContainedIn(Point3D point)
+        {
+            return GetBarycentricCoordinate(point).IsInUnitInterval();
         }
 
         public bool PointIsOnPerimeter(Point3D point)

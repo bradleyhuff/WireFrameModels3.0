@@ -48,16 +48,14 @@ internal static class Grid
         ConsoleLog.Push("Intermesh");
         var collection = mesh.Triangles.Select(t => new Basics.V2.IntermeshTriangle(t)).ToArray();
         Classes.V2.TriangleGathering.Action(collection);
-        Classes.V2.CalculateIntersections.Action(collection);  
+        Classes.V2.CalculateIntersections.Action(collection);
         Classes.V2.LinkIntersections.Action(collection);
         Classes.V2.BuildDivisions.Action(collection);
         collection = collection.Where(t => t.HasDivisions).ToArray();
         Classes.V2.ExtractFillTriangles.Action(collection);
         Classes.V2.FillOverlapRemoval.Action(collection);
         UpdateResultGrid(mesh, collection);
-
-
-        RemoveTags(mesh);
+        Classes.V2.OpenEdgesFill.Action(mesh);
         ConsoleLog.Pop();
         ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
     }
@@ -82,20 +80,10 @@ internal static class Grid
         var processPositionTriangles = processTriangles.Select(p => p.PositionTriangle).ToArray();
         var removalCount = mesh.RemoveAllTriangles(processPositionTriangles);
         var fillings = processTriangles.SelectMany(t => t.Fillings).ToArray();
-        foreach (var filling in fillings)
+        foreach (var filling in fillings/*.Where(f => !f.Triangle.IsCollinear)*/)
         {
             filling.AddWireFrameTriangle(mesh);
         }
         ConsoleLog.WriteLine($"Update result grid: Triangle removals {removalCount} Fills {fillings.Length} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
-    }
-
-    private static void RemoveTags(IWireFrameMesh output)
-    {
-        var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MinHeight < 1e-7);
-        while (tags.Any())
-        {
-            output.RemoveAllTriangles(tags);
-            tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MinHeight < 1e-7);
-        }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
+using Collections.Buckets;
+using Collections.Buckets.Interfaces;
 
 namespace Collections.WireFrameMesh.Basics
 {
-    public class PositionEdge
+    public class PositionEdge : IBox
     {
         public PositionEdge(PositionNormal a, PositionNormal b, PositionTriangle triangle)
         {
@@ -11,6 +13,7 @@ namespace Collections.WireFrameMesh.Basics
             B = b;
             Triangle = triangle;
             Key = new Combination2(a.PositionObject.Id, b.PositionObject.Id);
+            SurfaceKey = new Combination2(a.Id, b.Id);
         }
 
         public PositionNormal A { get; }
@@ -46,6 +49,7 @@ namespace Collections.WireFrameMesh.Basics
         }
 
         public Combination2 Key { get; }
+        public Combination2 SurfaceKey { get; }
         public Combination2 Cardinality
         {
             get { return new Combination2(A.PositionObject?.Cardinality ?? 0, B.PositionObject?.Cardinality ?? 0); }
@@ -57,6 +61,19 @@ namespace Collections.WireFrameMesh.Basics
             {
                 return A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
                     Intersect(B.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).ToList();
+            }
+        }
+
+        private Rectangle3D _box;
+        public Rectangle3D Box
+        {
+            get
+            {
+                if (_box is null)
+                {
+                    _box = Rectangle3D.Containing(Segment.Start.Margin(BoxBucket.MARGINS), Segment.End.Margin(BoxBucket.MARGINS));
+                }
+                return _box;
             }
         }
 

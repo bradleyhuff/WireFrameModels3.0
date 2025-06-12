@@ -20,6 +20,7 @@ namespace Operations.Intermesh.Basics.V2
         }
 
         public int Id { get; }
+        public Combination3 Key { get { return new Combination3(A.Id, B.Id, C.Id); } }
         public PositionTriangle PositionTriangle { get { return _triangle; } }
 
         public IntermeshPoint A { get; set; }
@@ -330,7 +331,7 @@ namespace Operations.Intermesh.Basics.V2
         public override string ToString()
         {
             return $"A {A.Id} B {B.Id} C {C.Id} Shortest edge {Triangle.MinEdge.Length}\n AB internal [{string.Join(",", ABInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(A, B, ABInternalPoints))}]\n BC internal [{string.Join(",", BCInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(B, C, BCInternalPoints))}]\n" +
-                $"CA internal [{string.Join(",", CAInternalPoints.Select(p => p.Id))}]  [{string.Join(",", CollinearDistances(C, A, CAInternalPoints))}]\nNon vertex points [{string.Join(",", NonVertexPoints.Select(p => p.Id))}]";
+                $"\nCA internal [{string.Join(",", CAInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(C, A, CAInternalPoints))}]\n Non vertex points [{string.Join(",", NonVertexPoints.Select(p => p.Id))}]";
         }
 
         private IEnumerable<double> CollinearDistances(IntermeshPoint a, IntermeshPoint b, IntermeshPoint[] points)

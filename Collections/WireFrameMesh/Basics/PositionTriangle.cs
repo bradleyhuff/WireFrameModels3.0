@@ -15,6 +15,7 @@ namespace Collections.WireFrameMesh.Basics
             B = b;
             C = c;
             Key = new Combination3(a.PositionObject.Id, b.PositionObject.Id, c.PositionObject.Id);
+            SurfaceKey = new Combination3(a.Id, b.Id, c.Id);
             Id = _id++;
             ParentGrid = A.Mesh.Id;
             if (a.Position == b.Position || a.Position == c.Position || b.Position == c.Position) { return; }
@@ -52,6 +53,7 @@ namespace Collections.WireFrameMesh.Basics
         public bool IsMarked { get { return _mark == A.Mesh.Mark; } }
        
         public Combination3 Key { get; }
+        public Combination3 SurfaceKey { get; }
 
         public override int GetHashCode()
         {

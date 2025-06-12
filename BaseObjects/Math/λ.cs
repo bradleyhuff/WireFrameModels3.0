@@ -14,6 +14,11 @@ namespace BasicObjects.Math
         public double λ2 { get; }
         public double λ3 { get; }
 
+        public override string ToString()
+        {
+            return $"λ: [{λ1}, {λ2}, {λ3}]";
+        }
+
         public bool IsInUnitInterval()
         {
             return Double.IsInInterval(0, λ1, 1) && Double.IsInInterval(0, λ2, 1) && Double.IsInInterval(0, λ3, 1);

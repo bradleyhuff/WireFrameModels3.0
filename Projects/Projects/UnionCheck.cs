@@ -34,53 +34,30 @@ namespace Projects.Projects
             //var output = clusters[180].Create();
             //var output = clusters[137].Create();
             //var output = clusters[51].Create();//chaining error
-            var output = clusters[7].Create();//chaining error
+            //var output = clusters[7].Create();//chaining error
             //var output = clusters[38].Create();//banana with error
             //var output = clusters[99].Create();
+            var output = clusters[100].Create();
 
             //output.Apply(Transform.Rotation(Vector3D.BasisX, 1e-2));
 
             WavefrontFile.Export(output, "Wavefront/Input");
             WavefrontFileGroups.ExportByFaces(output, "Wavefront/Input");
-            //var output = WireFrameMesh.Create();
-            //output.AddGrid(part1);
-            //output.AddGrid(part2);
 
-            //double offset = -0.0002;// 7
-            double offset = -0.0850;
+            double offset = -0.00203;// 7
+            //double offset = -0.1050;
             var facePlates = output.BuildFacePlates(offset).ToArray();
             WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
 
-            //WavefrontFile.Export(facePlates.Select(f => { var g = WireFrameMesh.Create(); g.AddRangeTriangles(f.Triangles.Where(t => t.Trace[0] == 'S'), "", 0); return g; }), "Wavefront/FacePlates-Surface");
-            //WavefrontFile.Export(facePlates.Select(f => { var g = WireFrameMesh.Create(); g.AddRangeTriangles(f.Triangles.Where(t => t.Trace[0] == 'B'), "", 0); return g; }), "Wavefront/FacePlates-Base");
-            //WavefrontFile.Export(facePlates.Select(f => { var g = WireFrameMesh.Create(); g.AddRangeTriangles(f.Triangles.Where(t => t.Trace[0] == 'F'), "", 0); return g; }), "Wavefront/FacePlates-Side");
-            //facePlates = facePlates.Reverse().ToArray();
-            foreach (var facePlate in facePlates.Select((f, i) => new { Grid = f, Index = i }).Take(7))
+            foreach (var facePlate in facePlates.Select((f, i) => new { Grid = f, Index = i }))
             {
                 Console.WriteLine("Face plate");
-                facePlate.Grid.ShowVitals(facePlate.Index);
                 output = output.Difference(facePlate.Grid);
-                //RemoveTags(output);
                 output.ShowVitals(99);
             }
 
-            //output.ShowVitals(99);
-
-            //output = output.Difference(facePlates[6]);
-
-
-            //output.Test(facePlates[5]);
-
-            //output = output.Difference(facePlates[5]);
-
-
-            //while (output.Triangles.Any(t => t.OpenEdges.Any())) { output.RemoveAllTriangles(output.Triangles.Where(t => t.OpenEdges.Any())); }
-            //output.RemoveShortSegments(1e-4);
-            //output.RemoveCollinearEdgePoints();
-            //output.RemoveCoplanarSurfacePoints();
-
             Console.WriteLine("Output");
-            //output.ShowVitals(99);
+            output.ShowVitals(99);
             WavefrontFile.Export(output, "Wavefront/Output");
             WavefrontFileGroups.ExportByFaces(output, "Wavefront/Output");
 
@@ -92,16 +69,6 @@ namespace Projects.Projects
             //WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
             //WavefrontFile.Export(union, "Wavefront/Union");
             WavefrontFile.Export(NormalOverlay(output, 0.05), "Wavefront/UnionNormals");
-        }
-
-        private static void RemoveTags(IWireFrameMesh output)
-        {
-            var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
-            while (tags.Any())
-            {
-                output.RemoveAllTriangles(tags);
-                tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
-            }
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

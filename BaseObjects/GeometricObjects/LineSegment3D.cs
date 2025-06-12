@@ -170,8 +170,20 @@ namespace BasicObjects.GeometricObjects
 
         public LineSegment3D Margins(double margin)
         {
-            var vectorMargin = margin * Vector.Direction;
-            return new LineSegment3D(Start + -vectorMargin, End + vectorMargin);
+            var vectorA = Start - Center;
+            var vectorB = End - Center;
+            vectorA = (vectorA.Magnitude + margin) / vectorA.Magnitude * vectorA;
+            vectorB = (vectorB.Magnitude + margin) / vectorB.Magnitude * vectorB;
+
+            return new LineSegment3D(Center + vectorA, Center + vectorB);
+        }
+
+        public bool PointIsWithIn(Point3D p)
+        {
+            var frontageA = new Plane(Start, Start - End);
+            var frontageB = new Plane(End, End - Start);
+
+            return !frontageA.PointIsFrontOfPlane(p) && !frontageB.PointIsFrontOfPlane(p);
         }
 
         public static Point3D LinkingPoint(LineSegment3D a, LineSegment3D b)

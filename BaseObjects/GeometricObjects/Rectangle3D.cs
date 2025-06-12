@@ -21,6 +21,13 @@ namespace BasicObjects.GeometricObjects
             minPoint.X, maxPoint.X, minPoint.Y, maxPoint.Y, minPoint.Z, maxPoint.Z
             )
         { }
+
+        public Rectangle3D(LineSegment3D segment, double margin) : this(segment.Margins(margin))
+        { }
+
+        public Rectangle3D(LineSegment3D segment) : this(segment.Start, segment.End )
+        { }
+
         public Rectangle3D(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
         {
             MinPoint = new Point3D(minX, minY, minZ);

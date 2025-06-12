@@ -39,19 +39,19 @@ namespace Operations.Basics
             TableDisplays.ShowCountSpread("BC Adjacency counts", mesh.Triangles.Select(t => t.BCadjacents), l => l.Count);
             TableDisplays.ShowCountSpread("CA Adjacency counts", mesh.Triangles.Select(t => t.CAadjacents), l => l.Count);
             var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
-            Console.WriteLine($"Tags {tags.Count()}");
-            foreach(var e in tags)
+            var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
+            Console.WriteLine($"Open edges {openEdges.Length}");
+            foreach(var openEdge in openEdges)
             {
-                Console.WriteLine($"{e.Id}  [{e.A.PositionObject.Id}, {e.B.PositionObject.Id}, {e.C.PositionObject.Id}] [{e.A.PositionObject.Point}, {e.B.PositionObject.Point}, {e.C.PositionObject.Point}] Length: {e.Triangle.MaxEdge.Length} Aspect: {e.Triangle.AspectRatio}", e.Triangle.MaxEdge.Length > 0.1 ? ConsoleColor.Red: ConsoleColor.Gray);
+                Console.WriteLine($"Open edge Triangle {openEdge.t.Id } Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
             }
-            //Console.WriteLine(string.Join("\n", tags.Select(e => $"{e.Id}  [{e.A.PositionObject.Id}, {e.B.PositionObject.Id}, {e.C.PositionObject.Id}] [{e.A.PositionObject.Point}, {e.B.PositionObject.Point}, {e.C.PositionObject.Point}] Length: {e.Triangle.MaxEdge.Length} Aspect: {e.Triangle.AspectRatio}")));
             Console.WriteLine();
 
             if (index > -1)
             {
                 var grid = WireFrameMesh.Create();
-                grid.AddRangeTriangles(tags, "", 0);
-                WavefrontFile.Export(grid, $"Wavefront/Tags-{index}");
+                grid.AddRangeTriangles(tags.SelectMany(t => t.OpenEdges).Select(o => new Triangle3D(o.Segment.Start, o.Segment.Center, o.Segment.End)), "", 0);
+                WavefrontFile.Export(grid, $"Wavefront/OpenEdges-{index}");
             }
         }
     }

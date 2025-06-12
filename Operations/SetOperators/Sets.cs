@@ -87,7 +87,7 @@ namespace Operations.SetOperators
             //sum.RemoveCoplanarSurfacePoints();
 
             FoldPrimming(sum);
-            //RemoveTags(sum);
+            RemoveTags(sum);
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
@@ -296,11 +296,11 @@ namespace Operations.SetOperators
 
         private static void RemoveTags(IWireFrameMesh output)
         {
-            var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MinHeight < 1e-7);
+            var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
             while (tags.Any())
             {
                 output.RemoveAllTriangles(tags);
-                tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MinHeight < 1e-7);
+                tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
             }
         }
 

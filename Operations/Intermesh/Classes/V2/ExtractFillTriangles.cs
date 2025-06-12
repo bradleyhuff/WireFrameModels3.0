@@ -244,19 +244,18 @@ namespace Operations.Intermesh.Classes.V2
 
             if (triangle.IsNearDegenerate)
             {
-                //Console.WriteLine($"Near degenerate {triangle.Id}");
                 var strategy = new NearDegenerateStrategy<IntermeshPoint>(triangle.NonSpurDivisions.Select(d => (d.A, d.B)), p => p.Id, p => triangle.Verticies.Any(v => v.Id == p.Id));
 
                 //var t = triangle.Triangle;
                 //var scale = 0.25 / triangle.Triangle.AspectRatio;
                 //grid.AddRangeTriangles(triangle.PerimeterDivisions.Select(d => new Triangle3D(t.MinimumHeightScale(d.A.Point, scale), t.MinimumHeightScale(Point3D.Average([d.A.Point, d.B.Point]), scale), t.MinimumHeightScale(d.B.Point, scale))), "", 0);
-                Console.WriteLine($"Near degenerate {triangle.Id} Fills {strategy.GetFill().Count()}");
+
+                Console.WriteLine($"Near degenerate {triangle.Id} Fills {strategy.GetFill().Count()} Min angle {triangle.Triangle.MinimumAngle}");
                 foreach (var filling in strategy.GetFill())
                 {
                     var fillTriangle = new FillTriangle(triangle, filling.Item1, filling.Item2, filling.Item3);
                     triangle.Fillings.Add(fillTriangle);
                 }
-                //Console.WriteLine($"Fills {strategy.GetFill().Count()}");
                 return;
             }
 
@@ -267,12 +266,21 @@ namespace Operations.Intermesh.Classes.V2
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
-                Console.WriteLine(triangle.ToString());
-                var errorGrid = WireFrameMesh.Create();
-                errorGrid.AddTriangle(triangle.Triangle, "", 0);
-                WavefrontFile.Export(errorGrid, $"Wavefront/Chaining-error-{triangle.Id}");
-                LoopError++;
+                var strategy = new NearDegenerateStrategy<IntermeshPoint>(triangle.NonSpurDivisions.Select(d => (d.A, d.B)), p => p.Id, p => triangle.Verticies.Any(v => v.Id == p.Id));
+
+                Console.WriteLine($"Near degenerate {triangle.Id} Fills {strategy.GetFill().Count()} Min angle {triangle.Triangle.MinimumAngle}");
+                foreach (var filling in strategy.GetFill())
+                {
+                    var fillTriangle = new FillTriangle(triangle, filling.Item1, filling.Item2, filling.Item3);
+                    triangle.Fillings.Add(fillTriangle);
+                }
+
+                //Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id} {e.Message}");
+                //Console.WriteLine(triangle.ToString());
+                //var errorGrid = WireFrameMesh.Create();
+                //errorGrid.AddTriangle(triangle.Triangle, "", 0);
+                //WavefrontFile.Export(errorGrid, $"Wavefront/Chaining-error-{triangle.Id}");
+                //LoopError++;
                 return;
             }
 

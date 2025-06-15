@@ -34,17 +34,17 @@ namespace Projects.Projects
             //var output = clusters[180].Create();
             //var output = clusters[137].Create();
             //var output = clusters[51].Create();//chaining error
-            //var output = clusters[7].Create();//chaining error
+            var output = clusters[7].Create();//chaining error
             //var output = clusters[38].Create();//banana with error
             //var output = clusters[99].Create();
-            var output = clusters[100].Create();
+            //var output = clusters[100].Create();
 
             //output.Apply(Transform.Rotation(Vector3D.BasisX, 1e-2));
 
             WavefrontFile.Export(output, "Wavefront/Input");
             WavefrontFileGroups.ExportByFaces(output, "Wavefront/Input");
 
-            double offset = -0.00203;// 7
+            double offset = -0.1000;// 7
             //double offset = -0.1050;
             var facePlates = output.BuildFacePlates(offset).ToArray();
             WavefrontFile.Export(facePlates, "Wavefront/FacePlates");

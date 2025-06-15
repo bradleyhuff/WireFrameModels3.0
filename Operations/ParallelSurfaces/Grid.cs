@@ -145,7 +145,7 @@ namespace Operations.ParallelSurfaces
         private static void AssignSurfacePoints(ParallelSurfaceSet facePlate, double thickness)
         {
             var allSurfacePoints = facePlate.SurfaceLoops.SelectMany(l => l).Select(p => new PointNode(p)).ToArray();
-            if (!allSurfacePoints.Any()) { throw new InvalidDataException("No surface points found."); }
+            if (!allSurfacePoints.Any()) { return; }
             var bucket = new BoxBucket<PointNode>(allSurfacePoints);
 
             foreach (var loop in facePlate.QuadrangleSets)
@@ -164,6 +164,7 @@ namespace Operations.ParallelSurfaces
             {
                 foreach (var quadrangle in loop)
                 {
+                    if (quadrangle.SurfaceA is null || quadrangle.SurfaceB is null) { continue; }
                     if (quadrangle.SurfaceA == quadrangle.SurfaceB)
                     {
                         facePlate.Mesh.AddTriangle(new SurfaceTriangle(
@@ -188,7 +189,6 @@ namespace Operations.ParallelSurfaces
         {
             var edgeTriangles = facePlate.Mesh.Triangles.Where(t => t.Trace[0] == 'F').ToArray();
             var looseTriangles = edgeTriangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
-            //Console.WriteLine($"Loose side triangles {looseTriangles.Count()}");
             if (!looseTriangles.Any()) { return; }
 
             var surfaceLoops = facePlate.SurfaceLoops.Select((l, i) => l.Select((p, j) => new SurfacePointNode(p, i, j))).ToArray();
@@ -208,9 +208,6 @@ namespace Operations.ParallelSurfaces
                 {
                     segment = circuit.SegmentBackward(e => e.Index == openPointB.Index).ToArray();
                 }
-
-                //Console.WriteLine($"Loose edge [{openPointA.Circuit}, {openPointA.Index}] => [{openPointB.Circuit}, {openPointB.Index}]");
-                //Console.WriteLine($"Circuit {circuit.Length} Segment [{string.Join(",", segment.Select(s => s.Index))}]");
 
                 facePlate.Mesh.RemoveTriangle(triangle);
 
@@ -233,10 +230,6 @@ namespace Operations.ParallelSurfaces
             }
 
             facePlate.Mesh.RemoveAllTriangles(facePlate.Mesh.Triangles.Where(t => t.AdjacentAnyCount < 3));
-
-            //var grid = WireFrameMesh.Create();
-            //grid.AddRangeTriangles(looseTriangles, "", 0);
-            //WavefrontFile.Export(grid, $"Wavefront/LooseSideTriangles-{facePlate.Index}");
         }
 
         private static void RemoveTags(IWireFrameMesh output)
@@ -403,7 +396,9 @@ namespace Operations.ParallelSurfaces
                 var baseGroups = faceGroup.GroupBy(t => t.Trace[0]);
 
                 var baseTriangles = baseGroups.Single(g => g.Key == 'B').ToArray();
-                var surfaceTriangles = baseGroups.Single(g => g.Key == 'S').ToArray();
+                var surfaceTriangleSet = baseGroups.SingleOrDefault(g => g.Key == 'S');
+                if (surfaceTriangleSet is null) { continue; }
+                var surfaceTriangles = surfaceTriangleSet.ToArray();
 
                 RemoveInternalFolds(baseTriangles, surfaceTriangles, output, thickness);
             }
@@ -509,15 +504,6 @@ namespace Operations.ParallelSurfaces
             public Point3D Position { get; }
             public IReadOnlyList<Vector3D> EdgeNormals { get; }
         }
-
-        //private static SurfaceTriangle CreateBaseSurface(PositionTriangle triangle)
-        //{
-        //    var aa = new Ray3D(triangle.A.Position, triangle.A.Normal.Direction);
-        //    var bb = new Ray3D(triangle.B.Position, triangle.B.Normal.Direction);
-        //    var cc = new Ray3D(triangle.C.Position, triangle.C.Normal.Direction);
-
-        //    return new SurfaceTriangle(aa, bb, cc);
-        //}
 
         private static SurfaceTriangle CreateParallelSurface(PositionTriangle triangle, double displacement)
         {

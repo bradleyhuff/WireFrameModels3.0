@@ -1,15 +1,9 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using Collections.Buckets;
-using Operations.Intermesh.Basics.V2;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Operations.Intermesh.Basics;
 
-namespace Operations.Intermesh.Classes.V2
+namespace Operations.Intermesh.Classes
 {
     internal class FillOverlapRemoval
     {
@@ -18,6 +12,7 @@ namespace Operations.Intermesh.Classes.V2
             var start = DateTime.Now;
 
             var appliedTriangles = new BoxBucket<IntermeshTriangle>();
+            var fillsDisabled = 0;
 
             foreach (var triangle in triangles)
             {
@@ -29,12 +24,13 @@ namespace Operations.Intermesh.Classes.V2
                     var matches = appliedTriangles.Fetch(new Rectangle3D(testPoint, BoxBucket.MARGINS));
                     var alreadyCovered = matches.Any(m => m.Triangle.PointIsIn(testPoint));
                     fill.Disabled = alreadyCovered;
+                    if (alreadyCovered) { fillsDisabled++; }
                 }
 
                 appliedTriangles.Add(triangle);
             }
 
-            ConsoleLog.WriteLine($"Fill overlap removal. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            ConsoleLog.WriteLine($"Fill overlap removal. Fills disabled {fillsDisabled} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }
 }

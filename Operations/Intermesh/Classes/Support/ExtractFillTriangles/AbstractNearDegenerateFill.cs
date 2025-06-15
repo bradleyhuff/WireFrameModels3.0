@@ -1,6 +1,8 @@
-﻿namespace Operations.Intermesh.Classes.V2Support
+﻿
+
+namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 {
-    internal class NearDegenerateStrategy<T>
+    internal class AbstractNearDegenerateFill<T>
     {
         private class Node<TT>
         {
@@ -53,7 +55,7 @@
 
         static int _id = 0;
         private Dictionary<int, Node<T>> _referenceMapping;
-        public NearDegenerateStrategy(IEnumerable<(T, T)> edges, Func<T, int> getId, Func<T, bool> isVertex)
+        public AbstractNearDegenerateFill(IEnumerable<(T, T)> edges, Func<T, int> getId, Func<T, bool> isVertex)
         {
             Id = _id++;
             BuildReferenceMapping(edges, getId, isVertex);

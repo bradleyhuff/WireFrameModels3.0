@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Operations.Intermesh.Basics.V2
+namespace Operations.Intermesh.Basics
 {
     internal class IntermeshDivision
     {

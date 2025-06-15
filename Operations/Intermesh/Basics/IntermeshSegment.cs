@@ -3,7 +3,7 @@ using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
 
-namespace Operations.Intermesh.Basics.V2
+namespace Operations.Intermesh.Basics
 {
     internal class IntermeshSegment : IBox
     {

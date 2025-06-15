@@ -1,31 +1,23 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
-using Collections.Buckets;
 using Collections.Threading;
 using Operations.Intermesh.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static Operations.Intermesh.Classes.V1.CalculateIntersections;
 
-namespace Operations.Intermesh.Classes.V2
+namespace Operations.Intermesh.Classes
 {
     internal class CalculateIntersections
     {
-        internal static void Action(IEnumerable<Basics.V2.IntermeshTriangle> intermeshTriangles)
+        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             DateTime start = DateTime.Now;
 
             var calculationState = new CalculationState();
-            var calculationIterator = new Iterator<Basics.V2.IntermeshTriangle>(intermeshTriangles.ToArray());
+            var calculationIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             calculationIterator.Run<CalculationState, CalculationThread>(CalculationAction, calculationState);
             ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {calculationState.Threads}");           
         }
 
-        private static void CalculationAction(Basics.V2.IntermeshTriangle triangle, CalculationThread threadState, CalculationState state)
+        private static void CalculationAction(IntermeshTriangle triangle, CalculationThread threadState, CalculationState state)
         {
             foreach (var gathering in triangle.Gathering)
             {

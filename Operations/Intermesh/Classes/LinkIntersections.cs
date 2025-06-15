@@ -2,16 +2,13 @@
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
-using Collections.WireFrameMesh.Basics;
 using Operations.Intermesh.Basics;
-using Operations.Intermesh.Basics.V2;
-using System.Xml.Linq;
 
-namespace Operations.Intermesh.Classes.V2
+namespace Operations.Intermesh.Classes
 {
     internal class LinkIntersections
     {
-        internal static void Action(IEnumerable<Basics.V2.IntermeshTriangle> intermeshTriangles)
+        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             DateTime start = DateTime.Now;
 
@@ -66,7 +63,7 @@ namespace Operations.Intermesh.Classes.V2
                 }
             }
 
-            ConsoleLog.WriteLine($"Link intersections 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            //ConsoleLog.WriteLine($"Link intersections 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
             // Triangle intersection assignments
             foreach (var triangle in intermeshTriangles)
@@ -87,7 +84,7 @@ namespace Operations.Intermesh.Classes.V2
                     triangle.Add(segment);
                 }
             }
-            ConsoleLog.WriteLine($"Link intersections 2. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            //ConsoleLog.WriteLine($"Link intersections 2. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
             var segmentTable = new Dictionary<int, bool>();
 
@@ -112,7 +109,9 @@ namespace Operations.Intermesh.Classes.V2
                         }
 
                         var intersection2 = LineSegment3D.LineSegmentIntersection(match.Segment, segment.Segment);
-                        if (intersection2 is not null && triangle.Triangle.PointIsContainedOn(intersection2.Start) && triangle.Triangle.PointIsContainedOn(intersection2.End))
+                        if (intersection2 is not null && 
+                            triangle.Triangle.PointIsContainedOn(intersection2.Start) && 
+                            triangle.Triangle.PointIsContainedOn(intersection2.End))
                         {
                             var i = FetchPointAt(intersection2.Start, pointsBucket);
                             var j = FetchPointAt(intersection2.End, pointsBucket);
@@ -125,7 +124,7 @@ namespace Operations.Intermesh.Classes.V2
                 }
             }
 
-            ConsoleLog.WriteLine($"Link intersections 3. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static IntermeshPoint FetchPointAt(Point3D point, BoxBucket<IntermeshPoint> bucket)

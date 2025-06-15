@@ -2,7 +2,7 @@
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 
-namespace Operations.Intermesh.Basics.V2
+namespace Operations.Intermesh.Basics
 {
     internal class FillTriangle
     {

@@ -7,7 +7,7 @@ using Collections.WireFrameMesh.Interfaces;
 using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 
-namespace Operations.Intermesh.Basics.V2
+namespace Operations.Intermesh.Basics
 {
     internal class IntermeshTriangle : IBox
     {

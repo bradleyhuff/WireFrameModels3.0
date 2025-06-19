@@ -8,7 +8,6 @@ using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Collections;
 using Collections.Buckets;
-using Collections.Buckets.Interfaces;
 using Operations.PlanarFilling.Basics;
 using BasicObjects.MathExtensions;
 using Operations.Regions;
@@ -16,9 +15,7 @@ using Operations.Intermesh.Basics;
 using Operations.SetOperators;
 using Operations.ParallelSurfaces.Basics;
 using Collections.Threading;
-using Console = BaseObjects.Console;
-using System.Runtime.CompilerServices;
-using Collections.WireFrameMesh.BasicWireFrameMesh;
+using Operations.ParallelSurfaces.Internals;
 
 namespace Operations.ParallelSurfaces
 {
@@ -128,171 +125,11 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        public static IWireFrameMesh CombineFacePlates(IEnumerable<IWireFrameMesh> facePlates)
-        {
-            var output = facePlates.First().CreateNewInstance();
-            foreach (var facePlate in facePlates)
-            {
-                output.AddGrid(facePlate);
-            }
-
-            output.Intermesh();
-
-            return output;
-        }
-
         public static void GiveOnlySurfaces(IWireFrameMesh input)
         {
             var nonSurfaces = input.Triangles.Where(t => t.Trace[0] == 'B' || t.Trace[0] == 'F');
             input.RemoveAllTriangles(nonSurfaces);
             input.Intermesh();
-        }
-
-        private class ParallelSurfaceSet
-        {
-            public IWireFrameMesh Mesh { get; set; }
-            public int Index { get; set; }
-            public List<BasePoint[]> BaseLoops { get; set; }
-            public List<Point3D[]> SurfaceLoops { get; set; }
-            public List<List<Quadrangle>> QuadrangleSets { get; set; }
-        }
-
-        private class SurfacePointNode : IBox
-        {
-            public SurfacePointNode(Point3D point, int circuit, int index)
-            {
-                Point = point;
-                Circuit = circuit;
-                Index = index;
-            }
-
-            public Point3D Point { get; }
-            public int Circuit { get; }
-            public int Index { get; }
-
-            private Rectangle3D _box;
-            public Rectangle3D Box
-            {
-                get
-                {
-                    if (_box is null && Point is not null)
-                    {
-                        _box = new Rectangle3D(Point, BoxBucket.MARGINS);
-                    }
-                    return _box;
-                }
-            }
-        }
-
-        private class Quadrangle
-        {
-            private static int _id = 0;
-            private static object lockObject = new object();
-
-            private BasePoint _a, _b;
-            private Vector3D _normalA;
-            private Vector3D _normalB;
-
-            private void GetNormals()
-            {
-                double maxDotProduct = -1;
-                foreach (var normalA in _a.EdgeNormals)
-                {
-                    foreach (var normalB in _b.EdgeNormals)
-                    {
-                        var dotProduct = Vector3D.Dot(normalA, normalB);
-                        if (dotProduct > maxDotProduct)
-                        {
-                            maxDotProduct = dotProduct;
-                            _normalA = normalA;
-                            _normalB = normalB;
-                        }
-                    }
-                }
-            }
-            public Quadrangle(BasePoint a, BasePoint b)
-            {
-                lock (lockObject)
-                {
-                    Id = _id++;
-                }
-                _a = a;
-                _b = b;
-            }
-            public int Id { get; }
-            public Quadrangle Last { get; set; }
-            public Quadrangle Next { get; set; }
-
-            public Point3D BaseA { get { return _a.Position; } }
-            public Point3D BaseB { get { return _b.Position; } }
-            public Point3D SurfaceA { get; set; }
-            public Point3D SurfaceB { get; set; }
-
-            public Vector3D NormalA
-            {
-                get
-                {
-                    if (_normalA is null)
-                    {
-                        GetNormals();
-                    }
-                    return _normalA;
-                }
-            }
-            public Vector3D NormalB
-            {
-                get
-                {
-                    if (_normalB is null)
-                    {
-                        GetNormals();
-                    }
-                    return _normalB;
-                }
-            }
-        }
-
-        private class PointNode : IBox
-        {
-            public PointNode(Point3D point)
-            {
-                Point = point;
-            }
-            public Point3D Point { get; }
-
-            private Rectangle3D _box = null;
-            public Rectangle3D Box
-            {
-                get
-                {
-                    if (_box is null)
-                    {
-                        _box = Point.Margin(1e-6);
-                    }
-                    return _box;
-                }
-            }
-        }
-
-        private class BasePoint
-        {
-            private static int _id = 0;
-            private static object lockObject = new object();
-            public BasePoint(PositionNormal pn)
-            {
-                lock (lockObject)
-                {
-                    Id = _id++;
-                }
-                SurfaceNormal = pn.Normal;
-                Position = pn.Position;
-                var surfacePlane = new Plane(Point3D.Zero, pn.Normal);
-                EdgeNormals = pn.PositionObject.PositionNormals.Where(pn2 => pn2.Id != pn.Id).Select(pn3 => pn3.Normal).Select(pn4 => surfacePlane.Projection(pn4)).ToList();
-            }
-            public int Id { get; }
-            public Vector3D SurfaceNormal { get; }
-            public Point3D Position { get; }
-            public IReadOnlyList<Vector3D> EdgeNormals { get; }
         }
 
         private static IEnumerable<ParallelSurfaceSet> BuildParallelSurfaces(IWireFrameMesh mesh, double thickness)

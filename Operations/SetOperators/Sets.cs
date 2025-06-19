@@ -5,7 +5,6 @@ using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Groupings.Basics;
-using Operations.Groupings.FileExportImport;
 using Operations.Intermesh;
 using Operations.PositionRemovals;
 using Operations.Regions;
@@ -31,39 +30,6 @@ namespace Operations.SetOperators
         {
             return Run("Union", gridA, gridB, (a, b) => (a == Region.OnBoundary && b != Region.Interior) || (a != Region.Interior && b == Region.OnBoundary));
         }
-
-        //public static IWireFrameMesh Union(params IWireFrameMesh[] grids)
-        //{
-        //    ConsoleLog.MaximumLevels = 1;
-        //    DateTime start = DateTime.Now;
-        //    string note = "Params Union";
-        //    ConsoleLog.Push(note);
-
-        //    var output = WireFrameMesh.Create();
-        //    int index = 0;
-        //    foreach (var grid in grids)
-        //    {
-        //        foreach (var triangle in output.AddGrid(grid))
-        //        {
-        //            triangle.Tag = index;
-        //        }
-        //        index++;
-        //    }
-        //    var space = new Space(output.Triangles.ToArray());
-        //    output.Intermesh();
-        //    var groups = GroupingCollection.ExtractFaces(output.Triangles).ToArray();
-        //    //var remainingGroups = UnionTestAndRemoveGroups(output, groups, space);
-        //    //IncludedGroupInverts(remainingGroups);
-
-        //    ////ConsoleLog.MaximumLevels = 8;
-        //    //output.RemoveShortSegments(1e-4);
-        //    //output.RemoveCollinearEdgePoints();
-        //    //output.RemoveCoplanarSurfacePoints();
-        //    ConsoleLog.Pop();
-        //    Console.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
-        //    ConsoleLog.MaximumLevels = 1;
-        //    return output;
-        //}
 
         public static IWireFrameMesh Sum(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
@@ -256,8 +222,9 @@ namespace Operations.SetOperators
             return triangle.Triangle.Center + -1e-6 * direction;
         }
 
-        internal static void FoldPrimming(IWireFrameMesh output)
+        internal static void FoldPrimming(this IWireFrameMesh output)
         {
+            var start = DateTime.Now;
             var foldedTriangles = output.Triangles.Where(t => t.IsFolded).ToArray();
             if (!foldedTriangles.Any()) { return; }
 
@@ -291,17 +258,21 @@ namespace Operations.SetOperators
             output.RemoveAllTriangles(foldedTriangles);
             output.AddRangeTriangles(replacements, "", 0);
 
-            Console.WriteLine();
+            ConsoleLog.WriteLine($"Fold Priming Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
         private static void RemoveTags(IWireFrameMesh output)
         {
-            var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
+            var start = DateTime.Now;
+            var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
+            var table = tags.ToDictionary(t => t.Id, t => t);
             while (tags.Any())
             {
-                output.RemoveAllTriangles(tags);
-                tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
+                tags = tags.SelectMany(t => t.SingleAdjacents).Where(t => !table.ContainsKey(t.Id)).DistinctBy(t => t.Id).ToArray();
+                foreach (var tag in tags) { table[tag.Id] = tag; }
             }
+            output.RemoveAllTriangles(table.Values);
+            ConsoleLog.WriteLine($"Remove tags {table.Values.Count} {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
         private static void ApplyPrincipleNormal(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal)

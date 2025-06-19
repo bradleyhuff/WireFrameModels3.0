@@ -7,6 +7,7 @@ namespace Operations.Groupings.Basics
     internal class GroupingTriangle
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         private PositionTriangle _triangle;
         private Dictionary<PositionTriangle, GroupingTriangle> _lookup;
         internal GroupingTriangle(PositionTriangle triangle, Dictionary<PositionTriangle, GroupingTriangle> lookup)
@@ -18,7 +19,10 @@ namespace Operations.Groupings.Basics
             _lookup = lookup;
             Trace = triangle.Trace;
             Tag = triangle.Tag;
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
 
         public int Id { get; }

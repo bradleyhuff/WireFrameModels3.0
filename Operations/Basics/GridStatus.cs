@@ -40,6 +40,7 @@ namespace Operations.Basics
             TableDisplays.ShowCountSpread("CA Adjacency counts", mesh.Triangles.Select(t => t.CAadjacents), l => l.Count);
             var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
             var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
+            if (openEdges.Length == 0) { return; }
             Console.WriteLine($"Open edges {openEdges.Length}");
             foreach(var openEdge in openEdges)
             {

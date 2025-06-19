@@ -3,8 +3,6 @@ namespace Collections.Threading
 {
     public class Iterator<T>
     {
-        private static int _threads = Math.Min(4, Environment.ProcessorCount);
-
         private T[] _list;
 
         public Iterator(T[] list)
@@ -15,6 +13,16 @@ namespace Collections.Threading
         public void Run<S, TS>(Action<T, TS, S> action, S state) where S : BaseState<TS> where TS : BaseThreadState, new()
         {
             Run(_list, action, state);
+        }
+
+        public void Run<S, TS>(Action<T, TS, S> action, S state, int groupSize) where S : BaseState<TS> where TS : BaseThreadState, new()
+        {
+            Run(_list, action, state, groupSize);
+        }
+
+        public void Run<S, TS>(Action<T, TS, S> action, S state, int groupSize, int maxThreads) where S : BaseState<TS> where TS : BaseThreadState, new()
+        {
+            Run(_list, action, state, groupSize, maxThreads);
         }
 
         public void RunSingle<S, TS>(Action<T, TS, S> action, S state) where S : BaseState<TS> where TS : BaseThreadState, new()
@@ -40,9 +48,14 @@ namespace Collections.Threading
         private object _lockObject = new object();
         private int _startIndex = 0;
 
-        public void Run<R, S, TS>(R[] list, Action<R, TS, S> action, S state) where S : BaseState<TS> where TS : BaseThreadState, new()
+        internal void Run<R, S, TS>(R[] list, Action<R, TS, S> action, S state, int groupSize = 256) where S : BaseState<TS> where TS : BaseThreadState, new()
         {
-            var threadObjects = new ThreadObject<R, S, TS>[_threads];
+            Run(list, action, state, groupSize, Math.Min(4, Environment.ProcessorCount));
+        }
+
+        internal void Run<R, S, TS>(R[] list, Action<R, TS, S> action, S state, int groupSize, int maxThreads) where S : BaseState<TS> where TS : BaseThreadState, new()
+        {
+            var threadObjects = new ThreadObject<R, S, TS>[maxThreads];
 
             for (int i = 0; i < threadObjects.Length; i++)
             {
@@ -54,6 +67,7 @@ namespace Collections.Threading
                 threadObject.State = state;
                 threadObject.Action = action;
                 threadObject.GetStartIndex = GetStartIndex;
+                threadObject.GroupSize = groupSize;
             }
             state.Threads = threadObjects.Length;
 
@@ -107,10 +121,11 @@ namespace Collections.Threading
         public Action<R, TS, S> Action { get; set; }
         public Func<int, int> GetStartIndex { get; set; }
         public Task Task { get; set; }
+        public int GroupSize { get; set; } = 256;
 
         public void Run()
         {
-            Run(256, Action);
+            Run(GroupSize, Action);
         }
 
         private void Run(int groupSize, Action<R, TS, S> action)

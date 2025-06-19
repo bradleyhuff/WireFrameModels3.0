@@ -17,7 +17,7 @@ namespace Operations.Intermesh.Classes
             {
                 filling.AddWireFrameTriangle(mesh);
             }
-            ConsoleLog.WriteLine($"Update result grid: Triangle removals {removalCount} Fills {fillings.Length} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Update result grid: Triangle removals {removalCount} Fills {fillings.Length} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Operations.Intermesh.Classes
                 fillStrategy.GetFillTriangles(triangle);
             }
 
-            ConsoleLog.WriteLine($"Extract fill triangles. Simple {simpleFillCount} NearDegenerate {nearDegenerateFillCount} Complex {complexFillCount} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Extract fill triangles. Simple {simpleFillCount} NearDegenerate {nearDegenerateFillCount} Complex {complexFillCount} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }
 }

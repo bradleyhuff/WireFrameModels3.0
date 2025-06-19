@@ -7,10 +7,14 @@ namespace Operations.Intermesh.Basics
     internal class IntermeshPoint: IBox
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         public IntermeshPoint(Point3D point) 
         { 
             Point = point;
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
 
         public int Id { get; }

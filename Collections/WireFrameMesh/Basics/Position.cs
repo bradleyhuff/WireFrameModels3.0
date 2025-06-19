@@ -6,12 +6,16 @@ namespace Collections.WireFrameMesh.Basics
     public class Position : IBox
     {
         private static int _id = 0;
+        private static object lockObject = new object();
 
         internal Position(Point3D point)
         {
             _position = point;
 
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
 
         public int Id { get; }

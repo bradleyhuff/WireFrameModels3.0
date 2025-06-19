@@ -11,11 +11,15 @@ namespace Operations.Intermesh.Basics
     internal class IntermeshDivision
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         public IntermeshDivision(IntermeshPoint a, IntermeshPoint b)
         {
             A = a;
             B = b;
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
             Key = new Combination2(a.Id, b.Id);
             Segment = new LineSegment3D(a.Point, b.Point);
         }

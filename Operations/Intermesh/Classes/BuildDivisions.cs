@@ -18,7 +18,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            ConsoleLog.WriteLine($"Build divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Build divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }
 }

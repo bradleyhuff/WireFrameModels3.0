@@ -68,7 +68,7 @@ namespace Operations.Intermesh.Classes
             // Triangle intersection assignments
             foreach (var triangle in intermeshTriangles)
             {
-                foreach (var intersection in triangle.GatheringSets.Values.SelectMany(g => g.Intersections))
+                foreach (var intersection in triangle.GatheringSets.Values.SelectMany(g => g.Intersections ?? new LineSegment3D[0]))
                 {
                     var a = FetchPointAt(intersection.Start, pointsBucket);
                     var b = FetchPointAt(intersection.End, pointsBucket);
@@ -124,7 +124,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static IntermeshPoint FetchPointAt(Point3D point, BoxBucket<IntermeshPoint> bucket)

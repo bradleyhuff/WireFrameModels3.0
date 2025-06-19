@@ -6,13 +6,17 @@ namespace Operations.SurfaceSegmentChaining.Basics.Abstractions
     public abstract class BaseSegment : IBox
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         public BaseSegment(LineSegment3D segment, double margin = BasicObjects.Math.Double.ProximityError)
         {
             Segment = segment;
 
             var box = Rectangle3D.Containing(segment.Start, segment.End);
             Box = new Rectangle3D(box.MinPoint, box.MaxPoint + new Vector3D(margin, margin, margin));
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
         public int Id { get; }
 

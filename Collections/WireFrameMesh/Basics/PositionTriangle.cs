@@ -9,6 +9,7 @@ namespace Collections.WireFrameMesh.Basics
     public class PositionTriangle : IBox, ITriangle
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c)
         {
             A = a;
@@ -16,7 +17,10 @@ namespace Collections.WireFrameMesh.Basics
             C = c;
             Key = new Combination3(a.PositionObject.Id, b.PositionObject.Id, c.PositionObject.Id);
             SurfaceKey = new Combination3(a.Id, b.Id, c.Id);
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
             ParentGrid = A.Mesh.Id;
             if (a.Position == b.Position || a.Position == c.Position || b.Position == c.Position) { return; }
             if (!A.Mesh.AddNewTriangle(this)) { return; }
@@ -171,6 +175,16 @@ namespace Collections.WireFrameMesh.Basics
                 foreach (var adjacent in ABadjacents) { yield return adjacent; }
                 foreach (var adjacent in BCadjacents) { yield return adjacent; }
                 foreach (var adjacent in CAadjacents) { yield return adjacent; }
+            }
+        }
+
+        public IEnumerable<PositionTriangle> SingleAdjacents
+        {
+            get
+            {
+                if (ABadjacents.Count() == 1) { yield return ABadjacents[0]; }
+                if (BCadjacents.Count() == 1) { yield return BCadjacents[0]; }
+                if (CAadjacents.Count() == 1) { yield return CAadjacents[0]; }
             }
         }
 

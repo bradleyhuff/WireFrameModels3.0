@@ -1,25 +1,28 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using Collections.WireFrameMesh.Interfaces;
+using Operations.Groupings.Basics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Operations.Intermesh.Basics
+namespace Operations.ParallelSurfaces.Basics
 {
-    internal class IntermeshIntersection
+    public class FaceSet
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public IntermeshIntersection()
-        {
+        public FaceSet(GroupingCollection face) 
+        { 
+            Face = face;
             lock (lockObject)
             {
                 Id = _id++;
             }
         }
         public int Id { get; }
-        public bool IsSet { get; set; }
-        public LineSegment3D[] Intersections { get; set; }
+        public GroupingCollection Face { get; }
+
+        public IWireFrameMesh FacePlate { get; set; }
     }
 }

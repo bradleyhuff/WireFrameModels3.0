@@ -1,21 +1,15 @@
-﻿using BaseObjects.Transformations;
+﻿using BaseObjects;
+using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
-using FundamentalMeshes;
 using Operations.Basics;
 using Operations.Groupings.Basics;
-using Operations.Groupings.FileExportImport;
 using Operations.ParallelSurfaces;
-using Operations.PositionRemovals;
 using Operations.SetOperators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WireFrameModels3._0;
+using Console = BaseObjects.Console;
 
 namespace Projects.Projects
 {
@@ -29,37 +23,105 @@ namespace Projects.Projects
 
             //var output = part1.Difference(part2);
 
-            var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8B 64");
-            var clusters = GroupingCollection.ExtractClusters(import.Triangles).ToArray();
+            var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
+
+            var clusters2 = import.BuildFacePlateClusters(-0.0025);
+
+            var export = WireFrameMesh.Create();
+            var facePlates2 = clusters2.SelectMany(c => c.Faces.Select(f => f.FacePlate)).ToArray();
+            //foreach (var facePlate in facePlates2) { facePlate.ShowVitals(99); }
+            export.AddGrids(facePlates2);
+            WavefrontFile.Export(export, "Wavefront/FacePlates");
+            export.ShowVitals(99);
+            return;
+
+            //import.Apply(Transform.Rotation((Vector3D.BasisX + Vector3D.BasisY + Vector3D.BasisZ).Direction, 1e-2));
+            var clusters = GroupingCollection.ExtractClusters(import.Triangles).Take(256).ToArray();
             //var output = clusters[180].Create();
             //var output = clusters[137].Create();
             //var output = clusters[51].Create();//chaining error
-            var output = clusters[7].Create();//chaining error
+            //var output = clusters[7].Create();//chaining error
             //var output = clusters[38].Create();//banana with error
             //var output = clusters[99].Create();
             //var output = clusters[100].Create();
 
-            //output.Apply(Transform.Rotation(Vector3D.BasisX, 1e-2));
+            
 
-            WavefrontFile.Export(output, "Wavefront/Input");
-            WavefrontFileGroups.ExportByFaces(output, "Wavefront/Input");
 
-            double offset = -0.1000;// 7
-            //double offset = -0.1050;
-            var facePlates = output.BuildFacePlates(offset).ToArray();
-            WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
 
-            foreach (var facePlate in facePlates.Select((f, i) => new { Grid = f, Index = i }))
+            //WavefrontFile.Export(output, "Wavefront/Input");
+            //WavefrontFileGroups.ExportByFaces(output, "Wavefront/Input");
+
+            //double offset = -0.0007;// 7
+            ////double offset = -0.1050;
+            //var facePlates = output.BuildFacePlates(offset).ToArray();
+            //WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
+
+            //foreach (var facePlate in facePlates.Select((f, i) => new { Grid = f, Index = i }))
+            //{
+            //    Console.WriteLine("Face plate");
+            //    output = output.Difference(facePlate.Grid);
+            //    output.ShowVitals(99);
+            //}
+
+            var output = WireFrameMesh.Create();
+            output.AddRangeTriangles(clusters.SelectMany(c => c.Triangles), "", 0);
+
+            WavefrontFile.Export(output, "Wavefront/Import");
+            //var output = import;
+            var start = DateTime.Now;
+            var clusterSets = new List<IWireFrameMesh[]>();
+            ConsoleLog.MaximumLevels = 1;
+            var index = 1;
+            foreach (var cluster in clusters)
             {
-                Console.WriteLine("Face plate");
-                output = output.Difference(facePlate.Grid);
-                output.ShowVitals(99);
+                double offset = -0.0025;
+                Console.Write($"{index} ");
+                var facePlates = cluster.Create().BuildFacePlates(offset).ToArray();
+                clusterSets.Add(facePlates);
+                index++;
+            }
+            Console.WriteLine($"Face plate build {(DateTime.Now - start).TotalSeconds} seconds.\n");
+            ConsoleLog.MaximumLevels = 8;
+            var maxFaces = BasicObjects.Math.Math.Max(clusterSets.Select(c => c.Length).ToArray());// - 1;
+            Console.WriteLine($"Max faces {maxFaces}");
+
+            var faceGroups = new List<IWireFrameMesh>[maxFaces];
+            var faceGroupGrids = new IWireFrameMesh[maxFaces];
+
+            for (int i = 0; i < maxFaces; i++)
+            {
+                faceGroups[i] = new List<IWireFrameMesh>();
+                foreach (var cluster in clusterSets.Where(c => i < c.Length))
+                {
+                    var facePlate = cluster[i];
+                    faceGroups[i].Add(facePlate);
+                }
             }
 
-            Console.WriteLine("Output");
-            output.ShowVitals(99);
-            WavefrontFile.Export(output, "Wavefront/Output");
-            WavefrontFileGroups.ExportByFaces(output, "Wavefront/Output");
+            Console.WriteLine($"Face groups\n{string.Join("\n", faceGroups.Select((f, i) => $"{i}: {f.Count()}"))}");
+            for (int i = 0; i < maxFaces; i++)
+            {
+                faceGroupGrids[i] = WireFrameMesh.Create();
+                faceGroupGrids[i].AddGrids(faceGroups[i]);
+            }
+            Console.WriteLine($"Face group grids\n{string.Join("\n", faceGroupGrids.Select((f, i) => $"{i}: {f.Triangles.Count()}"))}");
+
+            for (int i = 0; i < maxFaces; i++)
+            {
+                Console.WriteLine($"Face {i + 1}", ConsoleColor.Yellow);
+                output = output.Difference(faceGroupGrids[i]);
+                output.ShowVitals(99);
+                WavefrontFile.Export(output, $"Wavefront/Output-Face-{i + 1}");
+                WavefrontFile.Export(faceGroupGrids[i], $"Wavefront/FacePlates-{i + 1}");
+            }
+
+
+            //Console.WriteLine("Output");
+            //output.ShowVitals(99);
+            //WavefrontFile.Export(output, "Wavefront/Output");
+            
+            //WavefrontFileGroups.ExportByFaces(output, "Wavefront/Output");
 
             //var union = Sets.Union(facePlates);
             //union.BaseStrip();
@@ -68,7 +130,7 @@ namespace Projects.Projects
             //WavefrontFile.Export(output, "Wavefront/UnionCheck");
             //WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
             //WavefrontFile.Export(union, "Wavefront/Union");
-            WavefrontFile.Export(NormalOverlay(output, 0.05), "Wavefront/UnionNormals");
+            //WavefrontFile.Export(NormalOverlay(output, 0.05), "Wavefront/UnionNormals");
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

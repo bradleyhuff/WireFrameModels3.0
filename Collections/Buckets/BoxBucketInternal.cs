@@ -24,9 +24,13 @@ namespace Collections.Buckets
         }
 
         private static int _id = 0;
+        private static object lockObject = new object();
         private BoxBucketInternal()
         {
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
 
         public int Id { get; }

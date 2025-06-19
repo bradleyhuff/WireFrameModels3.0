@@ -8,6 +8,7 @@ namespace Operations.Intermesh.Basics
     internal class IntermeshSegment : IBox
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         public IntermeshSegment(IntermeshPoint a, IntermeshPoint b)
         {
             A = a;

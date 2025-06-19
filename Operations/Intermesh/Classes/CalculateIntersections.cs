@@ -14,7 +14,17 @@ namespace Operations.Intermesh.Classes
             var calculationState = new CalculationState();
             var calculationIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             calculationIterator.Run<CalculationState, CalculationThread>(CalculationAction, calculationState);
-            ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {calculationState.Threads}");           
+            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {calculationState.Threads}");           
+        }
+
+        internal static void ActionSingle(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            DateTime start = DateTime.Now;
+
+            var calculationState = new CalculationState();
+            var calculationIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
+            calculationIterator.RunSingle<CalculationState, CalculationThread>(CalculationAction, calculationState);
+            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static void CalculationAction(IntermeshTriangle triangle, CalculationThread threadState, CalculationState state)

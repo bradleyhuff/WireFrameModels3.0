@@ -10,6 +10,7 @@ namespace Operations.Groupings.Basics
     public class GroupingCollection
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         private IEnumerable<PositionTriangle> _gridTriangles;
         private IReadOnlyList<GroupingTriangle> _triangles;
         private Dictionary<PositionTriangle, GroupingTriangle> _lookup = new Dictionary<PositionTriangle, GroupingTriangle>();
@@ -17,13 +18,19 @@ namespace Operations.Groupings.Basics
         public GroupingCollection(IEnumerable<PositionTriangle> triangles)
         {
             _gridTriangles = triangles;
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
 
         internal GroupingCollection(IEnumerable<GroupingTriangle> triangles)
         {
             _triangles = triangles.ToList();
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
 
         public int Id { get; }

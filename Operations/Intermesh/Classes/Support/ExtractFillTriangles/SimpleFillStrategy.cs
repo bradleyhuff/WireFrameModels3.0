@@ -34,6 +34,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 
         public bool ShouldUseStrategy(IntermeshTriangle triangle)
         {
+            if (triangle.IsNearDegenerate) { return false; }
             if (!triangle.HasDivisions) { return true; }
             var internalSegments = triangle.InternalSegments.ToArray();
             if (internalSegments.Length == 1 && !internalSegments.Any(s => s.InternalDivisions > 0))

@@ -6,6 +6,7 @@ using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Collections;
 using Operations.SurfaceSegmentChaining.Interfaces;
+using Console = BaseObjects.Console;
 
 namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 {
@@ -26,6 +27,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             }
             catch (Exception e)
             {
+                Console.WriteLine($"Chaining Error", ConsoleColor.Red);
                 //Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id}");
                 var strategy = new AbstractNearDegenerateFill<IntermeshPoint>(triangle.NonSpurDivisions.Select(d => (d.A, d.B)), p => p.Id, p => triangle.Verticies.Any(v => v.Id == p.Id));
 
@@ -35,6 +37,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                     var fillTriangle = new FillTriangle(triangle, filling.Item1, filling.Item2, filling.Item3);
                     triangle.Fillings.Add(fillTriangle);
                 }
+                Console.WriteLine($"End error", ConsoleColor.Red);
                 return;
             }
 

@@ -10,7 +10,14 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
     public class WireFrameMesh : PositionTriangleMesh, IWireFrameMesh, IWireFrameMeshInternal
     {
         private static int _id = 0;
-        internal WireFrameMesh() { Id = _id++; }
+        private static object lockObject = new object();
+        internal WireFrameMesh() 
+        {
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
+        }
 
         private bool _triangleWasRemoved = false;
         private bool _positionWasRemoved = false;

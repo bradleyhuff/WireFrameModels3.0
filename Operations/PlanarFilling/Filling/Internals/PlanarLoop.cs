@@ -12,9 +12,13 @@ namespace Operations.PlanarFilling.Filling.Internals
     internal class PlanarLoop<T> : IBox
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         public PlanarLoop(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillAction<T> fillAction, int[] indexLoop, int triangleID)
         {
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
             _triangleID = triangleID;
             Plane = plane;
             IndexLoop = indexLoop.ToList();

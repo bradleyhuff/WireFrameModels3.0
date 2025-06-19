@@ -13,10 +13,14 @@ namespace Operations.Intermesh.Basics
     {
         private static int _id = 0;
         private PositionTriangle _triangle;
+        private static object lockObject = new object();
         internal IntermeshTriangle(PositionTriangle triangle)
         {
             _triangle = triangle;
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
 
         public int Id { get; }

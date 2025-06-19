@@ -1,4 +1,4 @@
-﻿
+﻿using Console = BaseObjects.Console;
 
 namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 {
@@ -7,10 +7,14 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         private class Node<TT>
         {
             static int _id = 0;
+            private static object lockObject = new object();
             public Node(TT reference)
             {
                 Reference = reference;
-                Id = _id++;
+                lock (lockObject)
+                {
+                    Id = _id++;
+                }
             }
 
             public int Id { get; }
@@ -54,16 +58,21 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         }
 
         static int _id = 0;
+        private static object lockObject = new object();
         private Dictionary<int, Node<T>> _referenceMapping;
         public AbstractNearDegenerateFill(IEnumerable<(T, T)> edges, Func<T, int> getId, Func<T, bool> isVertex)
         {
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
             BuildReferenceMapping(edges, getId, isVertex);
         }
 
         public int Id { get; }
 
         private List<(T, T, T)> _pullList;
+        private IEnumerable<(T, T)> _edges;
 
         public IEnumerable<(T, T, T)> GetFill()
         {
@@ -77,6 +86,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         private void BuildReferenceMapping(IEnumerable<(T, T)> edges, Func<T, int> getId, Func<T, bool> isVertex)
         {
             _referenceMapping = new Dictionary<int, Node<T>>();
+            _edges = edges;
 
             foreach (var edge in edges)
             {
@@ -129,8 +139,11 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             return true;
         }
 
+        public int Errors { get; private set; } = 0;
+
         private IEnumerable<(T, T, T)> Pull()
         {
+            var fillers = 0;
             var list = _referenceMapping.Values.ToList();
             if (!list.Any()) { yield break; }
             int start = list.Count();
@@ -140,12 +153,13 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 foreach (var element in list)
                 {
                     (T, T, T) output;
-                    if (RemoveNode(element, out output)) { yield return output; }
+                    if (RemoveNode(element, out output)) { fillers++; yield return output; }
                 }
                 list.RemoveAll(n => n.IsRemoved);
                 count++;
-                if (count > start) { 
-                    Console.WriteLine($"{Id} Near Degenerate Infinite loop max links per node {_referenceMapping.Values.MaxBy(n => n.Links.Count)?.Links?.Count ?? 0}"); 
+                if (count > start) {
+                    Errors++;
+                    Console.WriteLine($"{Id} Near Degenerate loop: Initial edges {_edges.Count()} Max links {_referenceMapping.Values.MaxBy(n => n.Links.Count)?.Links?.Count ?? 0} Nodes {_referenceMapping.Count()} Remaining {list.Count} Fillers {fillers}", ConsoleColor.Red); 
                     break; 
                 }
             } while (list.Any());

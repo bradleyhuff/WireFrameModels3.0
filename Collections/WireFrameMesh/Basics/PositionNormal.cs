@@ -9,13 +9,17 @@ namespace Collections.WireFrameMesh.Basics
     public class PositionNormal : IBox
     {
         private static int _id = 0;
+        private static object lockObject = new object();
 
         internal PositionNormal(Point3D position, Vector3D normal, IWireFrameMeshInternal mesh)
         {
             _position = position;
             _normal = normal;
             Mesh = mesh;
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
 
         public int Id { get; }

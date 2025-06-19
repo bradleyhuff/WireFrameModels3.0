@@ -20,7 +20,7 @@ using Plane = BasicObjects.GeometricObjects.Plane;
 
 namespace Operations.PositionRemovals
 {
-    public static class Grid
+    public static class PositionRemovals
     {
         public static void RemoveShortSegments(this IWireFrameMesh mesh, double minimumLength)
         {

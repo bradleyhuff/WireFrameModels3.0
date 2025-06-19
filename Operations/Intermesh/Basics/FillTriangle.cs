@@ -7,6 +7,7 @@ namespace Operations.Intermesh.Basics
     internal class FillTriangle
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         public FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, IntermeshPoint pointB, IntermeshPoint pointC) :
             this(triangle, pointA, triangle.NormalFromProjectedPoint(pointA.Point),
                 pointB, triangle.NormalFromProjectedPoint(pointB.Point),
@@ -19,7 +20,10 @@ namespace Operations.Intermesh.Basics
         { }
         public FillTriangle(IntermeshTriangle node, IntermeshPoint pointA, Vector3D normalA, IntermeshPoint pointB, Vector3D normalB, IntermeshPoint pointC, Vector3D normalC, int fillId, string trace, int tag)
         {
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
             ParentIntermesh = node;
             PointA = pointA;
             PointB = pointB;

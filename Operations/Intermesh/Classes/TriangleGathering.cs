@@ -19,9 +19,18 @@ namespace Operations.Intermesh.Classes
             var gatheringState = new GatheringState(intermeshTriangles);
             var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.Run<GatheringState, GatheringThread>(GatheringAction, gatheringState);
-            //ConsoleLog.WriteLine($"Triangle gathering 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
             AssignIntersectionNodes(intermeshTriangles);
-            ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
+            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
+        }
+
+        internal static void ActionSingle(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            var start = DateTime.Now;
+            var gatheringState = new GatheringState(intermeshTriangles);
+            var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
+            gatheringIterator.RunSingle<GatheringState, GatheringThread>(GatheringAction, gatheringState);
+            AssignIntersectionNodes(intermeshTriangles);
+            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static void GatheringAction(IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)

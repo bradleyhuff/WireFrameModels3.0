@@ -4,12 +4,16 @@ namespace Operations.PlanarFilling.Filling.Internals
     internal class IndexSurfaceTriangle
     {
         private static int _id = 0;
+        private static object lockObject = new object();
         public IndexSurfaceTriangle(int indexPointA, int indexPointB, int indexPointC, int fillId)
         {
             IndexPointA = indexPointA;
             IndexPointB = indexPointB;
             IndexPointC = indexPointC;
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
             FillId = fillId;
         }
         public int Id { get; }

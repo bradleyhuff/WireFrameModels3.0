@@ -2,6 +2,7 @@
 using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Collections.Threading;
+using Operations.Basics;
 using Operations.Intermesh.Basics;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace Operations.Intermesh.Classes
             var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.Run<GatheringState, GatheringThread>(GatheringAction, gatheringState);
             AssignIntersectionNodes(intermeshTriangles);
-            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
         }
 
         internal static void ActionSingle(IEnumerable<IntermeshTriangle> intermeshTriangles)
@@ -30,7 +31,7 @@ namespace Operations.Intermesh.Classes
             var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.RunSingle<GatheringState, GatheringThread>(GatheringAction, gatheringState);
             AssignIntersectionNodes(intermeshTriangles);
-            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static void GatheringAction(IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)

@@ -7,9 +7,9 @@ namespace Collections.WireFrameMesh.Extensions
         public static IWireFrameMesh Combine(this IEnumerable<IWireFrameMesh> meshes)
         {
             if (!meshes.Any()) { return null; }
-            var output = meshes.First().CreateNewInstance();
+            var output = meshes.First(w => w is not null).CreateNewInstance();
 
-            output.AddRangeTriangles(meshes.SelectMany(m => m.Triangles), "", 0);
+            output.AddRangeTriangles(meshes.Where(m => m is not null).SelectMany(m => m.Triangles), "", 0);
             return output;
         }
     }

@@ -27,6 +27,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         private BoxBucket<Position> _bucket = new BoxBucket<Position>(Enumerable.Empty<Position>());
 
         public int Id { get; }
+        public int Tag { get; set; }
 
         private int _mark = 1;
 

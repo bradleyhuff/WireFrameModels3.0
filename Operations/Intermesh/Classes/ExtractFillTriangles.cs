@@ -1,4 +1,5 @@
 ﻿using BaseObjects;
+using Operations.Basics;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Classes.Support.ExtractFillTriangles;
 using Operations.Intermesh.Classes.Support.ExtractFillTriangles.Interfaces;
@@ -28,7 +29,7 @@ namespace Operations.Intermesh.Classes
                 fillStrategy.GetFillTriangles(triangle);
             }
 
-            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Extract fill triangles. Simple {simpleFillCount} NearDegenerate {nearDegenerateFillCount} Complex {complexFillCount} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Extract fill triangles. Simple {simpleFillCount} NearDegenerate {nearDegenerateFillCount} Complex {complexFillCount} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }
 }

@@ -16,6 +16,9 @@ using Operations.SetOperators;
 using Operations.ParallelSurfaces.Basics;
 using Collections.Threading;
 using Operations.ParallelSurfaces.Internals;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using Operations.Groupings.Types;
+using Operations.Basics;
 
 namespace Operations.ParallelSurfaces
 {
@@ -24,7 +27,7 @@ namespace Operations.ParallelSurfaces
         public static IEnumerable<ClusterSet> BuildFacePlateClusters(this IWireFrameMesh mesh, double thickness)
         {
             DateTime start = DateTime.Now;
-            GridIntermesh.ShowLog = false;
+            Mode.ThreadedRun = true;
             ConsoleLog.Push("Build face plate clusters");
 
             var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c)).ToArray();
@@ -43,7 +46,7 @@ namespace Operations.ParallelSurfaces
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"Build face plate clusters: Clusters {clusters.Length} Faces {faces.Length} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
-            GridIntermesh.ShowLog = true;
+            Mode.ThreadedRun = false;
             return clusters;
         }
 
@@ -52,10 +55,13 @@ namespace Operations.ParallelSurfaces
             DateTime start = DateTime.Now;
             var output = new ParallelSurfaceSet();
             output.Index = face.Id;
+            var faceMesh = face.Face.Create();
 
-            CreateParallelSurface(output, face.Face, state.Thickness);
+            CreateBasePerimeterSegments(output, face.Face);
+            AddPerimeterZone(output, faceMesh, 1e-7);
+            CreateParallelSurface(output, faceMesh, state.Thickness);
 
-            output.Mesh.IntermeshSingle(t => true);
+            output.Mesh.IntermeshSingle(t => t.Trace[0] == 'S');
             RemoveInternalFolds(output.Mesh, state.Thickness);
             BuildSurfaceLoops(output);
             BuildQuadrangles(output);
@@ -140,8 +146,11 @@ namespace Operations.ParallelSurfaces
             {
                 var output = new ParallelSurfaceSet();
                 output.Index = face.i;
+                var faceMesh = face.s.Create();
 
-                CreateParallelSurface(output, face.s, thickness);
+                CreateBasePerimeterSegments(output, face.s);
+                //AddPerimeterZone(output, faceMesh, 1e-7);
+                CreateParallelSurface(output, faceMesh, thickness);
                 yield return output;
             }
         }
@@ -160,30 +169,13 @@ namespace Operations.ParallelSurfaces
 
         private static void BuildQuadrangles(ParallelSurfaceSet facePlate)
         {
-            var quadrangleSets = new List<List<Quadrangle>>();
-            Quadrangle last = null;
-            foreach (var baseLoop in facePlate.BaseLoops)
+            var list = new List<Quadrangle>();
+            foreach (var set in facePlate.BasePerimeterLinks)
             {
-                var list = new List<Quadrangle>();
-                for (int i = 0; i < baseLoop.Length - 1; i++)
-                {
-                    var current = new Quadrangle(baseLoop[i], baseLoop[i + 1]);
-                    if (last != null) { last.Next = current; current.Last = last; }
-                    list.Add(current);
-                    last = current;
-                }
-                {
-                    var current = new Quadrangle(baseLoop[baseLoop.Length - 1], baseLoop[0]);
-                    if (last != null) { last.Next = current; current.Last = last; }
-                    list.Add(current);
-                    last = current;
-                    list[0].Last = current;
-                    current.Next = list[0];
-                }
-
-                quadrangleSets.Add(list);
+                var quad = new Quadrangle(set);
+                list.Add(quad);
             }
-            facePlate.QuadrangleSets = quadrangleSets;
+            facePlate.QuadrangleSets = list;
         }
 
         private static void AssignSurfacePoints(ParallelSurfaceSet facePlate, double thickness)
@@ -192,40 +184,35 @@ namespace Operations.ParallelSurfaces
             if (!allSurfacePoints.Any()) { return; }
             var bucket = new BoxBucket<PointNode>(allSurfacePoints);
 
-            foreach (var loop in facePlate.QuadrangleSets)
+            foreach (var quadrangle in facePlate.QuadrangleSets)
             {
-                foreach (var quadrangle in loop)
-                {
-                    quadrangle.SurfaceA = GetNearestPoint(quadrangle.BaseA, bucket, thickness);
-                    quadrangle.SurfaceB = GetNearestPoint(quadrangle.BaseB, bucket, thickness);
-                }
+                quadrangle.SurfaceA = GetNearestPoint(quadrangle.BaseA, bucket, thickness);
+                quadrangle.SurfaceB = GetNearestPoint(quadrangle.BaseB, bucket, thickness);
             }
         }
 
         private static void AddSideTriangles(ParallelSurfaceSet facePlate)
         {
-            foreach (var loop in facePlate.QuadrangleSets)
+            foreach (var quadrangle in facePlate.QuadrangleSets)
             {
-                foreach (var quadrangle in loop)
+                if (quadrangle.SurfaceA is null || quadrangle.SurfaceB is null) { continue; }
+                if (quadrangle.SurfaceA == quadrangle.SurfaceB)
                 {
-                    if (quadrangle.SurfaceA is null || quadrangle.SurfaceB is null) { continue; }
-                    if (quadrangle.SurfaceA == quadrangle.SurfaceB)
-                    {
-                        facePlate.Mesh.AddTriangle(new SurfaceTriangle(
-                            new Ray3D(quadrangle.BaseA, quadrangle.NormalA),
-                            new Ray3D(quadrangle.BaseB, quadrangle.NormalB),
-                            new Ray3D(quadrangle.SurfaceA, (quadrangle.NormalA + quadrangle.NormalB).Direction)), $"F{facePlate.Index}", 0);
-                        continue;
-                    }
                     facePlate.Mesh.AddTriangle(new SurfaceTriangle(
                         new Ray3D(quadrangle.BaseA, quadrangle.NormalA),
                         new Ray3D(quadrangle.BaseB, quadrangle.NormalB),
-                        new Ray3D(quadrangle.SurfaceB, quadrangle.NormalB)), $"F{facePlate.Index}", 0);
-                    facePlate.Mesh.AddTriangle(new SurfaceTriangle(
-                        new Ray3D(quadrangle.SurfaceA, quadrangle.NormalA),
-                        new Ray3D(quadrangle.SurfaceB, quadrangle.NormalB),
-                        new Ray3D(quadrangle.BaseA, quadrangle.NormalA)), $"F{facePlate.Index}", 0);
+                        new Ray3D(quadrangle.SurfaceA, (quadrangle.NormalA + quadrangle.NormalB).Direction)), $"F{facePlate.Index}", 0);
+                    continue;
                 }
+
+                facePlate.Mesh.AddTriangle(new SurfaceTriangle(
+                    new Ray3D(quadrangle.BaseA, quadrangle.NormalA),
+                    new Ray3D(quadrangle.BaseB, quadrangle.NormalB),
+                    new Ray3D(quadrangle.SurfaceB, quadrangle.NormalB)), $"F{facePlate.Index}", 0);
+                facePlate.Mesh.AddTriangle(new SurfaceTriangle(
+                    new Ray3D(quadrangle.SurfaceA, quadrangle.NormalA),
+                    new Ray3D(quadrangle.SurfaceB, quadrangle.NormalB),
+                    new Ray3D(quadrangle.BaseA, quadrangle.NormalA)), $"F{facePlate.Index}", 0);
             }
         }
 
@@ -285,7 +272,6 @@ namespace Operations.ParallelSurfaces
                 tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3);
             }
         }
-
         private static void FixZeroNormals(ParallelSurfaceSet facePlate)
         {
             var edgeTriangles = facePlate.Mesh.Triangles.Where(t => t.Trace[0] == 'F').ToArray();
@@ -400,25 +386,108 @@ namespace Operations.ParallelSurfaces
             };
         }
 
-        private static void CreateParallelSurface(ParallelSurfaceSet set, GroupingCollection face, double displacement)
+        private static void AddPerimeterZone(ParallelSurfaceSet set, IWireFrameMesh faceMesh, double width)
         {
-            set.Mesh = face.Create();
+            foreach(var chainLink in set.BasePerimeterLinks)
+            {
+                var aPrime = chainLink.A + width * chainLink.BitangentA.Direction;
+                var bPrime = chainLink.B + width * chainLink.BitangentB.Direction;
+
+                var triangle1 = new SurfaceTriangle(new Ray3D(chainLink.A, chainLink.NormalA.Direction), new Ray3D(chainLink.B, chainLink.NormalB.Direction), new Ray3D(aPrime, chainLink.NormalA.Direction));
+                var triangle2 = new SurfaceTriangle(new Ray3D(aPrime, chainLink.NormalA.Direction), new Ray3D(bPrime, chainLink.NormalB.Direction), new Ray3D(chainLink.B, chainLink.NormalB.Direction));
+
+                //faceMesh.AddTriangle(triangle1, "", 0);
+                //faceMesh.AddTriangle(triangle2, "", 0);
+            }
+
+            foreach (var chainLink in set.BasePerimeterLinks.Where(l => Vector3D.AreParallel(l.BitangentB.Direction, l.Next.BitangentA.Direction))) // Corners
+            {
+                var triangle = new SurfaceTriangle(
+                    new Ray3D(chainLink.B, chainLink.NormalB.Direction),
+                    new Ray3D(chainLink.B + width * chainLink.BitangentB.Direction, chainLink.NormalB.Direction),
+                    new Ray3D(chainLink.B + width * chainLink.Next.BitangentA.Direction, chainLink.NormalB.Direction));
+
+                //faceMesh.AddTriangle(triangle, "", 0);
+            }
+
+            var changedLinks = new List<IPerimeterChainLink>();
+            foreach (var chainLink in set.BasePerimeterLinks)
+            {
+                changedLinks.Add(new PerimeterChainLinkDirectSet(
+                    chainLink.A + width * chainLink.BitangentA.Direction, chainLink.NormalA.Direction, chainLink.BitangentA.Direction,
+                    chainLink.B + width * chainLink.BitangentB.Direction, chainLink.NormalB.Direction, chainLink.BitangentB.Direction));
+
+                if (!Vector3D.AreParallel(chainLink.BitangentB, chainLink.Next.BitangentA))
+                {
+                    changedLinks.Add(new PerimeterChainLinkDirectSet(
+                        chainLink.B + width * chainLink.BitangentB.Direction, chainLink.NormalB.Direction, chainLink.BitangentB.Direction,
+                        chainLink.B + width * chainLink.Next.BitangentA.Direction, chainLink.NormalB.Direction, chainLink.Next.BitangentA.Direction
+                        ));
+                }
+            }
+
+            //set.BasePerimeterLinks = changedLinks;
+        }
+
+        private static void CreateBasePerimeterSegments(ParallelSurfaceSet set, GroupingCollection face)
+        {
+            var baseEdgeSurfaceCollection =
+                new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(CreateSurfaceSegmentSet(face.PerimeterEdges, Enumerable.Empty<GroupEdge>()));
+            var baseChain = BaseDividerSurfaceChaining<PlanarFillingGroup, PositionNormal>.Create(baseEdgeSurfaceCollection);
+            var output = new List<PerimeterChainLink>();
+
+            foreach (var loop in baseChain.PerimeterLoops)
+            {
+                if (!loop.Any()) { continue; }
+
+                PerimeterChainLink last = null;
+                for (int i = 0; i < loop.Length - 1; i++)
+                {
+                    var a = loop[i].Reference;
+                    var b = loop[i + 1].Reference;
+                    var newLink = new PerimeterChainLink(a, b);
+                    newLink.Last = last;
+                    output.Add(newLink);
+                    last = newLink;
+                }
+
+                if (loop.Length > 1)
+                {
+                    var a = loop[loop.Length - 1].Reference;
+                    var b = loop[0].Reference;
+                    var newLink = new PerimeterChainLink(a, b);
+                    newLink.Last = last;
+                    output.Add(newLink);
+                    output[0].Last = newLink;
+                }
+
+                foreach (var link in output)
+                {
+                    link.Last.Next = link;
+                }
+            }
+
+            set.BasePerimeterLinks = output;
+        }
+
+        private static void CreateParallelSurface(ParallelSurfaceSet set, IWireFrameMesh faceMesh, double displacement)
+        {
+            set.Mesh = faceMesh;
             foreach (var triangle in set.Mesh.Triangles)
             {
-                triangle.Trace = $"B{face.Id}";
+                triangle.Trace = $"B{set.Index}";
             }
-            foreach (var triangle in face.GroupingTriangles.Select(g => g.PositionTriangle))
+
+            var additions = new List<SurfaceTriangle>();
+
+            foreach (var triangle in set.Mesh.Triangles)
             {
                 var surfaceTriangle = CreateParallelSurface(triangle, displacement);
                 if (IsNearDegenerate(surfaceTriangle.Triangle)) { continue; }
-                set.Mesh.AddTriangle(surfaceTriangle, $"S{face.Id}", 0);
+                additions.Add(surfaceTriangle);
             }
 
-            var baseEdgeSurfaceCollection = new SurfaceSegmentCollections<PlanarFillingGroup, PositionNormal>(CreateSurfaceSegmentSet(face.PerimeterEdges, Enumerable.Empty<GroupEdge>()));
-
-            var baseChain = BaseDividerSurfaceChaining<PlanarFillingGroup, PositionNormal>.Create(baseEdgeSurfaceCollection);
-
-            set.BaseLoops = baseChain.PerimeterLoops.Select(p => p.Select(q => new BasePoint(q.Reference)).ToArray()).ToList();
+            set.Mesh.AddRangeTriangles(additions, $"S{set.Index}", 0);
         }
 
         private static SurfaceTriangle CreateParallelSurface(PositionTriangle triangle, double displacement)

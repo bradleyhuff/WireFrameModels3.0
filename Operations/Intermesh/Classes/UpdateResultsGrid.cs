@@ -1,5 +1,6 @@
 ﻿using BaseObjects;
 using Collections.WireFrameMesh.Interfaces;
+using Operations.Basics;
 using Operations.Intermesh.Basics;
 
 namespace Operations.Intermesh.Classes
@@ -17,7 +18,7 @@ namespace Operations.Intermesh.Classes
             {
                 filling.AddWireFrameTriangle(mesh);
             }
-            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Update result grid: Triangle removals {removalCount} Fills {fillings.Length} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Update result grid: Triangle removals {removalCount} Fills {fillings.Length} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }
 }

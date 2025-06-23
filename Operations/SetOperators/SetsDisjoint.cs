@@ -1,13 +1,8 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Collections.WireFrameMesh.Basics;
-using Collections.WireFrameMesh.BasicWireFrameMesh;
+using Collections.WireFrameMesh.Extensions;
 using Collections.WireFrameMesh.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.SetOperators
 {
@@ -32,10 +27,15 @@ namespace Operations.SetOperators
             }
         }
 
+        public static IEnumerable<IWireFrameMesh> DisjointGroupsCombined(this IEnumerable<IWireFrameMesh> meshes)
+        {
+            return meshes.DisjointGroups().Select(g => g.Combine());
+        }
+
         private static bool IsAddedToASet(IWireFrameMesh element, List<DisjointSet> list)
         {
             if (!list.Any()) { return false; }
-            foreach(var set in list.OrderByDescending(l => l.List.Count))
+            foreach(var set in list.OrderByDescending(l => l.Size))
             {
                 if (set.AddToDisjointSet(element)) { return true; }
             }

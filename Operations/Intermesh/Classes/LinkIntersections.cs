@@ -2,6 +2,7 @@
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
+using Operations.Basics;
 using Operations.Intermesh.Basics;
 
 namespace Operations.Intermesh.Classes
@@ -124,7 +125,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
         private static IntermeshPoint FetchPointAt(Point3D point, BoxBucket<IntermeshPoint> bucket)

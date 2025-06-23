@@ -209,5 +209,26 @@ namespace BasicObjects.GeometricObjects
             }
             return sign * angle;
         }
+
+        public static (Vector3D VectorA, Vector3D VectorB) GetNearestParallelPair(IEnumerable<Vector3D> setA, IEnumerable<Vector3D> setB)
+        {
+            double maxDotProduct = -1;
+            Vector3D pairA = Vector3D.Zero;
+            Vector3D pairB = Vector3D.Zero;
+            foreach (var normalA in setA)
+            {
+                foreach (var normalB in setB)
+                {
+                    var dotProduct = Dot(normalA, normalB);
+                    if (dotProduct > maxDotProduct)
+                    {
+                        maxDotProduct = dotProduct;
+                        pairA = normalA;
+                        pairB = normalB;
+                    }
+                }
+            }
+            return ( pairA, pairB );
+        }
     }
 }

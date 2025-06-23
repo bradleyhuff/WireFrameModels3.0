@@ -4,6 +4,7 @@ using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
+using Operations.Basics;
 using Operations.Groupings.Basics;
 using Operations.Intermesh;
 using Operations.PositionRemovals;
@@ -38,16 +39,24 @@ namespace Operations.SetOperators
         private static IWireFrameMesh Run(string note, IWireFrameMesh gridA, IWireFrameMesh gridB, Func<Region, Region, bool> includeGroup)
         {
             ConsoleLog.MaximumLevels = 8;
-            DateTime start = DateTime.Now;
-            ConsoleLog.Push(note);
-            var sum = CombineAndMark(gridA, gridB, out Space space);
-            sum.Intermesh();
 
+            DateTime start = DateTime.Now;
+            if (!Mode.ThreadedRun) ConsoleLog.Push(note);
+            var sum = CombineAndMark(gridA, gridB, out Space space);
+            if (Mode.ThreadedRun)
+            {
+                sum.IntermeshSingle(t => true);
+            }
+            else
+            {
+                sum.Intermesh();
+            }
+                
             var groups = GroupExtraction(sum);
             var remainingGroups = TestAndRemoveGroups(sum, groups, space, includeGroup);
             IncludedGroupInverts(remainingGroups);
 
-            ConsoleLog.MaximumLevels = 8;
+            //ConsoleLog.MaximumLevels = 8;
             //sum.RemoveShortSegments(1e-4);
             //sum.RemoveCollinearEdgePoints();
             //sum.RemoveCoplanarSurfacePoints();
@@ -55,8 +64,8 @@ namespace Operations.SetOperators
             FoldPrimming(sum);
             RemoveTags(sum);
 
-            ConsoleLog.Pop();
-            ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
+            if (!Mode.ThreadedRun) ConsoleLog.Pop();
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
             ConsoleLog.MaximumLevels = 1;
             return sum;
         }
@@ -64,10 +73,10 @@ namespace Operations.SetOperators
         public static void Test(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
             var sum = CombineAndMark(gridA, gridB, out Space space);
-            sum.Intermesh();
+            sum.IntermeshSingle(t => true);
             var groups = GroupExtraction(sum);
 
-            foreach(var set in groups.Select((g, i) => new { Group = g, Index = i}))
+            foreach (var set in groups.Select((g, i) => new { Group = g, Index = i }))
             {
                 var grid = WireFrameMesh.Create();
                 grid.AddRangeTriangles(set.Group.Triangles, "", 0);
@@ -95,7 +104,7 @@ namespace Operations.SetOperators
 
             var result = gridA.Clone();
             result.AddGrid(gridB);
-            ConsoleLog.WriteLine($"Combine and mark: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            if(!Mode.ThreadedRun) ConsoleLog.WriteLine($"Combine and mark: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return result;
         }
 
@@ -104,7 +113,7 @@ namespace Operations.SetOperators
             var start = DateTime.Now;
             var groups = GroupingCollection.ExtractSurfaces(intermesh.Triangles).ToArray();
 
-            ConsoleLog.WriteLine($"Group extraction: Groups {groups.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Group extraction: Groups {groups.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return groups;
         }
 
@@ -134,7 +143,7 @@ namespace Operations.SetOperators
                     remainingGroups.Add(group);
                 }
             }
-            ConsoleLog.WriteLine($"Test and remove groups: Remaining groups {remainingGroups.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Test and remove groups: Remaining groups {remainingGroups.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return remainingGroups;
         }
 
@@ -201,7 +210,7 @@ namespace Operations.SetOperators
                     invertedGroups++;
                 }
             }
-            ConsoleLog.WriteLine($"Included group and invert: Groups inverted {invertedGroups} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Included group and invert: Groups inverted {invertedGroups} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
         private static Point3D GetTestPoint(IEnumerable<PositionTriangle> triangles)
@@ -258,7 +267,7 @@ namespace Operations.SetOperators
             output.RemoveAllTriangles(foldedTriangles);
             output.AddRangeTriangles(replacements, "", 0);
 
-            ConsoleLog.WriteLine($"Fold Priming Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Fold Priming Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
         private static void RemoveTags(IWireFrameMesh output)
@@ -272,7 +281,7 @@ namespace Operations.SetOperators
                 foreach (var tag in tags) { table[tag.Id] = tag; }
             }
             output.RemoveAllTriangles(table.Values);
-            ConsoleLog.WriteLine($"Remove tags {table.Values.Count} {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Remove tags {table.Values.Count} {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
         private static void ApplyPrincipleNormal(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal)

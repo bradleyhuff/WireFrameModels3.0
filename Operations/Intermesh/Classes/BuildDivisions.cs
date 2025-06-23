@@ -1,4 +1,5 @@
 ﻿using BaseObjects;
+using Operations.Basics;
 using Operations.Intermesh.Basics;
 
 namespace Operations.Intermesh.Classes
@@ -18,7 +19,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            if (GridIntermesh.ShowLog) ConsoleLog.WriteLine($"Build divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Build divisions. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }
 }

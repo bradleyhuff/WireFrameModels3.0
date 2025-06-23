@@ -19,34 +19,55 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
+            //import.Apply(Transform.Rotation((Vector3D.BasisX + Vector3D.BasisY + Vector3D.BasisZ).Direction, 1e-4));
 
-            var clusters = import.BuildFacePlateClusters(-0.0025);
+            var clusters = import.BuildFacePlateClusters(-0.0075).ToArray();
 
-            var start = DateTime.Now;
-            var facePlates = clusters.SelectMany(c => c.Faces.Select(f => f.FacePlate));
+            clusters.PlateTrim();
 
-            var disjointGroups = facePlates.DisjointGroups().ToArray();
+            var output = clusters.Select(c => c.ClusterGrid).Combine();
+            WavefrontFile.Export(output, "Wavefront/Output");
+            output.ShowVitals(99);
 
-            Console.WriteLine($"Disjoint sets {disjointGroups.Length} {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
+            //foreach (var cluster in clusters)
+            //{
+            //    var disjoints = cluster.Faces.Select(f => f.FacePlate).DisjointGroups().ToArray();
+            //    Console.WriteLine($"Cluster {cluster.Id} Disjoints {disjoints.Length}", ConsoleColor.Green);
+            //    if (disjoints.Length == 6)
+            //    {
+            //        WavefrontFile.Export(cluster.Cluster.Create(), $"Wavefront/DisjointCluster-{cluster.Id}");
+            //        foreach (var group in disjoints.Select((d, i) => new { d, i }))
+            //        {
+            //            WavefrontFile.Export(group.d.Combine(), $"Wavefront/DisjointGroups-{cluster.Id}-{group.i}");
+            //        }
+            //    }
+            //}
 
-            var combinedGroups = disjointGroups.Select(g => g.Combine()).ToArray();
+            //var start = DateTime.Now;
+            //var facePlates = clusters.SelectMany(c => c.Faces.Select(f => f.FacePlate));
 
-            foreach (var set in combinedGroups.Select((s, i) => new { s, i}))
-            {
-                WavefrontFile.Export(set.s, $"Wavefront/DisjointSet-{set.i}");
-                set.s.ShowVitals(99);
-            }
+            //var disjointGroups = facePlates.DisjointGroups().ToArray();
 
-            var output = import;
-            foreach(var set in combinedGroups.Select((s, i) => new { s, i }))
-            {
-                Console.WriteLine($"Disjoint set {set.i + 1}", ConsoleColor.Yellow);
-                output = output.Difference(set.s);
-                WavefrontFile.Export(output, $"Wavefront/AppliedDisjointSet-{set.i + 1}");
-                output.ShowVitals(99);
-            }
-            Console.WriteLine($"Face plate build {(DateTime.Now - start).TotalSeconds} seconds.\n");
+            //Console.WriteLine($"Disjoint sets {disjointGroups.Length} {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
 
+            //var combinedGroups = disjointGroups.Select(g => g.Combine()).ToArray();
+
+            ////foreach (var set in combinedGroups.Select((s, i) => new { s, i}))
+            ////{
+            ////    WavefrontFile.Export(set.s, $"Wavefront/DisjointSet-{set.i}");
+            ////    set.s.ShowVitals(99);
+            ////}
+
+            //var output = import;
+            //foreach(var set in combinedGroups.Select((s, i) => new { s, i }))
+            //{
+            //    Console.WriteLine($"Disjoint set {set.i + 1}", ConsoleColor.Yellow);
+            //    output = output.Difference(set.s);
+            //    //WavefrontFile.Export(output, $"Wavefront/AppliedDisjointSet-{set.i + 1}");
+            //    //output.ShowVitals(99);
+            //}
+            //Console.WriteLine($"Face plate build {(DateTime.Now - start).TotalSeconds} seconds.\n");
+            //output.ShowVitals(99);
             //WavefrontFile.Export(output, "Wavefront/Output");
 
 

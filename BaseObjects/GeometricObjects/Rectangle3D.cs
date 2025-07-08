@@ -300,7 +300,7 @@ namespace BasicObjects.GeometricObjects
         public static Rectangle3D Containing(params Triangle3D[] triangles)
         {
             if (triangles == null || triangles.Length == 0) { return null; }
-            var verticies = triangles.SelectMany(s => s.Verticies).ToArray();
+            var verticies = triangles.SelectMany(s => s.Vertices).ToArray();
             double minX = verticies.Min(p => p.X);
             double maxX = verticies.Max(p => p.X);
             double minY = verticies.Min(p => p.Y);

@@ -8,12 +8,21 @@ using System.Threading.Tasks;
 
 namespace Operations.ParallelSurfaces.Internals
 {
-    internal class PointNode : IBox
+    public class PointNode : IBox
     {
+        private static int _id = 0;
+        private static object lockObject = new object();
+
         public PointNode(Point3D point)
         {
             Point = point;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
+
+        public int Id { get; }
         public Point3D Point { get; }
 
         private Rectangle3D _box = null;

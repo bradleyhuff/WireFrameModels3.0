@@ -56,6 +56,11 @@ namespace BaseObjects.Transformations
             return new Vector3D(x, y, z).Direction;
         }
 
+        public Triangle3D Apply(Triangle3D triangle)
+        {
+            return new Triangle3D(Apply(triangle.A), Apply(triangle.B), Apply(triangle.C));
+        }
+
         public Transform Rotate(Vector3D axis, double angle)
         {
             return Rotation(axis, angle);

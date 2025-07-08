@@ -43,4 +43,6 @@ internal static class GridIntermesh
         if (!Mode.ThreadedRun) ConsoleLog.Pop();
         if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
     }
+
+    public static int ClusterId { get; set; }
 }

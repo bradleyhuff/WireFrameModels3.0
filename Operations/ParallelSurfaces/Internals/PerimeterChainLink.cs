@@ -8,56 +8,58 @@ namespace Operations.ParallelSurfaces.Internals
         public int Id { get; }
         public Point3D A { get; }
         public Vector3D NormalA { get; }
-        public Vector3D BitangentA { get; }
+        public Vector3D BinormalA { get; }
 
         public Point3D B { get; }
         public Vector3D NormalB { get; }
-        public Vector3D BitangentB { get; }
+        public Vector3D BinormalB { get; }
 
         public PerimeterChainLink Next { get; set; }
         public PerimeterChainLink Last { get; set; }
     }
 
-    internal class PerimeterChainLinkDirectSet: IPerimeterChainLink
+    internal class PerimeterChainLinkDirectSet : IPerimeterChainLink
     {
-        public PerimeterChainLinkDirectSet(Point3D a, Vector3D normalA, Vector3D bitangentA, Point3D b, Vector3D normalB, Vector3D bitangentB)
+        public PerimeterChainLinkDirectSet(Point3D a, Vector3D normalA, Vector3D binormalA, Point3D b, Vector3D normalB, Vector3D binormalB)
         {
             A = a;
             NormalA = normalA;
-            BitangentA = bitangentA;
+            BinormalA = binormalA;
             B = b;
             NormalB = normalB;
-            BitangentB = bitangentB;
+            BinormalB = binormalB;
             Id = PerimeterChainLink.GetId();
         }
         public int Id { get; }
 
         public Point3D A { get; }
         public Vector3D NormalA { get; }
-        public Vector3D BitangentA { get; }
+        public Vector3D BinormalA { get; }
 
         public Point3D B { get; }
         public Vector3D NormalB { get; }
-        public Vector3D BitangentB { get; }
+        public Vector3D BinormalB { get; }
 
         public PerimeterChainLink Next { get; set; }
         public PerimeterChainLink Last { get; set; }
     }
 
-    internal class PerimeterChainLink: IPerimeterChainLink
+    internal class PerimeterChainLink : IPerimeterChainLink
     {
-        private PositionNormal _a;
-        private PositionNormal _b;
         private static int _id = 0;
         private static object lockObject = new object();
+
+        private PositionNormal _a;
+        private PositionNormal _b;
+
         public PerimeterChainLink(PositionNormal a, PositionNormal b)
         {
+            _a = a;
+            _b = b;
             A = a.Position;
             NormalA = a.Normal;
-            _a = a;
             B = b.Position;
             NormalB = b.Normal;
-            _b = b;
             Id = GetId();
         }
 
@@ -72,42 +74,42 @@ namespace Operations.ParallelSurfaces.Internals
         public int Id { get; }
         public Point3D A { get; }
         public Vector3D NormalA { get; }
-        public Vector3D BitangentA { 
+        public Vector3D BinormalA { 
             get
             {
-                if(_bitangentA is null)
+                if(_BinormalA is null)
                 {
-                    GetBitangents();
+                    GetBinormals();
                 }
-                return _bitangentA;
+                return _BinormalA;
             }
         }
         public Point3D B { get; }
         public Vector3D NormalB { get; }
-        public Vector3D BitangentB
+        public Vector3D BinormalB
         {
             get
             {
-                if (_bitangentB is null)
+                if (_BinormalB is null)
                 {
-                    GetBitangents();
+                    GetBinormals();
                 }
-                return _bitangentB;
+                return _BinormalB;
             }
         }
         public PerimeterChainLink Next { get; set; }
         public PerimeterChainLink Last { get; set; }
 
-        private Vector3D _bitangentA;
-        private Vector3D _bitangentB;
-        private void GetBitangents()
+        private Vector3D _BinormalA;
+        private Vector3D _BinormalB;
+        private void GetBinormals()
         {
-            var pair = Vector3D.GetNearestParallelPair(GetBitangents(_a), GetBitangents(_b));
-            _bitangentA = pair.VectorA;
-            _bitangentB = pair.VectorB;
+            var pair = Vector3D.GetNearestParallelPair(GetBinormals(_a), GetBinormals(_b));
+            _BinormalA = pair.VectorA;
+            _BinormalB = pair.VectorB;
         }
 
-        private IEnumerable<Vector3D> GetBitangents(PositionNormal pn)
+        private IEnumerable<Vector3D> GetBinormals(PositionNormal pn)
         {
             var surfacePlane = new Plane(Point3D.Zero, pn.Normal);
             return pn.PositionObject.PositionNormals.Where(pn2 => pn2.Id != pn.Id).Select(pn3 => pn3.Normal).Select(pn4 => surfacePlane.Projection(pn4)).ToList();

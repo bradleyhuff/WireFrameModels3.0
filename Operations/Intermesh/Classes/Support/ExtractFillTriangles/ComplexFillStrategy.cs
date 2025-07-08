@@ -55,8 +55,8 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 
             foreach (var filling in fillings)
             {
-                var fillTriangle = new FillTriangle(triangle, filling.A.Reference, filling.A.Normal,
-                    filling.B.Reference, filling.B.Normal, filling.C.Reference, filling.C.Normal, filling.FillId, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag);
+                var fillTriangle = new FillTriangle(triangle, filling.A.Reference.Point, filling.A.Normal,
+                    filling.B.Reference.Point, filling.B.Normal, filling.C.Reference.Point, filling.C.Normal, filling.FillId, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag);
                 triangle.Fillings.Add(fillTriangle);
             }
         }

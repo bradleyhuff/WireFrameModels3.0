@@ -19,6 +19,10 @@ using Operations.ParallelSurfaces.Internals;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Operations.Groupings.Types;
 using Operations.Basics;
+using Console = BaseObjects.Console;
+using FileExportImport;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text.RegularExpressions;
 
 namespace Operations.ParallelSurfaces
 {
@@ -30,7 +34,7 @@ namespace Operations.ParallelSurfaces
             Mode.ThreadedRun = true;
             ConsoleLog.Push("Build face plate clusters");
 
-            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c)).ToArray();
+            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c)).Where(c => c.Id == 10).ToArray();
             foreach (var c in clusters)
             {
                 foreach (var f in GroupingCollection.ExtractFaces(c.Cluster)) { c.Faces.Add(new FaceSet(f)); }
@@ -58,7 +62,7 @@ namespace Operations.ParallelSurfaces
             var faceMesh = face.Face.Create();
 
             CreateBasePerimeterSegments(output, face.Face);
-            AddPerimeterZone(output, faceMesh, 1e-7);
+            //AddPerimeterZone(output, faceMesh, 1e-7);
             CreateParallelSurface(output, faceMesh, state.Thickness);
 
             output.Mesh.IntermeshSingle(t => t.Trace[0] == 'S');
@@ -89,7 +93,7 @@ namespace Operations.ParallelSurfaces
         {
             DateTime start = DateTime.Now;
             var oldLevel = ConsoleLog.MaximumLevels;
-            ConsoleLog.MaximumLevels = 1;
+            ConsoleLog.MaximumLevels = 2;
             ConsoleLog.Push("Build face plate");
             mesh.FoldPrimming();
 
@@ -149,7 +153,7 @@ namespace Operations.ParallelSurfaces
                 var faceMesh = face.s.Create();
 
                 CreateBasePerimeterSegments(output, face.s);
-                //AddPerimeterZone(output, faceMesh, 1e-7);
+                //AddPerimeterZone(output, faceMesh, 5e-4);
                 CreateParallelSurface(output, faceMesh, thickness);
                 yield return output;
             }
@@ -388,45 +392,75 @@ namespace Operations.ParallelSurfaces
 
         private static void AddPerimeterZone(ParallelSurfaceSet set, IWireFrameMesh faceMesh, double width)
         {
-            foreach(var chainLink in set.BasePerimeterLinks)
-            {
-                var aPrime = chainLink.A + width * chainLink.BitangentA.Direction;
-                var bPrime = chainLink.B + width * chainLink.BitangentB.Direction;
+            var perimeterPoints = GroupingCollection.GetPerimeterEdges(faceMesh.Triangles).SelectMany(e => e.Positions).DistinctBy(p => p.Id).ToDictionary(p => p.Id, p => p);
+            var bucket = new BoxBucket<PositionNormal>(perimeterPoints.Values);
+            var translationTable = new Dictionary<int, Point3D>();
 
-                var triangle1 = new SurfaceTriangle(new Ray3D(chainLink.A, chainLink.NormalA.Direction), new Ray3D(chainLink.B, chainLink.NormalB.Direction), new Ray3D(aPrime, chainLink.NormalA.Direction));
-                var triangle2 = new SurfaceTriangle(new Ray3D(aPrime, chainLink.NormalA.Direction), new Ray3D(bPrime, chainLink.NormalB.Direction), new Ray3D(chainLink.B, chainLink.NormalB.Direction));
-
-                //faceMesh.AddTriangle(triangle1, "", 0);
-                //faceMesh.AddTriangle(triangle2, "", 0);
-            }
-
-            foreach (var chainLink in set.BasePerimeterLinks.Where(l => Vector3D.AreParallel(l.BitangentB.Direction, l.Next.BitangentA.Direction))) // Corners
-            {
-                var triangle = new SurfaceTriangle(
-                    new Ray3D(chainLink.B, chainLink.NormalB.Direction),
-                    new Ray3D(chainLink.B + width * chainLink.BitangentB.Direction, chainLink.NormalB.Direction),
-                    new Ray3D(chainLink.B + width * chainLink.Next.BitangentA.Direction, chainLink.NormalB.Direction));
-
-                //faceMesh.AddTriangle(triangle, "", 0);
-            }
+            //var grid = WireFrameMesh.Create();
 
             var changedLinks = new List<IPerimeterChainLink>();
+
             foreach (var chainLink in set.BasePerimeterLinks)
             {
-                changedLinks.Add(new PerimeterChainLinkDirectSet(
-                    chainLink.A + width * chainLink.BitangentA.Direction, chainLink.NormalA.Direction, chainLink.BitangentA.Direction,
-                    chainLink.B + width * chainLink.BitangentB.Direction, chainLink.NormalB.Direction, chainLink.BitangentB.Direction));
+                var aIndex = bucket.Fetch(new Rectangle3D(chainLink.A,BoxBucket.MARGINS)).Single(m => m.Position == chainLink.A).Id;
+                var bIndex = bucket.Fetch(new Rectangle3D(chainLink.B, BoxBucket.MARGINS)).Single(m => m.Position == chainLink.B).Id;
 
-                if (!Vector3D.AreParallel(chainLink.BitangentB, chainLink.Next.BitangentA))
+                var binormalA = width * chainLink.BinormalA.Direction;
+                var binormalB = width * chainLink.BinormalB.Direction;
+
+                var aPrime = chainLink.A + binormalA;
+                var bPrime = chainLink.B + binormalB;
+
+                //grid.AddTriangle(chainLink.A, Point3D.Average([chainLink.A, aPrime]), aPrime, "", 0);
+                if (!Vector3D.AreParallel(chainLink.BinormalA.Direction, chainLink.Last.BinormalB.Direction))
                 {
-                    changedLinks.Add(new PerimeterChainLinkDirectSet(
-                        chainLink.B + width * chainLink.BitangentB.Direction, chainLink.NormalB.Direction, chainLink.BitangentB.Direction,
-                        chainLink.B + width * chainLink.Next.BitangentA.Direction, chainLink.NormalB.Direction, chainLink.Next.BitangentA.Direction
-                        ));
+                    binormalA = width * chainLink.BinormalA.Direction + width * chainLink.Last.BinormalB.Direction;
+                    aPrime = chainLink.A + binormalA;
+                    //grid.AddTriangle(chainLink.A, Point3D.Average([chainLink.A, aPrime]), aPrime, "", 0);
                 }
+
+                //grid.AddTriangle(chainLink.B, Point3D.Average([chainLink.B, bPrime]), bPrime, "", 0);
+                if (!Vector3D.AreParallel(chainLink.BinormalB.Direction, chainLink.Next.BinormalA.Direction))
+                {
+                    binormalB = width * chainLink.BinormalB.Direction + width * chainLink.Next.BinormalA.Direction;
+                    bPrime = chainLink.B + binormalB;// sum;
+                    //grid.AddTriangle(chainLink.B, Point3D.Average([chainLink.B, bPrime]), bPrime, "", 0);
+                }
+
+                translationTable[aIndex] = aPrime;
+                translationTable[bIndex] = bPrime;
+
+                changedLinks.Add(new PerimeterChainLinkDirectSet(
+                    aPrime, chainLink.NormalA.Direction, chainLink.BinormalA.Direction,
+                    bPrime, chainLink.NormalB.Direction, chainLink.BinormalB.Direction));
+            }
+            //WavefrontFile.Export(grid,$"Wavefront/Binormals-{set.Index}");
+
+
+            foreach (var triangle in faceMesh.Triangles)
+            {
+                if (translationTable.ContainsKey(triangle.A.Id)) { triangle.A.Position = translationTable[triangle.A.Id]; }
+                if (translationTable.ContainsKey(triangle.B.Id)) { triangle.B.Position = translationTable[triangle.B.Id]; }
+                if (translationTable.ContainsKey(triangle.C.Id)) { triangle.C.Position = translationTable[triangle.C.Id]; }
             }
 
-            //set.BasePerimeterLinks = changedLinks;
+            set.BasePerimeterLinks = changedLinks;
+
+
+            //grid = WireFrameMesh.Create();
+            //foreach (var link in set.BasePerimeterLinks)
+            //{
+            //    grid.AddTriangle(link.A, Point3D.Average([link.A, link.B]), link.B, "", 0);
+            //}
+            //WavefrontFile.Export(grid, $"Wavefront/Zone-{set.Index}");
+
+            //grid = WireFrameMesh.Create();
+            //foreach (var link in set.BasePerimeterLinks)
+            //{
+            //    grid.AddTriangle(link.A, Point3D.Average([link.A, link.A + width * link.BinormalA]), link.A + width * link.BinormalA, "", 0);
+            //    grid.AddTriangle(link.B, Point3D.Average([link.B, link.B + width * link.BinormalB]), link.B + width * link.BinormalB, "", 0);
+            //}
+            //WavefrontFile.Export(grid, $"Wavefront/ZoneBinormals-{set.Index}");
         }
 
         private static void CreateBasePerimeterSegments(ParallelSurfaceSet set, GroupingCollection face)

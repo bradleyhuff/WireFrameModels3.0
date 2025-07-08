@@ -7,6 +7,7 @@ using FileExportImport;
 using Operations.Basics;
 using Operations.Groupings.Basics;
 using Operations.Intermesh;
+using Operations.Intermesh.Classes;
 using Operations.PositionRemovals;
 using Operations.Regions;
 using System;
@@ -270,7 +271,7 @@ namespace Operations.SetOperators
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Fold Priming Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
-        private static void RemoveTags(IWireFrameMesh output)
+        public static void RemoveTags(IWireFrameMesh output)
         {
             var start = DateTime.Now;
             var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();

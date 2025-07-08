@@ -73,8 +73,7 @@ namespace Operations.Groupings.Types
 
         private bool IndiciesMatch(PositionNormal fa, PositionNormal fb, PositionNormal ta, PositionNormal tb)
         {
-            return (fa.Id == ta.Id && fb.Id == tb.Id) ||
-                (fa.Id == tb.Id && fb.Id == ta.Id);
+            return fa.Id == ta.Id || fb.Id == tb.Id || fa.Id == tb.Id || fb.Id == ta.Id;
         }
     }
 }

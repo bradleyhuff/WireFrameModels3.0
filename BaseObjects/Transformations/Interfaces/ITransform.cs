@@ -6,5 +6,6 @@ namespace BaseObjects.Transformations.Interfaces
     {
         Point3D Apply(Point3D point);
         Vector3D Apply(Vector3D normal);
+        Triangle3D Apply(Triangle3D normal);
     }
 }

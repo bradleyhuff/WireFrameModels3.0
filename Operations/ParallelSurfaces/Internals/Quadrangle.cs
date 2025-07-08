@@ -21,8 +21,8 @@ namespace Operations.ParallelSurfaces.Internals
 
             BaseA = link.A;
             BaseB = link.B;
-            NormalA = link.BitangentA;
-            NormalB = link.BitangentB;
+            NormalA = link.BinormalA;
+            NormalB = link.BinormalB;
         }
         public int Id { get; }
         public Point3D BaseA { get; }

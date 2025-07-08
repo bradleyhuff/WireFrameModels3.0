@@ -21,7 +21,9 @@ namespace Operations.ParallelSurfaces.Basics
             }
         }
         public GroupingCollection Cluster { get; }
-        public IWireFrameMesh ClusterGrid { get; set; }
+        public IWireFrameMesh TrimmedClusterGrid { get; set; }
+        public IWireFrameMesh OriginalClusterGrid { get; set; }
+
         public int Id { get; }
         public List<FaceSet> Faces { get; set; } = new List<FaceSet>();
     }

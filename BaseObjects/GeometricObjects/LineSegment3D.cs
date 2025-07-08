@@ -186,6 +186,38 @@ namespace BasicObjects.GeometricObjects
             return !frontageA.PointIsFrontOfPlane(p) && !frontageB.PointIsFrontOfPlane(p);
         }
 
+        public IEnumerable<LineSegment3D> Difference(LineSegment3D segment)
+        {
+            var intersection = Intersection(this, segment);
+            if (intersection is null) { yield return this; }
+            if (intersection == this) { yield break; }
+
+            var nearestStart = Start.GetNearestPoint(intersection.Start, intersection.End);
+            var nearestEnd = End.GetNearestPoint(intersection.Start, intersection.End);
+
+            yield return new LineSegment3D(Start, nearestStart);
+            yield return new LineSegment3D(nearestEnd, End);
+        }
+
+        public IEnumerable<LineSegment3D> Difference(IEnumerable<LineSegment3D> segments)
+        {
+            foreach (var segment in segments)
+            {
+                var intersection = Intersection(this, segment);
+                if (intersection is null) { continue; }
+                if (intersection == this) { yield break; }
+
+                var nearestStart = Start.GetNearestPoint(intersection.Start, intersection.End);
+                var nearestEnd = End.GetNearestPoint(intersection.Start, intersection.End);
+
+                yield return new LineSegment3D(Start, nearestStart);
+                yield return new LineSegment3D(nearestEnd, End);
+                yield break;
+            }
+
+            yield return this;
+        }
+
         public static Point3D LinkingPoint(LineSegment3D a, LineSegment3D b)
         {
             if (a.Start == b.Start || a.Start == b.End) { return a.Start; }
@@ -198,7 +230,7 @@ namespace BasicObjects.GeometricObjects
             return LinkingPoint(a, b) is null;
         }
 
-        public static LineSegment3D LineSegmentIntersection(LineSegment3D a, LineSegment3D b)
+        public static LineSegment3D Intersection(LineSegment3D a, LineSegment3D b)
         {
             if (a is null || b is null) { return null; }
             if (a.IsDegenerate && b.IsDegenerate) { return null; }
@@ -260,7 +292,7 @@ namespace BasicObjects.GeometricObjects
             if (b.IsDegenerate && anEndPointMatches) { return b.Center; }
             if (aStartEqualsbStart && aEndEqualsbEnd) { return null; }
             if (aStartEqualsbEnd && aEndEqualsbStart) { return null; }
-            if (aStartEqualsbStart || aStartEqualsbStart) { return a.Start; }
+            if (aStartEqualsbStart || aStartEqualsbEnd) { return a.Start; }
             if (aEndEqualsbStart || aEndEqualsbEnd) { return a.End; }
 
             if (a.Length > b.Length)
@@ -290,21 +322,35 @@ namespace BasicObjects.GeometricObjects
                 .Where(i => i is not null && i != Start && i != End)
                 .OrderBy(p => Point3D.Distance(Start, p)).ToArray();
 
-            if (intersectionPoints.Length == 0) { yield return this; yield break; }
+            foreach (var split in SplittingPoints(intersectionPoints)) { yield return split; }
+        }
+
+        public IEnumerable<LineSegment3D> PointSplit(params Point3D[] points)
+        {
+            if (IsDegenerate) { yield break; }
+
+            var splittingPoints = points.Where(p => p is not null && p != Start && p != End && PointIsOnSegment(p)).OrderBy(p => Point3D.Distance(Start, p)).ToArray();
+
+            foreach (var split in SplittingPoints(splittingPoints)) { yield return split; }
+        }
+
+        private IEnumerable<LineSegment3D> SplittingPoints(params Point3D[] splittingPoints)
+        {
+            if (splittingPoints.Length == 0) { yield return this; yield break; }
 
             {
-                var output = new LineSegment3D(Start, intersectionPoints.First());
+                var output = new LineSegment3D(Start, splittingPoints.First());
                 if (!output.IsDegenerate) { yield return output; }
             }
 
-            for (int i = 0; i < intersectionPoints.Length - 1; i++)
+            for (int i = 0; i < splittingPoints.Length - 1; i++)
             {
-                var output = new LineSegment3D(intersectionPoints[i], intersectionPoints[i + 1]);
+                var output = new LineSegment3D(splittingPoints[i], splittingPoints[i + 1]);
                 if (!output.IsDegenerate) { yield return output; }
             }
 
             {
-                var output = new LineSegment3D(intersectionPoints.Last(), End);
+                var output = new LineSegment3D(splittingPoints.Last(), End);
                 if (!output.IsDegenerate) { yield return output; }
             }
         }

@@ -158,6 +158,7 @@ namespace BasicObjects.GeometricObjects
         {
             get
             {
+                if (IsCollinear) { return 0; }
                 return MinimumHeight.Magnitude / MaxEdge.Length;
             }
         }
@@ -187,7 +188,7 @@ namespace BasicObjects.GeometricObjects
         {
             if (_basisPlane is null)
             {
-                var loosePoint = Verticies.Single(v => v != MaxEdge.Start && v != MaxEdge.End);
+                var loosePoint = Vertices.Single(v => v != MaxEdge.Start && v != MaxEdge.End);
                 _basisPlane = new BasisPlane(MaxEdge.Start, MaxEdge.End, loosePoint);
             }
 
@@ -480,7 +481,7 @@ namespace BasicObjects.GeometricObjects
             return new Triangle3D(A + aa * a, B + bb * b, C + cc * c);
         }
 
-        public IEnumerable<Point3D> Verticies
+        public IEnumerable<Point3D> Vertices
         {
             get
             {
@@ -490,14 +491,14 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
-        public IEnumerable<Point3D> DisjointVerticies(Triangle3D compare)
+        public IEnumerable<Point3D> DisjointVertices(Triangle3D compare)
         {
             if (A != compare.A && A != compare.B && A != compare.C) { yield return A; }
             if (B != compare.A && B != compare.B && B != compare.C) { yield return B; }
             if (C != compare.A && C != compare.B && C != compare.C) { yield return C; }
         }
 
-        public static IEnumerable<Point3D> CommonVerticies(Triangle3D a, Triangle3D b)
+        public static IEnumerable<Point3D> CommonVertices(Triangle3D a, Triangle3D b)
         {
             if (Point3D.AreEqual(a.A, b.A)) { yield return a.A; }
             if (Point3D.AreEqual(a.A, b.B)) { yield return a.B; }
@@ -600,7 +601,7 @@ namespace BasicObjects.GeometricObjects
         {
             if (a.IsCollinear && b.IsCollinear)
             {
-                var match = LineSegment3D.LineSegmentIntersection(a.LongestEdge, b.LongestEdge);
+                var match = LineSegment3D.Intersection(a.LongestEdge, b.LongestEdge);
                 if (match is not null) { yield return match; }
                 yield break;
             }
@@ -608,7 +609,7 @@ namespace BasicObjects.GeometricObjects
             {
                 foreach (var edge in b.Edges)
                 {
-                    var match = LineSegment3D.LineSegmentIntersection(edge, a.LongestEdge);
+                    var match = LineSegment3D.Intersection(edge, a.LongestEdge);
                     if (match is not null) { yield return match; yield break; }
                 }
             }
@@ -616,7 +617,7 @@ namespace BasicObjects.GeometricObjects
             {
                 foreach (var edge in a.Edges)
                 {
-                    var match = LineSegment3D.LineSegmentIntersection(edge, b.LongestEdge);
+                    var match = LineSegment3D.Intersection(edge, b.LongestEdge);
                     if (match is not null) { yield return match; yield break; }
                 }
             }
@@ -631,7 +632,7 @@ namespace BasicObjects.GeometricObjects
             {
                 foreach (var edge2 in b.Edges)
                 {
-                    var match = LineSegment3D.LineSegmentIntersection(edge, edge2);
+                    var match = LineSegment3D.Intersection(edge, edge2);
                     if (match is not null) { yield return match; yield break; }
                 }
             }
@@ -654,7 +655,7 @@ namespace BasicObjects.GeometricObjects
             var segmentA = a.LineSegmentIntersection(line);
             var segmentB = b.LineSegmentIntersection(line);
             {
-                var match = LineSegment3D.LineSegmentIntersection(segmentA, segmentB);
+                var match = LineSegment3D.Intersection(segmentA, segmentB);
                 if (match is not null) { yield return match; }
             }
 
@@ -713,7 +714,39 @@ namespace BasicObjects.GeometricObjects
         {
             var match = LineSegmentIntersection(segment.LineExtension);
             if (match is null) { return null; }
-            return LineSegment3D.LineSegmentIntersection(match, segment);
+            return LineSegment3D.Intersection(match, segment);
+        }
+
+        public static bool Overlaps(Triangle3D a, Triangle3D b)
+        {
+            if (!AreCoplanar(a, b)) { return false; }
+            if (a.PointIsContainedOn(b.A) && a.PointIsContainedOn(b.B) && a.PointIsContainedOn(b.C)) { return true; }
+            if (b.PointIsContainedOn(a.A) && b.PointIsContainedOn(a.B) && b.PointIsContainedOn(a.C)) { return true; }
+
+            return false;
+        }
+
+        public static bool Intersects(Triangle3D a, Triangle3D b)
+        {
+            if (!AreCoplanar(a, b)) { return false; }
+
+            var segmentsA = a.Edges.ToArray();
+            var segmentsB = b.Edges.ToArray();
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    if (i == j) { continue; }
+                    if (segmentsA[i].Start == segmentsB[j].Start) { continue; }
+                    if (segmentsA[i].Start == segmentsB[j].End) { continue; }
+                    if (segmentsA[i].End == segmentsB[j].Start) { continue; }
+                    if (segmentsA[i].End == segmentsB[j].End) { continue; }
+                    if (LineSegment3D.PointIntersection(segmentsA[i], segmentsB[j]) is not null) { return true; }
+                }
+            }
+
+            return false;
         }
 
     }

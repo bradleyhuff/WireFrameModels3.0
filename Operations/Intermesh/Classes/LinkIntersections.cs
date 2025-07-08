@@ -109,7 +109,7 @@ namespace Operations.Intermesh.Classes
                             continue;
                         }
 
-                        var intersection2 = LineSegment3D.LineSegmentIntersection(match.Segment, segment.Segment);
+                        var intersection2 = LineSegment3D.Intersection(match.Segment, segment.Segment);
                         if (intersection2 is not null && 
                             triangle.Triangle.PointIsContainedOn(intersection2.Start) && 
                             triangle.Triangle.PointIsContainedOn(intersection2.End))

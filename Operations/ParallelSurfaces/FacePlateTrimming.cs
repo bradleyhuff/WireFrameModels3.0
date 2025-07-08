@@ -26,7 +26,7 @@ namespace Operations.ParallelSurfaces
 
             var clusterState = new ClusterState();
             var clusterIterator = new Iterator<ClusterSet>(clusters.ToArray());
-            clusterIterator.Run<ClusterState, ClusterThread>(ClusterAction, clusterState, 1, 4);
+            clusterIterator.Run<ClusterState, ClusterThread>(ClusterAction, clusterState, 1, 1);
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"Cluster plate trim: Clusters {clusters.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
@@ -41,15 +41,19 @@ namespace Operations.ParallelSurfaces
 
             try
             {
+                GridIntermesh.ClusterId = cluster.Id;
                 var difference = cluster.Cluster.Create().Difference(disjointSets.First());
-                //Console.WriteLine($"Difference for {cluster.Id} {difference.Triangles.Count}", difference.Triangles.Any() ? ConsoleColor.Green : ConsoleColor.Red);
-
-                //foreach (var set in disjointSets.Skip(1))
-                //{
-                //    difference = difference.Difference(set);
-                //    //Console.WriteLine($"Difference for {cluster.Id} {difference.Triangles.Count}", difference.Triangles.Any() ? ConsoleColor.Green : ConsoleColor.Red);
-                //}
-                cluster.ClusterGrid = difference;
+                Console.WriteLine($"Difference for {cluster.Id} {difference.Triangles.Count}", difference.Triangles.Any() ? ConsoleColor.Green : ConsoleColor.Red);
+                int index = 0;
+                foreach (var set in disjointSets)
+                {
+                    difference = difference.Difference(set);
+                    Console.WriteLine($"Difference for {cluster.Id} {difference.Triangles.Count}", difference.Triangles.Any() ? ConsoleColor.Green : ConsoleColor.Red);
+                    index++;
+                }
+                //Sets.RemoveTags(difference);
+                cluster.TrimmedClusterGrid = difference;
+                if(!cluster.TrimmedClusterGrid.Triangles.Any()) cluster.OriginalClusterGrid = cluster.Cluster.Create();
 
             }
             catch (Exception e)
@@ -57,7 +61,7 @@ namespace Operations.ParallelSurfaces
                 Console.WriteLine(e.Message, ConsoleColor.Red);
             }
 
-            Console.WriteLine($"Cluster {cluster.Id} Disjoint sets {disjointSets.Length} Thread {threadState.ThreadId} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Cyan);
+            Console.WriteLine($"Cluster {cluster.Id} Disjoint sets {disjointSets.Length} Triangles {cluster.TrimmedClusterGrid.Triangles.Count} Thread {threadState.ThreadId} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", cluster.TrimmedClusterGrid.Triangles.Count > 0 ? ConsoleColor.Cyan: ConsoleColor.Red);
         }
         private class ClusterThread : BaseThreadState
         {

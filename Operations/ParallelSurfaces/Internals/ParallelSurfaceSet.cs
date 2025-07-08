@@ -12,9 +12,7 @@ namespace Operations.ParallelSurfaces.Internals
     {
         public IWireFrameMesh Mesh { get; set; }
         public int Index { get; set; }
-        //public List<BasePoint[]> BaseLoops { get; set; }
         public List<Point3D[]> SurfaceLoops { get; set; }
-        //public List<List<Quadrangle>> QuadrangleSets { get; set; }
         public List<Quadrangle> QuadrangleSets { get; set; }
 
         public IEnumerable<IPerimeterChainLink> BasePerimeterLinks { get; set; }

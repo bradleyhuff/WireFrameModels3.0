@@ -3,7 +3,7 @@
 //var project = new ShellTest();
 //var project = new WireMeshTest();
 //var project = new FundamentalMeshesTest();
-//var project = new IntermeshDevelopment();
+var project = new IntermeshDevelopment();
 //var project = new DiceMeshTest();
 //var project = new TriangleIntersections();
 //var project = new CrossTest();
@@ -12,7 +12,7 @@
 //var project = new CurvedPlate();
 //var project = new Combination4Check();
 //var project = new RoundedCube();
-var project = new UnionCheck();
+//var project = new UnionCheck();
 project.Run();
 
 Console.ReadLine();

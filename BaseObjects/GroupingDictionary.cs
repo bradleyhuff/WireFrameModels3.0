@@ -21,10 +21,6 @@ namespace BaseObjects
                 if (!base.ContainsKey(key)) { base[key] = getNew(); }
                 return base[key];
             }
-            set
-            {
-                base[key] = value;
-            }
         }
     }
 }

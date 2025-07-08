@@ -77,14 +77,14 @@ namespace Collections.WireFrameMesh.Basics
             return new Ray3D(element.Position, element.Normal);
         }
 
-        public void LinkPosition(Position positionObject)
+        internal void LinkPosition(Position positionObject)
         {
             DelinkPosition();
             PositionObject = positionObject;
             PositionObject._positionNormals.Add(this);
         }
 
-        public void DelinkPosition()
+        internal void DelinkPosition()
         {
             if(PositionObject is null) { return; }
             PositionObject._positionNormals.Remove(this);
@@ -100,6 +100,22 @@ namespace Collections.WireFrameMesh.Basics
             if (obj == null || obj is not PositionNormal) { return false; }
             PositionNormal compare = (PositionNormal)obj;
             return Id == compare.Id;
+        }
+
+        public void MergeFrom(PositionNormal other)
+        {
+            var triangles = other.PositionObject.Triangles;
+
+            foreach (var triangle in triangles)
+            {
+                Mesh.AddTriangle(
+                    triangle.A.Id == other.Id ? this : triangle.A,
+                    triangle.B.Id == other.Id ? this : triangle.B,
+                    triangle.C.Id == other.Id ? this : triangle.C,
+                    triangle.Trace, triangle.Tag);
+            }
+
+            Mesh.RemoveAllTriangles(triangles);
         }
     }
 }

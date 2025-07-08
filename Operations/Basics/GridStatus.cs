@@ -42,9 +42,9 @@ namespace Operations.Basics
             var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
             if (openEdges.Length == 0) { return; }
             Console.WriteLine($"Open edges {openEdges.Length}");
-            foreach(var openEdge in openEdges)
+            foreach (var openEdge in openEdges)
             {
-                Console.WriteLine($"Open edge Triangle {openEdge.t.Id } Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
+                Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
             }
             Console.WriteLine();
 

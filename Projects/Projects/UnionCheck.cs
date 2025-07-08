@@ -7,6 +7,7 @@ using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Basics;
 using Operations.Groupings.Basics;
+using Operations.Groupings.FileExportImport;
 using Operations.ParallelSurfaces;
 using Operations.SetOperators;
 using WireFrameModels3._0;
@@ -21,13 +22,18 @@ namespace Projects.Projects
             var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
             //import.Apply(Transform.Rotation((Vector3D.BasisX + Vector3D.BasisY + Vector3D.BasisZ).Direction, 1e-4));
 
-            var clusters = import.BuildFacePlateClusters(-0.0075).ToArray();
+            var clusters = import.BuildFacePlateClusters(-0.000100).ToArray();
 
             clusters.PlateTrim();
 
-            var output = clusters.Select(c => c.ClusterGrid).Combine();
+            var output = clusters.Select(c => c.TrimmedClusterGrid).Combine();
             WavefrontFile.Export(output, "Wavefront/Output");
             output.ShowVitals(99);
+
+            var erred = clusters.Select(c => c.OriginalClusterGrid).Combine();
+            WavefrontFile.Export(erred, "Wavefront/Erred");
+
+            //WavefrontFileGroups.ExportBySurfaces(output, "Wavefront/Surface");
 
             //foreach (var cluster in clusters)
             //{
@@ -44,19 +50,19 @@ namespace Projects.Projects
             //}
 
             //var start = DateTime.Now;
-            //var facePlates = clusters.SelectMany(c => c.Faces.Select(f => f.FacePlate));
+            var facePlates = clusters.SelectMany(c => c.Faces.Select(f => f.FacePlate));
 
-            //var disjointGroups = facePlates.DisjointGroups().ToArray();
+            var disjointGroups = facePlates.DisjointGroups().ToArray();
 
             //Console.WriteLine($"Disjoint sets {disjointGroups.Length} {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
 
-            //var combinedGroups = disjointGroups.Select(g => g.Combine()).ToArray();
+            var combinedGroups = disjointGroups.Select(g => g.Combine()).ToArray();
 
-            ////foreach (var set in combinedGroups.Select((s, i) => new { s, i}))
-            ////{
-            ////    WavefrontFile.Export(set.s, $"Wavefront/DisjointSet-{set.i}");
-            ////    set.s.ShowVitals(99);
-            ////}
+            foreach (var set in combinedGroups.Select((s, i) => new { s, i }))
+            {
+                WavefrontFile.Export(set.s, $"Wavefront/DisjointSet-{set.i}");
+                set.s.ShowVitals(99);
+            }
 
             //var output = import;
             //foreach(var set in combinedGroups.Select((s, i) => new { s, i }))

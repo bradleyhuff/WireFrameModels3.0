@@ -17,7 +17,7 @@ namespace FileExportImport
         public static void Export(IEnumerable<IWireFrameMesh> meshes, string fileName)
         {
             int count = 0;
-            foreach(var mesh in meshes)
+            foreach (var mesh in meshes)
             {
                 Export(mesh, $"{fileName}-{count++}");
             }
@@ -31,7 +31,7 @@ namespace FileExportImport
             DateTime end = DateTime.Now;
             FileInfo info = new FileInfo(fileName);
             Console.WriteLine($"Exported .OBJ Wavefront File: {fileName}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
-            Console.WriteLine($"Positions: {mesh.Positions.Count.ToString("#,##0")} PositionNormals: {mesh.Positions.Sum(p => p.PositionNormals.Count).ToString("#,##0")} Triangles: {mesh.Triangles.Count.ToString("#,##0")}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            Console.WriteLine($"Positions: {(mesh?.Positions?.Count ?? 0).ToString("#,##0")} PositionNormals: {(mesh?.Positions?.Sum(p => p.PositionNormals.Count) ?? 0).ToString("#,##0")} Triangles: {(mesh?.Triangles?.Count ?? 0).ToString("#,##0")}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine($"Elapsed time: {(end - start).TotalMilliseconds.ToString("#,##0")} milliseconds. File size: {info.DisplayFileSize()}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
         }
@@ -45,7 +45,7 @@ namespace FileExportImport
             DateTime end = DateTime.Now;
             FileInfo info = new FileInfo(fileName);
             Console.WriteLine($"Exported .OBJ Wavefront File: {fileName}", ConsoleColor.Magenta, ConsoleColor.DarkRed);
-            Console.WriteLine($"Positions: {mesh.Positions.Count.ToString("#,##0")} PositionNormals: {mesh.Positions.Sum(p => p.PositionNormals.Count)} Triangles: {mesh.Triangles.Count.ToString("#,##0")}", ConsoleColor.Magenta, ConsoleColor.DarkRed);
+            Console.WriteLine($"Positions: {(mesh?.Positions?.Count ?? 0).ToString("#,##0")} PositionNormals: {(mesh?.Positions?.Sum(p => p.PositionNormals.Count) ?? 0).ToString("#,##0")} Triangles: {(mesh?.Triangles?.Count ?? 0).ToString("#,##0")}", ConsoleColor.Magenta, ConsoleColor.DarkRed);
             Console.WriteLine($"Elapsed time: {(end - start).TotalMilliseconds.ToString("#,##0")} milliseconds. File size: {info.DisplayFileSize()}", ConsoleColor.Magenta, ConsoleColor.DarkRed);
             Console.WriteLine();
         }
@@ -60,7 +60,7 @@ namespace FileExportImport
                 Dictionary<PositionNormal, int> indexTable = new Dictionary<PositionNormal, int>();
                 List<PositionNormal> positionNormals = new List<PositionNormal>();
                 int index = 0;
-                foreach (var position in mesh.Positions)
+                foreach (var position in mesh?.Positions ?? Enumerable.Empty<Position>())
                 {
                     foreach (var positionNormal in position.PositionNormals)
                     {
@@ -77,7 +77,7 @@ namespace FileExportImport
                 {
                     file.WriteLine($"vn {positionNormal.Normal.X.ToString(templateN)} {positionNormal.Normal.Y.ToString(templateN)} {positionNormal.Normal.Z.ToString(templateN)}");
                 }
-                foreach (var triangle in mesh.Triangles)
+                foreach (var triangle in mesh?.Triangles ?? Enumerable.Empty<PositionTriangle>())
                 {
                     int indexA = indexTable[triangle.A];
                     int indexB = indexTable[triangle.B];

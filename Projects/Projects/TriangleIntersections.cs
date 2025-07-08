@@ -18,12 +18,22 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             //var triangle = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 1, 0), new Point3D(1, 0, 0));
-            //var transform = Transform.Reflection(Vector3D.BasisY) * Transform.Rotation(Vector3D.BasisZ, -0.75) * Transform.Translation(new Vector3D(-0.1, -0.730, 0))/** Transform.Translation(new Vector3D(0.60, -1.4, 0))*/;
+            //var transform = Transform.Reflection(Vector3D.BasisY) * Transform.Rotation(Vector3D.BasisZ, -0.75) * Transform.Translation(new Vector3D(-0.1, -0.650, 0))/** Transform.Translation(new Vector3D(0.60, -1.4, 0))*/;
             //var triangleB = transform.Apply(triangle);
 
-            var triangle = new Triangle3D(new Point3D(0, -1, 0), new Point3D(0, 1, 0), new Point3D(1, 0, 0));
-            var transform = Transform.Reflection(Vector3D.BasisX) * Transform.Translation(new Vector3D(-0.5, 0, 0));
-            var triangleB = transform.Apply(triangle);
+            //var triangle = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 1, 0), new Point3D(1, 0, 0));
+            //var transform = Transform.Reflection(Vector3D.BasisY) * Transform.Rotation(Vector3D.BasisZ, -0.25) * Transform.Translation(new Vector3D(0.60, -1.0, 0));
+            //var triangleB = transform.Apply(triangle);
+
+            //var triangle = new Triangle3D(new Point3D(0, -1, 0), new Point3D(0, 1, 0), new Point3D(1, 0, 0));
+            //var transform = Transform.Reflection(Vector3D.BasisX) * Transform.Translation(new Vector3D(-0.5, 0, 0));
+            //var triangleB = transform.Apply(triangle);
+
+            //var triangle = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 1, 0), new Point3D(1, 0.1, 0));
+            //var triangleB = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 1, 0), new Point3D(1, -0.1, 0));
+
+            var triangle = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 1, 0), new Point3D(1, 0, 0));
+            var triangleB = new Triangle3D(new Point3D(0, 0, 0), new Point3D(0, 1.1, 0), new Point3D(1, 0, 0));
 
             var fillA = new FillTriangle(triangle.A, triangle.Normal, triangle.B, triangle.Normal, triangle.C, triangle.Normal);
             var fillB = new FillTriangle(triangleB.A, triangleB.Normal, triangleB.B, triangleB.Normal, triangleB.C, triangleB.Normal);
@@ -33,8 +43,14 @@ namespace Projects.Projects
             var differences = triangle.Edges.SelectMany(e => e.Difference(intersections));
 
 
-            var splitsA = fillA.DivideFrom(fillB).ToArray();
-            var splitsB = fillB.DivideFrom(fillA).ToArray();
+            FillTriangle[] splitsA = fillA.CoplanarDivideFrom(fillB).ToArray();
+            FillTriangle[] splitsB = fillB.CoplanarDivideFrom(fillA).ToArray();
+
+            //for (int i = 0; i < 10000; i++)
+            //{
+            //    splitsA = fillA.CoplanarDivideFrom(fillB).ToArray();
+            //    splitsB = fillB.CoplanarDivideFrom(fillA).ToArray();
+            //}
 
 
             //var endPoints = intersections.Concat(differences).SelectMany(s => s.Points);

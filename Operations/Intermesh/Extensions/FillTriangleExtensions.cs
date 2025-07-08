@@ -2,6 +2,7 @@
 using Collections.Buckets;
 using Operations.Intermesh.Basics;
 using Operations.ParallelSurfaces.Internals;
+using Math = BasicObjects.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Operations.Intermesh.Extensions
 {
     public static class FillTriangleExtensions
     {
-        public static IEnumerable<FillTriangle> DivideFrom(this FillTriangle fillA, FillTriangle fillB)
+        public static IEnumerable<FillTriangle> CoplanarDivideFrom(this FillTriangle fillA, FillTriangle fillB)
         {
             var intersections = Triangle3D.LineSegmentIntersections(fillA.Triangle, fillB.Triangle);
             if (!intersections.Any())
@@ -30,8 +31,8 @@ namespace Operations.Intermesh.Extensions
             allPoints.AddRange(fillA.Triangle.Vertices.Select(discretize.Fetch));
             allPoints = allPoints.DistinctBy(p => p.Id).ToList();
 
-            var inflectionPoints = allPoints.Where(p => p.IntersectLinks.Any() && p.DifferenceLinks.Any());
-            Point3D checkPoint = null;
+            var inflectionPoints = allPoints.Where(p => p.IntersectLinks.Any() && p.DifferenceLinks.Any()).ToArray();
+            var checkPoints = new List<Point3D>();
 
             foreach (var inflectionPoint in inflectionPoints)
             {
@@ -45,7 +46,7 @@ namespace Operations.Intermesh.Extensions
                 Point3D c = intersectionLink.Point;
 
                 var fillTriangle = new FillTriangle(a, fillA.NormalA, b, fillA.NormalB, c, fillA.NormalC);
-                checkPoint = fillTriangle.Triangle.Center;
+                checkPoints.Add(fillTriangle.Triangle.Center);
 
                 yield return fillTriangle;
 
@@ -60,33 +61,35 @@ namespace Operations.Intermesh.Extensions
                 DivideNode.BreakIntersection(inflectionPoint, intersectionLink);
                 DivideNode.BreakDifference(inflectionPoint, differenceLink);
             }
-
-            var differencePoints = allPoints.Where(p => !p.IntersectLinks.Any() && p.DifferenceLinks.Count == 2);
-
-            foreach (var differencePoint in differencePoints)
+            while (true)
             {
-                if (differencePoint.DifferenceLinks.Count < 2) { continue; }
-
-                var a = differencePoint;
-                var b = differencePoint.DifferenceLinks[0];
-                var c = differencePoint.DifferenceLinks[1];
-
-                var fillTriangle = new FillTriangle(a.Point, fillA.NormalA, b.Point, fillA.NormalB, c.Point, fillA.NormalC);
-
-                if (checkPoint is not null && fillTriangle.Triangle.PointIsIn(checkPoint)) { continue; }
-
-                yield return fillTriangle;
-
-                if (DivideNode.HasDifferenceLink(differencePoint.DifferenceLinks[0], differencePoint.DifferenceLinks[1]))
+                var differencePoints = allPoints.Where(p => !p.IntersectLinks.Any() && p.DifferenceLinks.Count == 2).ToArray();
+                if (!differencePoints.Any()) { break; }
+                foreach (var differencePoint in differencePoints)
                 {
-                    DivideNode.BreakDifference(differencePoint.DifferenceLinks[0], differencePoint.DifferenceLinks[1]);
+                    if (differencePoint.DifferenceLinks.Count < 2) { continue; }
+
+                    var a = differencePoint;
+                    var b = differencePoint.DifferenceLinks[0];
+                    var c = differencePoint.DifferenceLinks[1];
+
+                    var fillTriangle = new FillTriangle(a.Point, fillA.NormalA, b.Point, fillA.NormalB, c.Point, fillA.NormalC);
+
+                    if (checkPoints.Any(fillTriangle.Triangle.PointIsIn)) { continue; }
+
+                    yield return fillTriangle;
+
+                    if (DivideNode.HasDifferenceLink(differencePoint.DifferenceLinks[0], differencePoint.DifferenceLinks[1]))
+                    {
+                        DivideNode.BreakDifference(differencePoint.DifferenceLinks[0], differencePoint.DifferenceLinks[1]);
+                    }
+                    else
+                    {
+                        DivideNode.LinkDifference(differencePoint.DifferenceLinks[0], differencePoint.DifferenceLinks[1]);
+                    }
+                    DivideNode.BreakDifference(differencePoint, differencePoint.DifferenceLinks[0]);
+                    DivideNode.BreakDifference(differencePoint, differencePoint.DifferenceLinks[0]);
                 }
-                else
-                {
-                    DivideNode.LinkDifference(differencePoint.DifferenceLinks[0], differencePoint.DifferenceLinks[1]);
-                }
-                DivideNode.BreakDifference(differencePoint, differencePoint.DifferenceLinks[0]);
-                DivideNode.BreakDifference(differencePoint, differencePoint.DifferenceLinks[0]);
             }
 
             if (intersectionPoints.Length == 3)
@@ -100,12 +103,33 @@ namespace Operations.Intermesh.Extensions
             }
             else
             {
-                var center = Point3D.Average(intersectionPoints.Select(p => p.Point));
-                foreach (var segment in intersections)
+                var startingPoint = GetStartingPoint(intersectionPoints);
+                foreach (var segment in intersections.Select(s => new { start = discretize.Fetch(s.Start), end = discretize.Fetch(s.End) }).
+                    Where(s => s.start.Id != startingPoint.Id && s.end.Id != startingPoint.Id))
                 {
-                    yield return new FillTriangle(discretize.Fetch(center).Point, fillA.NormalA, discretize.Fetch(segment.Start).Point, fillA.NormalB, discretize.Fetch(segment.End).Point, fillA.NormalC);
+                    yield return new FillTriangle(startingPoint.Point, fillA.NormalA, segment.start.Point, fillA.NormalB, segment.end.Point, fillA.NormalC);
                 }
             }
+        }
+
+        private static DivideNode GetStartingPoint(IEnumerable<DivideNode> intersectionPoints)
+        {
+            var nearestOrigin = Math.Math.Min<DivideNode>(d => Point3D.Distance(d.Point, Point3D.Zero), intersectionPoints.ToArray());
+            if (nearestOrigin.Count() == 1)
+            {
+                return nearestOrigin.Single();
+            }
+            var nearestOrigin2 = Math.Math.Min<DivideNode>(d => Point3D.Distance(d.Point, new Point3D(1, 1, 1)), nearestOrigin.ToArray());
+
+            var nearestOrigin3 = Math.Math.Min<DivideNode>(d => Point3D.Distance(d.Point, new Point3D(1, 0.1, 0)), nearestOrigin2.ToArray());
+
+            var nearestOrigin4 = Math.Math.Min<DivideNode>(d => Point3D.Distance(d.Point, new Point3D(-1, 0.15, 0)), nearestOrigin3.ToArray());
+
+            if (nearestOrigin4.Any())
+            {
+                return nearestOrigin4.Single();
+            }
+            return null;
         }
 
         private class DivideNode : PointNode

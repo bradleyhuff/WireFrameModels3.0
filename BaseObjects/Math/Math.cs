@@ -28,6 +28,23 @@ namespace BasicObjects.Math
             return minValue;
         }
 
+        public static IEnumerable<T> Min<T>(Func<T, double> compare, params T[] list)
+        {
+            double minValue = double.MaxValue;
+            foreach (T element in list)
+            {
+                var newValue = compare(element);
+                if (newValue < minValue)
+                {
+                    minValue = newValue;
+                }
+            }
+            foreach (T element in list.Where(e => compare(e) == minValue))
+            {
+                yield return element;
+            }
+        }
+
         public static double Max(params double[] list)
         {
             double maxValue = double.MinValue;
@@ -36,6 +53,23 @@ namespace BasicObjects.Math
                 maxValue = System.Math.Max(maxValue, element);
             }
             return maxValue;
+        }
+
+        public static IEnumerable<T> Max<T>(Func<T, double> compare, params T[] list)
+        {
+            double maxValue = double.MinValue;
+            foreach (T element in list)
+            {
+                var newValue = compare(element);
+                if (newValue > maxValue)
+                {
+                    maxValue = newValue;
+                }
+            }
+            foreach (T element in list.Where(e => compare(e) == maxValue))
+            {
+                yield return element;
+            }
         }
 
         public static int Min(params int[] list)

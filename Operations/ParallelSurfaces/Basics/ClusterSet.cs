@@ -1,10 +1,5 @@
 ﻿using Collections.WireFrameMesh.Interfaces;
 using Operations.Groupings.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.ParallelSurfaces.Basics
 {

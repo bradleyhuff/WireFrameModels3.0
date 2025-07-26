@@ -1,6 +1,7 @@
 ﻿using BaseObjects;
 using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Extensions;
 using Collections.WireFrameMesh.Interfaces;
@@ -20,18 +21,60 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
-            //import.Apply(Transform.Rotation((Vector3D.BasisX + Vector3D.BasisY + Vector3D.BasisZ).Direction, 1e-4));
+            //import.Apply(Transform.Rotation((Vector3D.BasisX + Vector3D.BasisY + Vector3D.BasisZ).Direction, 1e-2));
+            //import.Apply(Transform.ShearXY(1e-3, 1e-3));
+            //import.Apply(Transform.ShearYZ(1e-3, 1e-3));
+            //import.Apply(Transform.ShearXZ(1e-3, 1e-3));
+            //WavefrontFile.Export(import, "Wavefront/Import");
 
-            var clusters = import.BuildFacePlateClusters(-0.000100).ToArray();
-
+            var clusters = import.BuildFacePlateClusters(-0.005000).ToArray();
+            //var clusters = import.BuildFacePlateClusters(-0.000100).ToArray();
             clusters.PlateTrim();
 
+
+            //var fill = new Triangle3D(new Point3D(0.114443516250287, 0.434066015928310, 0.40551524427083),new Point3D(0.113999950709140, 0.434181599758615, 0.405515357986652), new Point3D(0.114440816380691, 0.434066719367738, 0.405515244898318));
+            //var triangle = new Triangle3D(new Point3D(0.114528705752820, 0.434043818779481, 0.405515223469387), new Point3D(0.113999950709140, 0.434181599758615, 0.405515357986652), new Point3D(0.114440816380691, 0.434066719367738, 0.405515244898318));
+            //fill = fill.Scale(1000);
+            //triangle = triangle.Scale(1000);
+            //{
+            //    var grid = WireFrameMesh.Create();
+            //    var pointA = triangle.MinimumHeightScale(triangle.A, 0.25 / triangle.AspectRatio);
+            //    var pointB = triangle.MinimumHeightScale(triangle.B, 0.25 / triangle.AspectRatio);
+            //    var pointC = triangle.MinimumHeightScale(triangle.C, 0.25 / triangle.AspectRatio);
+            //    var triangle2 = new Triangle3D(pointA, pointB, pointC);
+            //    triangle2 = triangle2.Scale(1000);
+            //    grid.AddTriangle(triangle2, "", 0);
+
+            //    pointA = triangle.MinimumHeightScale(fill.A, 0.25 / triangle.AspectRatio);
+            //    pointB = triangle.MinimumHeightScale(fill.B, 0.25 / triangle.AspectRatio);
+            //    pointC = triangle.MinimumHeightScale(fill.C, 0.25 / triangle.AspectRatio);
+            //    triangle2 = new Triangle3D(pointA, pointB, pointC);
+            //    triangle2 = triangle2.Scale(1000);
+            //    grid.AddTriangle(triangle2, "", 0);
+
+            //    WavefrontFile.Export(grid, "Wavefront/ProblemTriangles");
+            //}
+
+            //var scaleA = Triangle.MinimumHeightScale(division.A.Point, 0.25 / Triangle.AspectRatio);
+            //var scaleB = Triangle.MinimumHeightScale(division.B.Point, 0.25 / Triangle.AspectRatio);
+            //var scaleC = Triangle.MinimumHeightScale(division.Segment.Center, 0.25 / Triangle.AspectRatio);
+            //grid.AddTriangle(scaleA, Triangle.Normal, scaleB, Triangle.Normal, scaleC, Triangle.Normal, "", 0);
+
+
+
+
+            //var cluster = clusters.Single(c => c.Id == 0);
+            //cluster.TrimmedClusterGrid.ShowVitals(99);
+
             var output = clusters.Select(c => c.TrimmedClusterGrid).Combine();
+            //var output = clusters.First().TrimmedClusterGrid;
             WavefrontFile.Export(output, "Wavefront/Output");
             output.ShowVitals(99);
 
-            var erred = clusters.Select(c => c.OriginalClusterGrid).Combine();
-            WavefrontFile.Export(erred, "Wavefront/Erred");
+            //WavefrontFileGroups.ExportByFaces(output, "Wavefront/Faces");
+
+            //var erred = clusters.Select(c => c.OriginalClusterGrid).Combine();
+            //WavefrontFile.Export(erred, "Wavefront/Erred");
 
             //WavefrontFileGroups.ExportBySurfaces(output, "Wavefront/Surface");
 
@@ -52,17 +95,17 @@ namespace Projects.Projects
             //var start = DateTime.Now;
             var facePlates = clusters.SelectMany(c => c.Faces.Select(f => f.FacePlate));
 
-            var disjointGroups = facePlates.DisjointGroups().ToArray();
+            //var disjointGroups = facePlates.DisjointGroups().ToArray();
 
             //Console.WriteLine($"Disjoint sets {disjointGroups.Length} {(DateTime.Now - start).TotalSeconds} seconds.", ConsoleColor.Yellow);
 
-            var combinedGroups = disjointGroups.Select(g => g.Combine()).ToArray();
+            //var combinedGroups = disjointGroups.Select(g => g.Combine()).ToArray();
 
-            foreach (var set in combinedGroups.Select((s, i) => new { s, i }))
-            {
-                WavefrontFile.Export(set.s, $"Wavefront/DisjointSet-{set.i}");
-                set.s.ShowVitals(99);
-            }
+            //foreach (var set in combinedGroups.Select((s, i) => new { s, i }))
+            //{
+            //    WavefrontFile.Export(set.s, $"Wavefront/DisjointSet-{set.i}");
+            //    set.s.ShowVitals(99);
+            //}
 
             //var output = import;
             //foreach(var set in combinedGroups.Select((s, i) => new { s, i }))
@@ -94,10 +137,6 @@ namespace Projects.Projects
             //var output = clusters[38].Create();//banana with error
             //var output = clusters[99].Create();
             //var output = clusters[100].Create();
-
-
-
-
 
             //WavefrontFile.Export(output, "Wavefront/Input");
             //WavefrontFileGroups.ExportByFaces(output, "Wavefront/Input");

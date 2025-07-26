@@ -8,7 +8,7 @@ namespace Operations.Groupings.Types
     internal class Face : IGrouping
     {
         public GroupingTriangle FirstTriangle { get; set; }
-        public bool EdgeFilter(IEnumerable<GroupingTriangle> triangles)
+        public bool EdgeFilter(GroupingTriangle t, IEnumerable<GroupingTriangle> triangles)
         {
             return triangles.Count() == 1;
         }

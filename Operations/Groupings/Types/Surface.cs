@@ -7,7 +7,7 @@ namespace Operations.Groupings.Types
     internal class Surface : IGrouping
     {
         public GroupingTriangle FirstTriangle { get; set; }
-        public bool EdgeFilter(IEnumerable<GroupingTriangle> triangles)
+        public bool EdgeFilter(GroupingTriangle element, IEnumerable<GroupingTriangle> triangles)
         {
             return triangles.Count() == 1;
         }

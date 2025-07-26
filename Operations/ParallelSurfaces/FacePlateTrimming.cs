@@ -1,18 +1,12 @@
 ﻿using BaseObjects;
 using Collections.Threading;
-using Collections.WireFrameMesh.Interfaces;
-using Operations.Groupings.Types;
 using Operations.Intermesh;
 using Operations.ParallelSurfaces.Basics;
 using Operations.SetOperators;
 using Console = BaseObjects.Console;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualBasic;
 using Operations.Basics;
+using Collections.WireFrameMesh.BasicWireFrameMesh;
+using Operations.Intermesh.Classes.Support.ExtractFillTriangles;
 
 namespace Operations.ParallelSurfaces
 {
@@ -29,7 +23,7 @@ namespace Operations.ParallelSurfaces
             clusterIterator.Run<ClusterState, ClusterThread>(ClusterAction, clusterState, 1, 1);
 
             ConsoleLog.Pop();
-            ConsoleLog.WriteLine($"Cluster plate trim: Clusters {clusters.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            ConsoleLog.WriteLine($"Cluster plate trim: Clusters {clusters.Count()} Simple {SimpleFillStrategy.Count} NearDegenerate {NearDegenerateFillStrategy.Count} Complex {ComplexFillStrategy.Count} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
             Mode.ThreadedRun = true;
         }
 
@@ -41,14 +35,14 @@ namespace Operations.ParallelSurfaces
 
             try
             {
+                cluster.TrimmedClusterGrid = WireFrameMesh.Create();
                 GridIntermesh.ClusterId = cluster.Id;
                 var difference = cluster.Cluster.Create().Difference(disjointSets.First());
-                Console.WriteLine($"Difference for {cluster.Id} {difference.Triangles.Count}", difference.Triangles.Any() ? ConsoleColor.Green : ConsoleColor.Red);
+
                 int index = 0;
-                foreach (var set in disjointSets)
+                foreach (var set in disjointSets.Skip(1))
                 {
                     difference = difference.Difference(set);
-                    Console.WriteLine($"Difference for {cluster.Id} {difference.Triangles.Count}", difference.Triangles.Any() ? ConsoleColor.Green : ConsoleColor.Red);
                     index++;
                 }
                 //Sets.RemoveTags(difference);

@@ -114,7 +114,6 @@ namespace Operations.Groupings.Basics
             foreach (var triangle in GroupingTriangles)
             {
                 triangle.AddWireFrameTriangle(mesh);
-
             }
             return mesh;
         }
@@ -296,7 +295,7 @@ namespace Operations.Groupings.Basics
 
             foreach (var element in input)
             {
-                foreach (var node in element.Adjacents.Where(grouping.EdgeFilter).SelectMany(e => e.Select(t => t)).
+                foreach (var node in element.Adjacents.Where(a => grouping.EdgeFilter(element, a)).SelectMany(e => e.Select(t => t)).
                     Where(t => !t.Spanned && table.ContainsKey(t.Id) && grouping.TriangleFilter(element, t)))
                 {
                     node.Spanned = true;

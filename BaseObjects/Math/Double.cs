@@ -5,7 +5,7 @@ namespace BasicObjects.Math
     {
         public const double ProximityError = 1.0e-10;
         public const double DifferenceError = 1.0e-14;
-        public const double RadianDifferenceError = 1e-9;
+        public const double RadianDifferenceError = 1e-14;
 
         public static bool IsEqual(double x, double y, double epsilon = DifferenceError)
         {

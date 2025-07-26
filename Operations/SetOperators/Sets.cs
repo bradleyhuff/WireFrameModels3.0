@@ -52,7 +52,7 @@ namespace Operations.SetOperators
             {
                 sum.Intermesh();
             }
-                
+
             var groups = GroupExtraction(sum);
             var remainingGroups = TestAndRemoveGroups(sum, groups, space, includeGroup);
             IncludedGroupInverts(remainingGroups);
@@ -69,29 +69,6 @@ namespace Operations.SetOperators
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
             ConsoleLog.MaximumLevels = 1;
             return sum;
-        }
-
-        public static void Test(this IWireFrameMesh gridA, IWireFrameMesh gridB)
-        {
-            var sum = CombineAndMark(gridA, gridB, out Space space);
-            sum.IntermeshSingle(t => true);
-            var groups = GroupExtraction(sum);
-
-            foreach (var set in groups.Select((g, i) => new { Group = g, Index = i }))
-            {
-                var grid = WireFrameMesh.Create();
-                grid.AddRangeTriangles(set.Group.Triangles, "", 0);
-                WavefrontFile.Export(grid, $"Wavefront/DifferenceGroup-{set.Index}");
-
-                grid = WireFrameMesh.Create();
-                var groupGrid = WireFrameMesh.Create();
-                groupGrid.AddRangeTriangles(set.Group.Triangles, "", 0);
-                var tags = groupGrid.Triangles.Where(t => t.AdjacentAnyCount < 3);
-                var openEdges = tags.SelectMany(t => t.OpenEdges);
-                grid.AddRangeTriangles(openEdges.Select(e => new Triangle3D(e.A.Position, Point3D.Average([e.A.Position, e.B.Position]), e.B.Position)), "", 0);
-                WavefrontFile.Export(grid, $"Wavefront/LooseEdgesGroup-{set.Index}");
-            }
-
         }
 
         private static IWireFrameMesh CombineAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space space)
@@ -114,7 +91,7 @@ namespace Operations.SetOperators
             var start = DateTime.Now;
             var groups = GroupingCollection.ExtractSurfaces(intermesh.Triangles).ToArray();
 
-            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Group extraction: Groups {groups.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            ConsoleLog.WriteLine($"Group extraction: Groups {groups.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return groups;
         }
 

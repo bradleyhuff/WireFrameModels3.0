@@ -187,10 +187,10 @@ namespace BasicObjects.GeometricObjects
 
         public static double Angle(Vector3D a, Vector3D b)
         {
-            var dot = Dot(a, b) / (a.Magnitude * b.Magnitude);
-            dot = E.Math.Max(-1, dot);
-            dot = E.Math.Min(1, dot);
-            double theta = System.Math.Acos(dot);
+            var minus = (a.Direction - b.Direction).Magnitude;
+            var plus = (a.Direction + b.Direction).Magnitude;
+            double theta = 2 * System.Math.Atan2(minus, plus);
+
             if (E.Double.IsEqual(theta, 0, E.Double.RadianDifferenceError)) { return 0; }
             if (E.Double.IsEqual(theta, System.Math.PI, E.Double.RadianDifferenceError)) { return System.Math.PI; }
             return theta;

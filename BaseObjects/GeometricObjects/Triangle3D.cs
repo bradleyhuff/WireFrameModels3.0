@@ -234,6 +234,15 @@ namespace BasicObjects.GeometricObjects
             return false;
         }
 
+        public static bool operator ==(Triangle3D a, Triangle3D b)
+        {
+            return a is not null && a.Equals(b);
+        }
+        public static bool operator !=(Triangle3D a, Triangle3D b)
+        {
+            return !(a is not null && a.Equals(b));
+        }
+
         public override int GetHashCode()
         {
             return 0;
@@ -586,16 +595,20 @@ namespace BasicObjects.GeometricObjects
             return new λ(λ1, λ2, λ3);
         }
 
-        public Point3D GetPointFromBarycentricCoordinate(λ coordinate)
+        public Point3D GetPoint(λ coordinate)
         {
             return coordinate.λ1 * A + coordinate.λ2 * B + coordinate.λ3 * C;
+        }
+
+        public Vector3D GetNormal(λ coordinate, Vector3D a, Vector3D b, Vector3D c)
+        {
+            return coordinate.λ1 * a.Direction + coordinate.λ2 * b.Direction + coordinate.λ3 * c.Direction;
         }
 
         public override string ToString()
         {
             return $"Triangle A: {A} B: {B} C: {C}";
         }
-
 
         public static IEnumerable<LineSegment3D> LineSegmentIntersections(Triangle3D a, Triangle3D b)
         {

@@ -13,10 +13,17 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
     internal class ComplexFillStrategy : IFillStrategy
     {
         private int complexDivision = 0;
+        private static int count = 0;
+
+        public static int Count
+        {
+            get { return count; }
+        }
 
         public void GetFillTriangles(IntermeshTriangle triangle)
         {
             complexDivision++;
+            count++;
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, IntermeshPoint>(surfaceSet);
 
@@ -29,8 +36,10 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             {
                 Console.WriteLine($"Chaining Error", ConsoleColor.Red);
                 //Console.WriteLine($"Chaining Error {triangle.Segments.Count} Triangle {triangle.Id}");
-                var strategy = new AbstractNearDegenerateFill<IntermeshPoint>(triangle.NonSpurDivisions.Select(d => (d.A, d.B)), p => p.Id, p => triangle.Verticies.Any(v => v.Id == p.Id));
-
+                var divisions = triangle.NonSpurDivisions.Select(d => (d.A, d.B));
+                var perimeterPoints = triangle.PerimeterPoints;
+                var vertices = triangle.Verticies;
+                var strategy = new NearDegenerateFill<IntermeshPoint>(divisions, p => p.Point, p => p.Id, p => vertices.Any(pp => pp.Id == p.Id), p => perimeterPoints.Any(pp => pp.Id == p.Id));
                 //Console.WriteLine($"Near degenerate {triangle.Id} Fills {strategy.GetFill().Count()} Min angle {triangle.Triangle.MinimumAngle}");
                 foreach (var filling in strategy.GetFill())
                 {

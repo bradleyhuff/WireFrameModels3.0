@@ -13,9 +13,16 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         private int doubleSegmentOneDivision = 0;
         private int doubleSegmentTwoDivision = 0;
         private int complexDivision = 0;
+        private static int count = 0;
+
+        public static int Count
+        {
+            get { return count; }
+        }
 
         public void GetFillTriangles(IntermeshTriangle triangle)
         {
+            count++;
             if (!triangle.HasDivisions) { noDivisions++; triangle.Fillings.Add(new FillTriangle(triangle)); return; }
             var internalSegments = triangle.InternalSegments.ToArray();
             if (internalSegments.Length == 1 && !internalSegments.Any(s => s.InternalDivisions > 0))

@@ -23,7 +23,7 @@ namespace Operations.Intermesh.Basics
                 node.C.Point, node.PositionTriangle.C.Normal, -1, node.PositionTriangle.Trace, node.PositionTriangle.Tag)
         { }
 
-        public FillTriangle(Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC) : this(null, pointA, normalA, pointB, normalB, pointC, normalC, 0, "", 0) { }
+        public FillTriangle(Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC, string trace, int tag) : this(null, pointA, normalA, pointB, normalB, pointC, normalC, 0, trace, tag) { }
         internal FillTriangle(IntermeshTriangle node, Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC, int fillId, string trace, int tag)
         {
             lock (lockObject)

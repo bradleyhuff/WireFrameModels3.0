@@ -20,6 +20,7 @@ internal static class GridIntermesh
         collection = collection.Where(t => t.HasDivisions).ToArray();
         ExtractFillTriangles.Action(collection);
         //FillOverlapRemoval.Action(collection);
+        //FillIntermesh.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);
         //OpenEdgesFill.Action(mesh);
         if (!Mode.ThreadedRun) ConsoleLog.Pop();
@@ -38,6 +39,7 @@ internal static class GridIntermesh
         collection = collection.Where(t => t.HasDivisions).ToArray();
         ExtractFillTriangles.Action(collection);
         //FillOverlapRemoval.Action(collection);
+        //FillIntermesh.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);
         //OpenEdgesFill.Action(mesh);
         if (!Mode.ThreadedRun) ConsoleLog.Pop();

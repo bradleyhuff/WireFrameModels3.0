@@ -15,6 +15,11 @@ namespace Operations.Intermesh.Extensions
     {
         public static IEnumerable<FillTriangle> CoplanarDivideFrom(this FillTriangle fillA, FillTriangle fillB)
         {
+            if (!Triangle3D.AreCoplanar(fillA.Triangle, fillB.Triangle))
+            {
+                yield return fillA;
+                yield break;
+            }
             var intersections = Triangle3D.LineSegmentIntersections(fillA.Triangle, fillB.Triangle);
             if (!intersections.Any())
             {
@@ -31,21 +36,23 @@ namespace Operations.Intermesh.Extensions
             allPoints.AddRange(fillA.Triangle.Vertices.Select(discretize.Fetch));
             allPoints = allPoints.DistinctBy(p => p.Id).ToList();
 
+            foreach(var point in allPoints){ var c = fillA.Triangle.GetBarycentricCoordinate(point.Point); point.Normal = fillA.Triangle.GetNormal(c, fillA.NormalA, fillA.NormalB, fillA.NormalC); }
+
             var inflectionPoints = allPoints.Where(p => p.IntersectLinks.Any() && p.DifferenceLinks.Any()).ToArray();
             var checkPoints = new List<Point3D>();
 
             foreach (var inflectionPoint in inflectionPoints)
             {
                 if (!inflectionPoint.IntersectLinks.Any() || !inflectionPoint.DifferenceLinks.Any()) { continue; }
-                var intersectionLink = inflectionPoint.IntersectLinks.SingleOrDefault(l => !inflectionPoint.DifferenceLinks.Any(ll => ll.Id == l.Id));
+                var intersectionLink = inflectionPoint.IntersectLinks.FirstOrDefault(l => !inflectionPoint.DifferenceLinks.Any(ll => ll.Id == l.Id));
                 var differenceLink = inflectionPoint.DifferenceLinks.FirstOrDefault(l => !inflectionPoint.IntersectLinks.Any(ll => ll.Id == l.Id));
                 if (intersectionLink is null || differenceLink is null) { continue; }
 
-                Point3D a = inflectionPoint.Point;
-                Point3D b = differenceLink.Point;
-                Point3D c = intersectionLink.Point;
+                var a = inflectionPoint;
+                var b = differenceLink;
+                var c = intersectionLink;
 
-                var fillTriangle = new FillTriangle(a, fillA.NormalA, b, fillA.NormalB, c, fillA.NormalC);
+                var fillTriangle = new FillTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, fillA.Trace, fillA.Tag);
                 checkPoints.Add(fillTriangle.Triangle.Center);
 
                 yield return fillTriangle;
@@ -73,7 +80,7 @@ namespace Operations.Intermesh.Extensions
                     var b = differencePoint.DifferenceLinks[0];
                     var c = differencePoint.DifferenceLinks[1];
 
-                    var fillTriangle = new FillTriangle(a.Point, fillA.NormalA, b.Point, fillA.NormalB, c.Point, fillA.NormalC);
+                    var fillTriangle = new FillTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, fillA.Trace, fillA.Tag);
 
                     if (checkPoints.Any(fillTriangle.Triangle.PointIsIn)) { continue; }
 
@@ -94,11 +101,11 @@ namespace Operations.Intermesh.Extensions
 
             if (intersectionPoints.Length == 3)
             {
-                Point3D a = intersectionPoints[0].Point;
-                Point3D b = intersectionPoints[1].Point;
-                Point3D c = intersectionPoints[2].Point;
+                var a = intersectionPoints[0];
+                var b = intersectionPoints[1];
+                var c = intersectionPoints[2];
 
-                yield return new FillTriangle(a, fillA.NormalA, b, fillA.NormalB, c, fillA.NormalC);
+                yield return new FillTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, fillA.Trace, fillA.Tag);
 
             }
             else
@@ -107,7 +114,7 @@ namespace Operations.Intermesh.Extensions
                 foreach (var segment in intersections.Select(s => new { start = discretize.Fetch(s.Start), end = discretize.Fetch(s.End) }).
                     Where(s => s.start.Id != startingPoint.Id && s.end.Id != startingPoint.Id))
                 {
-                    yield return new FillTriangle(startingPoint.Point, fillA.NormalA, segment.start.Point, fillA.NormalB, segment.end.Point, fillA.NormalC);
+                    yield return new FillTriangle(startingPoint.Point, startingPoint.Normal, segment.start.Point, segment.start.Normal, segment.end.Point, segment.end.Normal, fillA.Trace, fillA.Tag);
                 }
             }
         }
@@ -119,15 +126,14 @@ namespace Operations.Intermesh.Extensions
             {
                 return nearestOrigin.Single();
             }
+
             var nearestOrigin2 = Math.Math.Min<DivideNode>(d => Point3D.Distance(d.Point, new Point3D(1, 1, 1)), nearestOrigin.ToArray());
-
             var nearestOrigin3 = Math.Math.Min<DivideNode>(d => Point3D.Distance(d.Point, new Point3D(1, 0.1, 0)), nearestOrigin2.ToArray());
-
             var nearestOrigin4 = Math.Math.Min<DivideNode>(d => Point3D.Distance(d.Point, new Point3D(-1, 0.15, 0)), nearestOrigin3.ToArray());
 
             if (nearestOrigin4.Any())
             {
-                return nearestOrigin4.Single();
+                return nearestOrigin4.First();
             }
             return null;
         }
@@ -135,6 +141,7 @@ namespace Operations.Intermesh.Extensions
         private class DivideNode : PointNode
         {
             public DivideNode(Point3D point) : base(point) { }
+            public Vector3D Normal { get; set; }
 
             public List<DivideNode> IntersectLinks { get; } = new List<DivideNode>();
             public List<DivideNode> DifferenceLinks { get; } = new List<DivideNode>();

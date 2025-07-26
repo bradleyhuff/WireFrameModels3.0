@@ -9,7 +9,6 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
         private List<PositionNormal> _rowA = new List<PositionNormal>();
         private List<PositionNormal> _rowB = new List<PositionNormal>();
 
-
         protected class DisabledPositions
         {
             List<Position> _list;

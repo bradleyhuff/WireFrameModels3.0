@@ -216,7 +216,7 @@ namespace Operations.Intermesh.Basics
         {
             get
             {
-                if(_nonVertexPoints is null)
+                if (_nonVertexPoints is null)
                 {
                     _nonVertexPoints = _divisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != A.Id && p.Id != B.Id && p.Id != C.Id).ToList();
                 }
@@ -329,7 +329,12 @@ namespace Operations.Intermesh.Basics
         }
         public IEnumerable<IntermeshDivision> PerimeterDivisions
         {
-            get { return ABDivisions.Union(BCDivisions).Union(CADivisions); }
+            get { return ABDivisions.Union(BCDivisions).Union(CADivisions).ToArray(); }
+        }
+
+        public IEnumerable<IntermeshPoint> PerimeterPoints
+        {
+            get { return PerimeterDivisions.SelectMany(p => p.Points).DistinctBy(p => p.Id).ToArray(); }
         }
 
         public override string ToString()
@@ -341,7 +346,7 @@ namespace Operations.Intermesh.Basics
         private IEnumerable<double> CollinearDistances(IntermeshPoint a, IntermeshPoint b, IntermeshPoint[] points)
         {
             var line = new Line3D(a.Point, b.Point);
-            foreach(var point in points)
+            foreach (var point in points)
             {
                 yield return Point3D.Distance(point.Point, line.Projection(point.Point));
             }
@@ -353,8 +358,8 @@ namespace Operations.Intermesh.Basics
 
         public IntermeshPoint[] ABInternalPoints
         {
-            get 
-            { 
+            get
+            {
                 if (_abInternalPoints == null)
                 {
                     _abInternalPoints = ABDivisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).Where(p => p.Id != A.Id && p.Id != B.Id).
@@ -484,6 +489,39 @@ namespace Operations.Intermesh.Basics
                 newMesh.AddTriangle(division.A.Point, Triangle.Normal, division.B.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
                 yield return newMesh;
             }
+        }
+
+        public IWireFrameMesh ExportWithMinimumHeightScale()
+        {
+            var grid = WireFrameMesh.Create();
+            foreach (var division in PerimeterDivisions)
+            {
+                var scaleA = Triangle.MinimumHeightScale(division.A.Point, 0.25 / Triangle.AspectRatio);
+                var scaleB = Triangle.MinimumHeightScale(division.B.Point, 0.25 / Triangle.AspectRatio);
+                var scaleC = Triangle.MinimumHeightScale(division.Segment.Center, 0.25 / Triangle.AspectRatio);
+                grid.AddTriangle(scaleA, Triangle.Normal, scaleB, Triangle.Normal, scaleC, Triangle.Normal, "", 0);
+            }
+
+            foreach (var division in InternalDivisions)
+            {
+                var scaleA = Triangle.MinimumHeightScale(division.A.Point, 0.25 / Triangle.AspectRatio);
+                var scaleB = Triangle.MinimumHeightScale(division.B.Point, 0.25 / Triangle.AspectRatio);
+                var scaleC = Triangle.MinimumHeightScale(division.Segment.Center, 0.25 / Triangle.AspectRatio);
+                grid.AddTriangle(scaleA, Triangle.Normal, scaleB, Triangle.Normal, scaleC, Triangle.Normal, "", 0);
+            }
+
+            return grid;
+        }
+
+        public IWireFrameMesh ExportWithMinimumHeightScale(Triangle3D element)
+        {
+            var grid = WireFrameMesh.Create();
+            var scaleA = Triangle.MinimumHeightScale(element.A, 0.10 / Triangle.AspectRatio);
+            var scaleB = Triangle.MinimumHeightScale(element.B, 0.10 / Triangle.AspectRatio);
+            var scaleC = Triangle.MinimumHeightScale(element.C, 0.10 / Triangle.AspectRatio);
+            grid.AddTriangle(scaleA, Triangle.Normal, scaleB, Triangle.Normal, scaleC, Triangle.Normal, "", 0);
+
+            return grid;
         }
 
         public IEnumerable<IWireFrameMesh> ExportWithGatheringSplit()

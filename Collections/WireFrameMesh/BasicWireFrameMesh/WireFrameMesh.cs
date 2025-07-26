@@ -209,7 +209,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
 
         private PositionNormal AddPointNoRow(Point3D position, Vector3D normal)
         {
-            var positionObject = _bucket.Fetch(new Rectangle3D(position, BoxBucket.MARGINS)).SingleOrDefault(p => p.Point == position);
+            var positionObject = _bucket.Fetch(new Rectangle3D(position, BoxBucket.MARGINS)).Where(p => p.Point == position).MinBy(p => Point3D.Distance(p.Point, position));
             if (positionObject is null)
             {
                 var positionNormal = new PositionNormal(position, normal, this);
@@ -226,7 +226,7 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 positionObject.Disabled = false;
             }
 
-            var existingPositionNormal = positionObject.PositionNormals.SingleOrDefault(pn => Vector3D.AreParallel(pn.Normal, normal));
+            var existingPositionNormal = positionObject.PositionNormals.FirstOrDefault(pn => Vector3D.AreParallel(pn.Normal, normal));
             if (existingPositionNormal is not null) { return existingPositionNormal; }
             {
                 var positionNormal = new PositionNormal(position, normal, this);
@@ -326,9 +326,9 @@ namespace Collections.WireFrameMesh.BasicWireFrameMesh
                 }
             }
 
-            foreach (var element in mapping.Values.Where(v => v.PositionNormals.Count == 3))
+            foreach (var element in mapping.Where(v => v.Value.PositionNormals.Count == 3))
             {
-                new PositionTriangle(element.PositionNormals[0], element.PositionNormals[1], element.PositionNormals[2], element.Trace, element.Tag);
+                new PositionTriangle(element.Value.PositionNormals[0], element.Value.PositionNormals[1], element.Value.PositionNormals[2], element.Value.Trace, element.Value.Tag);
             }
 
             return clone;

@@ -4,6 +4,7 @@ using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
+using Console = BaseObjects.Console;
 
 namespace Operations.Intermesh.Classes
 {
@@ -18,9 +19,9 @@ namespace Operations.Intermesh.Classes
             //Triangle vertex assignments
             foreach (var triangle in intermeshTriangles)
             {
-                var a = FetchPointAt(triangle.PositionTriangle.A.Position, pointsBucket);
-                var b = FetchPointAt(triangle.PositionTriangle.B.Position, pointsBucket);
-                var c = FetchPointAt(triangle.PositionTriangle.C.Position, pointsBucket);
+                var a = FetchVertexPointAt(triangle.PositionTriangle.A.Position, pointsBucket);
+                var b = FetchVertexPointAt(triangle.PositionTriangle.B.Position, pointsBucket);
+                var c = FetchVertexPointAt(triangle.PositionTriangle.C.Position, pointsBucket);
                 triangle.A = a;
                 triangle.B = b;
                 triangle.C = c;
@@ -66,30 +67,39 @@ namespace Operations.Intermesh.Classes
 
             //ConsoleLog.WriteLine($"Link intersections 1. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
-            // Triangle intersection assignments
+            // Triangle intersection segment assignments
             foreach (var triangle in intermeshTriangles)
             {
-                foreach (var intersection in triangle.GatheringSets.Values.SelectMany(g => g.Intersections ?? new LineSegment3D[0]))
+                foreach (var set in triangle.GatheringSets)
                 {
-                    var a = FetchPointAt(intersection.Start, pointsBucket);
-                    var b = FetchPointAt(intersection.End, pointsBucket);
+                    foreach (var intersection in set.Value.Intersections ?? new LineSegment3D[0])
+                    {
+                        var a = FetchPointAt(intersection.Start, pointsBucket);
+                        var b = FetchPointAt(intersection.End, pointsBucket);
 
-                    if (a.Id == b.Id) { continue; }
-                    var key = new Combination2(a.Id, b.Id);
-                    if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(a, b); }
+                        if (a.Id == b.Id) { continue; }
+                        var key = new Combination2(a.Id, b.Id);
+                        if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(a, b); }
+                        var segment = table[key];
 
-                    var segment = table[key];
-                    a.Add(segment);
-                    b.Add(segment);
-                    segment.Add(triangle);
-                    triangle.Add(segment);
+                        var segment2 = segment.Segment;
+                        if (!set.Value.IntersectedTriangle.PointIsOn(intersection.Start) || !set.Value.IntersectedTriangle.PointIsOn(intersection.End))
+                        {
+                                 Console.WriteLine($"Linking Action {triangle.Id} {set.Key} Intersection Id {set.Value.Id}\n{set.Value.IntersectedTriangle}\n{set.Value.GatheringTriangle}");
+                        }
+
+                        a.Add(segment);
+                        b.Add(segment);
+                        segment.Add(triangle);
+                        triangle.Add(segment);
+                    }
                 }
             }
             //ConsoleLog.WriteLine($"Link intersections 2. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
 
             var segmentTable = new Dictionary<int, bool>();
 
-            // Nearby triangle intersection assignments
+            // Division point assignments from intersection of segments
             foreach (var triangle in intermeshTriangles)
             {
                 var gatherings = triangle.Gathering.Where(t => t.Id != triangle.Id).SelectMany(t => t.Segments).DistinctBy(g => g.Id).ToArray();
@@ -110,8 +120,8 @@ namespace Operations.Intermesh.Classes
                         }
 
                         var intersection2 = LineSegment3D.Intersection(match.Segment, segment.Segment);
-                        if (intersection2 is not null && 
-                            triangle.Triangle.PointIsContainedOn(intersection2.Start) && 
+                        if (intersection2 is not null &&
+                            triangle.Triangle.PointIsContainedOn(intersection2.Start) &&
                             triangle.Triangle.PointIsContainedOn(intersection2.End))
                         {
                             var i = FetchPointAt(intersection2.Start, pointsBucket);
@@ -125,6 +135,9 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
+            //Consolidate near collinear segments to division points
+
+
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
@@ -136,7 +149,20 @@ namespace Operations.Intermesh.Classes
             {
                 return found;
             }
-            var intermeshPoint = new IntermeshPoint(point);
+            var intermeshPoint = new IntermeshPoint(point, false);
+            bucket.Add(intermeshPoint);
+            return intermeshPoint;
+        }
+
+        private static IntermeshPoint FetchVertexPointAt(Point3D point, BoxBucket<IntermeshPoint> bucket)
+        {
+            var match = bucket.Fetch(new Rectangle3D(point, BoxBucket.MARGINS));
+            var found = match.Where(m => Point3D.AreEqual(m.Point, point, GapConstants.Resolution)).MinBy(p => Point3D.Distance(p.Point, point));
+            if (found is not null)
+            {
+                return found;
+            }
+            var intermeshPoint = new IntermeshPoint(point, true);
             bucket.Add(intermeshPoint);
             return intermeshPoint;
         }

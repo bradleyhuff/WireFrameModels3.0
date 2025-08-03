@@ -186,7 +186,8 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 var listDecreased = newList.Count < list.Count;
                 list = newList;
                 if (!list.Any(n => n.Links.Count() > 2 && n.IsPerimeter)) { break; }
-                if (!pulled && !listDecreased) { throw new Exception($"Loop 3 non-terminating. List {list.Count()}"); }
+                if (!pulled && !listDecreased) { /*throw new Exception($"Loop 3 non-terminating. List {list.Count()}");*/ 
+                    Console.WriteLine($"Loop 3 non-terminating. List {list.Count()}  Collinear {Point3D.AreCollinear(list.Select(e => e.Point).ToArray())}"); break; }
             }
 
             while (true)
@@ -202,7 +203,8 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 var listDecreased = newList.Count < list.Count;
                 list = newList;
                 if (!list.Any()) { break; }
-                if (!pulled && !listDecreased) { throw new Exception($"Loop 2 non-terminating. List {list.Count()}"); }
+                if (!pulled && !listDecreased) { /*throw new Exception($"Loop 2 non-terminating. List {list.Count()}");*/
+                    Console.WriteLine($"Loop 2 non-terminating. List {list.Count()}  Collinear {Point3D.AreCollinear(list.Select(e => e.Point).ToArray())}"); break; }
             }
         }
     }

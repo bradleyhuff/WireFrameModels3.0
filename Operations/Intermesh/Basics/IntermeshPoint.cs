@@ -8,9 +8,10 @@ namespace Operations.Intermesh.Basics
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public IntermeshPoint(Point3D point) 
+        public IntermeshPoint(Point3D point, bool isVertex) 
         { 
             Point = point;
+            IsVertex = isVertex;
             lock (lockObject)
             {
                 Id = _id++;
@@ -18,6 +19,7 @@ namespace Operations.Intermesh.Basics
         }
 
         public int Id { get; }
+        public bool IsVertex { get; }
         public Point3D Point { get; }
 
         private Rectangle3D _box;

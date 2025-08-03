@@ -45,7 +45,6 @@ namespace Operations.ParallelSurfaces
                     difference = difference.Difference(set);
                     index++;
                 }
-                //Sets.RemoveTags(difference);
                 cluster.TrimmedClusterGrid = difference;
                 if(!cluster.TrimmedClusterGrid.Triangles.Any()) cluster.OriginalClusterGrid = cluster.Cluster.Create();
 

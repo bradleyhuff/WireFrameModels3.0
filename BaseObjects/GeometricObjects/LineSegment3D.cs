@@ -230,6 +230,16 @@ namespace BasicObjects.GeometricObjects
             return LinkingPoint(a, b) is null;
         }
 
+        //public static IEnumerable<LineSegment3D> LineSegmentIntersection(LineSegment3D a, LineSegment3D b)
+        //{
+        //    if (a is null || b is null) { yield break; }
+        //    if (a.IsDegenerate && b.IsDegenerate) { yield break; }
+
+
+
+        //    yield break;
+        //}
+
         public static LineSegment3D Intersection(LineSegment3D a, LineSegment3D b)
         {
             if (a is null || b is null) { return null; }
@@ -315,14 +325,37 @@ namespace BasicObjects.GeometricObjects
             return a.PointIsAtOrBetweenEndpoints(point) && b.PointIsAtOrBetweenEndpoints(point) ? point : null;
         }
 
+        public static bool AreCollinear(LineSegment3D a, LineSegment3D b)
+        {
+            return a.LineExtension.PointIsOnLine(b.Start) && a.LineExtension.PointIsOnLine(b.End);
+        }
+
         public IEnumerable<LineSegment3D> LineSegmentSplit(params LineSegment3D[] segments)
         {
             if (IsDegenerate) { yield break; }
-            var intersectionPoints = segments.Select(s => PointIntersection(this, s))
-                .Where(i => i is not null && i != Start && i != End)
-                .OrderBy(p => Point3D.Distance(Start, p)).ToArray();
 
-            foreach (var split in SplittingPoints(intersectionPoints)) { yield return split; }
+            var sortedPoints = LineSegmentSplittingPoints(segments).OrderBy(p => Point3D.Distance(Start, p)).ToArray();
+
+            foreach (var split in SplittingPoints(sortedPoints)) { yield return split; }
+        }
+
+        private IEnumerable<Point3D> LineSegmentSplittingPoints(params LineSegment3D[] segments)
+        {
+            foreach (var segment in segments)
+            {
+                if (AreCollinear(this, segment))
+                {
+                    if (PointIsBetweenEndpoints(segment.Start)) { yield return segment.Start; }
+                    if (PointIsBetweenEndpoints(segment.End)) { yield return segment.End; }
+                    continue;
+                }
+
+                var intersection = PointIntersection(this, segment);
+                if (intersection is not null && intersection != Start && intersection != End)
+                {
+                    yield return intersection;
+                }
+            }
         }
 
         public IEnumerable<LineSegment3D> PointSplit(params Point3D[] points)
@@ -363,6 +396,16 @@ namespace BasicObjects.GeometricObjects
                 distanceEnd < error ||
                 (distanceStart < Length && distanceEnd < Length);
         }
+
+        public bool PointIsBetweenEndpoints(Point3D point, double error = E.Double.DifferenceError)
+        {
+            double distanceStart = Point3D.Distance(Start, point);
+            double distanceEnd = Point3D.Distance(End, point);
+            return distanceStart > error &&
+                distanceEnd > error &&
+                (distanceStart < Length && distanceEnd < Length);
+        }
+
         public bool PointIsOnSegment(Point3D point, double error = E.Double.ProximityError)
         {
             if (!LineExtension.PointIsOnLine(point, error)) { return false; }

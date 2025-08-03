@@ -145,7 +145,12 @@ namespace BaseObjects.Transformations
 
         public static Transform Reflection(Vector3D n)
         {
-            n = n.Direction;
+            return Reflection(n.X, n.Y, n.Z);
+        }
+
+        public static Transform Reflection(double x, double y, double z)
+        {
+            var n = new Vector3D(x, y, z).Direction;
 
             Transform t = new Transform();
             t.p00 = 1 - 2 * n.X * n.X;
@@ -186,7 +191,12 @@ namespace BaseObjects.Transformations
 
         public static Transform Rotation(Vector3D axis, double angle)
         {
-            axis = axis.Direction;
+            return Rotation(axis.X, axis.Y, axis.Z, angle);
+        }
+
+        public static Transform Rotation(double x, double y, double z, double angle)
+        {
+            var axis = new Vector3D(x, y, z).Direction;
             var cc = 1 - Math.Cos(angle);
             var s = Math.Sin(angle);
             var c = Math.Cos(angle);
@@ -223,6 +233,44 @@ namespace BaseObjects.Transformations
             t.n20 = t.p20;
             t.n21 = t.p21;
             t.n22 = t.p22;
+
+            return t;
+        }
+
+        public static Transform Identity()
+        {
+            Transform t = new Transform();
+            t.p00 = 1;
+            t.p01 = 0;
+            t.p02 = 0;
+            t.p03 = 0;
+
+            t.p10 = 0;
+            t.p11 = 1;
+            t.p12 = 0;
+            t.p13 = 0;
+
+            t.p20 = 0;
+            t.p21 = 0;
+            t.p22 = 1;
+            t.p23 = 0;
+
+            t.p30 = 0;
+            t.p31 = 0;
+            t.p32 = 0;
+            t.p33 = 1;
+
+            t.n00 = 1;
+            t.n01 = 0;
+            t.n02 = 0;
+
+            t.n10 = 0;
+            t.n11 = 1;
+            t.n12 = 0;
+
+            t.n20 = 0;
+            t.n21 = 0;
+            t.n22 = 1;
 
             return t;
         }
@@ -386,21 +434,25 @@ namespace BaseObjects.Transformations
 
         public static Transform Translation(Vector3D vector)
         {
+            return Translation(vector.X, vector.Y, vector.Z);
+        }
+        public static Transform Translation(double x, double y, double z)
+        {
             Transform t = new Transform();
             t.p00 = 1;
             t.p01 = 0;
             t.p02 = 0;
-            t.p03 = vector.X;
+            t.p03 = x;
 
             t.p10 = 0;
             t.p11 = 1;
             t.p12 = 0;
-            t.p13 = vector.Y;
+            t.p13 = y;
 
             t.p20 = 0;
             t.p21 = 0;
             t.p22 = 1;
-            t.p23 = vector.Z;
+            t.p23 = z;
 
             t.p30 = 0;
             t.p31 = 0;

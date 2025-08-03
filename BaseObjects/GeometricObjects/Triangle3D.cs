@@ -7,6 +7,8 @@ namespace BasicObjects.GeometricObjects
 {
     public class Triangle3D : IShape3D<Triangle3D>
     {
+        public Triangle3D(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz) : 
+            this(new Point3D(ax, ay, az), new Point3D(bx, by, bz), new Point3D(cx, cy, cz)) { }
         public Triangle3D(Point3D A, Point3D B, Point3D C)
         {
             this.A = A;
@@ -646,7 +648,7 @@ namespace BasicObjects.GeometricObjects
                 foreach (var edge2 in b.Edges)
                 {
                     var match = LineSegment3D.Intersection(edge, edge2);
-                    if (match is not null) { yield return match; yield break; }
+                    if (match is not null) {if(edge != edge2) yield return match; yield break; }
                 }
             }
 
@@ -681,13 +683,13 @@ namespace BasicObjects.GeometricObjects
 
             foreach (var edge in a.Edges)
             {
-                var splits = edge.LineSegmentSplit(b.Edges.ToArray()).ToArray();
+                var splits = edge.LineSegmentSplit(b.Edges.ToArray()).Where(s => s != edge).ToArray();
                 foreach (var split in splits.Where(s => b.PointIsOn(s.Center))) { output.Add(split); }
             }
 
             foreach (var edge in b.Edges)
             {
-                var splits = edge.LineSegmentSplit(a.Edges.ToArray()).ToArray();
+                var splits = edge.LineSegmentSplit(a.Edges.ToArray()).Where(s => s != edge).ToArray();
                 foreach (var split in splits.Where(s => a.PointIsOn(s.Center))) { output.Add(split); }
             }
 

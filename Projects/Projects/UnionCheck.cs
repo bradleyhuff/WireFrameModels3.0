@@ -28,7 +28,7 @@ namespace Projects.Projects
             //WavefrontFile.Export(import, "Wavefront/Import");
 
             var clusters = import.BuildFacePlateClusters(-0.005000).ToArray();
-            //var clusters = import.BuildFacePlateClusters(-0.000100).ToArray();
+            //var clusters = import.BuildFacePlateClusters(-0.002000).ToArray();
             clusters.PlateTrim();
 
 
@@ -73,8 +73,8 @@ namespace Projects.Projects
 
             //WavefrontFileGroups.ExportByFaces(output, "Wavefront/Faces");
 
-            //var erred = clusters.Select(c => c.OriginalClusterGrid).Combine();
-            //WavefrontFile.Export(erred, "Wavefront/Erred");
+            var erred = clusters.Select(c => c.OriginalClusterGrid).Combine();
+            WavefrontFile.Export(erred, "Wavefront/Erred");
 
             //WavefrontFileGroups.ExportBySurfaces(output, "Wavefront/Surface");
 
@@ -93,7 +93,7 @@ namespace Projects.Projects
             //}
 
             //var start = DateTime.Now;
-            var facePlates = clusters.SelectMany(c => c.Faces.Select(f => f.FacePlate));
+            //var facePlates = clusters.SelectMany(c => c.Faces.Select(f => f.FacePlate));
 
             //var disjointGroups = facePlates.DisjointGroups().ToArray();
 

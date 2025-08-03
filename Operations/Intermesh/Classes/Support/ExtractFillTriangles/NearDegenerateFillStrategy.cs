@@ -41,15 +41,26 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             //    //grid.AddTriangle(point81, point83, point84, "", 0);
             //    //grid.AddTriangle(point82, point83, point84, "", 0);
 
-            //    grid.AddTriangle(point81, point83, point82, "", 0);
+            //    //grid.AddTriangle(point81, point83, point82, "", 0);
 
-            //    grid.Apply(Transform.Translation(-new Vector3D(point81.X, point81.Y, point81.Z)));
-            //    grid.Apply(Transform.Scale(1000));
+            //    //grid.Apply(Transform.Translation(-new Vector3D(point81.X, point81.Y, point81.Z)));
+            //    //grid.Apply(Transform.Scale(1000));
 
-            //    WavefrontFile.Export(grid, "Wavefront/ProblemTriangles");
+            //    //WavefrontFile.Export(grid, "Wavefront/ProblemTriangles");
+            //    Console.WriteLine($"{triangle.Triangle}");
+            //    Console.WriteLine($"Point84: {p84.Point}");
+            //    Console.WriteLine($"Point84 is inside of triangle: {triangle.Triangle.PointIsIn(p84.Point)}");
+            //    Console.WriteLine($"Point84 is on triangle: {triangle.Triangle.PointIsOn(p84.Point)}");
+            //    Console.WriteLine($"Point84 is on segment: {new LineSegment3D(p81.Point, p83.Point).PointIsOnSegment(p84.Point)}");
+            //    Console.WriteLine($"Distance point81 and point84 {Point3D.Distance(p81.Point, p84.Point)}");
+            //    Console.WriteLine($"Distance point82 and point84 {Point3D.Distance(p82.Point, p84.Point)}");
+            //    Console.WriteLine($"Distance point83 and point84 {Point3D.Distance(p83.Point, p84.Point)}");
+            //    Console.WriteLine($"point84 is coplanar {triangle.Triangle.Plane.PointIsOnPlane(p84.Point)}");
 
-            //    Console.WriteLine($"Point84 is inside of triangle: {triangle.Triangle.PointIsIn(point84)}");
-            //    Console.WriteLine($"Point84 is on triangle: {triangle.Triangle.PointIsOn(point84)}");
+            //    foreach (var t in p84.Triangles)
+            //    {
+            //        Console.WriteLine($"Triangle Id {t.Id} P84 is in {t.Triangle.PointIsIn(p84.Point)} P84 is on {t.Triangle.PointIsOn(p84.Point)} P84 is vertex {t.Verticies.Any(v => v.Point == p84.Point)}");
+            //    }
             //}
 
 

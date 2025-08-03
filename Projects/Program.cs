@@ -13,6 +13,7 @@ var project = new IntermeshDevelopment();
 //var project = new VectorAngleCheck();
 //var project = new RoundedCube();
 //var project = new UnionCheck();
+//var project = new TriangleIntersectionTests();
 project.Run();
 
 Console.ReadLine();

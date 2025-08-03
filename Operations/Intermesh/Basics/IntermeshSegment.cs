@@ -13,7 +13,10 @@ namespace Operations.Intermesh.Basics
         {
             A = a;
             B = b;
-            Id = _id++;
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
             Key = new Combination2(a.Id, b.Id);
             _divisionPoints.Add(A);
             _divisionPoints.Add(B);

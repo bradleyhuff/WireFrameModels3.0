@@ -38,6 +38,8 @@ namespace Operations.Intermesh.Classes
 
                 var intersections = Triangle3D.LineSegmentIntersections(triangle.Triangle, gathering.Triangle).ToArray();
                 intersectionSet.Intersections = intersections;
+                intersectionSet.IntersectedTriangle = triangle.Triangle;
+                intersectionSet.GatheringTriangle = gathering.Triangle;
             }
             foreach (var gathering in triangle.Gathering)
             {

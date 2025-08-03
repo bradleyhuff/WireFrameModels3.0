@@ -21,5 +21,7 @@ namespace Operations.Intermesh.Basics
         public int Id { get; }
         public bool IsSet { get; set; }
         public LineSegment3D[] Intersections { get; set; }
+        public Triangle3D IntersectedTriangle { get; set; }
+        public Triangle3D GatheringTriangle { get; set; }
     }
 }

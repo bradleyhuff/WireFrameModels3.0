@@ -26,7 +26,14 @@ namespace Operations.Intermesh.Classes
                 if (fillStrategy is NearDegenerateFillStrategy) { nearDegenerateFillCount++; }
                 if (fillStrategy is ComplexFillStrategy) { complexFillCount++; }
 
+                Logging.ShowLog = false;
+                //if (triangle.Id == 3309)
+                //{
+                //    Logging.ShowLog = true;
+                //}
                 fillStrategy.GetFillTriangles(triangle);
+
+                
             }
 
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Extract fill triangles. Simple {simpleFillCount} NearDegenerate {nearDegenerateFillCount} Complex {complexFillCount} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");

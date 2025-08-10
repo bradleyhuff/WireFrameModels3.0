@@ -137,7 +137,6 @@ namespace Operations.Intermesh.Classes
 
             //Consolidate near collinear segments to division points
 
-
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 

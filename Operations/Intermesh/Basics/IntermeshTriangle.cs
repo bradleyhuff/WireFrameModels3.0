@@ -4,6 +4,7 @@ using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
+using FileExportImport;
 using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 
@@ -21,6 +22,17 @@ namespace Operations.Intermesh.Basics
             {
                 Id = _id++;
             }
+
+        //    if (Id == 2187)
+        //    {
+
+        //    }
+        //    if (Id == 2187 || Id == 3309)
+        //    {
+        //        //var grid = WireFrameMesh.Create();
+        //        //grid.AddTriangle(triangle.Triangle, "", 0);
+        //        //WavefrontFile.Export(grid, $"Wavefront/ProblemTriangle-{Id}");
+        //    }
         }
 
         public int Id { get; }
@@ -516,9 +528,9 @@ namespace Operations.Intermesh.Basics
         public IWireFrameMesh ExportWithMinimumHeightScale(Triangle3D element)
         {
             var grid = WireFrameMesh.Create();
-            var scaleA = Triangle.MinimumHeightScale(element.A, 0.10 / Triangle.AspectRatio);
-            var scaleB = Triangle.MinimumHeightScale(element.B, 0.10 / Triangle.AspectRatio);
-            var scaleC = Triangle.MinimumHeightScale(element.C, 0.10 / Triangle.AspectRatio);
+            var scaleA = Triangle.MinimumHeightScale(element.A, 0.25 / Triangle.AspectRatio);
+            var scaleB = Triangle.MinimumHeightScale(element.B, 0.25 / Triangle.AspectRatio);
+            var scaleC = Triangle.MinimumHeightScale(element.C, 0.25 / Triangle.AspectRatio);
             grid.AddTriangle(scaleA, Triangle.Normal, scaleB, Triangle.Normal, scaleC, Triangle.Normal, "", 0);
 
             return grid;

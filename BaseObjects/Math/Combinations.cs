@@ -93,6 +93,11 @@ namespace BasicObjects.MathExtensions
         {
             return ContainsKey(new Combination2(i, j));
         }
+
+        public bool Remove(int i, int j)
+        {
+            return Remove(new Combination2(i, j));
+        }
     }
 
     public struct Combination3
@@ -202,6 +207,11 @@ namespace BasicObjects.MathExtensions
         public bool ContainsKey(int i, int j, int k)
         {
             return ContainsKey(new Combination3(i, j, k));
+        }
+
+        public bool Remove(int i, int j, int k)
+        {
+            return Remove(new Combination3(i, j, k));
         }
     }
 
@@ -347,6 +357,11 @@ namespace BasicObjects.MathExtensions
         {
             return ContainsKey(new Combination4(i, j, k, l));
         }
+
+        public bool Remove(int i, int j, int k, int l)
+        {
+            return Remove(new Combination4(i, j, k, l));
+        }
     }
 
     public class Combination
@@ -452,6 +467,11 @@ namespace BasicObjects.MathExtensions
         public bool ContainsKey(int[] input)
         {
             return ContainsKey(new Combination(input));
+        }
+
+        public bool Remove(int[] input)
+        {
+            return Remove(new Combination(input));
         }
     }
 }

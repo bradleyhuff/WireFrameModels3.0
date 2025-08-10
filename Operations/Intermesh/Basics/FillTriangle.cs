@@ -44,6 +44,8 @@ namespace Operations.Intermesh.Basics
 
         public int Id { get; }
         public int FillId { get; }
+
+        public int[] NodeIndices { get; set; } = new int[0];
         public string Trace { get; }
         public int Tag { get; }
         public bool Disabled { get; set; }

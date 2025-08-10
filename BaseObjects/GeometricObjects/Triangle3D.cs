@@ -648,7 +648,7 @@ namespace BasicObjects.GeometricObjects
                 foreach (var edge2 in b.Edges)
                 {
                     var match = LineSegment3D.Intersection(edge, edge2);
-                    if (match is not null) {if(edge != edge2) yield return match; yield break; }
+                    if (match is not null) { if (edge != edge2) yield return match; yield break; }
                 }
             }
 
@@ -691,6 +691,16 @@ namespace BasicObjects.GeometricObjects
             {
                 var splits = edge.LineSegmentSplit(a.Edges.ToArray()).Where(s => s != edge).ToArray();
                 foreach (var split in splits.Where(s => a.PointIsOn(s.Center))) { output.Add(split); }
+            }
+
+            foreach (var edge in a.Edges.Where(e => !b.Edges.Any(ee => e == ee)))
+            {
+                if (b.PointIsOn(edge.Start) && b.PointIsOn(edge.End)) { output.Add(edge); }
+            }
+
+            foreach (var edge in b.Edges.Where(e => !a.Edges.Any(ee => e == ee)))
+            {
+                if (a.PointIsOn(edge.Start) && a.PointIsOn(edge.End)) { output.Add(edge); }
             }
 
             foreach (var element in output.DistinctBy(l => l)) { yield return element; }

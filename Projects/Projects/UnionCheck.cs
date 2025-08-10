@@ -27,8 +27,8 @@ namespace Projects.Projects
             //import.Apply(Transform.ShearXZ(1e-3, 1e-3));
             //WavefrontFile.Export(import, "Wavefront/Import");
 
-            var clusters = import.BuildFacePlateClusters(-0.005000).ToArray();
-            //var clusters = import.BuildFacePlateClusters(-0.002000).ToArray();
+            //var clusters = import.BuildFacePlateClusters(-0.005000).ToArray();
+            var clusters = import.BuildFacePlateClusters(-0.00125).ToArray();
             clusters.PlateTrim();
 
 

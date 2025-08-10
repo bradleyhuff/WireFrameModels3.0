@@ -22,7 +22,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             var divisions = triangle.NonSpurDivisions.Select(d => (d.A, d.B));
             var perimeterPoints = triangle.PerimeterPoints;
             var vertices = triangle.Verticies;
-
+            if (Logging.ShowLog) { Console.WriteLine($"Triangle\n{string.Join("\n", vertices.Select(v => v.Point))}"); }
 
             //if (triangle.Id == 9979)
             //{

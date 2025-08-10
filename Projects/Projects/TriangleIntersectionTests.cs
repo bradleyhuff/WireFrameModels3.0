@@ -70,8 +70,8 @@ namespace Projects.Projects
             Test(mt, mi, t, 4, rightTriangle, rightTriangle.Rotate(0, 0, 1, Math.PI / 6));
             Test(mt, mi, t, 3, rightTriangle, rightTriangle6.Rotate(0, 0, 1, Math.PI / 6));
             Test(mt, mi, t, 3, rightTriangle, rightTriangle6.Rotate(0, 0, 1, Math.PI / 6).Translate(0, 0.1, 0));
-            Test(mt, mi, t, 4, rightTriangle, rightTriangle6.Rotate(0, 0, 1, Math.PI / 6).Translate(-0.05, 0.1, 0));
-            Test(mt, mi, t, 3, rightTriangle, rightTriangle6.Rotate(0, 0, 1, Math.PI / 6).Translate(0.05, 0.1, 0));
+            Test(mt, mi, t, 3, rightTriangle, rightTriangle6.Rotate(0, 0, 1, Math.PI / 6).Translate(-0.05, 0.1, 0)); //22
+            Test(mt, mi, t, 4, rightTriangle, rightTriangle6.Rotate(0, 0, 1, Math.PI / 6).Translate(0.05, 0.1, 0)); //23
 
             //Edge on Edge
             Test(mt, mi, t, 0, rightTriangle.Rotate(0, 1, 0, 0.5), leftTriangle);
@@ -96,7 +96,7 @@ namespace Projects.Projects
             var aT = a.Transform(t);
             var bT = b.Transform(t);
 
-            var intersections = Triangle3D.LineSegmentIntersections(aT, bT);
+            var intersections = Triangle3D.LineSegmentIntersections(aT, bT).ToArray();
 
             grid.AddRangeTriangles([aT, bT], "", 0);
             intersectionGrid.AddRangeTriangles(intersections.Select(i => new Triangle3D(i.Start, i.Center, i.End)), "", 0);

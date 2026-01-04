@@ -1,7 +1,9 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
-using Collections.Buckets.Interfaces;
 using Collections.Buckets;
+using Collections.Buckets.Interfaces;
+using Collections.WireFrameMesh.Basics;
+using Operations.PositionRemovals.Interfaces;
 using Operations.Regions;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.PositionRemovals.Interfaces;
@@ -221,7 +223,9 @@ namespace Operations.PlanarFilling.Filling.Internals
                         if (!MergeWithAnEnclosedInternalLoopAndAdvance(leftIndex, index, rightIndex))
                         {
                             AdvanceAndPassOver(index);
-                            if (TrackingError(showError)) { return false; }
+                            if (TrackingError(leftIndex, index, rightIndex, showError)) { 
+                                return false; 
+                            }
                         }
                         continue;
                     }
@@ -236,7 +240,9 @@ namespace Operations.PlanarFilling.Filling.Internals
                 if (_passOver[index])
                 {
                     AdvanceAndPassOver(index);
-                    if (TrackingError(showError)) { return false; }
+                    if (TrackingError(leftIndex, index, rightIndex,showError)) { 
+                        return false; 
+                    }
                     continue;
                 }
 
@@ -245,7 +251,9 @@ namespace Operations.PlanarFilling.Filling.Internals
                     if (!MergeWithIntersectingInternalLoop(leftIndex, index, rightIndex))
                     {
                         AdvanceAndPassOver(index);
-                        if (TrackingError(showError)) { return false; }
+                        if (TrackingError(leftIndex, index, rightIndex,showError)) { 
+                            return false; 
+                        }
                     }
                     continue;
                 }
@@ -255,7 +263,9 @@ namespace Operations.PlanarFilling.Filling.Internals
                     if (!MergeWithAnEnclosedInternalLoopAndAdvance(leftIndex, index, rightIndex))
                     {
                         AdvanceAndPassOver(index);
-                        if (TrackingError(showError)) { return false; }
+                        if (TrackingError(leftIndex, index, rightIndex,showError)) { 
+                            return false; 
+                        }
                     }
                     continue;
                 }
@@ -266,7 +276,7 @@ namespace Operations.PlanarFilling.Filling.Internals
                 }
 
                 AdvanceAndPassOver(index);
-                if (TrackingError(showError)) { return false; }
+                if (TrackingError(leftIndex, index, rightIndex,showError)) { return false; }
             }
         }
 
@@ -302,13 +312,19 @@ namespace Operations.PlanarFilling.Filling.Internals
             _passOverCount = 0;
         }
 
-        internal bool TrackingError(bool showMessage = false)
+        internal bool TrackingError(int leftIndex, int index, int rightIndex, bool showMessage, bool fillOverride = true)
         {
             if (_passOverCount > _startCount)
             {
                 if (showMessage)
                 {
-                    InternalLoop.FillLoopError++;
+                    if (fillOverride)
+                    {
+                        Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}  Fill override applied.");
+                        AdvanceAndFill(leftIndex, index, rightIndex);
+                        return false;
+                    }
+
                     throw new Exception($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}: [[{_tracker.Count}]]\n {String.Join(", ", _tracker.Tracking.Select((t, i) => $"{t}:{ProjectedLoopPoints[t]}"))}");
                 }
 

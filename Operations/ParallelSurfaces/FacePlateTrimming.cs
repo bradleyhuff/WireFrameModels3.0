@@ -7,18 +7,20 @@ using Console = BaseObjects.Console;
 using Operations.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Operations.Intermesh.Classes.Support.ExtractFillTriangles;
+using Collections.WireFrameMesh.Interfaces;
 
 namespace Operations.ParallelSurfaces
 {
     public static class FacePlateTrimming
     {
-        public static void PlateTrim(this IEnumerable<ClusterSet> clusters)
+        public static void PlateTrim(this IEnumerable<ClusterSet> clusters, Func<IWireFrameMesh, IWireFrameMesh> o)
         {
             DateTime start = DateTime.Now;
             Mode.ThreadedRun = true;
             ConsoleLog.Push("Cluster plate trim");
 
             var clusterState = new ClusterState();
+            clusterState.Operation = o;
             var clusterIterator = new Iterator<ClusterSet>(clusters.ToArray());
             clusterIterator.Run<ClusterState, ClusterThread>(ClusterAction, clusterState, 1, 1);
 
@@ -37,14 +39,29 @@ namespace Operations.ParallelSurfaces
             {
                 cluster.TrimmedClusterGrid = WireFrameMesh.Create();
                 GridIntermesh.ClusterId = cluster.Id;
-                var difference = cluster.Cluster.Create().Difference(disjointSets.First());
-
+                var grid = cluster.Cluster.Create();
+                grid = state.Operation(grid);
                 int index = 0;
-                foreach (var set in disjointSets.Skip(1))
+                //WavefrontFile.Export(disjointSets.First(), $"Wavefront/Sets-{index}");
+                index++;
+                var difference = grid.Difference(disjointSets.First());
+
+                foreach (var set in disjointSets.Skip(1)/*.Take(4)*/)
                 {
-                    difference = difference.Difference(set);
                     index++;
+                    difference = difference.Difference(set);
                 }
+
+                //var disjointSet = disjointSets.Skip(4).First();
+                //WavefrontFile.Export(disjointSet, $"Wavefront/Sets-{4}");
+
+                //foreach (var set in disjointSets.Skip(1).Take(1))
+                //{
+                //    difference = difference.Sum(set);
+                //    difference.NearCollinearTrianglePairs();
+                //    //index++;
+                //}
+
                 cluster.TrimmedClusterGrid = difference;
                 if(!cluster.TrimmedClusterGrid.Triangles.Any()) cluster.OriginalClusterGrid = cluster.Cluster.Create();
 
@@ -62,6 +79,7 @@ namespace Operations.ParallelSurfaces
 
         private class ClusterState : BaseState<ClusterThread>
         {
+            public Func<IWireFrameMesh, IWireFrameMesh> Operation;
         }
     }
 }

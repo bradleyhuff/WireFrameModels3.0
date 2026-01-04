@@ -184,38 +184,6 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
-        private BasisPlane _basisPlane = null;
-
-        public Point3D MinimumHeightScale(Point3D p, double scale)
-        {
-            if (_basisPlane is null)
-            {
-                var loosePoint = Vertices.Single(v => v != MaxEdge.Start && v != MaxEdge.End);
-                _basisPlane = new BasisPlane(MaxEdge.Start, MaxEdge.End, loosePoint);
-            }
-
-            var surface = _basisPlane.MapToSurfaceCoordinates(p);
-
-            surface = new Point2D(surface.X, surface.Y * scale);
-
-            return _basisPlane.MapToSpaceCoordinates(surface);
-        }
-
-        public Point3D MinimumHeightScale(Point3D p)
-        {
-            return MinimumHeightScale(p, 1 / AspectRatio);
-        }
-
-        public Triangle3D MinimumHeightScaleImage(double scale)
-        {
-            return new Triangle3D(MinimumHeightScale(A, scale), MinimumHeightScale(B, scale), MinimumHeightScale(C, scale));
-        }
-
-        public Triangle3D MinimumHeightScaleImage()
-        {
-            return MinimumHeightScaleImage(1 / AspectRatio);
-        }
-
         public override bool Equals(object? obj)
         {
             if (obj == null || obj is not Triangle3D) { return false; }
@@ -308,6 +276,37 @@ namespace BasicObjects.GeometricObjects
             {
                 return 0.5 * LengthAB * HeightCtoAB;
             }
+        }
+        public bool AoverhangsBC
+        {
+            get {
+                var projection = EdgeBC.LineExtension.Projection(A); 
+                return !Double.IsEqual(Point3D.Distance(B, projection) + Point3D.Distance(C, projection) - LengthBC, 0);
+            }
+        }
+        public bool BoverhangsCA
+        {
+            get {
+                var projection = EdgeCA.LineExtension.Projection(B);
+                return !Double.IsEqual(Point3D.Distance(C, projection) + Point3D.Distance(A, projection) - LengthCA, 0); 
+            }
+        }
+        public bool CoverhangsAB
+        {
+            get {
+                var projection = EdgeAB.LineExtension.Projection(C);
+                return !Double.IsEqual(Point3D.Distance(A, projection) + Point3D.Distance(B, projection) - LengthAB, 0); 
+            }
+        }
+
+        public enum Matching { None, AB, BC, CA}
+
+        public Matching GetEdgeMatch(double length)
+        {
+            if (Double.Equals(length, LengthAB)) { return Matching.AB; }
+            if (Double.Equals(length, LengthBC)) { return Matching.BC; }
+            if (Double.Equals(length, LengthCA)) { return Matching.CA; }
+            return Matching.None;
         }
 
         private double _heightAtoBC = 0;
@@ -511,17 +510,27 @@ namespace BasicObjects.GeometricObjects
 
         public static IEnumerable<Point3D> CommonVertices(Triangle3D a, Triangle3D b)
         {
-            if (Point3D.AreEqual(a.A, b.A)) { yield return a.A; }
-            if (Point3D.AreEqual(a.A, b.B)) { yield return a.B; }
-            if (Point3D.AreEqual(a.A, b.C)) { yield return a.C; }
+            if (Point3D.AreEqual(a.A, b.A)) { yield return b.A; }
+            if (Point3D.AreEqual(a.A, b.B)) { yield return b.B; }
+            if (Point3D.AreEqual(a.A, b.C)) { yield return b.C; }
 
-            if (Point3D.AreEqual(a.B, b.A)) { yield return a.A; }
-            if (Point3D.AreEqual(a.B, b.B)) { yield return a.B; }
-            if (Point3D.AreEqual(a.B, b.C)) { yield return a.C; }
+            if (Point3D.AreEqual(a.B, b.A)) { yield return b.A; }
+            if (Point3D.AreEqual(a.B, b.B)) { yield return b.B; }
+            if (Point3D.AreEqual(a.B, b.C)) { yield return b.C; }
 
-            if (Point3D.AreEqual(a.C, b.A)) { yield return a.A; }
-            if (Point3D.AreEqual(a.C, b.B)) { yield return a.B; }
-            if (Point3D.AreEqual(a.C, b.C)) { yield return a.C; }
+            if (Point3D.AreEqual(a.C, b.A)) { yield return b.A; }
+            if (Point3D.AreEqual(a.C, b.B)) { yield return b.B; }
+            if (Point3D.AreEqual(a.C, b.C)) { yield return b.C; }
+        }
+
+        public static double LengthOfCommonSide(Triangle3D a, Triangle3D b)
+        {
+            var commons = Triangle3D.CommonVertices(a, b).ToArray();
+            if (commons.Length == 2)
+            {
+                return Point3D.Distance(commons[0], commons[1]);
+            }
+            return System.Double.NaN;
         }
 
         private Rectangle3D _box = null;
@@ -567,6 +576,11 @@ namespace BasicObjects.GeometricObjects
             return PointIsOnPerimeter(point) || GetBarycentricCoordinate(point).IsOnUnitInterval();
         }
 
+        public bool PointIsContainedOn(Point3D point, double zone)
+        {
+            return PointIsOnPerimeter(point, zone) || GetBarycentricCoordinate(point).IsOnUnitInterval(zone);
+        }
+
         public bool PointIsContainedIn(Point3D point)
         {
             return GetBarycentricCoordinate(point).IsInUnitInterval();
@@ -577,6 +591,13 @@ namespace BasicObjects.GeometricObjects
             return (EdgeAB.LineExtension.PointIsOnLine(point) && EdgeAB.PointIsAtOrBetweenEndpoints(point)) ||
                 (EdgeBC.LineExtension.PointIsOnLine(point) && EdgeBC.PointIsAtOrBetweenEndpoints(point)) ||
                 (EdgeCA.LineExtension.PointIsOnLine(point) && EdgeCA.PointIsAtOrBetweenEndpoints(point));
+        }
+
+        public bool PointIsOnPerimeter(Point3D point, double zone)
+        {
+            return (EdgeAB.LineExtension.PointIsOnLine(point, zone) && EdgeAB.PointIsAtOrBetweenEndpoints(point, zone)) ||
+                (EdgeBC.LineExtension.PointIsOnLine(point, zone) && EdgeBC.PointIsAtOrBetweenEndpoints(point, zone)) ||
+                (EdgeCA.LineExtension.PointIsOnLine(point, zone) && EdgeCA.PointIsAtOrBetweenEndpoints(point, zone));
         }
 
         public bool IsOnPlane(Plane plane)

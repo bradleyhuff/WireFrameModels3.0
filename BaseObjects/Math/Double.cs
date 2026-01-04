@@ -3,9 +3,9 @@ namespace BasicObjects.Math
 {
     public static class Double
     {
-        public const double ProximityError = 1.0e-10;
-        public const double DifferenceError = 1.0e-14;
-        public const double RadianDifferenceError = 1e-14;
+        public const double ProximityError = 1.0e-12;
+        public const double DifferenceError = 1.0e-15;
+        public const double RadianDifferenceError = 1e-15;
 
         public static bool IsEqual(double x, double y, double epsilon = DifferenceError)
         {
@@ -71,6 +71,11 @@ namespace BasicObjects.Math
         public static bool IsOnInterval(double a, double x, double b)
         {
             return a - DifferenceError < x && x < b + DifferenceError;
+        }
+
+        public static bool IsOnInterval(double a, double x, double b, double zone)
+        {
+            return a - zone < x && x < b + zone;
         }
 
         public static bool IsOutsideInterval(double a, double x, double b)

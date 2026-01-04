@@ -436,6 +436,45 @@ namespace BaseObjects.Transformations
         {
             return Translation(vector.X, vector.Y, vector.Z);
         }
+
+        public static Transform TranslateToPoint(Point3D point)
+        {
+            return Translation(Point3D.Zero - point);
+        }
+
+        public static Transform TranslateToPointAndScale(Point3D point, double scale)
+        {
+            return Transform.Scale(scale) * Transform.TranslateToPoint(point);
+        }
+
+        public static Transform DirectionalScaling(Point3D center, Vector3D scaleDirection, double scale)
+        {
+            scaleDirection = scaleDirection.Direction;
+            var basisAxis = GetBasisAxis(scaleDirection);
+            var rotationalAxis = Vector3D.Cross(basisAxis, scaleDirection);
+            var rotationAngle = Vector3D.SignedAngle(rotationalAxis, basisAxis, scaleDirection);
+            var basisX = basisAxis == Vector3D.BasisX;
+            var basisY = basisAxis == Vector3D.BasisY;
+            var basisZ = basisAxis == Vector3D.BasisZ;
+
+            return TranslateToPoint(-1 * center) * 
+                Rotation(rotationalAxis, -rotationAngle) * 
+                Scale(basisX ? scale : 1, basisY ? scale : 1, basisZ ? scale : 1) * 
+                Rotation(rotationalAxis, rotationAngle) * 
+                TranslateToPoint(center);
+        }
+
+        private static Vector3D GetBasisAxis(Vector3D scaleDirection)
+        {
+            var dotX = Math.Abs(Vector3D.Dot(scaleDirection, Vector3D.BasisX));
+            var dotY = Math.Abs(Vector3D.Dot(scaleDirection, Vector3D.BasisY));
+            var dotZ = Math.Abs(Vector3D.Dot(scaleDirection, Vector3D.BasisZ));
+
+            if (dotX < dotY && dotX < dotZ) { return Vector3D.BasisX; }
+            if (dotY < dotZ && dotY < dotX) { return Vector3D.BasisY; }
+            return Vector3D.BasisZ;
+        }
+
         public static Transform Translation(double x, double y, double z)
         {
             Transform t = new Transform();

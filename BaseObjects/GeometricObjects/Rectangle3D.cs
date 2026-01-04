@@ -1,4 +1,5 @@
-﻿using BaseObjects.Transformations.Interfaces;
+﻿using BaseObjects.Transformations;
+using BaseObjects.Transformations.Interfaces;
 using E = BasicObjects.Math;
 
 namespace BasicObjects.GeometricObjects
@@ -25,7 +26,7 @@ namespace BasicObjects.GeometricObjects
         public Rectangle3D(LineSegment3D segment, double margin) : this(segment.Margins(margin))
         { }
 
-        public Rectangle3D(LineSegment3D segment) : this(segment.Start, segment.End )
+        public Rectangle3D(LineSegment3D segment) : this(segment.Start, segment.End)
         { }
 
         public Rectangle3D(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
@@ -71,6 +72,29 @@ namespace BasicObjects.GeometricObjects
                 case 7: return MaxPoint;
             }
             return null;
+        }
+
+        public IEnumerable<LineSegment3D> LineSegments
+        {
+            get
+            {
+                yield return new LineSegment3D(MinPoint, new Point3D(MinPoint.X, MinPoint.Y, MaxPoint.Z));
+                yield return new LineSegment3D(MinPoint, new Point3D(MinPoint.X, MaxPoint.Y, MinPoint.Z));
+                yield return new LineSegment3D(MinPoint, new Point3D(MaxPoint.X, MinPoint.Y, MinPoint.Z));
+
+                yield return new LineSegment3D(MaxPoint, new Point3D(MaxPoint.X, MaxPoint.Y, MinPoint.Z));
+                yield return new LineSegment3D(MaxPoint, new Point3D(MaxPoint.X, MinPoint.Y, MaxPoint.Z));
+                yield return new LineSegment3D(MaxPoint, new Point3D(MinPoint.X, MaxPoint.Y, MaxPoint.Z));
+
+                yield return new LineSegment3D(new Point3D(MaxPoint.X, MinPoint.Y, MinPoint.Z), new Point3D(MaxPoint.X, MinPoint.Y, MaxPoint.Z));
+                yield return new LineSegment3D(new Point3D(MaxPoint.X, MinPoint.Y, MinPoint.Z), new Point3D(MaxPoint.X, MaxPoint.Y, MinPoint.Z));
+
+                yield return new LineSegment3D(new Point3D(MinPoint.X, MaxPoint.Y, MinPoint.Z), new Point3D(MinPoint.X, MaxPoint.Y, MaxPoint.Z));
+                yield return new LineSegment3D(new Point3D(MinPoint.X, MaxPoint.Y, MinPoint.Z), new Point3D(MaxPoint.X, MaxPoint.Y, MinPoint.Z));
+
+                yield return new LineSegment3D(new Point3D(MinPoint.X, MinPoint.Y, MaxPoint.Z), new Point3D(MinPoint.X, MaxPoint.Y, MaxPoint.Z));
+                yield return new LineSegment3D(new Point3D(MinPoint.X, MinPoint.Y, MaxPoint.Z), new Point3D(MaxPoint.X, MinPoint.Y, MaxPoint.Z));
+            }
         }
 
 
@@ -147,6 +171,90 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        private Plane _planeXYTop = null;
+
+        public Plane PlaneXYTop
+        {
+            get
+            {
+                if (_planeXYTop is null)
+                {
+                    _planeXYTop = new Plane(new Point3D(CenterPoint.X, CenterPoint.Y, MaxPoint.Z), Vector3D.BasisZ);
+                }
+                return _planeXYTop;
+            }
+        }
+
+        private Plane _planeXYBottom = null;
+
+        public Plane PlaneXYBottom
+        {
+            get
+            {
+                if (_planeXYBottom is null)
+                {
+                    _planeXYBottom = new Plane(new Point3D(CenterPoint.X, CenterPoint.Y, MinPoint.Z), -Vector3D.BasisZ);
+                }
+                return _planeXYBottom;
+            }
+        }
+
+        private Plane _planeYZRight = null;
+
+        public Plane PlaneYZRight
+        {
+            get
+            {
+                if (_planeYZRight is null)
+                {
+                    _planeYZRight = new Plane(new Point3D(MaxPoint.X, CenterPoint.Y, CenterPoint.Z), Vector3D.BasisX);
+                }
+                return _planeYZRight;
+            }
+        }
+
+        private Plane _planeYZLeft = null;
+
+        public Plane PlaneYZLeft
+        {
+            get
+            {
+                if (_planeYZLeft is null)
+                {
+                    _planeYZLeft = new Plane(new Point3D(MinPoint.X, CenterPoint.Y, CenterPoint.Z), -Vector3D.BasisX);
+                }
+                return _planeYZLeft;
+            }
+        }
+
+        private Plane _planeXZFront = null;
+
+        public Plane PlaneXZFront
+        {
+            get
+            {
+                if (_planeXZFront is null)
+                {
+                    _planeXZFront = new Plane(new Point3D(CenterPoint.X, MinPoint.Y, CenterPoint.Z), -Vector3D.BasisY);
+                }
+                return _planeXZFront;
+            }
+        }
+
+        private Plane _planeXZBack = null;
+
+        public Plane PlaneXZBack
+        {
+            get
+            {
+                if (_planeXZBack is null)
+                {
+                    _planeXZBack = new Plane(new Point3D(CenterPoint.X, MaxPoint.Y, CenterPoint.Z), Vector3D.BasisY);
+                }
+                return _planeXZBack;
+            }
+        }
+
         public bool Contains(Point3D point)
         {
             return MinPoint.X < point.X && point.X < MaxPoint.X &&
@@ -160,6 +268,87 @@ namespace BasicObjects.GeometricObjects
             return MinPoint.X < box.MinPoint.X && box.MaxPoint.X < MaxPoint.X &&
                 MinPoint.Y < box.MinPoint.Y && box.MaxPoint.Y < MaxPoint.Y &&
                 MinPoint.Z < box.MinPoint.Z && box.MaxPoint.Z < MaxPoint.Z;
+        }
+
+        public IEnumerable<LineSegment3D> Clip(IEnumerable<LineSegment3D> input)
+        {
+            foreach (LineSegment3D segment in input)
+            {
+                var clipped = Clip(segment);
+                if (clipped is null) { continue; }
+                yield return clipped;
+            }
+        }
+
+        public IEnumerable<LineSegment3D> Clip(Triangle3D triangle)
+        {
+            return Clip(triangle.Edges);
+        }
+
+        public LineSegment3D Clip(LineSegment3D segment)
+        {
+            var clipped = ClipXYTop(segment);
+            if (clipped is null) { return null; }
+            clipped = ClipXYBottom(clipped);
+            if (clipped is null) { return null; }
+
+            clipped = ClipYZRight(clipped);
+            if (clipped is null) { return null; }
+            clipped = ClipYZLeft(clipped);
+            if (clipped is null) { return null; }
+
+            clipped = ClipXZBack(clipped);
+            if (clipped is null) { return null; }
+            clipped = ClipXZFront(clipped);
+            return clipped;
+        }
+
+        private LineSegment3D ClipXYTop(LineSegment3D segment)
+        {
+            if (segment.Start.Z < MaxPoint.Z && segment.End.Z < MaxPoint.Z) { return segment; }
+            if (segment.Start.Z >= MaxPoint.Z && segment.End.Z < MaxPoint.Z) { return new LineSegment3D(PlaneXYTop.Intersection(segment), segment.End); }
+            if (segment.Start.Z < MaxPoint.Z && segment.End.Z >= MaxPoint.Z) { return new LineSegment3D(segment.Start, PlaneXYTop.Intersection(segment)); }
+            return null;
+        }
+
+        private LineSegment3D ClipXYBottom(LineSegment3D segment)
+        {
+            if (segment.Start.Z > MinPoint.Z && segment.End.Z > MinPoint.Z) { return segment; }
+            if (segment.Start.Z <= MinPoint.Z && segment.End.Z > MinPoint.Z) { return new LineSegment3D(PlaneXYBottom.Intersection(segment), segment.End); }
+            if (segment.Start.Z > MinPoint.Z && segment.End.Z <= MinPoint.Z) { return new LineSegment3D(segment.Start, PlaneXYBottom.Intersection(segment)); }
+            return null;
+        }
+
+        private LineSegment3D ClipYZLeft(LineSegment3D segment)
+        {
+            if (segment.Start.X > MinPoint.X && segment.End.X > MinPoint.X) { return segment; }
+            if (segment.Start.X <= MinPoint.X && segment.End.X > MinPoint.X) { return new LineSegment3D(PlaneYZLeft.Intersection(segment), segment.End); }
+            if (segment.Start.X > MinPoint.X && segment.End.X <= MinPoint.X) { return new LineSegment3D(segment.Start, PlaneYZLeft.Intersection(segment)); }
+            return null;
+        }
+
+        private LineSegment3D ClipYZRight(LineSegment3D segment)
+        {
+            if (segment.Start.X < MaxPoint.X && segment.End.X < MaxPoint.X) { return segment; }
+            if (segment.Start.X >= MaxPoint.X && segment.End.X < MaxPoint.X) { return new LineSegment3D(PlaneYZRight.Intersection(segment), segment.End); }
+            if (segment.Start.X < MaxPoint.X && segment.End.X >= MaxPoint.X) { return new LineSegment3D(segment.Start, PlaneYZRight.Intersection(segment)); }
+            return null;
+        }
+
+        private LineSegment3D ClipXZBack(LineSegment3D segment)
+        {
+            if (segment.Start.Y < MaxPoint.Y && segment.End.Y < MaxPoint.Y) { return segment; }
+            if (segment.Start.Y >= MaxPoint.Y && segment.End.Y < MaxPoint.Y) { return new LineSegment3D(PlaneXZBack.Intersection(segment), segment.End); }
+            if (segment.Start.Y < MaxPoint.Y && segment.End.Y >= MaxPoint.Y) { return new LineSegment3D(segment.Start, PlaneXZBack.Intersection(segment)); }
+            return null;
+        }
+
+        private LineSegment3D ClipXZFront(LineSegment3D segment)
+        {
+            if (segment.Start.Y > MinPoint.Y && segment.End.Y > MinPoint.Y) { return segment; }
+            if (segment.Start.Y <= MinPoint.Y && segment.End.Y > MinPoint.Y) {return new LineSegment3D(PlaneXZFront.Intersection(segment), segment.End); }
+            if (segment.Start.Y > MinPoint.Y && segment.End.Y <= MinPoint.Y) { return new LineSegment3D(segment.Start, PlaneXZFront.Intersection(segment)); }
+            return null;
         }
 
         public static bool IsDisjoint(Rectangle3D a, Rectangle3D b)

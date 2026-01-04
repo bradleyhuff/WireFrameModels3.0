@@ -240,7 +240,7 @@ namespace BasicObjects.GeometricObjects
         //    yield break;
         //}
 
-        public static LineSegment3D Intersection(LineSegment3D a, LineSegment3D b)
+        public static LineSegment3D Intersection(LineSegment3D a, LineSegment3D b, double error = E.Double.ProximityError)
         {
             if (a is null || b is null) { return null; }
             if (a.IsDegenerate && b.IsDegenerate) { return null; }
@@ -258,18 +258,18 @@ namespace BasicObjects.GeometricObjects
 
             if (a.Length > b.Length)
             {
-                return LineSegmentIntersectionMatch(a, b);
+                return LineSegmentIntersectionMatch(a, b, error);
             }
             else
             {
-                return LineSegmentIntersectionMatch(b, a);
+                return LineSegmentIntersectionMatch(b, a, error);
             }
         }
 
-        private static LineSegment3D LineSegmentIntersectionMatch(LineSegment3D a, LineSegment3D b)
+        private static LineSegment3D LineSegmentIntersectionMatch(LineSegment3D a, LineSegment3D b, double error = E.Double.ProximityError)
         {
             var line = a.LineExtension;
-            if (!line.SegmentIsOnLine(b)) { return null; }
+            if (!line.SegmentIsOnLine(b, error)) { return null; }
 
             double aStartbStart = Point3D.Distance(a.Start, b.Start);
             double aStartbEnd = Point3D.Distance(a.Start, b.End);
@@ -287,7 +287,7 @@ namespace BasicObjects.GeometricObjects
             return null;
         }
 
-        public static Point3D PointIntersection(LineSegment3D a, LineSegment3D b)
+        public static Point3D PointIntersection(LineSegment3D a, LineSegment3D b, double error = E.Double.ProximityError)
         {
             if (a.IsDegenerate && b.IsDegenerate) { return null; }
 
@@ -307,22 +307,22 @@ namespace BasicObjects.GeometricObjects
 
             if (a.Length > b.Length)
             {
-                return PointIntersectionMatch(a, b);
+                return PointIntersectionMatch(a, b, error);
             }
             else
             {
-                return PointIntersectionMatch(b, a);
+                return PointIntersectionMatch(b, a, error);
             }
         }
 
-        private static Point3D PointIntersectionMatch(LineSegment3D a, LineSegment3D b)
+        private static Point3D PointIntersectionMatch(LineSegment3D a, LineSegment3D b, double error = E.Double.ProximityError)
         {
             var line = a.LineExtension;
-            if (line.SegmentIsOnLine(b)) { return null; }
+            if (line.SegmentIsOnLine(b, error)) { return null; }
 
             var point = Line3D.MidPointIntersection(a.Start, a.Vector, b.Start, b.Vector, out double gap);
-            if (gap > E.Double.ProximityError) { return null; }
-            return a.PointIsAtOrBetweenEndpoints(point) && b.PointIsAtOrBetweenEndpoints(point) ? point : null;
+            if (gap > error) { return null; }
+            return a.PointIsAtOrBetweenEndpoints(point, error) && b.PointIsAtOrBetweenEndpoints(point, error) ? point : null;
         }
 
         public static bool AreCollinear(LineSegment3D a, LineSegment3D b)
@@ -410,6 +410,20 @@ namespace BasicObjects.GeometricObjects
         {
             if (!LineExtension.PointIsOnLine(point, error)) { return false; }
             return PointIsAtOrBetweenEndpoints(point, error);
+        }
+
+        public Point3D? Projection(Point3D point, double error = E.Double.DifferenceError)
+        {
+            var projection = LineExtension.Projection(point);
+
+            return PointIsAtOrBetweenEndpoints(projection, error) ? projection : null;
+        }
+
+        public Point3D? ProjectionWithIn(Point3D point, double error = E.Double.DifferenceError)
+        {
+            var projection = LineExtension.Projection(point);
+
+            return PointIsBetweenEndpoints(projection, error) ? projection : null;
         }
     }
 }

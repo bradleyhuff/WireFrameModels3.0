@@ -64,5 +64,17 @@ namespace BaseObjects.Transformations
         {
             return shape.Constructor(shape.CardinalPoints.Select(transformation.Apply).ToArray(), shape.CardinalVectors.Select(transformation.Apply).ToArray());
         }
+
+        public static T TranslateToPointAndScale<T>(this IShape3D<T> shape, Point3D point, double scale)
+        {
+            var t = Transformations.Transform.TranslateToPointAndScale(point, scale);
+            return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
+        }
+
+        public static T DirectionalScaling<T>(this IShape3D<T> shape, Point3D center, Vector3D scaleDirection, double scale)
+        {
+            var t = Transformations.Transform.DirectionalScaling(center, scaleDirection, scale);
+            return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
+        }
     }
 }

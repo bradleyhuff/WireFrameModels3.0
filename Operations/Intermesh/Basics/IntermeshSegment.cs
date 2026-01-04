@@ -37,7 +37,12 @@ namespace Operations.Intermesh.Basics
             get { return _divisionPoints; }
         }
 
-        public bool HasDivisionPoints { get { return InternalDivisions > 0; } }
+        public IEnumerable<IntermeshPoint> Points
+        {
+            get { yield return A; yield return B; }
+        }
+
+        public bool HasInternalDivisionPoints { get { return InternalDivisions > 0; } }
         public int InternalDivisions { get { return _divisionPoints.Count() - 2; } }
 
         public bool Add(IntermeshPoint division)
@@ -77,13 +82,22 @@ namespace Operations.Intermesh.Basics
             return true;
         }
 
-        public IEnumerable<IntermeshDivision> BuildDivisions()
+        public IEnumerable<IntermeshDivision> BuildDivisions(Combination2Dictionary<IntermeshDivision> table)
         {
             var orderedPoints = _divisionPoints.OrderBy(p => Point3D.Distance(p.Point, A.Point)).ToArray();
 
             for (int i = 0; i < orderedPoints.Length - 1; i++)
             {
-                yield return new IntermeshDivision(orderedPoints[i], orderedPoints[i + 1]);
+                var pointA = orderedPoints[i];
+                var pointB = orderedPoints[i + 1];
+                var key = new Combination2(pointA.Id, pointB.Id);
+                if (!table.ContainsKey(key)) { table[key] = new IntermeshDivision(pointA, pointB, this); }
+                var division = table[key];
+
+                orderedPoints[i].Add(division);
+                orderedPoints[i + 1].Add(division);
+
+                yield return division;
             }
         }
     }

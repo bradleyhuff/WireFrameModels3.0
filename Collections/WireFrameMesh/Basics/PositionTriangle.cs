@@ -145,8 +145,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                return A.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
-                    Intersect(B.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
+                return A.PositionObject.Triangles.Intersect(B.PositionObject.Triangles).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -154,8 +153,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                return B.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
-                    Intersect(C.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
+                return B.PositionObject.Triangles.Intersect(C.PositionObject.Triangles).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -163,8 +161,7 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                return C.PositionObject.PositionNormals.SelectMany(p => p.Triangles).
-                    Intersect(A.PositionObject.PositionNormals.SelectMany(p => p.Triangles)).Where(t => t.Id != Id).ToList();
+                return C.PositionObject.Triangles.Intersect(A.PositionObject.Triangles).Where(t => t.Id != Id).ToList();
             }
         }
 
@@ -188,9 +185,21 @@ namespace Collections.WireFrameMesh.Basics
             }
         }
 
+        public IEnumerable<PositionTriangle> SingleAdjacentsWithCondition(Func<PositionTriangle, PositionTriangle, bool> condition)
+        {
+            if (ABadjacents.Count(a => condition(this, a)) == 1) { yield return ABadjacents[0]; }
+            if (BCadjacents.Count(a => condition(this, a)) == 1) { yield return BCadjacents[0]; }
+            if (CAadjacents.Count(a => condition(this, a)) == 1) { yield return CAadjacents[0]; }
+        }
+
         public int AdjacentAnyCount
         {
             get { return (ABadjacents.Any() ? 1 : 0) + (BCadjacents.Any() ? 1 : 0) + (CAadjacents.Any() ? 1 : 0); }
+        }
+
+        public int AdjacentAnyWithCondition(Func<PositionTriangle, PositionTriangle, bool> condition)
+        {
+            return (ABadjacents.Any(a => condition(this, a)) ? 1 : 0) + (BCadjacents.Any(a => condition(this, a)) ? 1 : 0) + (CAadjacents.Any(a => condition(this, a)) ? 1 : 0);
         }
 
         public IReadOnlyList<PositionTriangle> Averticies
@@ -299,6 +308,11 @@ namespace Collections.WireFrameMesh.Basics
                 yield return B.Position;
                 yield return C.Position;
             }
+        }
+
+        public Tuple<int, int, int> PositionCardinalities
+        {
+            get { return new Tuple<int, int, int>(A.PositionObject.Cardinality, B.PositionObject.Cardinality, C.PositionObject.Cardinality); }
         }
 
         public void ExportWithCenterNormal(IWireFrameMesh mesh)

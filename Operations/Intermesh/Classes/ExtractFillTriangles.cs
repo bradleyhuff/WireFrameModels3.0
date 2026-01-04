@@ -27,10 +27,6 @@ namespace Operations.Intermesh.Classes
                 if (fillStrategy is ComplexFillStrategy) { complexFillCount++; }
 
                 Logging.ShowLog = false;
-                //if (triangle.Id == 3309)
-                //{
-                //    Logging.ShowLog = true;
-                //}
                 fillStrategy.GetFillTriangles(triangle);
 
                 

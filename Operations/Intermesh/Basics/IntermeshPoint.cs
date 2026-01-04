@@ -8,10 +8,9 @@ namespace Operations.Intermesh.Basics
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public IntermeshPoint(Point3D point, bool isVertex) 
+        public IntermeshPoint(Point3D point) 
         { 
             Point = point;
-            IsVertex = isVertex;
             lock (lockObject)
             {
                 Id = _id++;
@@ -19,7 +18,12 @@ namespace Operations.Intermesh.Basics
         }
 
         public int Id { get; }
-        public bool IsVertex { get; }
+        public bool IsVertex { 
+            get
+            {
+                return VertexTriangles.Any();
+            }
+        }
         public Point3D Point { get; }
 
         private Rectangle3D _box;
@@ -41,8 +45,9 @@ namespace Operations.Intermesh.Basics
         }
 
         private List<IntermeshSegment> _segments { get; } = new List<IntermeshSegment>();
+        private List<IntermeshDivision> _divisions { get; } = new List<IntermeshDivision>();
         private List<IntermeshTriangle> _triangles = new List<IntermeshTriangle>();
-        public IReadOnlyList<IntermeshTriangle> Triangles
+        public IReadOnlyList<IntermeshTriangle> VertexTriangles
         {
             get { return _triangles; }
         }
@@ -57,10 +62,22 @@ namespace Operations.Intermesh.Basics
         {
             get { return _segments; }
         }
+
+        public IReadOnlyList<IntermeshDivision> Divisions
+        {
+            get { return _divisions; }
+        }
         public bool Add(IntermeshSegment segment)
         {
             if (_segments.Any(t => t.Id == segment.Id)) { return false; }
             _segments.Add(segment);
+            return true;
+        }
+
+        public bool Add(IntermeshDivision division)
+        {
+            if (_divisions.Any(t => t.Id == division.Id)) { return false; }
+            _divisions.Add(division);
             return true;
         }
     }

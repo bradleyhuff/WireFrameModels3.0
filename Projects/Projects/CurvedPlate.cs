@@ -47,10 +47,6 @@ namespace Projects.Projects
             //curvedFace = curvedFace.Difference(Cylinder.Create(0.1, 1, 40));
 
             var facePlates = curvedFace.BuildFacePlates(0.1700).ToArray();
-            //foreach (var facePlate in facePlates)
-            //{
-            //    facePlate.ShowVitals();
-            //}
             //WavefrontFile.Export(curvedFace, "Wavefront/CurvedFace");
             //facePlates[2].Apply(Transform.Translation(new Vector3D(1e-3, 1e-3, 1e-3)));
             //var facePlate = facePlates[0].Union(facePlates[2]);

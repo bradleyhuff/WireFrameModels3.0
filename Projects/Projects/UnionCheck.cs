@@ -10,6 +10,7 @@ using Operations.Basics;
 using Operations.Groupings.Basics;
 using Operations.Groupings.FileExportImport;
 using Operations.ParallelSurfaces;
+using Operations.Regions;
 using Operations.SetOperators;
 using WireFrameModels3._0;
 using Console = BaseObjects.Console;
@@ -20,16 +21,31 @@ namespace Projects.Projects
     {
         protected override void RunProject()
         {
+            //Console.WriteLine("Segment intersections");
+            //var segment1 = new LineSegment3D(0.475014917905482, 0.359002248557203, 0.107003976697903, 0.475014383012836, 0.358883768101989, 0.107390120265219);
+            //var segment2 = new LineSegment3D(0.475237013905030, 0.359217064835224, 0.107358417472800, 0.475014910791702, 0.359000557292749, 0.107009486537537);
+            //Console.WriteLine($"Intersections {LineSegment3D.PointIntersection(segment1, segment2, 3e-9)}");
+
             var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
+            //import.NearCollinearTrianglePairs();
+            //import.ShowVitals();
+            //WavefrontFile.Export(import, "Wavefront/ModifiedOutput");
+
+            //return;
             //import.Apply(Transform.Rotation((Vector3D.BasisX + Vector3D.BasisY + Vector3D.BasisZ).Direction, 1e-2));
             //import.Apply(Transform.ShearXY(1e-3, 1e-3));
             //import.Apply(Transform.ShearYZ(1e-3, 1e-3));
             //import.Apply(Transform.ShearXZ(1e-3, 1e-3));
             //WavefrontFile.Export(import, "Wavefront/Import");
 
-            //var clusters = import.BuildFacePlateClusters(-0.005000).ToArray();
-            var clusters = import.BuildFacePlateClusters(-0.00125).ToArray();
-            clusters.PlateTrim();
+            //var cornerCut = GroupingCollection.ExtractClusters(CornerCut(import).Triangles);
+
+            //return;
+
+            var clusters = import.BuildFacePlateClusters(-0.005000).ToArray();
+            //var clusters = import.BuildFacePlateClusters(-0.00125).ToArray();
+            clusters.PlateTrim(o => o);
+            //clusters.PlateTrim(o => CornerCut(o));
 
 
             //var fill = new Triangle3D(new Point3D(0.114443516250287, 0.434066015928310, 0.40551524427083),new Point3D(0.113999950709140, 0.434181599758615, 0.405515357986652), new Point3D(0.114440816380691, 0.434066719367738, 0.405515244898318));

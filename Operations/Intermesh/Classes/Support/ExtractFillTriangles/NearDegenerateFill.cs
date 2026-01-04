@@ -272,7 +272,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         {
             var fill = new Triangle3D(s.Item1.Point, s.Item2.Point, s.Item3.Point);
             if (_segments.Any(s => { var intersection = fill.LineSegmentIntersection(s); return intersection is not null && intersection != s; })) { return true; }
-
+            if (_fillTriangles.Any(f => f == fill)) { return true; }
             return _fillTriangles.Any(f => Triangle3D.LineSegmentIntersections(f, fill).Any(i => !fill.Edges.Any(e => e == i)));
         }
 

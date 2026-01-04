@@ -52,7 +52,7 @@ namespace Operations.Intermesh.Extensions
                 var b = differenceLink;
                 var c = intersectionLink;
 
-                var fillTriangle = new FillTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, fillA.Trace, fillA.Tag);
+                var fillTriangle = new FillTriangle(a.Point, a.Normal, -1, b.Point, b.Normal, -1, c.Point, c.Normal, -1, fillA.Trace, fillA.Tag);
                 checkPoints.Add(fillTriangle.Triangle.Center);
 
                 yield return fillTriangle;
@@ -80,7 +80,7 @@ namespace Operations.Intermesh.Extensions
                     var b = differencePoint.DifferenceLinks[0];
                     var c = differencePoint.DifferenceLinks[1];
 
-                    var fillTriangle = new FillTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, fillA.Trace, fillA.Tag);
+                    var fillTriangle = new FillTriangle(a.Point, a.Normal, -1, b.Point, b.Normal, -1, c.Point, c.Normal, -1, fillA.Trace, fillA.Tag);
 
                     if (checkPoints.Any(fillTriangle.Triangle.PointIsIn)) { continue; }
 
@@ -105,7 +105,7 @@ namespace Operations.Intermesh.Extensions
                 var b = intersectionPoints[1];
                 var c = intersectionPoints[2];
 
-                yield return new FillTriangle(a.Point, a.Normal, b.Point, b.Normal, c.Point, c.Normal, fillA.Trace, fillA.Tag);
+                yield return new FillTriangle(a.Point, a.Normal, -1, b.Point, b.Normal, -1, c.Point, c.Normal, -1, fillA.Trace, fillA.Tag);
 
             }
             else
@@ -114,7 +114,7 @@ namespace Operations.Intermesh.Extensions
                 foreach (var segment in intersections.Select(s => new { start = discretize.Fetch(s.Start), end = discretize.Fetch(s.End) }).
                     Where(s => s.start.Id != startingPoint.Id && s.end.Id != startingPoint.Id))
                 {
-                    yield return new FillTriangle(startingPoint.Point, startingPoint.Normal, segment.start.Point, segment.start.Normal, segment.end.Point, segment.end.Normal, fillA.Trace, fillA.Tag);
+                    yield return new FillTriangle(startingPoint.Point, startingPoint.Normal, -1, segment.start.Point, segment.start.Normal, -1, segment.end.Point, segment.end.Normal, -1, fillA.Trace, fillA.Tag);
                 }
             }
         }

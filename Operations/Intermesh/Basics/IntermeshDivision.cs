@@ -1,10 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
@@ -12,7 +7,7 @@ namespace Operations.Intermesh.Basics
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public IntermeshDivision(IntermeshPoint a, IntermeshPoint b)
+        public IntermeshDivision(IntermeshPoint a, IntermeshPoint b, IntermeshSegment parentSegment)
         {
             A = a;
             B = b;
@@ -22,10 +17,21 @@ namespace Operations.Intermesh.Basics
             }
             Key = new Combination2(a.Id, b.Id);
             Segment = new LineSegment3D(a.Point, b.Point);
+            ParentSegment = parentSegment;
         }
 
         public int Id { get; }
         public Combination2 Key { get; }
+
+        public IntermeshSegment ParentSegment { get; }
+
+        public IEnumerable<IntermeshTriangle> Triangles
+        {
+            get
+            {
+                return ParentSegment.Triangles;
+            }
+        }
 
         public IntermeshPoint A { get; }
         public IntermeshPoint B { get; }

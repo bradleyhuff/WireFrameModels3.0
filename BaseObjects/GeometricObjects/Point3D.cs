@@ -1,4 +1,5 @@
-﻿using BaseObjects.Transformations.Interfaces;
+﻿using BaseObjects.GeometricObjects.Interfaces;
+using BaseObjects.Transformations.Interfaces;
 using Double = BasicObjects.Math.Double;
 
 namespace BasicObjects.GeometricObjects
@@ -64,9 +65,31 @@ namespace BasicObjects.GeometricObjects
             return nearestPoint;
         }
 
+        public static R GetNearestResult<R>(IEnumerable<R> results) where R: IResult
+        {
+            R nearestResult = default;
+            double nearestDistance = double.MaxValue;
+
+            foreach (var result in results)
+            {
+                if (result.Distance < nearestDistance)
+                {
+                    nearestDistance = result.Distance;
+                    nearestResult = result;
+                }
+            }
+
+            return nearestResult;
+        }
+
         public Rectangle3D Margin(double margin)
         {
             return new Rectangle3D(this + new Vector3D(-margin, -margin, -margin), this + new Vector3D(margin, margin, margin));
+        }
+
+        public bool IsNaN
+        {
+            get { return X is System.Double.NaN || Y is System.Double.NaN || Z is System.Double.NaN; }
         }
 
         public static bool AreCollinear(params Point3D[] points)

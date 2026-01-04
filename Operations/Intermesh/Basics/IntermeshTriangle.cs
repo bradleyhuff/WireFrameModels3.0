@@ -1,10 +1,12 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
+using Operations.Groupings.Basics;
 using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 
@@ -22,17 +24,6 @@ namespace Operations.Intermesh.Basics
             {
                 Id = _id++;
             }
-
-        //    if (Id == 2187)
-        //    {
-
-        //    }
-        //    if (Id == 2187 || Id == 3309)
-        //    {
-        //        //var grid = WireFrameMesh.Create();
-        //        //grid.AddTriangle(triangle.Triangle, "", 0);
-        //        //WavefrontFile.Export(grid, $"Wavefront/ProblemTriangle-{Id}");
-        //    }
         }
 
         public int Id { get; }
@@ -138,13 +129,13 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public bool HasDivisions
+        public bool HasInternalDivisions
         {
             get
             {
                 if (InternalDivisions.Any()) { return true; }
 
-                return PerimeterSegments.Any(p => p.HasDivisionPoints);
+                return PerimeterSegments.Any(p => p.HasInternalDivisionPoints);
             }
         }
 
@@ -236,22 +227,37 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private List<IntermeshPoint> _points = null;
+        private List<IntermeshPoint> _divisionPoints = null;
 
-        public IReadOnlyList<IntermeshPoint> Points
+        public IReadOnlyList<IntermeshPoint> DivisionPoints
         {
             get
             {
-                if (_points is null)
+                if (_divisionPoints is null)
                 {
-                    _points = _divisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).ToList();
+                    _divisionPoints = _divisions.SelectMany(d => d.Points).DistinctBy(p => p.Id).ToList();
                 }
-                return _points;
+                return _divisionPoints;
+            }
+        }
+
+        private List<IntermeshPoint> _segmentPoints = null;
+
+        public IReadOnlyList<IntermeshPoint> SegmentPoints
+        {
+            get
+            {
+                if (_segmentPoints is null)
+                {
+                    _segmentPoints = _segments.SelectMany(s => s.Points).DistinctBy(p => p.Id).ToList();
+                }
+                return _segmentPoints;
             }
         }
 
         private List<IntermeshPoint> _spurPoints = null;
         private bool _spurOutput = false;
+        private bool _spurPerimeterOutput = false;
 
         public IReadOnlyList<IntermeshPoint> SpurPoints
         {
@@ -259,7 +265,7 @@ namespace Operations.Intermesh.Basics
             {
                 if (!_spurOutput)
                 {
-                    GetSpurOutputs(out _spurPoints, out _nonSpurDivisions);
+                    GetSpurOutputs(out _spurPoints, out _nonSpurDivisions, Divisions);
                     _spurOutput = true;
                 }
                 return _spurPoints;
@@ -268,9 +274,9 @@ namespace Operations.Intermesh.Basics
 
         private List<IntermeshPoint> GetSpurPoints(IEnumerable<IntermeshDivision> divisions)
         {
-            var table = Points.ToDictionary(p => p.Id, p => p);
+            var table = DivisionPoints.ToDictionary(p => p.Id, p => p);
             var countTable = new Dictionary<int, int>();
-            foreach (var division in Divisions)
+            foreach (var division in divisions)
             {
                 if (!countTable.ContainsKey(division.A.Id)) { countTable[division.A.Id] = 0; }
                 if (!countTable.ContainsKey(division.B.Id)) { countTable[division.B.Id] = 0; }
@@ -287,23 +293,65 @@ namespace Operations.Intermesh.Basics
             return divisions.Where(d => !spurIndicies.Any(sp => sp == d.A.Id) && !spurIndicies.Any(sp => sp == d.B.Id)).ToList();
         }
 
-        private void GetSpurOutputs(out List<IntermeshPoint> spurPoints, out List<IntermeshDivision> divisions)
+        private void GetSpurOutputs(out List<IntermeshPoint> spurPoints, out List<IntermeshDivision> divisions, IEnumerable<IntermeshDivision> inputDivisions)
         {
-            spurPoints = GetSpurPoints(Divisions);
-            divisions = GetNonSpurDivisions(spurPoints, Divisions);
+            spurPoints = GetSpurPoints(inputDivisions);
+            divisions = GetNonSpurDivisions(spurPoints, inputDivisions);
 
             var divisionCount = divisions.Count;
             var lastDivisionCount = Divisions.Count;
             while (divisionCount < lastDivisionCount) // Remove extended tails
             {
                 lastDivisionCount = divisionCount;
-                spurPoints = GetSpurPoints(divisions);
-                divisions = GetNonSpurDivisions(spurPoints, Divisions);
+                spurPoints.AddRange(GetSpurPoints(divisions));
+                divisions = GetNonSpurDivisions(spurPoints, divisions);
                 divisionCount = divisions.Count;
             }
         }
 
         private List<IntermeshDivision> _nonSpurDivisions = null;
+        private List<IntermeshDivision> _nonSpurPerimeterDivisions = null;
+
+        public IReadOnlyList<IntermeshDivision> NonSpurPerimeterDivisions
+        {
+            get
+            {
+                if (!_spurPerimeterOutput)
+                {
+                    GetSpurOutputs(out _spurPoints, out _nonSpurPerimeterDivisions, PerimeterDivisions);
+                    _spurPerimeterOutput = true;
+                }
+                return _nonSpurPerimeterDivisions;
+            }
+        }
+
+        public static IReadOnlyList<IntermeshDivision> GetNonOverlapping(IEnumerable<IntermeshDivision> input)
+        {
+            var table = input.ToDictionary(k => k.Id, v => true);
+            var table2 = input.ToDictionary(k => k.Id, v => v);
+
+            var grouping = new GroupingDictionary<int, List<IntermeshDivision>>(() => new List<IntermeshDivision>());
+            foreach (var segment in input)
+            {
+                grouping[segment.A.Id].Add(segment);
+                grouping[segment.B.Id].Add(segment);
+            }
+
+            var junctions = grouping.Where(kv => kv.Value.Count > 2);
+
+            foreach (var junction in junctions)
+            {
+                foreach (var element in junction.Value)
+                {
+                    if (grouping[element.A.Id].Count > 2 && grouping[element.B.Id].Count > 2)
+                    {
+                        table[element.Id] = false;
+                    }
+                }
+            }
+
+            return table2.Where(kp => table[kp.Key]).Select(kp => kp.Value).ToList();
+        }
 
         public IReadOnlyList<IntermeshDivision> NonSpurDivisions
         {
@@ -311,13 +359,12 @@ namespace Operations.Intermesh.Basics
             {
                 if (!_spurOutput)
                 {
-                    GetSpurOutputs(out _spurPoints, out _nonSpurDivisions);
+                    GetSpurOutputs(out _spurPoints, out _nonSpurDivisions, Divisions);
                     _spurOutput = true;
                 }
                 return _nonSpurDivisions;
             }
         }
-
 
         public IEnumerable<IntermeshDivision> InternalDivisions
         {
@@ -429,6 +476,7 @@ namespace Operations.Intermesh.Basics
         public Ray3D RayFromProjectedPoint(Point3D point)
         {
             var projection = Triangle.Plane.Projection(point);
+            if (projection.IsNaN) { projection = point; }
 
             var c = Triangle.GetBarycentricCoordinate(projection);
             var normal = (c.λ1 * PositionTriangle.A.Normal.Direction + c.λ2 * PositionTriangle.B.Normal.Direction + c.λ3 * PositionTriangle.C.Normal.Direction).Direction;
@@ -447,7 +495,8 @@ namespace Operations.Intermesh.Basics
 
         public IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetPerimeterSurfaceSegments()
         {
-            foreach (var segment in PerimeterDivisions)
+            //non-overlapping
+            foreach (var segment in GetNonOverlapping(NonSpurPerimeterDivisions))
             {
                 yield return new SurfaceSegmentContainer<IntermeshPoint>(
                     new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
@@ -457,6 +506,8 @@ namespace Operations.Intermesh.Basics
 
         public IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetDividingSurfaceSegments()
         {
+            //non-overlapping
+
             foreach (var segment in InternalDivisions)
             {
                 yield return new SurfaceSegmentContainer<IntermeshPoint>(
@@ -475,76 +526,5 @@ namespace Operations.Intermesh.Basics
                 PerimeterSegments = GetPerimeterSurfaceSegments().ToArray()
             };
         }
-
-        public void ExportTriangle(IWireFrameMesh mesh)
-        {
-            mesh.AddTriangle(A.Point, Triangle.Normal, B.Point, Triangle.Normal, C.Point, Triangle.Normal, "", 0);
-        }
-
-        public IEnumerable<IWireFrameMesh> ExportWithDivisionsSplit()
-        {
-            foreach (var division in PerimeterDivisions)
-            {
-                var mid = (division.A.Point + division.B.Point) / 2;
-                var newMesh = WireFrameMesh.Create();
-                newMesh.AddTriangle(division.A.Point, Triangle.Normal, division.B.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
-                yield return newMesh;
-            }
-        }
-
-        public IEnumerable<IWireFrameMesh> ExportWithInternalDivisionsSplit()
-        {
-            foreach (var division in InternalDivisions)
-            {
-                var mid = (division.A.Point + division.B.Point) / 2;
-                var newMesh = WireFrameMesh.Create();
-                newMesh.AddTriangle(division.A.Point, Triangle.Normal, division.B.Point, Triangle.Normal, mid, Triangle.Normal, "", 0);
-                yield return newMesh;
-            }
-        }
-
-        public IWireFrameMesh ExportWithMinimumHeightScale()
-        {
-            var grid = WireFrameMesh.Create();
-            foreach (var division in PerimeterDivisions)
-            {
-                var scaleA = Triangle.MinimumHeightScale(division.A.Point, 0.25 / Triangle.AspectRatio);
-                var scaleB = Triangle.MinimumHeightScale(division.B.Point, 0.25 / Triangle.AspectRatio);
-                var scaleC = Triangle.MinimumHeightScale(division.Segment.Center, 0.25 / Triangle.AspectRatio);
-                grid.AddTriangle(scaleA, Triangle.Normal, scaleB, Triangle.Normal, scaleC, Triangle.Normal, "", 0);
-            }
-
-            foreach (var division in InternalDivisions)
-            {
-                var scaleA = Triangle.MinimumHeightScale(division.A.Point, 0.25 / Triangle.AspectRatio);
-                var scaleB = Triangle.MinimumHeightScale(division.B.Point, 0.25 / Triangle.AspectRatio);
-                var scaleC = Triangle.MinimumHeightScale(division.Segment.Center, 0.25 / Triangle.AspectRatio);
-                grid.AddTriangle(scaleA, Triangle.Normal, scaleB, Triangle.Normal, scaleC, Triangle.Normal, "", 0);
-            }
-
-            return grid;
-        }
-
-        public IWireFrameMesh ExportWithMinimumHeightScale(Triangle3D element)
-        {
-            var grid = WireFrameMesh.Create();
-            var scaleA = Triangle.MinimumHeightScale(element.A, 0.25 / Triangle.AspectRatio);
-            var scaleB = Triangle.MinimumHeightScale(element.B, 0.25 / Triangle.AspectRatio);
-            var scaleC = Triangle.MinimumHeightScale(element.C, 0.25 / Triangle.AspectRatio);
-            grid.AddTriangle(scaleA, Triangle.Normal, scaleB, Triangle.Normal, scaleC, Triangle.Normal, "", 0);
-
-            return grid;
-        }
-
-        public IEnumerable<IWireFrameMesh> ExportWithGatheringSplit()
-        {
-            foreach (var gathering in Gathering)
-            {
-                var newMesh = WireFrameMesh.Create();
-                newMesh.AddTriangle(gathering.A.Point, gathering.Triangle.Normal, gathering.B.Point, gathering.Triangle.Normal, gathering.C.Point, gathering.Triangle.Normal, "", 0);
-                yield return newMesh;
-            }
-        }
-
     }
 }

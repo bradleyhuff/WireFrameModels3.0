@@ -3,7 +3,7 @@ using Double = BasicObjects.Math.Double;
 
 namespace Operations.Regions
 {
-    internal enum Region
+    public enum Region
     {
         Uninitialized,
         Indeterminant,

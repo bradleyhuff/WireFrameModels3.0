@@ -12,6 +12,8 @@ using Operations.PositionRemovals;
 using Operations.Regions;
 using System;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Security;
 using Console = BaseObjects.Console;
 
 namespace Operations.SetOperators
@@ -47,10 +49,12 @@ namespace Operations.SetOperators
             if (Mode.ThreadedRun)
             {
                 sum.IntermeshSingle(t => true);
+                //sum.NearCollinearTrianglePairs();
             }
             else
             {
                 sum.Intermesh();
+                //sum.NearCollinearTrianglePairs();
             }
 
             var groups = GroupExtraction(sum);
@@ -58,18 +62,23 @@ namespace Operations.SetOperators
             IncludedGroupInverts(remainingGroups);
 
             //ConsoleLog.MaximumLevels = 8;
-            //sum.RemoveShortSegments(1e-4);
+            //sum.RemoveShortSegments(1e-6);
             //sum.RemoveCollinearEdgePoints();
             //sum.RemoveCoplanarSurfacePoints();
 
             FoldPrimming(sum);
+            //FillSmallDistanceHoles(sum);
+            //if (RemoveTagss) { RemoveTags(sum); } else { RemoveTags2(sum); }
             RemoveTags(sum);
+            //RemoveTagsWithCondition(sum, (a, b) => Triangle3D.LengthOfCommonSide(a.Triangle, b.Triangle) > 1e-8);
 
             if (!Mode.ThreadedRun) ConsoleLog.Pop();
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
             ConsoleLog.MaximumLevels = 1;
             return sum;
         }
+
+        public static bool OutputGroups { get; set; } = false;
 
         private static IWireFrameMesh CombineAndMark(IWireFrameMesh gridA, IWireFrameMesh gridB, out Space space)
         {
@@ -82,7 +91,7 @@ namespace Operations.SetOperators
 
             var result = gridA.Clone();
             result.AddGrid(gridB);
-            if(!Mode.ThreadedRun) ConsoleLog.WriteLine($"Combine and mark: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Combine and mark: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return result;
         }
 
@@ -158,7 +167,7 @@ namespace Operations.SetOperators
             foreach (var group in remainingGroups)
             {
                 var interiorTestPoint = GetInternalTestPoint(group.Triangles);
-                if (interiorTestPoint is null)
+                if (interiorTestPoint is null || interiorTestPoint.IsNaN)
                 {
                     continue;
                 }
@@ -260,6 +269,209 @@ namespace Operations.SetOperators
             }
             output.RemoveAllTriangles(table.Values);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Remove tags {table.Values.Count} {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+        }
+
+        public static void NearCollinearTrianglePairs(this IWireFrameMesh mesh)
+        {
+            var nearCollinearTriangles = mesh.Triangles.Where(t => t.Triangle.MinHeight < 1e-7 );
+            //Console.WriteLine($"Near Collinear Triangles: {nearCollinearTriangles.Count()} [{string.Join(",",nearCollinearTriangles.Select(t => t.Id))}]");
+            Console.WriteLine($"Near Collinear Triangles: {nearCollinearTriangles.Count()}");
+            Console.WriteLine($"Minimum heights: {string.Join(",", nearCollinearTriangles.Select(t => t.Triangle.MinHeight.ToString("e1")))}");
+            Console.WriteLine($"Cardinalities  : {string.Join(",", nearCollinearTriangles.Select(t => t.PositionCardinalities))}");
+            Console.WriteLine($"Maximum lengths: {string.Join(",", nearCollinearTriangles.Select(t => t.Triangle.MaxEdge.Length.ToString("e1")))}");
+            Console.WriteLine($"Adjacent counts: {string.Join(",", nearCollinearTriangles.Select(t => $"({t.ABadjacents.Count}, {t.BCadjacents.Count}, {t.CAadjacents.Count})"))}");
+
+            RunDividingTriangles(mesh);
+            var continueRun = RunStartingTriangles(mesh);
+            nearCollinearTriangles = mesh.Triangles.Where(t => t.Triangle.MinHeight < 1e-7);
+            Console.WriteLine($"Near Collinear Triangles: {nearCollinearTriangles.Count()}");
+            while (continueRun)
+            {
+                RunDividingTriangles(mesh);
+                continueRun = RunStartingTriangles(mesh);
+
+                nearCollinearTriangles = mesh.Triangles.Where(t => t.Triangle.MinHeight < 1e-7);
+                Console.WriteLine($"Near Collinear Triangles: {nearCollinearTriangles.Count()}");
+            }
+            Console.WriteLine($"Minimum heights: {string.Join(",", nearCollinearTriangles.Select(t => t.Triangle.MinHeight.ToString("e1")))}");
+            Console.WriteLine($"Cardinalities  : {string.Join(",", nearCollinearTriangles.Select(t => t.PositionCardinalities))}");
+            Console.WriteLine($"Maximum lengths: {string.Join(",", nearCollinearTriangles.Select(t => t.Triangle.MaxEdge.Length.ToString("e1")))}");
+            Console.WriteLine($"Adjacent counts: {string.Join(",", nearCollinearTriangles.Select(t => $"({t.ABadjacents.Count}, {t.BCadjacents.Count}, {t.CAadjacents.Count})"))}");
+            mesh.ShowSmallDistances();
+        }
+
+        private static void RunDividingTriangles(IWireFrameMesh mesh)
+        {
+            var dividableTriangles = mesh.Triangles.Where(t => {
+                if (t.Triangle.MinHeight < 2e-7) { return false; }
+                int count = 0;
+                if (ABpairQualifies(t)) { count++; }
+                if (BCpairQualifies(t)) { count++; }
+                if (CApairQualifies(t)) { count++; }
+                return count > 1;
+            });
+
+            var removals = new List<PositionTriangle>();
+            var additions = new List<SurfaceTriangle>();
+
+            foreach (var triangle in dividableTriangles)
+            {
+                removals.Add(triangle);
+
+                var centerRay = new Ray3D(triangle.Triangle.Center, triangle.Triangle.Normal);
+
+                additions.Add(new SurfaceTriangle(PositionNormal.GetRay(triangle.A), PositionNormal.GetRay(triangle.B), centerRay));
+                additions.Add(new SurfaceTriangle(PositionNormal.GetRay(triangle.B), PositionNormal.GetRay(triangle.C), centerRay));
+                additions.Add(new SurfaceTriangle(PositionNormal.GetRay(triangle.C), PositionNormal.GetRay(triangle.A), centerRay));
+            }
+
+            //Console.WriteLine($"Dividable triangles {dividableTriangles.Count()} Removals {removals.Count} Additions {additions.Count}");
+
+            mesh.RemoveAllTriangles(removals);
+            mesh.AddRangeTriangles(additions, "", 0);
+        }
+
+        private static bool RunStartingTriangles(IWireFrameMesh mesh)
+        {
+            var startingTriangles = mesh.Triangles.Where(t => {
+                if (t.Triangle.MinHeight < 1e-7) { return false; }
+                int count = 0;
+                if (ABpairQualifies(t)) { count++; }
+                if (BCpairQualifies(t)) { count++; }
+                if (CApairQualifies(t)) { count++; }
+                return count == 1;
+            });
+            //Console.WriteLine($"Starting triangles {startingTriangles.Count()}");
+
+            var removals = new List<PositionTriangle>();
+            var additions = new List<SurfaceTriangle>();
+            foreach (var triangle in startingTriangles)
+            {
+                var pair = GetPair(triangle);
+                //Console.Write($"{triangle.Id} {pair.Id}");
+                //Console.WriteLine(Rediagonalize(triangle, pair));
+                Rediagonalize(triangle, pair, removals, additions);
+            }
+
+            //Console.WriteLine($"Triangles to remove {removals.Count} Triangles to add {additions.Count}");
+            if (!removals.Any()) { return false; }
+            mesh.RemoveAllTriangles(removals);
+            mesh.AddRangeTriangles(additions, "", 0);
+            return true;
+        }
+
+        private static bool ABpairQualifies(PositionTriangle t)
+        {
+            if (t.ABadjacents.Count() != 1) { return false; }
+            var pair = t.ABadjacents.Single();
+            if (pair.Triangle.MinHeight > 1e-7) { return false; }
+
+            var side = pair.Triangle.GetEdgeMatch(t.Triangle.EdgeAB.Length);
+            if (side == Triangle3D.Matching.AB) { return !pair.Triangle.CoverhangsAB; }
+            if (side == Triangle3D.Matching.BC) { return !pair.Triangle.AoverhangsBC; }
+            if (side == Triangle3D.Matching.CA) { return !pair.Triangle.BoverhangsCA; }
+
+            //if (side == Triangle3D.Matching.AB) { return !pair.Triangle.CoverhangsAB && (pair.A.PositionObject.PositionNormals.Count() == 1 || pair.B.PositionObject.PositionNormals.Count() == 1); }
+            //if (side == Triangle3D.Matching.BC) { return !pair.Triangle.AoverhangsBC && (pair.B.PositionObject.PositionNormals.Count() == 1 || pair.C.PositionObject.PositionNormals.Count() == 1); }
+            //if (side == Triangle3D.Matching.CA) { return !pair.Triangle.BoverhangsCA && (pair.C.PositionObject.PositionNormals.Count() == 1 || pair.A.PositionObject.PositionNormals.Count() == 1); }
+
+            return false;
+        }
+
+        private static bool BCpairQualifies(PositionTriangle t)
+        {
+            if (t.BCadjacents.Count() != 1) { return false; }
+            var pair = t.BCadjacents.Single();
+            if (pair.Triangle.MinHeight > 1e-7) { return false; }
+
+            var side = pair.Triangle.GetEdgeMatch(t.Triangle.EdgeBC.Length);
+            if (side == Triangle3D.Matching.AB) { return !pair.Triangle.CoverhangsAB; }
+            if (side == Triangle3D.Matching.BC) { return !pair.Triangle.AoverhangsBC; }
+            if (side == Triangle3D.Matching.CA) { return !pair.Triangle.BoverhangsCA; }
+
+            //if (side == Triangle3D.Matching.AB) { return !pair.Triangle.CoverhangsAB && (pair.A.PositionObject.PositionNormals.Count() == 1 || pair.B.PositionObject.PositionNormals.Count() == 1); }
+            //if (side == Triangle3D.Matching.BC) { return !pair.Triangle.AoverhangsBC && (pair.B.PositionObject.PositionNormals.Count() == 1 || pair.C.PositionObject.PositionNormals.Count() == 1); }
+            //if (side == Triangle3D.Matching.CA) { return !pair.Triangle.BoverhangsCA && (pair.C.PositionObject.PositionNormals.Count() == 1 || pair.A.PositionObject.PositionNormals.Count() == 1); }
+
+            return false;
+        }
+
+        private static bool CApairQualifies(PositionTriangle t)
+        {
+            if (t.CAadjacents.Count() != 1) { return false; }
+            var pair = t.CAadjacents.Single();
+            if (pair.Triangle.MinHeight > 1e-7) { return false; }
+
+            var side = pair.Triangle.GetEdgeMatch(t.Triangle.EdgeCA.Length);
+            if (side == Triangle3D.Matching.AB) { return !pair.Triangle.CoverhangsAB; }
+            if (side == Triangle3D.Matching.BC) { return !pair.Triangle.AoverhangsBC; }
+            if (side == Triangle3D.Matching.CA) { return !pair.Triangle.BoverhangsCA; }
+
+            //if (side == Triangle3D.Matching.AB) { return !pair.Triangle.CoverhangsAB && (pair.A.PositionObject.PositionNormals.Count() == 1 || pair.B.PositionObject.PositionNormals.Count() == 1); }
+            //if (side == Triangle3D.Matching.BC) { return !pair.Triangle.AoverhangsBC && (pair.B.PositionObject.PositionNormals.Count() == 1 || pair.C.PositionObject.PositionNormals.Count() == 1); }
+            //if (side == Triangle3D.Matching.CA) { return !pair.Triangle.BoverhangsCA && (pair.C.PositionObject.PositionNormals.Count() == 1 || pair.A.PositionObject.PositionNormals.Count() == 1); }
+
+            return false;
+        }
+        private static PositionTriangle GetPair(PositionTriangle t)
+        {
+            if (ABpairQualifies(t)) { return t.ABadjacents.Single(); }
+            if (BCpairQualifies(t)) { return t.BCadjacents.Single(); }
+            if (CApairQualifies(t)) { return t.CAadjacents.Single(); }
+            return null;
+        }
+
+        private static string Rediagonalize(PositionTriangle a, PositionTriangle b)
+        {
+            var positions = new []{ a.Positions,  b.Positions }.SelectMany(p => p);
+            var groups = positions.GroupBy(p => p.Id);
+            var edges = groups.Where(g => g.Count() == 2).Select(g => g.First()).ToArray();
+            var corners = groups.Where(g => g.Count() == 1).Select(g => g.First()).ToArray();
+            if (edges.Length != 2 || corners.Length != 2) { return $"Triangles {a.Id}, {b.Id} are separate."; }
+
+            var edges2 = corners;
+            var corners2 = edges;
+
+            var a2 = new[] { edges2[0], edges2[1], corners2[0] };
+            var b2 = new[] { edges2[0], edges2[1], corners2[1] };
+
+            var triangleA = new Triangle3D(a2[0].Position, a2[1].Position, a2[2].Position);
+            var triangleB = new Triangle3D(b2[0].Position, b2[1].Position, b2[2].Position);
+
+            var minAB = Math.Min(a.Triangle.MinHeight, b.Triangle.MinHeight);
+            var minAB2 = Math.Min(triangleA.MinHeight, triangleB.MinHeight);
+
+            return $"[{a.Triangle.MinHeight.ToString("e1")}, {b.Triangle.MinHeight.ToString("e1")}] => [{triangleA.MinHeight.ToString("e1")}, {triangleB.MinHeight.ToString("e1")}] {(minAB2 * 0.95 > minAB ? "**": minAB2 > minAB ? "*" : "")}";
+        }
+
+        private static void Rediagonalize(PositionTriangle a, PositionTriangle b, List<PositionTriangle> removal, List<SurfaceTriangle> additions)
+        {
+            var positions = new[] { a.Positions, b.Positions }.SelectMany(p => p);
+            var groups = positions.GroupBy(p => p.Id);
+            var edges = groups.Where(g => g.Count() == 2).Select(g => g.First()).ToArray();
+            var corners = groups.Where(g => g.Count() == 1).Select(g => g.First()).ToArray();
+            if (edges.Length != 2 || corners.Length != 2) { return; }
+
+            var edges2 = corners;
+            var corners2 = edges;
+
+            var a2 = new[] { edges2[0], edges2[1], corners2[0] };
+            var b2 = new[] { edges2[0], edges2[1], corners2[1] };
+
+            var triangleA = new Triangle3D(a2[0].Position, a2[1].Position, a2[2].Position);
+            var triangleB = new Triangle3D(b2[0].Position, b2[1].Position, b2[2].Position);
+
+            var minAB = Math.Min(a.Triangle.MinHeight, b.Triangle.MinHeight);
+            var minAB2 = Math.Min(triangleA.MinHeight, triangleB.MinHeight);
+
+            if (minAB2 * 0.95 > minAB)
+            {
+                removal.Add(a);
+                removal.Add(b);
+
+                additions.Add(new SurfaceTriangle(PositionNormal.GetRay(a2[0]), PositionNormal.GetRay(a2[1]), PositionNormal.GetRay(a2[2])));
+                additions.Add(new SurfaceTriangle(PositionNormal.GetRay(b2[0]), PositionNormal.GetRay(b2[1]), PositionNormal.GetRay(b2[2])));
+            }
         }
 
         private static void ApplyPrincipleNormal(Dictionary<int, Vector3D> straightenedNormals, PositionNormal position, Vector3D principleNormal)

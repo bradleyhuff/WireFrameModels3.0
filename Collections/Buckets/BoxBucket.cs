@@ -10,7 +10,7 @@ namespace Collections.Buckets
 {
     public class BoxBucket
     {
-        public const double MARGINS = 1e-6;
+        public const double MARGINS = 5e-6;
     }
     public class BoxBucket<T> : IBoxBucket<T> where T : IBox
     {

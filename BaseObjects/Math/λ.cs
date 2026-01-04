@@ -28,5 +28,10 @@ namespace BasicObjects.Math
         {
             return Double.IsOnInterval(0, λ1, 1) && Double.IsOnInterval(0, λ2, 1) && Double.IsOnInterval(0, λ3, 1);
         }
+
+        public bool IsOnUnitInterval(double zone)
+        {
+            return Double.IsOnInterval(0, λ1, 1, zone) && Double.IsOnInterval(0, λ2, 1, zone) && Double.IsOnInterval(0, λ3, 1, zone);
+        }
     }
 }

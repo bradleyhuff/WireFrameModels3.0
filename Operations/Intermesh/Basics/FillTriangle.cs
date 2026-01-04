@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
@@ -13,18 +14,20 @@ namespace Operations.Intermesh.Basics
         private static int _id = 0;
         private static object lockObject = new object();
         internal FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, IntermeshPoint pointB, IntermeshPoint pointC) :
-            this(triangle, pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point),
-                pointB.Point, triangle.NormalFromProjectedPoint(pointB.Point),
-                pointC.Point, triangle.NormalFromProjectedPoint(pointC.Point), -1, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag)
+            this(triangle, pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point), pointA.Id,
+                pointB.Point, triangle.NormalFromProjectedPoint(pointB.Point), pointB.Id,
+                pointC.Point, triangle.NormalFromProjectedPoint(pointC.Point), pointC.Id,
+                -1, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag)
         { }
         internal FillTriangle(IntermeshTriangle node) :
-            this(node, node.A.Point, node.PositionTriangle.A.Normal,
-                node.B.Point, node.PositionTriangle.B.Normal,
-                node.C.Point, node.PositionTriangle.C.Normal, -1, node.PositionTriangle.Trace, node.PositionTriangle.Tag)
+            this(node, node.A.Point, node.PositionTriangle.A.Normal, node.A.Id,
+                node.B.Point, node.PositionTriangle.B.Normal, node.B.Id,
+                node.C.Point, node.PositionTriangle.C.Normal, node.C.Id,
+                -1, node.PositionTriangle.Trace, node.PositionTriangle.Tag)
         { }
 
-        public FillTriangle(Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC, string trace, int tag) : this(null, pointA, normalA, pointB, normalB, pointC, normalC, 0, trace, tag) { }
-        internal FillTriangle(IntermeshTriangle node, Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC, int fillId, string trace, int tag)
+        public FillTriangle(Point3D pointA, Vector3D normalA, int indexA, Point3D pointB, Vector3D normalB, int indexB, Point3D pointC, Vector3D normalC, int indexC, string trace, int tag) : this(null, pointA, normalA, indexA, pointB, normalB, indexB, pointC, normalC, indexC, 0, trace, tag) { }
+        internal FillTriangle(IntermeshTriangle node, Point3D pointA, Vector3D normalA, int indexA, Point3D pointB, Vector3D normalB, int indexB, Point3D pointC, Vector3D normalC, int indexC, int fillId, string trace, int tag)
         {
             lock (lockObject)
             {
@@ -37,6 +40,7 @@ namespace Operations.Intermesh.Basics
             NormalA = normalA;
             NormalB = normalB;
             NormalC = normalC;
+            Triplet = new Combination3(indexA, indexB, indexC);
             FillId = fillId;
             Trace = trace;
             Tag = tag;
@@ -61,6 +65,8 @@ namespace Operations.Intermesh.Basics
                 return Triangle.Box;
             }
         }
+
+        public Combination3 Triplet { get; }
 
         public Point3D PointA { get; }
         public Vector3D NormalA { get; }

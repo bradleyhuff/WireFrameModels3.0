@@ -23,7 +23,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         public void GetFillTriangles(IntermeshTriangle triangle)
         {
             count++;
-            if (!triangle.HasDivisions) { noDivisions++; triangle.Fillings.Add(new FillTriangle(triangle)); return; }
+            if (!triangle.HasInternalDivisions) { noDivisions++; triangle.Fillings.Add(new FillTriangle(triangle)); return; }
             var internalSegments = triangle.InternalSegments.ToArray();
             if (internalSegments.Length == 1 && !internalSegments.Any(s => s.InternalDivisions > 0))
             {
@@ -42,7 +42,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         public bool ShouldUseStrategy(IntermeshTriangle triangle)
         {
             if (triangle.IsNearDegenerate) { return false; }
-            if (!triangle.HasDivisions) { return true; }
+            if (!triangle.HasInternalDivisions) { return true; }
             var internalSegments = triangle.InternalSegments.ToArray();
             if (internalSegments.Length == 1 && !internalSegments.Any(s => s.InternalDivisions > 0))
             {

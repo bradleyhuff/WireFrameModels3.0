@@ -3,15 +3,23 @@ using Collections.WireFrameMesh.Interfaces;
 using Console = BaseObjects.Console;
 using BaseObjects;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
+using BasicObjects.GeometricObjects;
 
 namespace FileExportImport
 {
     public static class WavefrontFile
     {
-        public static void Export(IEnumerable<PositionTriangle> triangle, string fileName)
+        public static void Export(IEnumerable<PositionTriangle> triangles, string fileName)
         {
             var grid = WireFrameMesh.Create();
-            grid.AddRangeTriangles(triangle.Select(t => t.Triangle), "", 0);
+            grid.AddRangeTriangles(triangles.Select(t => t.Triangle), "", 0);
+            Export(grid, fileName);
+        }
+
+        public static void Export(IEnumerable<LineSegment3D> segments, string fileName)
+        {
+            var grid = WireFrameMesh.Create();
+            grid.AddRangeTriangles(segments.Select(s => new Triangle3D(s.Start, s.Center, s.End)), "", 0);
             Export(grid, fileName);
         }
         public static void Export(IEnumerable<IWireFrameMesh> meshes, string fileName)

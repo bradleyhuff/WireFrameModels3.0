@@ -1,4 +1,5 @@
 ﻿using BaseObjects;
+using BasicObjects.MathExtensions;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
 
@@ -10,11 +11,13 @@ namespace Operations.Intermesh.Classes
         {
             DateTime start = DateTime.Now;
 
+            var table = new Combination2Dictionary<IntermeshDivision>();
+
             foreach (var element in intermeshTriangles)
             {
                 foreach (var segment in element.Segments)
                 {
-                    var divisions = segment.BuildDivisions();
+                    var divisions = segment.BuildDivisions(table);
                     element.AddRange(divisions);
                 }
             }

@@ -177,10 +177,34 @@ namespace BasicObjects.GeometricObjects
 
         public LineSegment3D Intersection(Triangle3D triangle)
         {
-            var line = Intersection(this, triangle.Plane);
-            if (line is null) { return null; }
+            //var line = Intersection(this, triangle.Plane);
+            //if (line is null) { return null; }
 
-            return triangle.LineSegmentIntersection(line);
+            //return triangle.LineSegmentIntersection(line);
+
+            var pointAB = Intersection(triangle.EdgeAB);
+            var pointBC = Intersection(triangle.EdgeBC);
+            var pointCA = Intersection(triangle.EdgeCA);
+
+            if (pointAB is not null && pointBC is not null && pointCA is null) { return ReturnLineSegment(new LineSegment3D(pointAB, pointBC)); }
+            if (pointBC is not null && pointCA is not null && pointAB is null) { return ReturnLineSegment(new LineSegment3D(pointBC, pointCA)); }
+            if (pointCA is not null && pointAB is not null && pointBC is null) { return ReturnLineSegment(new LineSegment3D(pointCA, pointAB)); }
+
+            if (pointAB is not null && pointBC is not null && pointCA is not null)
+            {
+                if (pointAB == pointBC && pointAB != pointCA) { return ReturnLineSegment(new LineSegment3D(pointAB, pointCA)); }
+                if (pointBC == pointCA && pointBC != pointAB) { return ReturnLineSegment(new LineSegment3D(pointBC, pointAB)); }
+                if (pointCA == pointAB && pointCA != pointBC) { return ReturnLineSegment(new LineSegment3D(pointCA, pointBC)); }
+                if (pointAB == pointBC && pointAB == pointCA) { return ReturnLineSegment(new LineSegment3D(pointAB, pointCA)); }
+            }
+
+            return null;
+
+        }
+
+        private LineSegment3D ReturnLineSegment(LineSegment3D segment)
+        {
+            return segment is not null && !segment.IsDegenerate ? segment : null;
         }
 
         public Point3D Intersection(LineSegment3D line)

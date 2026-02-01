@@ -398,7 +398,7 @@ namespace Operations.Intermesh.Basics
 
         public override string ToString()
         {
-            return $"A {A.Id} B {B.Id} C {C.Id} Shortest edge {Triangle.MinEdge.Length}\n AB internal [{string.Join(",", ABInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(A, B, ABInternalPoints))}]\n BC internal [{string.Join(",", BCInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(B, C, BCInternalPoints))}]\n" +
+            return $"Id {Id} A {A.Id} B {B.Id} C {C.Id} Shortest edge {Triangle.MinEdge.Length}\n AB internal [{string.Join(",", ABInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(A, B, ABInternalPoints))}]\n BC internal [{string.Join(",", BCInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(B, C, BCInternalPoints))}]\n" +
                 $"\nCA internal [{string.Join(",", CAInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(C, A, CAInternalPoints))}]\n Non vertex points [{string.Join(",", NonVertexPoints.Select(p => p.Id))}]";
         }
 

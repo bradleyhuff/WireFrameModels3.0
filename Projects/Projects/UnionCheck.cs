@@ -1,17 +1,14 @@
 ﻿using BaseObjects;
 using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Extensions;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Basics;
-using Operations.Groupings.Basics;
-using Operations.Groupings.FileExportImport;
 using Operations.ParallelSurfaces;
-using Operations.Regions;
-using Operations.SetOperators;
 using WireFrameModels3._0;
 using Console = BaseObjects.Console;
 
@@ -42,7 +39,7 @@ namespace Projects.Projects
 
             //return;
 
-            var clusters = import.BuildFacePlateClusters(-0.005000).ToArray();
+            var clusters = import.BuildFacePlateClusters(-0.000500).ToArray();
             //var clusters = import.BuildFacePlateClusters(-0.00125).ToArray();
             clusters.PlateTrim(o => o);
             //clusters.PlateTrim(o => CornerCut(o));
@@ -86,6 +83,158 @@ namespace Projects.Projects
             //var output = clusters.First().TrimmedClusterGrid;
             WavefrontFile.Export(output, "Wavefront/Output");
             output.ShowVitals(99);
+
+            //var surfaces = GroupingCollection.ExtractSurfaces(output.Triangles);
+            //int index = 0;
+            //foreach (var surface in surfaces)
+            //{
+            //    WavefrontFile.Export(surface.Create(), $"Wavefront/Surface-{index}");
+
+            //    index++;
+            //}
+
+            //var focusAt = new Point3D(0.340518189192871, 0.499999999999922, 0.998223810162009);
+            //var focusAtB = new Point3D(0.340518189195709, 0.500000000000000, 0.998223810335592);
+            //var magnification = 1e9;
+            //var zone = new Rectangle3D(focusAt, 1 / magnification);
+            //WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/Zone");
+            //var clippedRegion = zone.Clip(output.Triangles.SelectMany(t => t.Edges.Select(e => e.Segment)));
+            //clippedRegion = clippedRegion.Select(c => c.TranslateToPointAndScale(focusAt, magnification));
+            //WavefrontFile.Export(clippedRegion, $"Wavefront/Surfaces/Graph");
+            //var gapSegment = new LineSegment3D(focusAt, focusAtB);
+            //var gapSegments = zone.Clip([gapSegment]);
+            //gapSegments = gapSegments.Select(c => c.TranslateToPointAndScale(focusAt, magnification));
+            //WavefrontFile.Export(gapSegments, $"Wavefront/Surfaces/Gap");
+
+            //var borderTriangle1 = output.Triangles.Single(t => t.Id == 341328);
+            //var borderTriangle2 = output.Triangles.Single(t => t.Id == 341308);
+
+            //WavefrontFile.Export(zone.Clip(borderTriangle1.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/BorderTriangles1");
+            //WavefrontFile.Export(zone.Clip(borderTriangle2.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/BorderTriangles2");
+
+            //344904
+            //344906
+            //347002
+            //344905
+            //344907
+
+            //347006
+            //344903
+            //344908
+            //344909
+            //344902
+            //347023
+            //347025
+            /*
+PointA only Border triangle id 336668
+PointA only Border triangle id 336670
+
+PointA only Border triangle id 336669
+PointB only Border triangle id 336671
+PointA only Border triangle id 336667
+
+PointB only Border triangle id 336672
+PointB only Border triangle id 336673
+PointA only Border triangle id 336666
+
+PointB only Border triangle id 341329
+PointA only Border triangle id 341327
+PointB only Border triangle id 341306
+PointA only Border triangle id 341310            
+             */
+            //var cornerTriangle1 = output.Triangles.Single(t => t.Id == 336668);
+            //var cornerTriangle2 = output.Triangles.Single(t => t.Id == 336670);
+
+            //var cornerTriangle3 = output.Triangles.Single(t => t.Id == 336669);
+            //var cornerTriangle4 = output.Triangles.Single(t => t.Id == 336671);
+            //var cornerTriangle5 = output.Triangles.Single(t => t.Id == 336667);
+
+            //var cornerTriangle6 = output.Triangles.Single(t => t.Id == 336672);
+            //var cornerTriangle7 = output.Triangles.Single(t => t.Id == 336673);
+            //var cornerTriangle8 = output.Triangles.Single(t => t.Id == 336666);
+
+            //var cornerTriangle9 = output.Triangles.Single(t => t.Id == 341329);
+            //var cornerTriangle10 = output.Triangles.Single(t => t.Id == 341327);
+            //var cornerTriangle11 = output.Triangles.Single(t => t.Id == 341306);
+            //var cornerTriangle12 = output.Triangles.Single(t => t.Id == 341310);
+
+            //WavefrontFile.Export(zone.Clip(cornerTriangle1.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles1");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle2.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles2");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle3.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles3");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle4.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles4");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle5.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles5");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle6.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles6");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle7.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles7");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle8.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles8");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle9.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles9");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle10.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles10");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle11.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles11");
+            //WavefrontFile.Export(zone.Clip(cornerTriangle12.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles12");
+
+            {
+                var grid = WireFrameMesh.Create();
+                var pointCount = new Dictionary<int, int>();
+                var indexTable = new Combination2Dictionary<bool>();
+                foreach (var triangle in output.Triangles)
+                {
+                    if (triangle.ABadjacents.Count > 1)
+                    {
+                        var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeAB.Start, triangle.Triangle.EdgeAB.Center, triangle.Triangle.EdgeAB.End), "", 0);
+                        var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
+                        if (!indexTable.ContainsKey(edgeIndex))
+                        {
+                            AddCount(position.A.PositionObject.Id, pointCount);
+                            AddCount(position.C.PositionObject.Id, pointCount);
+                            indexTable[edgeIndex] = true;
+                        }
+                    }
+                    if (triangle.BCadjacents.Count > 1)
+                    {
+                        var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeBC.Start, triangle.Triangle.EdgeBC.Center, triangle.Triangle.EdgeBC.End), "", 0);
+                        var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
+                        if (!indexTable.ContainsKey(edgeIndex))
+                        {
+                            AddCount(position.A.PositionObject.Id, pointCount);
+                            AddCount(position.C.PositionObject.Id, pointCount);
+                            indexTable[edgeIndex] = true;
+                        }
+                    }
+                    if (triangle.CAadjacents.Count > 1)
+                    {
+                        var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeCA.Start, triangle.Triangle.EdgeCA.Center, triangle.Triangle.EdgeCA.End), "", 0);
+                        var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
+                        if (!indexTable.ContainsKey(edgeIndex))
+                        {
+                            AddCount(position.A.PositionObject.Id, pointCount);
+                            AddCount(position.C.PositionObject.Id, pointCount);
+                            indexTable[edgeIndex] = true;
+                        }
+                    }
+                }
+
+                var tallyTable = new Dictionary<int, int>();
+                foreach (var kp in pointCount)
+                {
+                    if (!tallyTable.ContainsKey(kp.Value)) { tallyTable[kp.Value] = 0; }
+                    tallyTable[kp.Value]++;
+                }
+                foreach (var kp in tallyTable)
+                {
+                    Console.WriteLine($"Tally {kp.Key}: {kp.Value}");
+                }
+
+                var brokenPoints = pointCount.Where(kp => kp.Value == 1).Select(kp => kp.Key);
+                Console.WriteLine($"Broken points {string.Join(",", brokenPoints)}");
+                var brokenPointsP = grid.Positions.Where(p => brokenPoints.Contains(p.Id)).ToArray();
+                Console.WriteLine($"Broken points \n{string.Join("\n", brokenPointsP.Select(p => $"{p.Id} {p.Point}"))}");
+
+                WavefrontFile.Export(grid, $"Wavefront/SurfaceBoundary");
+                //var gridB = WireFrameMesh.Create();
+                //gridB.AddTriangle(new Triangle3D(brokenPointsP[0].Point,Point3D.Average([brokenPointsP[0].Point, brokenPointsP[1].Point]), brokenPointsP[1].Point), "", 0);
+                //gridB.AddTriangle(new Triangle3D(brokenPointsP[2].Point, Point3D.Average([brokenPointsP[2].Point, brokenPointsP[3].Point]), brokenPointsP[3].Point), "", 0);
+                //WavefrontFile.Export(gridB, $"Wavefront/BrokenPoints");
+
+            }
 
             //WavefrontFileGroups.ExportByFaces(output, "Wavefront/Faces");
 
@@ -236,6 +385,12 @@ namespace Projects.Projects
             //WavefrontFile.Export(facePlates, "Wavefront/FacePlates");
             //WavefrontFile.Export(union, "Wavefront/Union");
             //WavefrontFile.Export(NormalOverlay(output, 0.05), "Wavefront/UnionNormals");
+        }
+
+        private void AddCount(int index, Dictionary<int, int> table)
+        {
+            if (!table.ContainsKey(index)) { table[index] = 0; }
+            table[index]++;
         }
 
         private IWireFrameMesh NormalOverlay(IWireFrameMesh input, double radius)

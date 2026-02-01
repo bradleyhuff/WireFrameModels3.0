@@ -183,4 +183,16 @@ namespace BasicObjects.GeometricObjects
             return $"[ X: {X.ToString("#,##0.000000000000000")} Y: {Y.ToString("#,##0.000000000000000")} Z: {Z.ToString("#,##0.000000000000000")} ]";
         }
     }
+
+    public class PointComparer : IEqualityComparer<Point3D>
+    {
+        public bool Equals(Point3D x, Point3D y)
+        {
+            return Point3D.AreEqual(x, y);
+        }
+        public int GetHashCode(Point3D point)
+        {
+            return 0;
+        }
+    }
 }

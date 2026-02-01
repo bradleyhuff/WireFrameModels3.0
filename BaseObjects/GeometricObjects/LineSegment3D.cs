@@ -230,16 +230,6 @@ namespace BasicObjects.GeometricObjects
             return LinkingPoint(a, b) is null;
         }
 
-        //public static IEnumerable<LineSegment3D> LineSegmentIntersection(LineSegment3D a, LineSegment3D b)
-        //{
-        //    if (a is null || b is null) { yield break; }
-        //    if (a.IsDegenerate && b.IsDegenerate) { yield break; }
-
-
-
-        //    yield break;
-        //}
-
         public static LineSegment3D Intersection(LineSegment3D a, LineSegment3D b, double error = E.Double.ProximityError)
         {
             if (a is null || b is null) { return null; }

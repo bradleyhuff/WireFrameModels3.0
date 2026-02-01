@@ -3,15 +3,8 @@ using BaseObjects.GeometricObjects.Interfaces;
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
-using Collections.WireFrameMesh.Basics;
-using Microsoft.VisualBasic;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Classes
 {

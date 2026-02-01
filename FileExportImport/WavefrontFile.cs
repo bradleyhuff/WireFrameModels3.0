@@ -16,6 +16,13 @@ namespace FileExportImport
             Export(grid, fileName);
         }
 
+        public static void Export(IEnumerable<Triangle3D> triangles, string fileName)
+        {
+            var grid = WireFrameMesh.Create();
+            grid.AddRangeTriangles(triangles, "", 0);
+            Export(grid, fileName);
+        }
+
         public static void Export(IEnumerable<LineSegment3D> segments, string fileName)
         {
             var grid = WireFrameMesh.Create();

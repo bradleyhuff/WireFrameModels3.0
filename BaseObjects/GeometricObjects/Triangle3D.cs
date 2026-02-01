@@ -7,8 +7,9 @@ namespace BasicObjects.GeometricObjects
 {
     public class Triangle3D : IShape3D<Triangle3D>
     {
-        public Triangle3D(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz) : 
-            this(new Point3D(ax, ay, az), new Point3D(bx, by, bz), new Point3D(cx, cy, cz)) { }
+        public Triangle3D(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz) :
+            this(new Point3D(ax, ay, az), new Point3D(bx, by, bz), new Point3D(cx, cy, cz))
+        { }
         public Triangle3D(Point3D A, Point3D B, Point3D C)
         {
             this.A = A;
@@ -279,27 +280,30 @@ namespace BasicObjects.GeometricObjects
         }
         public bool AoverhangsBC
         {
-            get {
-                var projection = EdgeBC.LineExtension.Projection(A); 
+            get
+            {
+                var projection = EdgeBC.LineExtension.Projection(A);
                 return !Double.IsEqual(Point3D.Distance(B, projection) + Point3D.Distance(C, projection) - LengthBC, 0);
             }
         }
         public bool BoverhangsCA
         {
-            get {
+            get
+            {
                 var projection = EdgeCA.LineExtension.Projection(B);
-                return !Double.IsEqual(Point3D.Distance(C, projection) + Point3D.Distance(A, projection) - LengthCA, 0); 
+                return !Double.IsEqual(Point3D.Distance(C, projection) + Point3D.Distance(A, projection) - LengthCA, 0);
             }
         }
         public bool CoverhangsAB
         {
-            get {
+            get
+            {
                 var projection = EdgeAB.LineExtension.Projection(C);
-                return !Double.IsEqual(Point3D.Distance(A, projection) + Point3D.Distance(B, projection) - LengthAB, 0); 
+                return !Double.IsEqual(Point3D.Distance(A, projection) + Point3D.Distance(B, projection) - LengthAB, 0);
             }
         }
 
-        public enum Matching { None, AB, BC, CA}
+        public enum Matching { None, AB, BC, CA }
 
         public Matching GetEdgeMatch(double length)
         {
@@ -449,7 +453,23 @@ namespace BasicObjects.GeometricObjects
             {
                 if (_normal is null)
                 {
-                    _normal = Vector3D.Cross(A - B, A - C).Direction;
+                    var vectorAB = C - EdgeAB.LineExtension.Projection(C);
+                    var vectorBC = A - EdgeBC.LineExtension.Projection(A);
+                    var vectorCA = B - EdgeCA.LineExtension.Projection(B);
+
+                    if (vectorAB.Magnitude >= vectorBC.Magnitude && vectorAB.Magnitude >= vectorCA.Magnitude)
+                    {
+                        _normal = Vector3D.Cross(vectorAB.Direction, EdgeAB.LineExtension.Vector.Direction).Direction;
+                    }
+                    else if (vectorBC.Magnitude >= vectorAB.Magnitude && vectorBC.Magnitude >= vectorCA.Magnitude)
+                    {
+                        _normal = Vector3D.Cross(vectorBC.Direction, EdgeBC.LineExtension.Vector.Direction).Direction;
+                    }
+                    else
+                    {
+                        _normal = Vector3D.Cross(vectorCA.Direction, EdgeCA.LineExtension.Vector.Direction).Direction;
+                    }
+
                 }
                 return _normal;
             }
@@ -685,6 +705,19 @@ namespace BasicObjects.GeometricObjects
                 if (match is not null) { yield return match; yield break; }
             }
 
+            //var bb = a.AspectRatio > b.AspectRatio ? a : b;
+            //var cc = a.AspectRatio > b.AspectRatio ? b : a;
+
+            //var lineIntersection = bb.Plane.Intersection(cc);
+            //if (lineIntersection is null) { yield break; }
+            //{
+            //    var match = bb.LineSegmentIntersection(lineIntersection);
+            //    if (match is not null)
+            //    {
+            //        yield return match;
+            //    }
+            //}
+
             Line3D line = Plane.Intersection(a.Plane, b.Plane);
             if (line is null) { yield break; }
 
@@ -727,6 +760,13 @@ namespace BasicObjects.GeometricObjects
             foreach (var element in output.DistinctBy(l => l)) { yield return element; }
 
         }
+
+        //public LineSegment3D LineSegmentIntersection(LineSegment3D segment)
+        //{
+        //    if (PointIsContainedOn(segment.Start) && PointIsContainedOn(segment.End)) { return segment; }
+        //    return LineSegment3D.Intersection(LineSegmentIntersection(segment.LineExtension), segment);
+        //}
+
         public LineSegment3D LineSegmentIntersection(Line3D line)
         {
             Point3D ab = Line3D.PointIntersection(EdgeAB, line);
@@ -758,7 +798,8 @@ namespace BasicObjects.GeometricObjects
 
         public LineSegment3D LineSegmentIntersection(LineSegment3D segment)
         {
-            var match = LineSegmentIntersection(segment.LineExtension);
+            var line = Plane.Projection(new Line3D(segment.Start, segment.Vector.Direction));
+            var match = LineSegmentIntersection(line);
             if (match is null) { return null; }
             return LineSegment3D.Intersection(match, segment);
         }

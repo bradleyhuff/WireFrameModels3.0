@@ -96,7 +96,7 @@ namespace Projects.Projects
             var aT = a.Transform(t);
             var bT = b.Transform(t);
 
-            var intersections = Triangle3D.LineSegmentIntersections(aT, bT).ToArray();
+            var intersections = Triangle3D.LineSegmentIntersections(aT, bT).Where(i => i is not null).ToArray();
 
             grid.AddRangeTriangles([aT, bT], "", 0);
             intersectionGrid.AddRangeTriangles(intersections.Select(i => new Triangle3D(i.Start, i.Center, i.End)), "", 0);

@@ -90,7 +90,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            var range = 1e-9;
+            var range = 1e-11;//
 
             // Division point assignments from intersection of segments
             foreach (var triangle in intermeshTriangles)
@@ -134,7 +134,7 @@ namespace Operations.Intermesh.Classes
         {
             var match = bucket.Fetch(new Rectangle3D(point, BoxBucket.MARGINS));
             //var found = match.Where(m => Point3D.AreEqual(m.Point, point, GapConstants.Filler)).MinBy(p => Point3D.Distance(p.Point, point));
-            var found = match.Where(m => Point3D.AreEqual(m.Point, point, 1e-9)).MinBy(p => Point3D.Distance(p.Point, point));
+            var found = match.Where(m => Point3D.AreEqual(m.Point, point, 1e-9)).MinBy(p => Point3D.Distance(p.Point, point));//
             if (found is not null)
             {
                 return found;

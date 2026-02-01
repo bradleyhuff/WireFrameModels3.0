@@ -41,30 +41,30 @@ namespace Operations.Basics
             TableDisplays.ShowCountSpread("BC Adjacency counts", mesh.Triangles.Select(t => t.BCadjacents), l => l.Count);
             TableDisplays.ShowCountSpread("CA Adjacency counts", mesh.Triangles.Select(t => t.CAadjacents), l => l.Count);
 
-            Console.WriteLine($"Aspect 1e-3: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-3)}");
-            Console.WriteLine($"Aspect 1e-4: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-4)}");
-            Console.WriteLine($"Aspect 1e-5: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-5)}");
-            Console.WriteLine($"Aspect 1e-6: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-6)}");
-            Console.WriteLine($"Aspect 1e-7: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-7)}");
-            Console.WriteLine($"Aspect 1e-8: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-8)}");
-            Console.WriteLine($"Aspect 1e-9: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-9)}");
-            Console.WriteLine();
-            Console.WriteLine($"Minimum height 1e-3: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-3)}");
-            Console.WriteLine($"Minimum height 1e-4: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-4)}");
-            Console.WriteLine($"Minimum height 1e-5: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-5)}");
-            Console.WriteLine($"Minimum height 1e-6: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-6)}");
-            Console.WriteLine($"Minimum height 1e-7: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-7)}");
-            Console.WriteLine($"Minimum height 1e-8: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-8)}");
-            Console.WriteLine($"Minimum height 1e-9: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-9)}");
-            Console.WriteLine($"Minimum height 1e-10: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-10)}");
-            Console.WriteLine($"Minimum height 1e-11: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-11)}");
-            Console.WriteLine($"Minimum height 1e-12: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-12)}");
+            //Console.WriteLine($"Aspect 1e-3: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-3)}");
+            //Console.WriteLine($"Aspect 1e-4: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-4)}");
+            //Console.WriteLine($"Aspect 1e-5: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-5)}");
+            //Console.WriteLine($"Aspect 1e-6: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-6)}");
+            //Console.WriteLine($"Aspect 1e-7: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-7)}");
+            //Console.WriteLine($"Aspect 1e-8: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-8)}");
+            //Console.WriteLine($"Aspect 1e-9: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-9)}");
+            //Console.WriteLine();
+            //Console.WriteLine($"Minimum height 1e-3: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-3)}");
+            //Console.WriteLine($"Minimum height 1e-4: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-4)}");
+            //Console.WriteLine($"Minimum height 1e-5: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-5)}");
+            //Console.WriteLine($"Minimum height 1e-6: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-6)}");
+            //Console.WriteLine($"Minimum height 1e-7: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-7)}");
+            //Console.WriteLine($"Minimum height 1e-8: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-8)}");
+            //Console.WriteLine($"Minimum height 1e-9: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-9)}");
+            //Console.WriteLine($"Minimum height 1e-10: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-10)}");
+            //Console.WriteLine($"Minimum height 1e-11: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-11)}");
+            //Console.WriteLine($"Minimum height 1e-12: {mesh.Triangles.Count(t => t.Triangle.MinHeight < 1e-12)}");
 
-            ShowSmallDistances(mesh);
+            //ShowSmallDistances(mesh);
 
             var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
             var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
-            if (openEdges.Length == 0) { return; }
+            if (openEdges.Length == 0) { Console.WriteLine("No open edges"); return; }
             Console.WriteLine($"Open edges {openEdges.Length}");
             foreach (var openEdge in openEdges)
             {

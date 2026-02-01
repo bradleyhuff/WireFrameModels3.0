@@ -21,16 +21,16 @@ namespace Operations.Diagnostics.Intermesh
         {
             Dump(triangle, focusAt, magnification, Transform.Identity());
         }
-        private static void Dump(Operations.Intermesh.Basics.IntermeshTriangle triangle, Point3D focusAt, double magnification, Transform directionalTransform)
+        internal static void Dump(Operations.Intermesh.Basics.IntermeshTriangle triangle, Point3D focusAt, double magnification, Transform directionalTransform)
         {
             var zone = new Rectangle3D(focusAt, 1 / magnification);
-            WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Triangle-{triangle.Id}/Zone");
+            WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Triangle-{triangle.Id}/Zone-{triangle.Id}");
 
             var clippedTriangle = zone.Clip(triangle.Triangle.Transform(directionalTransform));
             if (clippedTriangle.Any())
             {
                 clippedTriangle = clippedTriangle.Select(c => c.TranslateToPointAndScale(focusAt, magnification));
-                WavefrontFile.Export(clippedTriangle, $"Wavefront/Triangle-{triangle.Id}/Graph");
+                WavefrontFile.Export(clippedTriangle, $"Wavefront/Triangle-{triangle.Id}/Graph-{triangle.Id}");
             }
 
             foreach (var segment in triangle.PerimeterDivisions)
@@ -40,7 +40,7 @@ namespace Operations.Diagnostics.Intermesh
                 if (clip is not null)
                 {
                     clip = clip.TranslateToPointAndScale(focusAt, magnification);
-                    WavefrontFile.Export([clip], $"Wavefront/Triangle-{triangle.Id}/Graph-Perimeter-{segment.Key}");
+                    WavefrontFile.Export([clip], $"Wavefront/Triangle-{triangle.Id}/Graph-{triangle.Id}-Perimeter-{segment.Key}");
                 }
             }
 
@@ -51,7 +51,7 @@ namespace Operations.Diagnostics.Intermesh
                 if (clip is not null)
                 {
                     clip = clip.Transform(Transform.TranslateToPointAndScale(focusAt, magnification));
-                    WavefrontFile.Export([clip], $"Wavefront/Triangle-{triangle.Id}/Graph-Internal-{segment.Key}");
+                    WavefrontFile.Export([clip], $"Wavefront/Triangle-{triangle.Id}/Graph-{triangle.Id}-Internal-{segment.Key}");
                 }
             }
         }

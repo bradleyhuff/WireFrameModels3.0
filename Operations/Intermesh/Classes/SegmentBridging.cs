@@ -26,11 +26,11 @@ namespace Operations.Intermesh.Classes
                 count += brokenEndPoints.Count();
                 if (!brokenEndPoints.Any()) { continue; }
 
-                System.Console.WriteLine($"{triangle.Id} Broken points {brokenEndPoints.Count()}");
+                System.Console.WriteLine($"{triangle.Id} Broken points [{string.Join(",", brokenEndPoints.Select(p => p.Point.Id))}]");
 
                 var brokenPointsConnected = new Dictionary<int, bool>();
 
-                foreach (var brokenEndPoint in brokenEndPoints)
+                foreach (var brokenEndPoint in brokenEndPoints.ToArray())
                 {
                     if (brokenPointsConnected.ContainsKey(brokenEndPoint.Point.Id)) { continue; }
                     var allResults = new List<Result>();
@@ -38,15 +38,19 @@ namespace Operations.Intermesh.Classes
                     allResults.AddRange(GetOtherPoints(triangle, brokenEndPoint));
                     var nearestResult = Point3D.GetNearestResult(allResults);
 
-                    if(nearestResult.EndPoint is not null)
+                    if (nearestResult.EndPoint is not null)
                     {
                         var key = new Combination2(brokenEndPoint.Point.Id, nearestResult.EndPoint.Id);
                         if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegment(brokenEndPoint.Point, nearestResult.EndPoint); }
                         var segment = segmentTable[key];
 
                         triangle.Add(segment);
+                        BaseObjects.Console.WriteLine($"Broken connect {segment.Key}");
                         brokenPointsConnected[nearestResult.EndPoint.Id] = true;
                         brokenPointsConnected[brokenEndPoint.Point.Id] = true;
+                        var bridge = new IntermeshSegment(brokenEndPoint.Point, nearestResult.EndPoint);
+                        BaseObjects.Console.WriteLine($"Add bridge {bridge.Key}");
+                        triangle.Add(bridge);
                     }
                     else if (nearestResult.Segment is not null)
                     {
@@ -54,9 +58,14 @@ namespace Operations.Intermesh.Classes
                         nearestResult.Segment.Add(i);
                         i.Add(nearestResult.Segment);
                         nearestResult.Segment.Add(triangle);
+                        BaseObjects.Console.WriteLine($"Broken connect {nearestResult.Segment.Key} add point {i.Id}");
                         brokenPointsConnected[brokenEndPoint.Point.Id] = true;
+                        var bridge = new IntermeshSegment(brokenEndPoint.Point, i);
+                        BaseObjects.Console.WriteLine($"Add bridge {bridge.Key}");
+                        triangle.Add(bridge);
                     }
                 }
+                
             }
 
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Segment Bridging. Broken points {count} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");

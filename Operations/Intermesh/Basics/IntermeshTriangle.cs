@@ -376,16 +376,17 @@ namespace Operations.Intermesh.Basics
         }
         public IEnumerable<IntermeshDivision> ABDivisions
         {
-            get { return _divisions.Where(d => PointIsOnAB(d.A) && PointIsOnAB(d.B)); }
+            get { return _divisions.Where(d => d.RelatedParentSegments.Any(r => r.Id == AB.Id)); }
         }
         public IEnumerable<IntermeshDivision> BCDivisions
         {
-            get { return _divisions.Where(d => PointIsOnBC(d.A) && PointIsOnBC(d.B)); }
+            get { return _divisions.Where(d => d.RelatedParentSegments.Any(r => r.Id == BC.Id)); }
         }
         public IEnumerable<IntermeshDivision> CADivisions
         {
-            get { return _divisions.Where(d => PointIsOnCA(d.A) && PointIsOnCA(d.B)); }
+            get { return _divisions.Where(d => d.RelatedParentSegments.Any(r => r.Id == CA.Id)); }
         }
+
         public IEnumerable<IntermeshDivision> PerimeterDivisions
         {
             get { return ABDivisions.Union(BCDivisions).Union(CADivisions).ToArray(); }

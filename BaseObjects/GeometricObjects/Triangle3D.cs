@@ -457,11 +457,15 @@ namespace BasicObjects.GeometricObjects
                     var vectorBC = A - EdgeBC.LineExtension.Projection(A);
                     var vectorCA = B - EdgeCA.LineExtension.Projection(B);
 
-                    if (vectorAB.Magnitude >= vectorBC.Magnitude && vectorAB.Magnitude >= vectorCA.Magnitude)
+                    var factorA = vectorAB.Magnitude * EdgeAB.Length;
+                    var factorB = vectorBC.Magnitude * EdgeBC.Length;
+                    var factorC = vectorCA.Magnitude * EdgeCA.Length;
+
+                    if (factorA >= factorB && factorA >= factorC)
                     {
                         _normal = Vector3D.Cross(vectorAB.Direction, EdgeAB.LineExtension.Vector.Direction).Direction;
                     }
-                    else if (vectorBC.Magnitude >= vectorAB.Magnitude && vectorBC.Magnitude >= vectorCA.Magnitude)
+                    else if (factorB >= factorA && factorB >= factorC)
                     {
                         _normal = Vector3D.Cross(vectorBC.Direction, EdgeBC.LineExtension.Vector.Direction).Direction;
                     }

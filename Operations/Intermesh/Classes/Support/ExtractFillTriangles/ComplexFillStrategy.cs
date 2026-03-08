@@ -1,6 +1,4 @@
-﻿using BaseObjects.Transformations;
-using BasicObjects.GeometricObjects;
-using Operations.Intermesh.Basics;
+﻿using Operations.Intermesh.Basics;
 using Operations.Intermesh.Classes.Support.ExtractFillTriangles.Interfaces;
 using Operations.PlanarFilling.Basics;
 using Operations.PlanarFilling.Filling;
@@ -40,7 +38,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                         Console.WriteLine($"Spurs [{string.Join(",", spur.Select(s => s.Reference.Id))}]");
                     }
 
-                    throw new Exception($"Spurs found {chain.SpurredLoops.Count()}");
+                    //throw new Exception($"Spurs found {chain.SpurredLoops.Count()}");
                 }
                 //chain = OpenSpurConnectChaining<PlanarFillingGroup, IntermeshPoint>.Create(chain);
                 //chain = SpurLoopingChaining<PlanarFillingGroup, IntermeshPoint>.Create(chain);
@@ -60,9 +58,36 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 //44243 Parent 43592 Internal segment[16569, 16579] [[X: 0.359046687017550 Y: 0.513143470268609 Z: 0.995000000000000 ], [X: 0.359046688059896 Y: 0.513143471022016 Z: 0.995000000000000 ]] 1.286121816911512E-09
 
                 //var directionalTransform = Transform.Identity();//Transform.DirectionalScaling(center, direction, 1.0 / aspectRatio);
-                //var center = new Point3D(0.359046687017550, 0.513143470268609, 0.995000000000000);
+                ////+		Point	{[ X: 0.999501616503769 Y: 0.999353398492339 Z: 1.000000000000000 ]}	BasicObjects.GeometricObjects.Point3D
 
-                //Diagnostics.Intermesh.IntermeshTriangle.Dump(triangle, center, 1e6, directionalTransform);
+                //var center = new Point3D(0.999501616503769, 0.999353398492339, 1.000000000000000);
+                //var scale = 1e1;
+
+                //Diagnostics.Intermesh.IntermeshTriangle.Dump(triangle, center, scale, directionalTransform);
+                //foreach (var ta in triangle.Adjacents)
+                //{
+                //    Console.WriteLine("Adjacent triangles");
+                //    Diagnostics.Intermesh.IntermeshTriangle.Dump(ta, center, scale, directionalTransform);
+                //}
+
+                //Console.WriteLine("Intersecting triangles");
+                //foreach (var t in triangle.IntersectingTriangles)
+                //{
+                //    Diagnostics.Intermesh.IntermeshTriangle.Dump(t, center, scale, directionalTransform);
+                //    foreach(var ta in t.Adjacents)
+                //    {
+                //        Console.WriteLine("Intersecting adjacent triangles");
+                //        Diagnostics.Intermesh.IntermeshTriangle.Dump(ta, center, scale, directionalTransform);
+                //    }
+                //}
+
+
+
+
+                //0.800253516674269 Y: 0.999500000000000 Z: 0.980415589415535
+                //center = new Point3D(0.800253516674269, 0.999500000000000, 0.980415589415535);
+                //Diagnostics.Intermesh.IntermeshTriangle.GraphIntersectingTriangles(triangle, center, 1e8, directionalTransform);
+                //Diagnostics.Intermesh.IntermeshTriangle.Dump(triangle, center, 1e8, directionalTransform);
 
                 //foreach(var adjacent in triangle.IntersectingTriangles)
                 //{

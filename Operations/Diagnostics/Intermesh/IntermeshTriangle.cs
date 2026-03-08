@@ -30,32 +30,69 @@ namespace Operations.Diagnostics.Intermesh
             if (clippedTriangle.Any())
             {
                 clippedTriangle = clippedTriangle.Select(c => c.TranslateToPointAndScale(focusAt, magnification));
-                WavefrontFile.Export(clippedTriangle, $"Wavefront/Triangle-{triangle.Id}/Graph-{triangle.Id}");
+                WavefrontFile.Export(clippedTriangle, $"Wavefront/Triangle-{triangle.Id}/Graph-{triangle.Id}-{triangle.Key}");
             }
 
             foreach (var segment in triangle.PerimeterDivisions)
             {
-                Console.WriteLine($"{segment.Id} Parent {segment.ParentSegment?.Id} Perimeter segment {segment.Key} {segment.Segment}");
                 var clip = zone.Clip(segment.Segment.Transform(directionalTransform));
                 if (clip is not null)
                 {
                     clip = clip.TranslateToPointAndScale(focusAt, magnification);
                     WavefrontFile.Export([clip], $"Wavefront/Triangle-{triangle.Id}/Graph-{triangle.Id}-Perimeter-{segment.Key}");
+                    Console.WriteLine($"Length {segment.Segment}");
                 }
             }
 
             foreach (var segment in triangle.InternalDivisions)
             {
-                Console.WriteLine($"{segment.Id} Parent {segment.ParentSegment?.Id} Internal segment {segment.Key} {segment.Segment}");
                 var clip = zone.Clip(segment.Segment.Transform(directionalTransform));
                 if (clip is not null)
                 {
                     clip = clip.Transform(Transform.TranslateToPointAndScale(focusAt, magnification));
                     WavefrontFile.Export([clip], $"Wavefront/Triangle-{triangle.Id}/Graph-{triangle.Id}-Internal-{segment.Key}");
+                    Console.WriteLine($"Length {segment.Segment}");
                 }
             }
         }
 
-        
+        internal static void GraphIntersectingTriangles(Operations.Intermesh.Basics.IntermeshTriangle triangle, Point3D focusAt, double magnification, Transform directionalTransform)
+        {
+            var zone = new Rectangle3D(focusAt, 1 / magnification);
+            WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/TriangleIntersectors-{triangle.Id}/Zone-{triangle.Id}");
+            {
+                var clippedTriangle = zone.Clip(triangle.Triangle.Transform(directionalTransform));
+                if (clippedTriangle.Any())
+                {
+                    clippedTriangle = clippedTriangle.Select(c => c.TranslateToPointAndScale(focusAt, magnification));
+                    WavefrontFile.Export(clippedTriangle, $"Wavefront/TriangleIntersectors-{triangle.Id}/Graph-{triangle.Id}");
+                }
+            }
+
+            foreach (var intersector in triangle.IntersectingTriangles)
+            {
+                var clippedTriangle = zone.Clip(intersector.Triangle.Transform(directionalTransform));
+                if (clippedTriangle.Any())
+                {
+                    clippedTriangle = clippedTriangle.Select(c => c.TranslateToPointAndScale(focusAt, magnification));
+                    WavefrontFile.Export(clippedTriangle, $"Wavefront/TriangleIntersectors-{triangle.Id}/Intersector-{intersector.Id}");
+                }
+
+                var intersections = triangle.GatheringSets[intersector.Id]?.Intersections ?? Enumerable.Empty<LineSegment3D>();
+                foreach (var intersection in intersections)
+                {
+                    int index = 0;
+                    var clip = zone.Clip(intersection.Transform(directionalTransform));
+                    if (clip is not null)
+                    {
+                        clip = clip.Transform(Transform.TranslateToPointAndScale(focusAt, magnification));
+                        Console.WriteLine($"{triangle.Id} Intersector {intersector.Id} Intersection {intersection}");
+                        WavefrontFile.Export([clip], $"Wavefront/TriangleIntersectors-{triangle.Id}/Intersector_{intersector.Id}-Intersection{index}");
+                        index++;
+                    }
+                }
+
+            }
+        }        
     }
 }

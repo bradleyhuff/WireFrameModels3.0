@@ -68,6 +68,7 @@ namespace Operations.Intermesh.Classes
             }
 
             // Triangle intersection segment assignments
+            //Loop A
             foreach (var triangle in intermeshTriangles)
             {
                 foreach (var set in triangle.GatheringSets)
@@ -90,7 +91,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            var range = 1e-11;//
+            var range = 1e-13;//
 
             // Division point assignments from intersection of segments
             foreach (var triangle in intermeshTriangles)
@@ -101,6 +102,7 @@ namespace Operations.Intermesh.Classes
                     var matches = gatherings.Where(g => Rectangle3D.Overlaps(g.Box, segment.Box)).Where(m => m.Key != segment.Key);
                     foreach (var match in matches)
                     {
+                        //Loop B
                         var intersection = LineSegment3D.PointIntersection(match.Segment, segment.Segment, range);//
                         if (intersection is not null && triangle.Triangle.PointIsContainedOn(intersection, range))//
                         {
@@ -110,6 +112,7 @@ namespace Operations.Intermesh.Classes
                             segment.Add(triangle);
                         }
 
+                        //Loop C
                         var intersection2 = LineSegment3D.Intersection(match.Segment, segment.Segment, range);//
                         if (intersection2 is not null &&
                             triangle.Triangle.PointIsContainedOn(intersection2.Start, range) &&//
@@ -127,6 +130,42 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
+            //Build bases
+            var segmentBucket = new BoxBucket<IntermeshSegment>(segmentTable.Values);
+            foreach (var segment in segmentTable.Values)
+            {
+                var matches = segmentBucket.Fetch(segment);
+                foreach (var match in matches)
+                {
+                    if (match.DivisionPoints.Any(d => d.Id == segment.Start.Id) && match.DivisionPoints.Any(d => d.Id == segment.End.Id))
+                    {
+                        segment.Add(match);
+                    }
+                }
+            }
+
+            foreach (var segment in segmentTable.Values)
+            {
+                foreach (var base_ in segment.Bases)
+                {
+                    foreach (var internalPoint in segment.InternalDivisionPoints)
+                    {
+                        base_.Add(internalPoint);
+                    }
+                }
+            }
+
+            foreach (var segment in segmentTable.Values)
+            {
+                foreach (var base_ in segment.Bases)
+                {
+                    foreach (var internalPoint in base_.InternalDivisionPoints)
+                    {
+                        segment.Add(internalPoint);//
+                    }
+                }
+            }
+
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
@@ -134,7 +173,7 @@ namespace Operations.Intermesh.Classes
         {
             var match = bucket.Fetch(new Rectangle3D(point, BoxBucket.MARGINS));
             //var found = match.Where(m => Point3D.AreEqual(m.Point, point, GapConstants.Filler)).MinBy(p => Point3D.Distance(p.Point, point));
-            var found = match.Where(m => Point3D.AreEqual(m.Point, point, 1e-12)).MinBy(p => Point3D.Distance(p.Point, point));//
+            var found = match.Where(m => Point3D.AreEqual(m.Point, point, 1e-12)).MinBy(p => Point3D.Distance(p.Point, point));
             if (found is not null)
             {
                 return found;

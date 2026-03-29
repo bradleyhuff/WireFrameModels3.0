@@ -10,7 +10,7 @@ namespace Operations.Intermesh.Classes
 {
     internal class SegmentBridging
     {
-        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles, BoxBucket<IntermeshPoint> pointsBucket, Combination2Dictionary<IntermeshSegment> segmentTable)
+        internal static void Action(IEnumerable<IntermeshTriangleOLD> intermeshTriangles, BoxBucket<IntermeshPointOLD> pointsBucket, Combination2Dictionary<IntermeshSegmentOLD> segmentTable)
         {
             DateTime start = DateTime.Now;
             int count = 0;
@@ -41,15 +41,15 @@ namespace Operations.Intermesh.Classes
                     if (nearestResult.EndPoint is not null)
                     {
                         var key = new Combination2(brokenEndPoint.Point.Id, nearestResult.EndPoint.Id);
-                        if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegment(brokenEndPoint.Point, nearestResult.EndPoint); }
+                        if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegmentOLD(brokenEndPoint.Point, nearestResult.EndPoint); }
                         var segment = segmentTable[key];
 
                         triangle.Add(segment);
-                        BaseObjects.Console.WriteLine($"Broken connect {segment.Key}");
+                        //BaseObjects.Console.WriteLine($"Broken connect {segment.Key}");
                         brokenPointsConnected[nearestResult.EndPoint.Id] = true;
                         brokenPointsConnected[brokenEndPoint.Point.Id] = true;
-                        var bridge = new IntermeshSegment(brokenEndPoint.Point, nearestResult.EndPoint);
-                        BaseObjects.Console.WriteLine($"Add bridge {bridge.Key}");
+                        var bridge = new IntermeshSegmentOLD(brokenEndPoint.Point, nearestResult.EndPoint);
+                        //BaseObjects.Console.WriteLine($"Add bridge {bridge.Key}");
                         triangle.Add(bridge);
                     }
                     else if (nearestResult.Segment is not null)
@@ -58,10 +58,10 @@ namespace Operations.Intermesh.Classes
                         nearestResult.Segment.Add(i);
                         i.Add(nearestResult.Segment);
                         nearestResult.Segment.Add(triangle);
-                        BaseObjects.Console.WriteLine($"Broken connect {nearestResult.Segment.Key} add point {i.Id}");
+                        //BaseObjects.Console.WriteLine($"Broken connect {nearestResult.Segment.Key} add point {i.Id}");
                         brokenPointsConnected[brokenEndPoint.Point.Id] = true;
-                        var bridge = new IntermeshSegment(brokenEndPoint.Point, i);
-                        BaseObjects.Console.WriteLine($"Add bridge {bridge.Key}");
+                        var bridge = new IntermeshSegmentOLD(brokenEndPoint.Point, i);
+                        //BaseObjects.Console.WriteLine($"Add bridge {bridge.Key}");
                         triangle.Add(bridge);
                     }
                 }
@@ -71,7 +71,7 @@ namespace Operations.Intermesh.Classes
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Segment Bridging. Broken points {count} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
-        private static IEnumerable<Result> GetProjectSegmentPoints(IntermeshTriangle triangle, BrokenEndPoint brokenEndPoint)
+        private static IEnumerable<Result> GetProjectSegmentPoints(IntermeshTriangleOLD triangle, BrokenEndPoint brokenEndPoint)
         {
             var projectedPoints = triangle.Segments.
                 Where(s => brokenEndPoint.Segments.Single().Id != s.Id).
@@ -91,7 +91,7 @@ namespace Operations.Intermesh.Classes
             return projectedPoints;
         }
 
-        private static IEnumerable<Result> GetOtherPoints(IntermeshTriangle triangle, BrokenEndPoint brokenEndPoint)
+        private static IEnumerable<Result> GetOtherPoints(IntermeshTriangleOLD triangle, BrokenEndPoint brokenEndPoint)
         {
             var otherPoints = triangle.SegmentPoints.Where(p => p.Id != brokenEndPoint.Point.Id).
                 Select(b => new Result()
@@ -106,16 +106,16 @@ namespace Operations.Intermesh.Classes
 
         private struct BrokenEndPoint
         {
-            public IntermeshPoint Point { get; set; }
-            public IntermeshSegment[] Segments { get; set; }
+            public IntermeshPointOLD Point { get; set; }
+            public IntermeshSegmentOLD[] Segments { get; set; }
         }
 
         private struct Result : IResult
         {
             public Point3D Point { get; set; }
             public double Distance { get; set; }
-            public IntermeshSegment Segment { get; set; }
-            public IntermeshPoint EndPoint { get; set; }
+            public IntermeshSegmentOLD Segment { get; set; }
+            public IntermeshPointOLD EndPoint { get; set; }
         }
     }
 }

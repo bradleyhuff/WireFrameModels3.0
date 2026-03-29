@@ -10,9 +10,9 @@
 //var project = new CurvedPlate();
 //var project = new VectorAngleCheck();
 //var project = new RoundedCube();
-//var project = new IntermeshDevelopment();
+var project = new IntermeshDevelopment();
 //var project = new DiceMeshTest();
-var project = new UnionCheck();
+//var project = new UnionCheck();
 //var project = new TriangleIntersections();
 //var project = new TriangleIntersectionTests();
 project.Run();

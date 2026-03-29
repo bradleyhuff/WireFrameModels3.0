@@ -12,7 +12,7 @@ namespace Operations.Intermesh.Classes
 {
     internal class UpdateResultsGrid
     {
-        internal static void Action(IWireFrameMesh mesh, IEnumerable<IntermeshTriangle> processTriangles)
+        internal static void Action(IWireFrameMesh mesh, IEnumerable<IntermeshTriangleOLD> processTriangles)
         {
             var start = DateTime.Now;
 

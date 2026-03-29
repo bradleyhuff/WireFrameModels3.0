@@ -20,7 +20,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             get { return count; }
         }
 
-        public void GetFillTriangles(IntermeshTriangle triangle)
+        public void GetFillTriangles(IntermeshTriangleOLD triangle)
         {
             count++;
             if (!triangle.HasInternalDivisions) { noDivisions++; triangle.Fillings.Add(new FillTriangle(triangle)); return; }
@@ -39,7 +39,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             throw new InvalidOperationException($"Incorrect triangle fill strategy used.");
         }
 
-        public bool ShouldUseStrategy(IntermeshTriangle triangle)
+        public bool ShouldUseStrategy(IntermeshTriangleOLD triangle)
         {
             if (triangle.IsNearDegenerate) { return false; }
             if (triangle.InternalPoints.Any()) { return false; }
@@ -57,7 +57,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             return false;
         }
 
-        private bool SingleSegmentCase(IntermeshTriangle triangle, bool applyFill)
+        private bool SingleSegmentCase(IntermeshTriangleOLD triangle, bool applyFill)
         {
             if (triangle.AB?.InternalDivisions == 1 && (triangle.BC?.InternalDivisions ?? 0) == 0 && (triangle.CA?.InternalDivisions ?? 0) == 0)
             {
@@ -126,7 +126,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             return false;
         }
 
-        private bool DoubleSegmentCase(IntermeshTriangle triangle, bool applyFill)
+        private bool DoubleSegmentCase(IntermeshTriangleOLD triangle, bool applyFill)
         {
             if (triangle.AB?.InternalDivisions == 2)
             {

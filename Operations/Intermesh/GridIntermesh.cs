@@ -15,12 +15,13 @@ internal static class GridIntermesh
     {
         DateTime start = DateTime.Now;
         if (!Mode.ThreadedRun) ConsoleLog.Push("Intermesh");
-        var collection = mesh.Triangles.Select(t => new Basics.IntermeshTriangle(t)).ToArray();
+        var collection = mesh.Triangles.Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
         TriangleGathering.Action(collection);
         CalculateIntersections.Action(collection);
-        LinkIntersections.Action(collection, out BoxBucket<IntermeshPoint>  pointsBucket, out Combination2Dictionary<IntermeshSegment> segmentTable);
+        LinkIntersections.Action(collection, out BoxBucket<IntermeshPointOLD>  pointsBucket, out Combination2Dictionary<IntermeshSegmentOLD> segmentTable);
         SegmentBridging.Action(collection, pointsBucket, segmentTable);
         BuildDivisions.Action(collection);
+        //ResolveCapsules.Action(collection);
         collection = collection.Where(t => t.HasInternalDivisions).ToArray();
         ExtractFillTriangles.Action(collection);
         //FillOverlapRemoval.Action(collection);
@@ -35,12 +36,13 @@ internal static class GridIntermesh
     {
         DateTime start = DateTime.Now;
         if (!Mode.ThreadedRun) ConsoleLog.Push("Intermesh");
-        var collection = mesh.Triangles.Where(t => include(t)).Select(t => new Basics.IntermeshTriangle(t)).ToArray();
+        var collection = mesh.Triangles.Where(t => include(t)).Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
         TriangleGathering.ActionSingle(collection);
         CalculateIntersections.ActionSingle(collection);
-        LinkIntersections.Action(collection, out BoxBucket<IntermeshPoint> pointsBucket, out Combination2Dictionary<IntermeshSegment> segmentTable);
+        LinkIntersections.Action(collection, out BoxBucket<IntermeshPointOLD> pointsBucket, out Combination2Dictionary<IntermeshSegmentOLD> segmentTable);
         SegmentBridging.Action(collection, pointsBucket, segmentTable);
         BuildDivisions.Action(collection);
+        ResolveCapsules.Action(collection);
         collection = collection.Where(t => t.HasInternalDivisions).ToArray();
         ExtractFillTriangles.Action(collection);
         //FillOverlapRemoval.Action(collection);

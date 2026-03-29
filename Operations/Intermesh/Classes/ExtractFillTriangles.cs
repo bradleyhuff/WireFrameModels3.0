@@ -9,9 +9,9 @@ namespace Operations.Intermesh.Classes
 {
     internal class ExtractFillTriangles
     {
-        static IFillStrategy[] _fillStrategies = { new SimpleFillStrategy(), new NearDegenerateFillStrategy(), new ComplexFillStrategy() };
+        static IFillStrategy[] _fillStrategies = { new SimpleFillStrategy(), /*new NearDegenerateFillStrategy(),*/ new ComplexFillStrategy() };
 
-        internal static void Action(IEnumerable<IntermeshTriangle> triangles)
+        internal static void Action(IEnumerable<IntermeshTriangleOLD> triangles)
         {
             var start = DateTime.Now;
 
@@ -28,8 +28,6 @@ namespace Operations.Intermesh.Classes
 
                 Logging.ShowLog = false;
                 fillStrategy.GetFillTriangles(triangle);
-
-                
             }
 
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Extract fill triangles. Simple {simpleFillCount} NearDegenerate {nearDegenerateFillCount} Complex {complexFillCount} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");

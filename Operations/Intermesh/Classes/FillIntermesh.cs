@@ -13,7 +13,7 @@ namespace Operations.Intermesh.Classes
 {
     internal class FillIntermesh
     {
-        internal static void Action(IEnumerable<IntermeshTriangle> triangles)
+        internal static void Action(IEnumerable<IntermeshTriangleOLD> triangles)
         {
             var start = DateTime.Now;
             var fillings = triangles.SelectMany(t => t.Fillings).ToArray();

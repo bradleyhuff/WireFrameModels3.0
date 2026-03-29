@@ -138,9 +138,10 @@ namespace BasicObjects.GeometricObjects
             if (direction.Magnitude < E.Double.ProximityError) { gap = double.NaN; return null; }// take out later
 
             E.LinearSystems.Solve3x3(
-                aVector.X, -bVector.X, direction.X, aVector.Y,
-                -bVector.Y, direction.Y, aVector.Z, -bVector.Z,
-                direction.Z, bStart.X - aStart.X, bStart.Y - aStart.Y, bStart.Z - aStart.Z,
+                aVector.X, -bVector.X, direction.X, 
+                aVector.Y, -bVector.Y, direction.Y, 
+                aVector.Z, -bVector.Z, direction.Z, 
+                bStart.X - aStart.X, bStart.Y - aStart.Y, bStart.Z - aStart.Z,
                 out double α0, out double α1, out double ß);
 
             double ia0 = aStart.X + α0 * aVector.X; // intersection of line a

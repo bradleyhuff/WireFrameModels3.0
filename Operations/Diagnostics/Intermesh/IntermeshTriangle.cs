@@ -11,17 +11,17 @@ namespace Operations.Diagnostics.Intermesh
 {
     public static class IntermeshTriangle
     {
-        internal static void Dump(Operations.Intermesh.Basics.IntermeshTriangle triangle, Point3D focusAt, double magnification, double directionalScale)
+        internal static void Dump(Operations.Intermesh.Basics.IntermeshTriangleOLD triangle, Point3D focusAt, double magnification, double directionalScale)
         {
             var directionalTransform = Transform.DirectionalScaling(triangle.Triangle.Center, triangle.Triangle.MinimumHeight.Direction, directionalScale);
             Dump(triangle, focusAt, magnification, directionalTransform);
         }
 
-        internal static void Dump(Operations.Intermesh.Basics.IntermeshTriangle triangle, Point3D focusAt, double magnification)
+        internal static void Dump(Operations.Intermesh.Basics.IntermeshTriangleOLD triangle, Point3D focusAt, double magnification)
         {
             Dump(triangle, focusAt, magnification, Transform.Identity());
         }
-        internal static void Dump(Operations.Intermesh.Basics.IntermeshTriangle triangle, Point3D focusAt, double magnification, Transform directionalTransform)
+        internal static void Dump(Operations.Intermesh.Basics.IntermeshTriangleOLD triangle, Point3D focusAt, double magnification, Transform directionalTransform)
         {
             var zone = new Rectangle3D(focusAt, 1 / magnification);
             WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Triangle-{triangle.Id}/Zone-{triangle.Id}");
@@ -56,7 +56,7 @@ namespace Operations.Diagnostics.Intermesh
             }
         }
 
-        internal static void GraphIntersectingTriangles(Operations.Intermesh.Basics.IntermeshTriangle triangle, Point3D focusAt, double magnification, Transform directionalTransform)
+        internal static void GraphIntersectingTriangles(Operations.Intermesh.Basics.IntermeshTriangleOLD triangle, Point3D focusAt, double magnification, Transform directionalTransform)
         {
             var zone = new Rectangle3D(focusAt, 1 / magnification);
             WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/TriangleIntersectors-{triangle.Id}/Zone-{triangle.Id}");

@@ -15,7 +15,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         {
             get { return count; }
         }
-        public void GetFillTriangles(IntermeshTriangle triangle)
+        public void GetFillTriangles(IntermeshTriangleOLD triangle)
         {
             if (!ShouldUseStrategy(triangle)) { throw new InvalidOperationException($"Incorrect triangle fill strategy used."); }
             count++;
@@ -24,7 +24,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             var vertices = triangle.Verticies;
             if (Logging.ShowLog) { Console.WriteLine($"Triangle\n{string.Join("\n", vertices.Select(v => v.Point))}"); }
 
-            var strategy = new NearDegenerateFill<IntermeshPoint>(divisions, p => p.Point, p => p.Id, p => vertices.Any(pp => pp.Id == p.Id), p => perimeterPoints.Any(pp => pp.Id == p.Id));
+            var strategy = new NearDegenerateFill<IntermeshPointOLD>(divisions, p => p.Point, p => p.Id, p => vertices.Any(pp => pp.Id == p.Id), p => perimeterPoints.Any(pp => pp.Id == p.Id));
 
             foreach (var filling in strategy.GetFill())
             {
@@ -32,7 +32,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             }
         }
 
-        public bool ShouldUseStrategy(IntermeshTriangle triangle)
+        public bool ShouldUseStrategy(IntermeshTriangleOLD triangle)
         {
             return triangle.Triangle.Normal.Magnitude == 0;
         }

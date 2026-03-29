@@ -16,7 +16,7 @@ namespace Operations.Intermesh.Classes
         private static int example = 0;
         private static int example2 = 0;
         private static object lockObject = new object();
-        internal static void Action(IEnumerable<IntermeshTriangle> triangles)
+        internal static void Action(IEnumerable<IntermeshTriangleOLD> triangles)
         {
             var start = DateTime.Now;
 

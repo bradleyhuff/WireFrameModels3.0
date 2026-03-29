@@ -8,27 +8,27 @@ namespace Operations.Intermesh.Classes
 {
     internal class CalculateIntersections
     {
-        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        internal static void Action(IEnumerable<IntermeshTriangleOLD> intermeshTriangles)
         {
             DateTime start = DateTime.Now;
 
             var calculationState = new CalculationState();
-            var calculationIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
+            var calculationIterator = new Iterator<IntermeshTriangleOLD>(intermeshTriangles.ToArray());
             calculationIterator.Run<CalculationState, CalculationThread>(CalculationAction, calculationState);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {calculationState.Threads}");
         }
 
-        internal static void ActionSingle(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        internal static void ActionSingle(IEnumerable<IntermeshTriangleOLD> intermeshTriangles)
         {
             DateTime start = DateTime.Now;
 
             var calculationState = new CalculationState();
-            var calculationIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
+            var calculationIterator = new Iterator<IntermeshTriangleOLD>(intermeshTriangles.ToArray());
             calculationIterator.RunSingle<CalculationState, CalculationThread>(CalculationAction, calculationState);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
-        private static void CalculationAction(IntermeshTriangle triangle, CalculationThread threadState, CalculationState state)
+        private static void CalculationAction(IntermeshTriangleOLD triangle, CalculationThread threadState, CalculationState state)
         {
             foreach (var gathering in triangle.Gathering)
             {

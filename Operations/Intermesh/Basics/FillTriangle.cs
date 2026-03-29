@@ -13,13 +13,13 @@ namespace Operations.Intermesh.Basics
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        internal FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, IntermeshPoint pointB, IntermeshPoint pointC) :
+        internal FillTriangle(IntermeshTriangleOLD triangle, IntermeshPointOLD pointA, IntermeshPointOLD pointB, IntermeshPointOLD pointC) :
             this(triangle, pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point), pointA.Id,
                 pointB.Point, triangle.NormalFromProjectedPoint(pointB.Point), pointB.Id,
                 pointC.Point, triangle.NormalFromProjectedPoint(pointC.Point), pointC.Id,
                 -1, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag)
         { }
-        internal FillTriangle(IntermeshTriangle node) :
+        internal FillTriangle(IntermeshTriangleOLD node) :
             this(node, node.A.Point, node.PositionTriangle.A.Normal, node.A.Id,
                 node.B.Point, node.PositionTriangle.B.Normal, node.B.Id,
                 node.C.Point, node.PositionTriangle.C.Normal, node.C.Id,
@@ -27,7 +27,7 @@ namespace Operations.Intermesh.Basics
         { }
 
         public FillTriangle(Point3D pointA, Vector3D normalA, int indexA, Point3D pointB, Vector3D normalB, int indexB, Point3D pointC, Vector3D normalC, int indexC, string trace, int tag) : this(null, pointA, normalA, indexA, pointB, normalB, indexB, pointC, normalC, indexC, 0, trace, tag) { }
-        internal FillTriangle(IntermeshTriangle node, Point3D pointA, Vector3D normalA, int indexA, Point3D pointB, Vector3D normalB, int indexB, Point3D pointC, Vector3D normalC, int indexC, int fillId, string trace, int tag)
+        internal FillTriangle(IntermeshTriangleOLD node, Point3D pointA, Vector3D normalA, int indexA, Point3D pointB, Vector3D normalB, int indexB, Point3D pointC, Vector3D normalC, int indexC, int fillId, string trace, int tag)
         {
             lock (lockObject)
             {
@@ -54,7 +54,7 @@ namespace Operations.Intermesh.Basics
         public int Tag { get; }
         public bool Disabled { get; set; }
 
-        internal IntermeshTriangle ParentIntermesh { get; }
+        internal IntermeshTriangleOLD ParentIntermesh { get; }
 
         private Triangle3D _triangle = null;
 

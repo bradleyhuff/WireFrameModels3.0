@@ -4,16 +4,17 @@ using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
+using Double = BasicObjects.Math.Double;
 
 namespace Operations.Intermesh.Classes
 {
     internal class LinkIntersections
     {
-        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles, out BoxBucket<IntermeshPoint> pointsBucket, out Combination2Dictionary<IntermeshSegment> segmentTable)
+        internal static void Action(IEnumerable<IntermeshTriangleOLD> intermeshTriangles, out BoxBucket<IntermeshPointOLD> pointsBucket, out Combination2Dictionary<IntermeshSegmentOLD> segmentTable)
         {
             DateTime start = DateTime.Now;
 
-            pointsBucket = new BoxBucket<IntermeshPoint>();
+            pointsBucket = new BoxBucket<IntermeshPointOLD>();
 
             //Triangle vertex assignments
             foreach (var triangle in intermeshTriangles)
@@ -30,7 +31,7 @@ namespace Operations.Intermesh.Classes
                 c.Add(triangle);
             }
 
-            segmentTable = new Combination2Dictionary<IntermeshSegment>();
+            segmentTable = new Combination2Dictionary<IntermeshSegmentOLD>();
 
             //Triangle side assignments
             foreach (var triangle in intermeshTriangles)
@@ -38,7 +39,7 @@ namespace Operations.Intermesh.Classes
                 if (triangle.AB == null)
                 {
                     var key = new Combination2(triangle.A.Id, triangle.B.Id);
-                    if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegment(triangle.A, triangle.B); }
+                    if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegmentOLD(triangle.A, triangle.B); }
                     var segment = segmentTable[key];
                     triangle.A.Add(segment);
                     triangle.B.Add(segment);
@@ -48,7 +49,7 @@ namespace Operations.Intermesh.Classes
                 if (triangle.BC == null)
                 {
                     var key = new Combination2(triangle.B.Id, triangle.C.Id);
-                    if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegment(triangle.B, triangle.C); }
+                    if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegmentOLD(triangle.B, triangle.C); }
                     var segment = segmentTable[key];
                     triangle.B.Add(segment);
                     triangle.C.Add(segment);
@@ -58,7 +59,7 @@ namespace Operations.Intermesh.Classes
                 if (triangle.CA == null)
                 {
                     var key = new Combination2(triangle.C.Id, triangle.A.Id);
-                    if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegment(triangle.C, triangle.A); }
+                    if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegmentOLD(triangle.C, triangle.A); }
                     var segment = segmentTable[key];
                     triangle.C.Add(segment);
                     triangle.A.Add(segment);
@@ -80,7 +81,7 @@ namespace Operations.Intermesh.Classes
 
                         if (a.Id == b.Id) { continue; }
                         var key = new Combination2(a.Id, b.Id);
-                        if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegment(a, b); }
+                        if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshSegmentOLD(a, b); }
                         var segment = segmentTable[key];
 
                         a.Add(segment);
@@ -91,7 +92,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            var range = 1e-13;//
+            var range = Double.ProximityError;//
 
             // Division point assignments from intersection of segments
             foreach (var triangle in intermeshTriangles)
@@ -131,7 +132,7 @@ namespace Operations.Intermesh.Classes
             }
 
             //Build bases
-            var segmentBucket = new BoxBucket<IntermeshSegment>(segmentTable.Values);
+            var segmentBucket = new BoxBucket<IntermeshSegmentOLD>(segmentTable.Values);
             foreach (var segment in segmentTable.Values)
             {
                 var matches = segmentBucket.Fetch(segment);
@@ -169,7 +170,7 @@ namespace Operations.Intermesh.Classes
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Link intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
-        internal static IntermeshPoint FetchPointAt(Point3D point, BoxBucket<IntermeshPoint> bucket)
+        internal static IntermeshPointOLD FetchPointAt(Point3D point, BoxBucket<IntermeshPointOLD> bucket)
         {
             var match = bucket.Fetch(new Rectangle3D(point, BoxBucket.MARGINS));
             //var found = match.Where(m => Point3D.AreEqual(m.Point, point, GapConstants.Filler)).MinBy(p => Point3D.Distance(p.Point, point));
@@ -178,12 +179,12 @@ namespace Operations.Intermesh.Classes
             {
                 return found;
             }
-            var intermeshPoint = new IntermeshPoint(point);
+            var intermeshPoint = new IntermeshPointOLD(point);
             bucket.Add(intermeshPoint);
             return intermeshPoint;
         }
 
-        private static IntermeshPoint FetchVertexPointAt(Point3D point, BoxBucket<IntermeshPoint> bucket)
+        private static IntermeshPointOLD FetchVertexPointAt(Point3D point, BoxBucket<IntermeshPointOLD> bucket)
         {
             var match = bucket.Fetch(new Rectangle3D(point, BoxBucket.MARGINS));
             //var found = match.Where(m => Point3D.AreEqual(m.Point, point, GapConstants.Resolution)).MinBy(p => Point3D.Distance(p.Point, point));
@@ -192,7 +193,7 @@ namespace Operations.Intermesh.Classes
             {
                 return found;
             }
-            var intermeshPoint = new IntermeshPoint(point);
+            var intermeshPoint = new IntermeshPointOLD(point);
             bucket.Add(intermeshPoint);
             return intermeshPoint;
         }

@@ -7,11 +7,11 @@ namespace Operations.Intermesh.Classes
 {
     internal class BuildDivisions
     {
-        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        internal static void Action(IEnumerable<IntermeshTriangleOLD> intermeshTriangles)
         {
             DateTime start = DateTime.Now;
 
-            var table = new Combination2Dictionary<IntermeshDivision>();
+            var table = new Combination2Dictionary<IntermeshDivisionOLD>();
 
             foreach (var element in intermeshTriangles)
             {

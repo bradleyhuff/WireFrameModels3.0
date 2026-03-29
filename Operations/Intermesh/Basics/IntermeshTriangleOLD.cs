@@ -12,12 +12,12 @@ using Operations.SurfaceSegmentChaining.Basics;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshTriangle : IBox
+    internal class IntermeshTriangleOLD : IBox
     {
         private static int _id = 0;
         private PositionTriangle _triangle;
         private static object lockObject = new object();
-        internal IntermeshTriangle(PositionTriangle triangle)
+        internal IntermeshTriangleOLD(PositionTriangle triangle)
         {
             _triangle = triangle;
             lock (lockObject)
@@ -30,11 +30,11 @@ namespace Operations.Intermesh.Basics
         public Combination3 Key { get { return new Combination3(A.Id, B.Id, C.Id); } }
         public PositionTriangle PositionTriangle { get { return _triangle; } }
 
-        public IntermeshPoint A { get; set; }
-        public IntermeshPoint B { get; set; }
-        public IntermeshPoint C { get; set; }
+        public IntermeshPointOLD A { get; set; }
+        public IntermeshPointOLD B { get; set; }
+        public IntermeshPointOLD C { get; set; }
 
-        public IEnumerable<IntermeshPoint> Verticies
+        public IEnumerable<IntermeshPointOLD> Verticies
         {
             get
             {
@@ -52,7 +52,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IntermeshSegment AB
+        public IntermeshSegmentOLD AB
         {
             get
             {
@@ -61,7 +61,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IntermeshSegment BC
+        public IntermeshSegmentOLD BC
         {
             get
             {
@@ -70,7 +70,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IntermeshSegment CA
+        public IntermeshSegmentOLD CA
         {
             get
             {
@@ -79,7 +79,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IntermeshSegment> PerimeterSegments
+        public IEnumerable<IntermeshSegmentOLD> PerimeterSegments
         {
             get
             {
@@ -89,7 +89,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IntermeshTriangle> Adjacents
+        public IEnumerable<IntermeshTriangleOLD> Adjacents
         {
             get
             {
@@ -97,7 +97,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IntermeshTriangle> ABadjacents
+        public IEnumerable<IntermeshTriangleOLD> ABadjacents
         {
             get
             {
@@ -105,7 +105,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IntermeshTriangle> BCadjacents
+        public IEnumerable<IntermeshTriangleOLD> BCadjacents
         {
             get
             {
@@ -113,7 +113,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IntermeshTriangle> CAadjacents
+        public IEnumerable<IntermeshTriangleOLD> CAadjacents
         {
             get
             {
@@ -121,7 +121,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IntermeshSegment> InternalSegments
+        public IEnumerable<IntermeshSegmentOLD> InternalSegments
         {
             get
             {
@@ -151,8 +151,8 @@ namespace Operations.Intermesh.Basics
 
         public override bool Equals(object? obj)
         {
-            if (obj == null || obj is not IntermeshTriangle) { return false; }
-            IntermeshTriangle compare = (IntermeshTriangle)obj;
+            if (obj == null || obj is not IntermeshTriangleOLD) { return false; }
+            IntermeshTriangleOLD compare = (IntermeshTriangleOLD)obj;
             return Id == compare.Id;
         }
 
@@ -164,28 +164,28 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public List<IntermeshTriangle> Gathering { get; } = new List<IntermeshTriangle>();
-        public List<IntermeshTriangle> IntersectingTriangles { get; } = new List<IntermeshTriangle>();
+        public List<IntermeshTriangleOLD> Gathering { get; } = new List<IntermeshTriangleOLD>();
+        public List<IntermeshTriangleOLD> IntersectingTriangles { get; } = new List<IntermeshTriangleOLD>();
 
         public Dictionary<int, IntermeshIntersection> GatheringSets { get; } = new Dictionary<int, IntermeshIntersection>();
 
-        private List<IntermeshSegment> _segments = new List<IntermeshSegment>();
-        public IReadOnlyList<IntermeshSegment> Segments
+        private List<IntermeshSegmentOLD> _segments = new List<IntermeshSegmentOLD>();
+        public IReadOnlyList<IntermeshSegmentOLD> Segments
         {
             get { return _segments; }
         }
 
         public List<FillTriangle> Fillings { get; set; } = new List<FillTriangle>();
-        public bool Add(IntermeshSegment segment)
+        public bool Add(IntermeshSegmentOLD segment)
         {
             if (_segments.Any(t => t.Key == segment.Key)) { return false; }
             _segments.Add(segment);
             return true;
         }
 
-        private List<IntermeshDivision> _divisions = new List<IntermeshDivision>();
+        private List<IntermeshDivisionOLD> _divisions = new List<IntermeshDivisionOLD>();
         private Combination2Dictionary<bool> _divisionTable = new Combination2Dictionary<bool>();
-        public void AddRange(IEnumerable<IntermeshDivision> divisions)
+        public void AddRange(IEnumerable<IntermeshDivisionOLD> divisions)
         {
             foreach (var division in divisions)
             {
@@ -209,13 +209,13 @@ namespace Operations.Intermesh.Basics
             _divisionTable = new Combination2Dictionary<bool>();
         }
 
-        public IReadOnlyList<IntermeshDivision> Divisions
+        public IReadOnlyList<IntermeshDivisionOLD> Divisions
         {
             get { return _divisions; }
         }
 
-        private List<IntermeshPoint> _nonVertexPoints = null;
-        public IReadOnlyList<IntermeshPoint> NonVertexPoints
+        private List<IntermeshPointOLD> _nonVertexPoints = null;
+        public IReadOnlyList<IntermeshPointOLD> NonVertexPoints
         {
             get
             {
@@ -227,9 +227,9 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private List<IntermeshPoint> _divisionPoints = null;
+        private List<IntermeshPointOLD> _divisionPoints = null;
 
-        public IReadOnlyList<IntermeshPoint> DivisionPoints
+        public IReadOnlyList<IntermeshPointOLD> DivisionPoints
         {
             get
             {
@@ -241,9 +241,9 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private List<IntermeshPoint> _segmentPoints = null;
+        private List<IntermeshPointOLD> _segmentPoints = null;
 
-        public IReadOnlyList<IntermeshPoint> SegmentPoints
+        public IReadOnlyList<IntermeshPointOLD> SegmentPoints
         {
             get
             {
@@ -255,11 +255,11 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private List<IntermeshPoint> _spurPoints = null;
+        private List<IntermeshPointOLD> _spurPoints = null;
         private bool _spurOutput = false;
         private bool _spurPerimeterOutput = false;
 
-        public IReadOnlyList<IntermeshPoint> SpurPoints
+        public IReadOnlyList<IntermeshPointOLD> SpurPoints
         {
             get
             {
@@ -272,7 +272,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private List<IntermeshPoint> GetSpurPoints(IEnumerable<IntermeshDivision> divisions)
+        private List<IntermeshPointOLD> GetSpurPoints(IEnumerable<IntermeshDivisionOLD> divisions)
         {
             var table = DivisionPoints.ToDictionary(p => p.Id, p => p);
             var countTable = new Dictionary<int, int>();
@@ -287,13 +287,13 @@ namespace Operations.Intermesh.Basics
             return countTable.Where(p => p.Value <= 1).Select(p => table[p.Key]).ToList();
         }
 
-        private List<IntermeshDivision> GetNonSpurDivisions(IEnumerable<IntermeshPoint> spurPoints, IEnumerable<IntermeshDivision> divisions)
+        private List<IntermeshDivisionOLD> GetNonSpurDivisions(IEnumerable<IntermeshPointOLD> spurPoints, IEnumerable<IntermeshDivisionOLD> divisions)
         {
             var spurIndicies = spurPoints.Select(sp => sp.Id);
             return divisions.Where(d => !spurIndicies.Any(sp => sp == d.A.Id) && !spurIndicies.Any(sp => sp == d.B.Id)).ToList();
         }
 
-        private void GetSpurOutputs(out List<IntermeshPoint> spurPoints, out List<IntermeshDivision> divisions, IEnumerable<IntermeshDivision> inputDivisions)
+        private void GetSpurOutputs(out List<IntermeshPointOLD> spurPoints, out List<IntermeshDivisionOLD> divisions, IEnumerable<IntermeshDivisionOLD> inputDivisions)
         {
             spurPoints = GetSpurPoints(inputDivisions);
             divisions = GetNonSpurDivisions(spurPoints, inputDivisions);
@@ -309,10 +309,10 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private List<IntermeshDivision> _nonSpurDivisions = null;
-        private List<IntermeshDivision> _nonSpurPerimeterDivisions = null;
+        private List<IntermeshDivisionOLD> _nonSpurDivisions = null;
+        private List<IntermeshDivisionOLD> _nonSpurPerimeterDivisions = null;
 
-        public IReadOnlyList<IntermeshDivision> NonSpurPerimeterDivisions
+        public IReadOnlyList<IntermeshDivisionOLD> NonSpurPerimeterDivisions
         {
             get
             {
@@ -325,12 +325,12 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public static IReadOnlyList<IntermeshDivision> GetNonOverlapping(IEnumerable<IntermeshDivision> input)
+        public static IReadOnlyList<IntermeshDivisionOLD> GetNonOverlapping(IEnumerable<IntermeshDivisionOLD> input)
         {
             var table = input.ToDictionary(k => k.Id, v => true);
             var table2 = input.ToDictionary(k => k.Id, v => v);
 
-            var grouping = new GroupingDictionary<int, List<IntermeshDivision>>(() => new List<IntermeshDivision>());
+            var grouping = new GroupingDictionary<int, List<IntermeshDivisionOLD>>(() => new List<IntermeshDivisionOLD>());
             foreach (var segment in input)
             {
                 grouping[segment.A.Id].Add(segment);
@@ -353,7 +353,7 @@ namespace Operations.Intermesh.Basics
             return table2.Where(kp => table[kp.Key]).Select(kp => kp.Value).ToList();
         }
 
-        public IReadOnlyList<IntermeshDivision> NonSpurDivisions
+        public IReadOnlyList<IntermeshDivisionOLD> NonSpurDivisions
         {
             get
             {
@@ -366,7 +366,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IntermeshDivision> InternalDivisions
+        public IEnumerable<IntermeshDivisionOLD> InternalDivisions
         {
             get
             {
@@ -374,25 +374,25 @@ namespace Operations.Intermesh.Basics
                 return _divisions.Where(d => !perimeter.Contains(d.Id));
             }
         }
-        public IEnumerable<IntermeshDivision> ABDivisions
+        public IEnumerable<IntermeshDivisionOLD> ABDivisions
         {
             get { return _divisions.Where(d => d.RelatedParentSegments.Any(r => r.Id == AB.Id)); }
         }
-        public IEnumerable<IntermeshDivision> BCDivisions
+        public IEnumerable<IntermeshDivisionOLD> BCDivisions
         {
             get { return _divisions.Where(d => d.RelatedParentSegments.Any(r => r.Id == BC.Id)); }
         }
-        public IEnumerable<IntermeshDivision> CADivisions
+        public IEnumerable<IntermeshDivisionOLD> CADivisions
         {
             get { return _divisions.Where(d => d.RelatedParentSegments.Any(r => r.Id == CA.Id)); }
         }
 
-        public IEnumerable<IntermeshDivision> PerimeterDivisions
+        public IEnumerable<IntermeshDivisionOLD> PerimeterDivisions
         {
             get { return ABDivisions.Union(BCDivisions).Union(CADivisions).ToArray(); }
         }
 
-        public IEnumerable<IntermeshPoint> PerimeterPoints
+        public IEnumerable<IntermeshPointOLD> PerimeterPoints
         {
             get { return PerimeterDivisions.SelectMany(p => p.Points).DistinctBy(p => p.Id).ToArray(); }
         }
@@ -403,7 +403,7 @@ namespace Operations.Intermesh.Basics
                 $"\nCA internal [{string.Join(",", CAInternalPoints.Select(p => p.Id))}] [{string.Join(",", CollinearDistances(C, A, CAInternalPoints))}]\n Non vertex points [{string.Join(",", NonVertexPoints.Select(p => p.Id))}]";
         }
 
-        private IEnumerable<double> CollinearDistances(IntermeshPoint a, IntermeshPoint b, IntermeshPoint[] points)
+        private IEnumerable<double> CollinearDistances(IntermeshPointOLD a, IntermeshPointOLD b, IntermeshPointOLD[] points)
         {
             var line = new Line3D(a.Point, b.Point);
             foreach (var point in points)
@@ -412,11 +412,11 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private IntermeshPoint[] _abInternalPoints;
-        private IntermeshPoint[] _bcInternalPoints;
-        private IntermeshPoint[] _caInternalPoints;
+        private IntermeshPointOLD[] _abInternalPoints;
+        private IntermeshPointOLD[] _bcInternalPoints;
+        private IntermeshPointOLD[] _caInternalPoints;
 
-        public IntermeshPoint[] ABInternalPoints
+        public IntermeshPointOLD[] ABInternalPoints
         {
             get
             {
@@ -428,7 +428,7 @@ namespace Operations.Intermesh.Basics
                 return _abInternalPoints;
             }
         }
-        public IntermeshPoint[] BCInternalPoints
+        public IntermeshPointOLD[] BCInternalPoints
         {
             get
             {
@@ -440,7 +440,7 @@ namespace Operations.Intermesh.Basics
                 return _bcInternalPoints;
             }
         }
-        public IntermeshPoint[] CAInternalPoints
+        public IntermeshPointOLD[] CAInternalPoints
         {
             get
             {
@@ -453,7 +453,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IntermeshPoint[] InternalPoints
+        public IntermeshPointOLD[] InternalPoints
         {
             get
             {
@@ -461,15 +461,15 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private bool PointIsOnAB(IntermeshPoint point)
+        private bool PointIsOnAB(IntermeshPointOLD point)
         {
             return point.Segments.Any(s => s.Id == AB.Id);
         }
-        private bool PointIsOnBC(IntermeshPoint point)
+        private bool PointIsOnBC(IntermeshPointOLD point)
         {
             return point.Segments.Any(s => s.Id == BC.Id);
         }
-        private bool PointIsOnCA(IntermeshPoint point)
+        private bool PointIsOnCA(IntermeshPointOLD point)
         {
             return point.Segments.Any(s => s.Id == CA.Id);
         }
@@ -494,32 +494,32 @@ namespace Operations.Intermesh.Basics
             return (c.λ1 * PositionTriangle.A.Normal.Direction + c.λ2 * PositionTriangle.B.Normal.Direction + c.λ3 * PositionTriangle.C.Normal.Direction).Direction;
         }
 
-        public IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetPerimeterSurfaceSegments()
+        public IEnumerable<SurfaceSegmentContainer<IntermeshPointOLD>> GetPerimeterSurfaceSegments()
         {
             //non-overlapping
             foreach (var segment in GetNonOverlapping(NonSpurPerimeterDivisions))
             {
-                yield return new SurfaceSegmentContainer<IntermeshPoint>(
-                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
-                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
+                yield return new SurfaceSegmentContainer<IntermeshPointOLD>(
+                    new SurfaceRayContainer<IntermeshPointOLD>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
+                    new SurfaceRayContainer<IntermeshPointOLD>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
             }
         }
 
-        public IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetDividingSurfaceSegments()
+        public IEnumerable<SurfaceSegmentContainer<IntermeshPointOLD>> GetDividingSurfaceSegments()
         {
             //non-overlapping
 
             foreach (var segment in InternalDivisions)
             {
-                yield return new SurfaceSegmentContainer<IntermeshPoint>(
-                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
-                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
+                yield return new SurfaceSegmentContainer<IntermeshPointOLD>(
+                    new SurfaceRayContainer<IntermeshPointOLD>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
+                    new SurfaceRayContainer<IntermeshPointOLD>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
             }
         }
 
-        public SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint> CreateSurfaceSegmentSet()
+        public SurfaceSegmentSets<PlanarFillingGroup, IntermeshPointOLD> CreateSurfaceSegmentSet()
         {
-            return new SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint>
+            return new SurfaceSegmentSets<PlanarFillingGroup, IntermeshPointOLD>
             {
                 NodeId = Id,
                 GroupObject = new PlanarFillingGroup(Triangle.Plane, Triangle.Box.Diagonal),

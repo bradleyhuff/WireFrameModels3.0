@@ -8,6 +8,7 @@ using Collections.WireFrameMesh.Extensions;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Basics;
+using Operations.Groupings.FileExportImport;
 using Operations.ParallelSurfaces;
 using WireFrameModels3._0;
 using Console = BaseObjects.Console;
@@ -82,6 +83,9 @@ namespace Projects.Projects
             var output = clusters.Select(c => c.TrimmedClusterGrid).Combine();
             //var output = clusters.First().TrimmedClusterGrid;
             WavefrontFile.Export(output, "Wavefront/Output");
+
+            //WavefrontFileGroups.ExportByClusters(output, "Wavefront/Clusters");
+
             output.ShowVitals(99);
 
             //var surfaces = GroupingCollection.ExtractSurfaces(output.Triangles);

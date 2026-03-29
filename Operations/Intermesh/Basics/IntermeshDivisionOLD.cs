@@ -3,11 +3,11 @@ using BasicObjects.MathExtensions;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshDivision
+    internal class IntermeshDivisionOLD
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public IntermeshDivision(IntermeshPoint a, IntermeshPoint b)
+        public IntermeshDivisionOLD(IntermeshPointOLD a, IntermeshPointOLD b)
         {
             A = a;
             B = b;
@@ -22,18 +22,18 @@ namespace Operations.Intermesh.Basics
         public int Id { get; }
         public Combination2 Key { get; }
 
-        private List<IntermeshSegment> _relatedParentSegments = new List<IntermeshSegment>();
-        public void Add(IntermeshSegment others)
+        private List<IntermeshSegmentOLD> _relatedParentSegments = new List<IntermeshSegmentOLD>();
+        public void Add(IntermeshSegmentOLD others)
         {
             if (_relatedParentSegments.Any(r => r.Id == others.Id)) { return; }
             _relatedParentSegments.Add(others);
         }
-        public IReadOnlyList<IntermeshSegment> RelatedParentSegments { get { return _relatedParentSegments; } }
+        public IReadOnlyList<IntermeshSegmentOLD> RelatedParentSegments { get { return _relatedParentSegments; } }
 
-        public IntermeshPoint A { get; }
-        public IntermeshPoint B { get; }
+        public IntermeshPointOLD A { get; }
+        public IntermeshPointOLD B { get; }
         public LineSegment3D Segment { get; }
-        public IEnumerable<IntermeshPoint> Points 
+        public IEnumerable<IntermeshPointOLD> Points 
         {
             get { yield return A; yield return B; }
         }

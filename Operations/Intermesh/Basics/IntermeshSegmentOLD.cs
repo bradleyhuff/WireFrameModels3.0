@@ -6,11 +6,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshSegment : IBox
+    internal class IntermeshSegmentOLD : IBox
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public IntermeshSegment(IntermeshPoint start, IntermeshPoint end)
+        public IntermeshSegmentOLD(IntermeshPointOLD start, IntermeshPointOLD end)
         {
             Start = start;
             End = end;
@@ -23,23 +23,27 @@ namespace Operations.Intermesh.Basics
             _divisionPoints.Add(End);
             _orderedInternalPoints = null;
             Segment = new LineSegment3D(start.Point, end.Point);
+            if (Id == 17009)
+            {
+
+            }
         }
 
         public int Id { get; }
         public Combination2 Key { get; }
 
-        public IntermeshPoint Start { get; }
-        public IntermeshPoint End { get; }
+        public IntermeshPointOLD Start { get; }
+        public IntermeshPointOLD End { get; }
         public LineSegment3D Segment { get; }
 
-        private List<IntermeshPoint> _divisionPoints = new List<IntermeshPoint>();
+        private List<IntermeshPointOLD> _divisionPoints = new List<IntermeshPointOLD>();
 
-        public IReadOnlyList<IntermeshPoint> DivisionPoints
+        public IReadOnlyList<IntermeshPointOLD> DivisionPoints
         {
             get { return _divisionPoints; }
         }
 
-        public IEnumerable<IntermeshPoint> Points
+        public IEnumerable<IntermeshPointOLD> Points
         {
             get { yield return Start; yield return End; }
         }
@@ -47,8 +51,8 @@ namespace Operations.Intermesh.Basics
         public bool HasInternalDivisionPoints { get { return InternalDivisions > 0; } }
         public int InternalDivisions { get { return _divisionPoints.Count() - 2; } }
 
-        private List<IntermeshPoint> _orderedInternalPoints = null;
-        public IReadOnlyList<IntermeshPoint> InternalDivisionPoints
+        private List<IntermeshPointOLD> _orderedInternalPoints = null;
+        public IReadOnlyList<IntermeshPointOLD> InternalDivisionPoints
         {
             get
             {
@@ -59,7 +63,7 @@ namespace Operations.Intermesh.Basics
                 return _orderedInternalPoints;
             }
         }
-        public bool Add(IntermeshPoint division)
+        public bool Add(IntermeshPointOLD division)
         {
             if (Point3D.Distance(Start.Point, division.Point) > Segment.Length) { return false; }
             if (Point3D.Distance(End.Point, division.Point) > Segment.Length) { return false; }
@@ -69,14 +73,14 @@ namespace Operations.Intermesh.Basics
             return true;
         }
 
-        private List<IntermeshSegment> _bases = new List<IntermeshSegment>();
+        private List<IntermeshSegmentOLD> _bases = new List<IntermeshSegmentOLD>();
 
-        internal IReadOnlyList<IntermeshSegment> Bases
+        internal IReadOnlyList<IntermeshSegmentOLD> Bases
         {
             get { return _bases; }
         }
 
-        internal bool Add(IntermeshSegment base_)
+        internal bool Add(IntermeshSegmentOLD base_)
         {
             if (base_.Id == Id) { return false; }
             if (_bases.Any(b => b.Id == base_.Id)) { return false; }
@@ -106,19 +110,19 @@ namespace Operations.Intermesh.Basics
             return $"Intermesh Segment {Key}";
         }
 
-        private List<IntermeshTriangle> _triangles = new List<IntermeshTriangle>();
-        public IReadOnlyList<IntermeshTriangle> Triangles
+        private List<IntermeshTriangleOLD> _triangles = new List<IntermeshTriangleOLD>();
+        public IReadOnlyList<IntermeshTriangleOLD> Triangles
         {
             get { return _triangles; }
         }
-        public bool Add(IntermeshTriangle triangle)
+        public bool Add(IntermeshTriangleOLD triangle)
         {
             if (_triangles.Any(t => t.Id == triangle.Id)) { return false; }
             _triangles.Add(triangle);
             return true;
         }
 
-        public IEnumerable<IntermeshDivision> BuildDivisions(Combination2Dictionary<IntermeshDivision> table)
+        public IEnumerable<IntermeshDivisionOLD> BuildDivisions(Combination2Dictionary<IntermeshDivisionOLD> table)
         {
             var orderedPoints = _divisionPoints.OrderBy(p => Point3D.Distance(p.Point, Start.Point)).ToArray();
 
@@ -127,7 +131,7 @@ namespace Operations.Intermesh.Basics
                 var pointA = orderedPoints[i];
                 var pointB = orderedPoints[i + 1];
                 var key = new Combination2(pointA.Id, pointB.Id);
-                if (!table.ContainsKey(key)) { table[key] = new IntermeshDivision(pointA, pointB); }
+                if (!table.ContainsKey(key)) { table[key] = new IntermeshDivisionOLD(pointA, pointB); }
                 var division = table[key];
                 division.Add(this);
 

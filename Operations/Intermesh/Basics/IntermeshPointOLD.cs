@@ -4,11 +4,11 @@ using Collections.Buckets.Interfaces;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshPoint: IBox
+    internal class IntermeshPointOLD: IBox
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public IntermeshPoint(Point3D point) 
+        public IntermeshPointOLD(Point3D point) 
         { 
             Point = point;
             lock (lockObject)
@@ -44,37 +44,37 @@ namespace Operations.Intermesh.Basics
             return Id;
         }
 
-        private List<IntermeshSegment> _segments { get; } = new List<IntermeshSegment>();
-        private List<IntermeshDivision> _divisions { get; } = new List<IntermeshDivision>();
-        private List<IntermeshTriangle> _triangles = new List<IntermeshTriangle>();
-        public IReadOnlyList<IntermeshTriangle> VertexTriangles
+        private List<IntermeshSegmentOLD> _segments { get; } = new List<IntermeshSegmentOLD>();
+        private List<IntermeshDivisionOLD> _divisions { get; } = new List<IntermeshDivisionOLD>();
+        private List<IntermeshTriangleOLD> _triangles = new List<IntermeshTriangleOLD>();
+        public IReadOnlyList<IntermeshTriangleOLD> VertexTriangles
         {
             get { return _triangles; }
         }
-        public bool Add(IntermeshTriangle triangle)
+        public bool Add(IntermeshTriangleOLD triangle)
         {
             if (_triangles.Any(t => t.Id == triangle.Id)) { return false; }
             _triangles.Add(triangle);
             return true;
         }
 
-        public IReadOnlyList<IntermeshSegment> Segments
+        public IReadOnlyList<IntermeshSegmentOLD> Segments
         {
             get { return _segments; }
         }
 
-        public IReadOnlyList<IntermeshDivision> Divisions
+        public IReadOnlyList<IntermeshDivisionOLD> Divisions
         {
             get { return _divisions; }
         }
-        public bool Add(IntermeshSegment segment)
+        public bool Add(IntermeshSegmentOLD segment)
         {
             if (_segments.Any(t => t.Id == segment.Id)) { return false; }
             _segments.Add(segment);
             return true;
         }
 
-        public bool Add(IntermeshDivision division)
+        public bool Add(IntermeshDivisionOLD division)
         {
             if (_divisions.Any(t => t.Id == division.Id)) { return false; }
             _divisions.Add(division);

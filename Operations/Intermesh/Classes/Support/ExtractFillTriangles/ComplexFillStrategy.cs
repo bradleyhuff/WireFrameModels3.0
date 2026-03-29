@@ -1,4 +1,6 @@
-﻿using Operations.Intermesh.Basics;
+﻿using BaseObjects.Transformations;
+using BasicObjects.GeometricObjects;
+using Operations.Intermesh.Basics;
 using Operations.Intermesh.Classes.Support.ExtractFillTriangles.Interfaces;
 using Operations.PlanarFilling.Basics;
 using Operations.PlanarFilling.Filling;
@@ -20,17 +22,17 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             get { return count; }
         }
 
-        public void GetFillTriangles(IntermeshTriangle triangle)
+        public void GetFillTriangles(IntermeshTriangleOLD triangle)
         {
             complexDivision++;
             count++;
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
-            var collection = new SurfaceSegmentCollections<PlanarFillingGroup, IntermeshPoint>(surfaceSet);
+            var collection = new SurfaceSegmentCollections<PlanarFillingGroup, IntermeshPointOLD>(surfaceSet);
 
-            ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint> chain;
+            ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPointOLD> chain;
             try
             {
-                chain = SurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>.Create(collection);
+                chain = SurfaceSegmentChaining<PlanarFillingGroup, IntermeshPointOLD>.Create(collection);
                 if (chain.Spurs.Any())
                 {
                     foreach (var spur in chain.Spurs)
@@ -60,25 +62,25 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 //var directionalTransform = Transform.Identity();//Transform.DirectionalScaling(center, direction, 1.0 / aspectRatio);
                 ////+		Point	{[ X: 0.999501616503769 Y: 0.999353398492339 Z: 1.000000000000000 ]}	BasicObjects.GeometricObjects.Point3D
 
-                //var center = new Point3D(0.999501616503769, 0.999353398492339, 1.000000000000000);
-                //var scale = 1e1;
+                //var center = new Point3D(0.500000000000000, 0.153053511144470, 0.466037844847931);
+                //var scale = 1e9;
 
                 //Diagnostics.Intermesh.IntermeshTriangle.Dump(triangle, center, scale, directionalTransform);
-                //foreach (var ta in triangle.Adjacents)
-                //{
-                //    Console.WriteLine("Adjacent triangles");
-                //    Diagnostics.Intermesh.IntermeshTriangle.Dump(ta, center, scale, directionalTransform);
-                //}
+                ////foreach (var ta in triangle.Adjacents)
+                ////{
+                ////    Console.WriteLine("Adjacent triangles");
+                ////    Diagnostics.Intermesh.IntermeshTriangle.Dump(ta, center, scale, directionalTransform);
+                ////}
 
                 //Console.WriteLine("Intersecting triangles");
                 //foreach (var t in triangle.IntersectingTriangles)
                 //{
                 //    Diagnostics.Intermesh.IntermeshTriangle.Dump(t, center, scale, directionalTransform);
-                //    foreach(var ta in t.Adjacents)
-                //    {
-                //        Console.WriteLine("Intersecting adjacent triangles");
-                //        Diagnostics.Intermesh.IntermeshTriangle.Dump(ta, center, scale, directionalTransform);
-                //    }
+                //    //foreach (var ta in t.Adjacents)
+                //    //{
+                //    //    Console.WriteLine("Intersecting adjacent triangles");
+                //    //    Diagnostics.Intermesh.IntermeshTriangle.Dump(ta, center, scale, directionalTransform);
+                //    //}
                 //}
 
 
@@ -99,10 +101,10 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 return;
             }
 
-            var fillings = new SurfaceTriangleContainer<IntermeshPoint>[0];
+            var fillings = new SurfaceTriangleContainer<IntermeshPointOLD>[0];
             try
             {
-                var planarFilling = new PlanarFilling<PlanarFillingGroup, IntermeshPoint>(chain, triangle.Id);
+                var planarFilling = new PlanarFilling<PlanarFillingGroup, IntermeshPointOLD>(chain, triangle.Id);
                 fillings = planarFilling.Fillings.ToArray();
             }
             catch (Exception e)
@@ -122,7 +124,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             }
         }
 
-        public bool ShouldUseStrategy(IntermeshTriangle triangle)
+        public bool ShouldUseStrategy(IntermeshTriangleOLD triangle)
         {
             return true;
         }

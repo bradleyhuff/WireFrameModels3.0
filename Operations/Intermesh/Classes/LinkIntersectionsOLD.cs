@@ -8,7 +8,7 @@ using Double = BasicObjects.Math.Double;
 
 namespace Operations.Intermesh.Classes
 {
-    internal class LinkIntersections
+    internal class LinkIntersectionsOLD
     {
         internal static void Action(IEnumerable<IntermeshTriangleOLD> intermeshTriangles, out BoxBucket<IntermeshPointOLD> pointsBucket, out Combination2Dictionary<IntermeshSegmentOLD> segmentTable)
         {
@@ -70,6 +70,7 @@ namespace Operations.Intermesh.Classes
 
             // Triangle intersection segment assignments
             //Loop A
+            //BaseObjects.Console.WriteLine($"Old Intersections: {intermeshTriangles.Sum(t => t.GatheringSets.Sum(g => g.Value.Intersections.Count()))}");
             foreach (var triangle in intermeshTriangles)
             {
                 foreach (var set in triangle.GatheringSets)
@@ -97,7 +98,7 @@ namespace Operations.Intermesh.Classes
             // Division point assignments from intersection of segments
             foreach (var triangle in intermeshTriangles)
             {
-                var gatherings = triangle.Gathering.Where(t => t.Id != triangle.Id).SelectMany(t => t.Segments).DistinctBy(g => g.Id).ToArray();
+                var gatherings = triangle.Gathering.Where(t => t.Id != triangle.Id).SelectMany(t => ((IntermeshTriangleOLD)t).Segments).DistinctBy(g => g.Id).ToArray();
                 foreach (var segment in triangle.Segments)
                 {
                     var matches = gatherings.Where(g => Rectangle3D.Overlaps(g.Box, segment.Box)).Where(m => m.Key != segment.Key);
@@ -108,9 +109,9 @@ namespace Operations.Intermesh.Classes
                         if (intersection is not null && triangle.Triangle.PointIsContainedOn(intersection, range))//
                         {
                             var i = FetchPointAt(intersection, pointsBucket);
-                            segment.Add(i);
-                            i.Add(segment);
-                            segment.Add(triangle);
+                            ((IntermeshSegmentOLD)segment).Add(i);
+                            i.Add((IntermeshSegmentOLD)segment);
+                            ((IntermeshSegmentOLD)segment).Add(triangle);
                         }
 
                         //Loop C
@@ -121,11 +122,11 @@ namespace Operations.Intermesh.Classes
                         {
                             var i = FetchPointAt(intersection2.Start, pointsBucket);
                             var j = FetchPointAt(intersection2.End, pointsBucket);
-                            segment.Add(i);
-                            i.Add(segment);
-                            segment.Add(j);
-                            j.Add(segment);
-                            segment.Add(triangle);
+                            ((IntermeshSegmentOLD)segment).Add(i);
+                            i.Add((IntermeshSegmentOLD)segment);
+                            ((IntermeshSegmentOLD)segment).Add(j);
+                            j.Add((IntermeshSegmentOLD)segment);
+                            ((IntermeshSegmentOLD)segment).Add(triangle);
                         }
                     }
                 }

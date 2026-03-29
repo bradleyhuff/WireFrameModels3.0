@@ -5,7 +5,7 @@ using Operations.Intermesh.Basics;
 
 namespace Operations.Intermesh.Classes
 {
-    internal class BuildDivisions
+    internal class BuildDivisionsOLD
     {
         internal static void Action(IEnumerable<IntermeshTriangleOLD> intermeshTriangles)
         {
@@ -17,7 +17,7 @@ namespace Operations.Intermesh.Classes
             {
                 foreach (var segment in element.Segments)
                 {
-                    var divisions = segment.BuildDivisions(table);
+                    var divisions = ((IntermeshSegmentOLD)segment).BuildDivisions(table);
                     element.AddRange(divisions);
                 }
             }

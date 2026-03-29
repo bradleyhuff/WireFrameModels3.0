@@ -7,13 +7,24 @@ using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Groupings.Basics;
+using Operations.Intermesh.Interfaces;
 using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshTriangleOLD : IBox
+    internal class IntermeshTriangleOLD : IBox, IIntermeshTriangle
     {
+        public static IntermeshTriangleOLD ConvertFrom(IntermeshTriangle triangle)
+        {
+            var output = new IntermeshTriangleOLD(triangle.PositionTriangle);
+            output.Gathering = triangle.Gathering;
+            output.GatheringSets = triangle.GatheringSets;
+            output.IntersectingTriangles = triangle.IntersectingTriangles;
+            return output;
+        }
+
+
         private static int _id = 0;
         private PositionTriangle _triangle;
         private static object lockObject = new object();
@@ -121,7 +132,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IntermeshSegmentOLD> InternalSegments
+        public IEnumerable<IIntermeshSegment> InternalSegments
         {
             get
             {
@@ -164,13 +175,13 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public List<IntermeshTriangleOLD> Gathering { get; } = new List<IntermeshTriangleOLD>();
-        public List<IntermeshTriangleOLD> IntersectingTriangles { get; } = new List<IntermeshTriangleOLD>();
+        public List<IIntermeshTriangle> Gathering { get; private set; } = new List<IIntermeshTriangle>();
+        public List<IIntermeshTriangle> IntersectingTriangles { get; private set; } = new List<IIntermeshTriangle>();
 
-        public Dictionary<int, IntermeshIntersection> GatheringSets { get; } = new Dictionary<int, IntermeshIntersection>();
+        public Dictionary<int, IntermeshIntersection> GatheringSets { get; private set; } = new Dictionary<int, IntermeshIntersection>();
 
         private List<IntermeshSegmentOLD> _segments = new List<IntermeshSegmentOLD>();
-        public IReadOnlyList<IntermeshSegmentOLD> Segments
+        public IReadOnlyList<IIntermeshSegment> Segments
         {
             get { return _segments; }
         }

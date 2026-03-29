@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Classes
 {
-    internal class FillIntermesh
+    internal class FillIntermeshOLD
     {
         internal static void Action(IEnumerable<IntermeshTriangleOLD> triangles)
         {

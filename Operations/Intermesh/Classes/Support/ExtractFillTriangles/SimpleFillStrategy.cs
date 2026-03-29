@@ -25,12 +25,12 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             count++;
             if (!triangle.HasInternalDivisions) { noDivisions++; triangle.Fillings.Add(new FillTriangle(triangle)); return; }
             var internalSegments = triangle.InternalSegments.ToArray();
-            if (internalSegments.Length == 1 && !internalSegments.Any(s => s.InternalDivisions > 0))
+            if (internalSegments.Length == 1 && !internalSegments.Any(s => ((IntermeshSegmentOLD)s).InternalDivisions > 0))
             {
                 singleSegment++;
                 if (SingleSegmentCase(triangle, true)) { return; }
             }
-            if (internalSegments.Length == 2 && !internalSegments.Any(s => s.InternalDivisions > 0))
+            if (internalSegments.Length == 2 && !internalSegments.Any(s => ((IntermeshSegmentOLD)s).InternalDivisions > 0))
             {
                 doubleSegment++;
                 if (DoubleSegmentCase(triangle, true)) { return; }
@@ -45,11 +45,11 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             if (triangle.InternalPoints.Any()) { return false; }
             if (!triangle.HasInternalDivisions) { return true; }
             var internalSegments = triangle.InternalSegments.ToArray();
-            if (internalSegments.Length == 1 && !internalSegments.Any(s => s.InternalDivisions > 0))
+            if (internalSegments.Length == 1 && !internalSegments.Any(s => ((IntermeshSegmentOLD)s).InternalDivisions > 0))
             {
                 if (SingleSegmentCase(triangle, false)) { return true; }
             }
-            if (internalSegments.Length == 2 && !internalSegments.Any(s => s.InternalDivisions > 0))
+            if (internalSegments.Length == 2 && !internalSegments.Any(s => ((IntermeshSegmentOLD)s).InternalDivisions > 0))
             {
                 if (DoubleSegmentCase(triangle, false)) { return true; }
             }
@@ -216,7 +216,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 }
             }
 
-            var points = triangle.InternalSegments.SelectMany(s => s.DivisionPoints).ToArray();
+            var points = triangle.InternalSegments.SelectMany(s => ((IntermeshSegmentOLD)s).DivisionPoints).ToArray();
             var groups = points.GroupBy(p => p.Id);
             var commonPoint = groups.SingleOrDefault(g => g.Count() == 2)?.FirstOrDefault();
             if (commonPoint is null)

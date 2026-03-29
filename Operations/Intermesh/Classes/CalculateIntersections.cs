@@ -3,32 +3,33 @@ using BasicObjects.GeometricObjects;
 using Collections.Threading;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
+using Operations.Intermesh.Interfaces;
 
 namespace Operations.Intermesh.Classes
 {
     internal class CalculateIntersections
     {
-        internal static void Action(IEnumerable<IntermeshTriangleOLD> intermeshTriangles)
+        internal static void Action(IEnumerable<IIntermeshTriangle> intermeshTriangles)
         {
             DateTime start = DateTime.Now;
 
             var calculationState = new CalculationState();
-            var calculationIterator = new Iterator<IntermeshTriangleOLD>(intermeshTriangles.ToArray());
+            var calculationIterator = new Iterator<IIntermeshTriangle>(intermeshTriangles.ToArray());
             calculationIterator.Run<CalculationState, CalculationThread>(CalculationAction, calculationState);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {calculationState.Threads}");
         }
 
-        internal static void ActionSingle(IEnumerable<IntermeshTriangleOLD> intermeshTriangles)
+        internal static void ActionSingle(IEnumerable<IIntermeshTriangle> intermeshTriangles)
         {
             DateTime start = DateTime.Now;
 
             var calculationState = new CalculationState();
-            var calculationIterator = new Iterator<IntermeshTriangleOLD>(intermeshTriangles.ToArray());
+            var calculationIterator = new Iterator<IIntermeshTriangle>(intermeshTriangles.ToArray());
             calculationIterator.RunSingle<CalculationState, CalculationThread>(CalculationAction, calculationState);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Calculate intersections. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
-        private static void CalculationAction(IntermeshTriangleOLD triangle, CalculationThread threadState, CalculationState state)
+        private static void CalculationAction(IIntermeshTriangle triangle, CalculationThread threadState, CalculationState state)
         {
             foreach (var gathering in triangle.Gathering)
             {

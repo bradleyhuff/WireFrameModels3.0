@@ -8,7 +8,7 @@ using Collections.Buckets;
 
 namespace Operations.Intermesh.Classes
 {
-    internal class OpenEdgesFill
+    internal class OpenEdgesFillOLD
     {
         internal static void Action(IWireFrameMesh mesh)
         {

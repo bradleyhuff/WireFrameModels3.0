@@ -2,11 +2,12 @@
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
+using Operations.Intermesh.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshSegmentOLD : IBox
+    internal class IntermeshSegmentOLD : IBox, IIntermeshSegment
     {
         private static int _id = 0;
         private static object lockObject = new object();

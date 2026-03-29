@@ -13,13 +13,9 @@ namespace Operations.Intermesh.Basics
         private static int _id = 0;
         private static object lockObject = new object();
 
-        public enum CapsuleType { Perimeter, Internal}
+       // public enum CapsuleType { Perimeter, Internal}
 
-        public IntermeshCapsule(IntermeshDivisionOLD division, CapsuleType type):this(division.A, division.B, type)
-        {
-            Parent = division;
-        }
-        public IntermeshCapsule(IntermeshPointOLD a, IntermeshPointOLD b, CapsuleType type)
+        public IntermeshCapsule(IntermeshPoint a, IntermeshPoint b)
         {
             A = a;
             B = b;
@@ -28,25 +24,25 @@ namespace Operations.Intermesh.Basics
                 Id = _id++;
             }
             Key = new Combination2(a.Id, b.Id);
-            Type = type;
+            //Type = type;
             Segment = new LineSegment3D(a.Point, b.Point);
         }
 
-        public CapsuleType Type { get; }
+        //public CapsuleType Type { get; }
 
         public IntermeshDivisionOLD Parent { get; }
         public int Id { get; }
         public Combination2 Key { get; }
-        public IntermeshPointOLD A { get; }
-        public IntermeshPointOLD B { get; }
+        public IntermeshPoint A { get; }
+        public IntermeshPoint B { get; }
         public LineSegment3D Segment { get; }
-        public IEnumerable<IntermeshPointOLD> Points
+        public IEnumerable<IntermeshPoint> Points
         {
             get { yield return A; yield return B; }
         }
         public override string ToString()
         {
-            return $"Intermesh Rod {Key}";
+            return $"Intermesh Capsule {Key}";
         }
     }
 }

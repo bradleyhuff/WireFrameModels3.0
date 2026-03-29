@@ -8,7 +8,7 @@ using Operations.Intermesh.Basics;
 
 namespace Operations.Intermesh.Classes
 {
-    internal class SegmentBridging
+    internal class SegmentBridgingOLD
     {
         internal static void Action(IEnumerable<IntermeshTriangleOLD> intermeshTriangles, BoxBucket<IntermeshPointOLD> pointsBucket, Combination2Dictionary<IntermeshSegmentOLD> segmentTable)
         {
@@ -54,7 +54,7 @@ namespace Operations.Intermesh.Classes
                     }
                     else if (nearestResult.Segment is not null)
                     {
-                        var i = LinkIntersections.FetchPointAt(nearestResult.Point, pointsBucket);
+                        var i = LinkIntersectionsOLD.FetchPointAt(nearestResult.Point, pointsBucket);
                         nearestResult.Segment.Add(i);
                         i.Add(nearestResult.Segment);
                         nearestResult.Segment.Add(triangle);
@@ -78,7 +78,7 @@ namespace Operations.Intermesh.Classes
                 Select(s => new
                 {
                     Point = s.Segment.ProjectionWithIn(brokenEndPoint.Point.Point),
-                    Segment = s
+                    Segment = (IntermeshSegmentOLD)s
                 }).
                 Where(p => p.Point is not null).
                 Select(p => new Result()

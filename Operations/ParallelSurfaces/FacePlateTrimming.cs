@@ -49,7 +49,7 @@ namespace Operations.ParallelSurfaces
 
                 foreach (var set in disjointSets.Skip(1)/*.Take(4)*/)
                 {
-                    
+
                     difference = difference.Difference(set);
                     //WavefrontFile.Export(set, $"Wavefront/Sets-{index}");
                     index++;

@@ -21,11 +21,11 @@ namespace BasicObjects.Math
         public static double Min(params double[] list)
         {
             double minValue = double.MaxValue;
-            foreach (double element in list)
+            foreach (double element in list.Where(e => !double.IsNaN(e)))
             {
                 minValue = System.Math.Min(minValue, element);
             }
-            return minValue;
+            return list.All(e => double.IsNaN(e)) ? double.NaN : minValue;
         }
 
         public static IEnumerable<T> Min<T>(Func<T, double> compare, params T[] list)

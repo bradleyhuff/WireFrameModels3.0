@@ -409,11 +409,44 @@ namespace BasicObjects.GeometricObjects
             return PointIsAtOrBetweenEndpoints(projection, error) ? projection : null;
         }
 
+        public double ProjectionDistance(Point3D point, double error = E.Double.DifferenceError)
+        {
+            var projection = LineExtension.Projection(point);
+
+            return PointIsAtOrBetweenEndpoints(projection, error) ? Point3D.Distance(point, projection) : double.NaN;
+        }
+
         public Point3D? ProjectionWithIn(Point3D point, double error = E.Double.DifferenceError)
         {
             var projection = LineExtension.Projection(point);
 
             return PointIsBetweenEndpoints(projection, error) ? projection : null;
+        }
+
+        public static double Distance(LineSegment3D a, LineSegment3D b)
+        {
+            var intersection = Line3D.Intersection(a.Start, a.Vector, b.Start, b.Vector);
+            if (intersection is not null && a.PointIsAtOrBetweenEndpoints(intersection.Start) && b.PointIsAtOrBetweenEndpoints(intersection.End))
+            {
+                return intersection.Length;
+            }
+
+            var projectionPointDistance = Math.Math.Min(a.ProjectionDistance(b.Start), a.ProjectionDistance(b.End), 
+                b.ProjectionDistance(a.Start), b.ProjectionDistance(a.End));
+            if (!double.IsNaN(projectionPointDistance)) { return projectionPointDistance; }
+
+            var endpointDistance = Math.Math.Min(Point3D.Distance(a.Start, b.Start), Point3D.Distance(a.Start, b.End), 
+                Point3D.Distance(a.End, b.Start), Point3D.Distance(a.End, b.End));
+            return endpointDistance;
+        }
+
+        public double Distance(Point3D p)
+        {
+            var projectionPointDistance = ProjectionDistance(p);
+            if (!double.IsNaN(projectionPointDistance)) { return projectionPointDistance; }
+
+            var endpointDistance = Math.Math.Min(Point3D.Distance(Start, p), Point3D.Distance(End, p));
+            return endpointDistance;
         }
     }
 }

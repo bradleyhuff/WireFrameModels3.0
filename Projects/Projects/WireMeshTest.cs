@@ -1,8 +1,10 @@
-﻿using BaseObjects.Transformations;
+﻿using BaseObjects;
+using BaseObjects.Transformations;
 using BasicObjects;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
+using FundamentalMeshes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,21 +66,33 @@ namespace Projects.Projects
             var positions = wireMesh.Positions;
 
             Console.WriteLine($"Triangles {triangles.Count} Positions {positions.Count}");
-            TableDisplays.ShowCountSpread("Position normal triangle counts", positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", positions, p => p.PositionNormals.Count);
+
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
 
             var clone = wireMesh.Clone();
             Console.WriteLine($"Clone Triangles {clone.Triangles.Count} Positions {clone.Positions.Count}");
-            TableDisplays.ShowCountSpread("Position normal triangle counts", clone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", clone.Positions, p => p.PositionNormals.Count);
+
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(clone.Positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(clone.Positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
 
             WavefrontFile.Export(wireMesh, "Wavefront/WireMeshTest");
             PntFile.Export(wireMesh, "PositionNormalTriangle/WireMeshTest");
 
             var import = PntFile.Import(() => WireFrameMesh.Create(), "PositionNormalTriangle/WireMeshTest");
             WavefrontFile.Export(import, "PositionNormalTriangle/WireMeshImportExportTest");
-            TableDisplays.ShowCountSpread("Position normal triangle counts", import.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", import.Positions, p => p.PositionNormals.Count);
+
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(import.Positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(import.Positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
 
             var wireMesh2 = WireFrameMesh.Create();
             wireMesh2.AddPoint(new Point3D(0, 0, 0), new Vector3D(0, -1, 0));
@@ -100,8 +114,12 @@ namespace Projects.Projects
             //var rotation = Transform.Rotation(new Vector3D(1, 1, 1), 0.1);
             wireMesh.Apply(Transform.Rotation(new Vector3D(1, 1, 1), 0.1));
             Console.WriteLine($"Triangles {wireMesh.Triangles.Count} Positions {wireMesh.Positions.Count}");
-            TableDisplays.ShowCountSpread("Position normal triangle counts", wireMesh.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", wireMesh.Positions, p => p.PositionNormals.Count);
+
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(wireMesh.Positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(wireMesh.Positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
             PntFile.Export(wireMesh, "PositionNormalTriangle/WireMeshTest3");
             WavefrontFile.Export(wireMesh, "PositionNormalTriangle/WireMeshImportExportTest3");
         }

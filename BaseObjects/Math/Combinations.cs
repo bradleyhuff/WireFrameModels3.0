@@ -17,6 +17,15 @@ namespace BasicObjects.MathExtensions
         public int A { get; } = 0;
         public int B { get; } = 0;
 
+        public IEnumerable<int> Indicies
+        {
+            get
+            {
+                yield return A;
+                yield return B;
+            }
+        }
+
         public static bool operator ==(Combination2 a, Combination2 b)
         {
             return a.A == b.A && a.B == b.B;
@@ -124,6 +133,16 @@ namespace BasicObjects.MathExtensions
         public int A { get; } = 0;
         public int B { get; } = 0;
         public int C { get; } = 0;
+
+        public IEnumerable<int> Indicies
+        {
+            get
+            {
+                yield return A;
+                yield return B;
+                yield return C;
+            }
+        }
 
         public static bool operator ==(Combination3 a, Combination3 b)
         {
@@ -264,6 +283,17 @@ namespace BasicObjects.MathExtensions
         public int B { get; } = 0;
         public int C { get; } = 0;
         public int D { get; } = 0;
+
+        public IEnumerable<int> Indicies
+        {
+            get
+            {
+                yield return A;
+                yield return B;
+                yield return C;
+                yield return D;
+            }
+        }
 
         public static bool operator ==(Combination4 a, Combination4 b)
         {

@@ -10,6 +10,7 @@ using Console = BaseObjects.Console;
 using System.Linq;
 using Collections.Buckets;
 using Operations.ParallelSurfaces.Internals;
+using BaseObjects;
 
 namespace Operations.Basics
 {
@@ -20,11 +21,10 @@ namespace Operations.Basics
             Console.WriteLine();
             Console.WriteLine("Segment lengths", ConsoleColor.Yellow);
             var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
-            var groups = segments.GroupBy(p => (int)Math.Floor(3 * Math.Log10(Point3D.Distance(p.A.Position, p.B.Position)))).OrderBy(g => g.Key).ToArray();
-            foreach (var group in groups)
-            {
-                Console.WriteLine($"{Math.Pow(10, group.Key / 3.0).ToString("E2")}  {group.Count()}", color);
-            }
+            Console.WriteLine(segments.GroupCountAccumulates(
+                p => (int)Math.Floor(3 * Math.Log10(Point3D.Distance(p.A.Position, p.B.Position))), 
+                (key, count, accumulate) => [Math.Pow(10, key / 3.0).ToString("E3") , count.ToString("#,##0"), accumulate.ToString("#,##0")])
+                .DisplayByLine());
             Console.WriteLine();
         }
 
@@ -36,10 +36,14 @@ namespace Operations.Basics
 
             Console.WriteLine($"Clusters {clusters.Count()}  Surfaces {surfaces.Count()}  Faces {faces.Count()}", ConsoleColor.Yellow);
             Console.WriteLine();
-            TableDisplays.ShowCountSpread("Position cardinalities", mesh.Positions, p => p.Cardinality);
-            TableDisplays.ShowCountSpread("AB Adjacency counts", mesh.Triangles.Select(t => t.ABadjacents), l => l.Count);
-            TableDisplays.ShowCountSpread("BC Adjacency counts", mesh.Triangles.Select(t => t.BCadjacents), l => l.Count);
-            TableDisplays.ShowCountSpread("CA Adjacency counts", mesh.Triangles.Select(t => t.CAadjacents), l => l.Count);
+            BaseObjects.Console.WriteLine("Position cardinalities", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(mesh.Positions.GroupCounts(g => g.Cardinality).DisplayByLine());
+            BaseObjects.Console.WriteLine("AB Adjacency counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(mesh.Triangles.Select(t => t.ABadjacents).GroupCounts(g => g.Count).DisplayByLine());
+            BaseObjects.Console.WriteLine("BC Adjacency counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(mesh.Triangles.Select(t => t.BCadjacents).GroupCounts(g => g.Count).DisplayByLine());
+            BaseObjects.Console.WriteLine("CA Adjacency counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(mesh.Triangles.Select(t => t.CAadjacents).GroupCounts(g => g.Count).DisplayByLine());
 
             //Console.WriteLine($"Aspect 1e-3: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-3)}");
             //Console.WriteLine($"Aspect 1e-4: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-4)}");

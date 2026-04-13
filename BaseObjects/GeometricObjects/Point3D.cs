@@ -147,6 +147,11 @@ namespace BasicObjects.GeometricObjects
             return System.Math.Sqrt(Math.Math.Square(a.X - b.X) + Math.Math.Square(a.Y - b.Y) + Math.Math.Square(a.Z - b.Z));
         }
 
+        public static double Distance(double ax, double ay, double az, double bx, double by, double bz)
+        {
+            return System.Math.Sqrt(Math.Math.Square(ax - bx) + Math.Math.Square(ay - by) + Math.Math.Square(az - bz));
+        }
+
         public static Point3D Average(IEnumerable<Point3D> source)
         {
             List<Point3D> list = source.ToList();

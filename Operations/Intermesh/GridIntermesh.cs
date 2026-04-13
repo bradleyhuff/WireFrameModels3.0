@@ -22,6 +22,8 @@ internal static class GridIntermesh
         TriangleGathering.Action(collection);
         CalculateIntersections.Action(collection);
         TriangleSegmentAssignments.Action(collection);
+        SegmentContactAssignments.Action(collection);
+        TriangleSegmentResolve.Action(collection);
 
         //var collectionOLD = collection.Select(c => IntermeshTriangleOLD.ConvertFrom(c)).ToArray();
         var collectionOLD = mesh.Triangles.Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
@@ -52,6 +54,9 @@ internal static class GridIntermesh
 
         TriangleGathering.ActionSingle(collection);
         CalculateIntersections.ActionSingle(collection);
+        TriangleSegmentAssignments.Action(collection);
+        SegmentContactAssignments.Action(collection);
+        TriangleSegmentResolve.Action(collection);
 
         //var collectionOLD = collection.Select(c => IntermeshTriangleOLD.ConvertFrom(c)).ToArray();
         var collectionOLD = mesh.Triangles.Where(t => include(t)).Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();

@@ -1,4 +1,5 @@
-﻿using BaseObjects.Transformations;
+﻿using BaseObjects;
+using BaseObjects.Transformations;
 using BasicObjects;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
@@ -32,16 +33,15 @@ namespace Projects.Projects
             //cone.Transform(Transform.Scale(0.10, 1, 1));
             //cone.Apply(Transform.ShearXZ(2, 2));
 
-            TableDisplays.ShowCountSpread("Position normal triangle counts", cone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", cone.Positions, p => p.PositionNormals.Count);
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(cone.Positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(cone.Positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
 
             PntFile.Export(cone, "Pnt/Cone");
             WavefrontFile.Export(cone, "Wavefront/Cone");
 
             //cone.Transform(Transform.Reflection(Vector3D.BasisY));
-
-            //TableDisplays.ShowCountSpread("Position normal triangle counts", cone.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            //TableDisplays.ShowCountSpread("Position normal counts", cone.Positions, p => p.PositionNormals.Count);
 
             //PntFile.Export(cone, "Pnt/ConeReflection");
             //WavefrontFile.Export(cone, "Wavefront/ConeReflection");
@@ -52,8 +52,10 @@ namespace Projects.Projects
             var cylinder = Cylinder.Create(0.5, 3, 64);
             cylinder.Apply(Transform.Scale(0.25, 1, 1));
 
-            TableDisplays.ShowCountSpread("Position normal triangle counts", cylinder.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", cylinder.Positions, p => p.PositionNormals.Count);
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(cylinder.Positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(cylinder.Positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
 
             PntFile.Export(cylinder, "Pnt/Cylinder");
             WavefrontFile.Export(cylinder, "Wavefront/Cylinder");
@@ -65,8 +67,11 @@ namespace Projects.Projects
 
             cuboid.Apply(Transform.ShearXY(4.5, 1.5));
 
-            TableDisplays.ShowCountSpread("Position normal triangle counts", cuboid.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", cuboid.Positions, p => p.PositionNormals.Count);
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(cuboid.Positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(cuboid.Positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
 
             PntFile.Export(cuboid, "Pnt/Cuboid");
             WavefrontFile.Export(cuboid, "Wavefront/Cuboid");
@@ -78,8 +83,11 @@ namespace Projects.Projects
             //var shear = Transform.ShearXY(0.2, 0.3);
             //sphere.Transform(Transform.Scale(0.25, 1, 1));
 
-            TableDisplays.ShowCountSpread("Position normal triangle counts", sphere.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", sphere.Positions, p => p.PositionNormals.Count);
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(sphere.Positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(sphere.Positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
 
             PntFile.Export(sphere, "Pnt/Sphere");
             WavefrontFile.Export(sphere, "Wavefront/Sphere");
@@ -98,8 +106,11 @@ namespace Projects.Projects
             //shape.Transform(Transform.ShearXY(2, 2));
             //shape.Transform(Transform.ShearYZ(2, 2));
 
-            TableDisplays.ShowCountSpread("Position normal triangle counts", shape.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            TableDisplays.ShowCountSpread("Position normal counts", shape.Positions, p => p.PositionNormals.Count);
+            BaseObjects.Console.WriteLine("Position normal triangle counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(shape.Positions.GroupCounts(g => g.PositionNormals.Sum(n => n.Triangles.Count)).DisplayByLine());
+
+            BaseObjects.Console.WriteLine("Position normal counts", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine(shape.Positions.GroupCounts(g => g.PositionNormals.Count).DisplayByLine());
 
             PntFile.Export(shape, "Pnt/Shape");
             WavefrontFile.Export(shape, "Wavefront/Shape");

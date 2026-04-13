@@ -103,6 +103,13 @@ namespace BasicObjects.GeometricObjects
             return $"Line X-intercept {Xintercept} Y-intercept {Yintercept} Z-intercept {Zintercept}";
         }
 
+        public static bool AreParallel(Line3D a, Line3D b, double ε = E.Double.RadianDifferenceError)
+        {
+            return Vector3D.Cross(a.Vector.Direction, b.Vector.Direction).Magnitude < ε;
+        }
+
+
+
         public Point3D Projection(Point3D p)
         {
             Vector3D vector = Vector;
@@ -128,6 +135,34 @@ namespace BasicObjects.GeometricObjects
         public bool SegmentIsOnLine(LineSegment3D segment, double error = E.Double.ProximityError)
         {
             return PointIsOnLine(segment.Start, error) && PointIsOnLine(segment.End, error);
+        }
+
+        public static LineSegment3D Intersection(Line3D a, Line3D b)
+        {
+            return Intersection(a.Start, a.Vector, b.Start, b.Vector);
+        }
+
+        public static LineSegment3D Intersection(Point3D aStart, Vector3D aVector, Point3D bStart, Vector3D bVector)
+        {
+            var direction = Vector3D.Cross(aVector.Direction, bVector.Direction);
+            if (direction.Magnitude < E.Double.ProximityError) { return null; }
+
+            E.LinearSystems.Solve3x3(
+                aVector.X, -bVector.X, direction.X,
+                aVector.Y, -bVector.Y, direction.Y,
+                aVector.Z, -bVector.Z, direction.Z,
+                bStart.X - aStart.X, bStart.Y - aStart.Y, bStart.Z - aStart.Z,
+                out double α0, out double α1, out double ß);
+
+            double ax = aStart.X + α0 * aVector.X; // intersection of line a
+            double ay = aStart.Y + α0 * aVector.Y;
+            double az = aStart.Z + α0 * aVector.Z;
+
+            double bx = bStart.X + α1 * bVector.X; // intersection of line b
+            double by = bStart.Y + α1 * bVector.Y;
+            double bz = bStart.Z + α1 * bVector.Z;
+
+            return new LineSegment3D(ax, ay, az, bx, by, bz);
         }
 
         internal static Point3D MidPointIntersection(Point3D aStart, Vector3D aVector, Point3D bStart, Vector3D bVector, out double gap)

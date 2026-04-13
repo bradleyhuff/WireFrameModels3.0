@@ -127,9 +127,6 @@ namespace Projects.Projects
             output = output.Difference(spheres8);
 
 
-            //TableDisplays.ShowCountSpread("Position normal triangle counts", output.Positions, p => p.PositionNormals.Sum(n => n.Triangles.Count));
-            //TableDisplays.ShowCountSpread("Position normal counts", output.Positions, p => p.PositionNormals.Count);
-
             //Console.WriteLine($"Clusters {GroupingCollection.ExtractClusters(output.Triangles).Count()}");
             //var tagTriangles = output.Triangles.Where(t => t.AdjacentAnyCount <= 2).ToArray();
             //{

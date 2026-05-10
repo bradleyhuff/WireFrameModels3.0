@@ -60,7 +60,7 @@ namespace Operations.Intermesh.Basics
                 _intersectionSegments[i] = _intersectionSegments[i].Switch();
             }
 
-            var group = AB.Key.Indicies.Concat(BC.Key.Indicies).Concat(CA.Key.Indicies).GroupBy(i => i);
+            var group = AB.OriginalKey.Indicies.Concat(BC.OriginalKey.Indicies).Concat(CA.OriginalKey.Indicies).GroupBy(i => i);
             if (group.Count() != 3)
             {
                 throw new InvalidDataException($"Vertex assigning conflict in triangle id {Id}");
@@ -100,7 +100,7 @@ namespace Operations.Intermesh.Basics
 
         public bool AddIntersection(IntermeshSegment intersection)
         {
-            if (_intersectionSegments.Any(t => t.Key == intersection.Key)) { return false; }
+            if (_intersectionSegments.Any(t => t.OriginalKey == intersection.OriginalKey)) { return false; }
             _intersectionSegments.Add(intersection);
             return true;
         }
@@ -110,6 +110,24 @@ namespace Operations.Intermesh.Basics
             get
             {
                 return _intersectionSegments;
+            }
+        }
+
+        public IEnumerable<IntermeshSegment> Segments
+        {
+            get
+            {
+                foreach (var segment in PerimeterSegments)
+                {
+                    yield return segment;
+                }
+                foreach (var intersection in IntersectionSegments)
+                {
+                    foreach (var segment in intersection.Segments)
+                    {
+                        yield return segment;
+                    }
+                }
             }
         }
 

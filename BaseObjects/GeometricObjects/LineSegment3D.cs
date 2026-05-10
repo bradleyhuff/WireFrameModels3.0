@@ -423,6 +423,10 @@ namespace BasicObjects.GeometricObjects
             return PointIsBetweenEndpoints(projection, error) ? projection : null;
         }
 
+        public static double Distance((LineSegment3D, LineSegment3D) pair)
+        {
+            return Distance(pair.Item1, pair.Item2);
+        }
         public static double Distance(LineSegment3D a, LineSegment3D b)
         {
             var intersection = Line3D.Intersection(a.Start, a.Vector, b.Start, b.Vector);

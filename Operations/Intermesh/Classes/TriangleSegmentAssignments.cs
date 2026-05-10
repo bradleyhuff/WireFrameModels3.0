@@ -17,9 +17,9 @@ namespace Operations.Intermesh.Classes
             ////Triangle vertex assignments
             foreach (var triangle in intermeshTriangles)
             {
-                triangle.A = IntermeshPoint.Fetch(triangle.PositionTriangle.A.Position);
-                triangle.B = IntermeshPoint.Fetch(triangle.PositionTriangle.B.Position);
-                triangle.C = IntermeshPoint.Fetch(triangle.PositionTriangle.C.Position);
+                triangle.A = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.A.Position);
+                triangle.B = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.B.Position);
+                triangle.C = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.C.Position);
             }
 
             //Triangle perimeter assignments
@@ -38,8 +38,8 @@ namespace Operations.Intermesh.Classes
                 {
                     foreach (var intersection in set.Value.Intersections ?? new LineSegment3D[0])
                     {
-                        var a = IntermeshPoint.Fetch(intersection.Start);
-                        var b = IntermeshPoint.Fetch(intersection.End);
+                        var a = IntermeshPointExtensions.Fetch(intersection.Start);
+                        var b = IntermeshPointExtensions.Fetch(intersection.End);
 
                         if (a.Id == b.Id) { continue; }
                         triangle.AddIntersection(BuildSegment(a, b, segmentTable));

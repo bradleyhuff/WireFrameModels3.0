@@ -18,35 +18,62 @@ namespace Operations.Intermesh.Basics
         private static int _id = 0;
         private static object lockObject = new object();
 
+        public enum ReplacementType { None, ShortSegment, NearParallelSegment }
+
         private List<IntermeshCapsule> _capsules = new List<IntermeshCapsule>();
         private IntermeshEdge _edge = new IntermeshEdge();
+        private List<IntermeshCapsule[]> _previous = new List<IntermeshCapsule[]>();
 
-        public IntermeshSegment(IntermeshPoint a, IntermeshPoint b) : this(IntermeshCapsule.Fetch(a, b)) { }
+        public IntermeshSegment(IntermeshPoint a, IntermeshPoint b) : this(IntermeshCapsuleExtensions.Fetch(a, b)) { }
         public IntermeshSegment(IntermeshCapsule capsule)
         {
             lock (lockObject)
             {
                 Id = _id++;
             }
-            A = capsule.A;
-            B = capsule.B;
-            Key = new Combination2(A.Id, B.Id);
-            Segment = new LineSegment3D(A.Point, B.Point);
+            OriginalA = capsule.A;
+            OriginalB = capsule.B;
+            OriginalKey = new Combination2(OriginalA.Id, OriginalB.Id);
+            Segment = new LineSegment3D(OriginalA.Point, OriginalB.Point);
             _capsules.Add(capsule);
             Segments.Add(this);
         }
 
         public int Id { get; }
 
-        public IntermeshPoint A { get; }
-        public IntermeshPoint B { get; }
-        public LineSegment3D Segment { get; }
+        public IntermeshPoint OriginalA { get; }
+        public IntermeshPoint OriginalB { get; }
+
+        public IntermeshPoint A
+        {
+            get
+            {
+                if (!_capsules.Any()) { return OriginalA; }
+                return _capsules.First().A;
+            }
+        }
+
+        public IntermeshPoint B
+        {
+            get
+            {
+                if (!_capsules.Any()) { return OriginalB; }
+                return _capsules.Last().B;
+            }
+        }
+
+        public LineSegment3D Segment { get; private set; }
+        public IEnumerable<IntermeshPoint> OriginalPoints
+        {
+            get { yield return OriginalA; yield return OriginalB; }
+        }
+
         public IEnumerable<IntermeshPoint> Points
         {
             get { yield return A; yield return B; }
         }
 
-        public List<IntermeshCapsule> Capsules { get { return _capsules; } }
+        public List<IntermeshCapsule> Capsules { get { return _capsules; } set { _capsules = value; } }
 
         public bool IsRemoved
         {
@@ -55,73 +82,63 @@ namespace Operations.Intermesh.Basics
 
         public void Remove()
         {
+            _previous.Add(Capsules.ToArray());
             Capsules.Clear();
         }
 
-        public Combination2 Key { get; }
+        public void ReplaceWith(IntermeshPoint a, IntermeshPoint b)
+        {
+            Remove();
+            _capsules.Add(IntermeshCapsuleExtensions.Fetch(a, b));
+            Segment = new LineSegment3D(a.Point, b.Point);
+        }
+
+        public ReplacementType ReplacementStatus { get; set; } = ReplacementType.None;
+
+        public IntermeshSegment ReplacedBy { get; set; }
+        public List<IntermeshSegment> Replaces { get; } = new List<IntermeshSegment>();
+
+        public Combination2 OriginalKey { get; }
+
+        public Combination2 Key
+        {
+            get { return new Combination2(A.Id, B.Id); }
+        }
 
         private Rectangle3D _box;
         public Rectangle3D Box
         {
             get
             {
-                if (_box is null && A is not null && B is not null)
+                if (_box is null && OriginalA is not null && OriginalB is not null)
                 {
-                    _box = Rectangle3D.Containing(A.Point, B.Point).Margin(BoxBucket.MARGINS);
+                    _box = Rectangle3D.Containing(OriginalA.Point, OriginalB.Point).Margin(BoxBucket.MARGINS);
                 }
                 return _box;
             }
         }
 
-        public List<IntermeshSegment> VertexAContacts { get; } = new List<IntermeshSegment>();
+        private List<IntermeshSegment> _contacts = new List<IntermeshSegment>();
+        public IReadOnlyList<IntermeshSegment> Contacts { get { return _contacts; } }
 
-        public List<IntermeshSegment> VertexBContacts { get; } = new List<IntermeshSegment>();
-
-        public List<IntermeshSegment> LocalContacts { get; } = new List<IntermeshSegment>();
-
-        public IEnumerable<IntermeshSegment> ContactsWithRemovedRecursion(Func<IntermeshSegment, IEnumerable<IntermeshSegment>> query)
+        public bool AddContacts(IntermeshSegment segment)
         {
-            return contactsWithRemovedRecursion(query).DistinctBy(c => c.Id).ToArray();
+            if (Id == segment.Id) { return false; }
+            if (_contacts.Any(c => c.Id == segment.Id)) { return false; }
+            _contacts.Add(segment);
+            return true;
         }
 
-        private class ContactStack
+        public int AddRangeContacts(IEnumerable<IntermeshSegment> segments)
         {
-            public ContactStack(int index, IntermeshSegment[] contacts)
+            int count = 0;
+            foreach (var segment in segments)
             {
-                Index = index;
-                Contacts = contacts;
+                count += AddContacts(segment) ? 1 : 0;
             }
-            public int Index { get; set; }
-            public IntermeshSegment[] Contacts { get; }
+            return count;
         }
 
-        private IEnumerable<IntermeshSegment> contactsWithRemovedRecursion(Func<IntermeshSegment, IEnumerable<IntermeshSegment>> query)
-        {
-            var stack = new Stack<ContactStack>();
-            stack.Push(new ContactStack(0, query(this).ToArray())); MaxStack = Math.Max(MaxStack, stack.Count);
-
-            while (stack.Any())
-            {
-                var peek = stack.Peek();
-                for (int i = peek.Index; i < peek.Contacts.Length; i++)
-                {
-                    var contact = peek.Contacts[i];
-                    peek.Index = i + 1;
-                    if (!contact.IsRemoved)
-                    {
-                        yield return contact;
-                    }
-                    else
-                    {
-                        stack.Push(new ContactStack(0, query(contact).ToArray())); MaxStack = Math.Max(MaxStack, stack.Count);
-                        break;
-                    }
-                }
-                if (peek.Index >= peek.Contacts.Length) { stack.Pop(); }
-            }
-        }
-
-        public static int MaxStack { get; set; } = 0;
         public List<IntermeshSegment> Segments { get; set; } = new List<IntermeshSegment>();
 
         public IIntermeshEdge Switch()
@@ -136,9 +153,7 @@ namespace Operations.Intermesh.Basics
         }
         public override string ToString()
         {
-            return $"Intermesh Segment {Key}";
+            return $"Intermesh Segment Key: {Key} Original: {OriginalKey}  Id: {Id}";
         }
-
-
     }
 }

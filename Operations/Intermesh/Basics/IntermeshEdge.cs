@@ -12,13 +12,13 @@ namespace Operations.Intermesh.Basics
     {
         public List<IntermeshSegment> Segments { get; set; } = new List<IntermeshSegment>();
 
-        public Combination2 Key
+        public Combination2 OriginalKey
         {
             get
             {
                 if ((Segments ?? new List<IntermeshSegment>()).Any())
                 {
-                    return new Combination2(Segments.First().A.Id, Segments.Last().B.Id);
+                    return new Combination2(Segments.First().OriginalA.Id, Segments.Last().OriginalB.Id);
                 }
                 throw new InvalidDataException("No segments are provided to get a key.");
             }

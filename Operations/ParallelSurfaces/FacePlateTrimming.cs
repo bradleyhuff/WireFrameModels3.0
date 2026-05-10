@@ -47,13 +47,13 @@ namespace Operations.ParallelSurfaces
                 index++;
                 difference = grid.Difference(disjointSets.First());
 
-                foreach (var set in disjointSets.Skip(1)/*.Take(4)*/)
-                {
+                //foreach (var set in disjointSets.Skip(1)/*.Take(4)*/)
+                //{
 
-                    difference = difference.Difference(set);
-                    //WavefrontFile.Export(set, $"Wavefront/Sets-{index}");
-                    index++;
-                }
+                //    difference = difference.Difference(set);
+                //    //WavefrontFile.Export(set, $"Wavefront/Sets-{index}");
+                //    index++;
+                //}
 
                 //var disjointSet = disjointSets.Skip(4).First();
                 //WavefrontFile.Export(disjointSet, $"Wavefront/Sets-{4}");

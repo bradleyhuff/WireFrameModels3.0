@@ -10,7 +10,7 @@ namespace Operations.Intermesh.Interfaces
 {
     internal interface IIntermeshEdge
     {
-        Combination2 Key { get; }
+        Combination2 OriginalKey { get; }
         List<IntermeshSegment> Segments { get; set; }
         IIntermeshEdge Switch();
     }

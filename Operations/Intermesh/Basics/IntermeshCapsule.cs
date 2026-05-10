@@ -21,14 +21,15 @@ namespace Operations.Intermesh.Basics
             {
                 Id = _id++;
             }
-            Key = new Combination2(a.Id, b.Id);
-            Segment = new LineSegment3D(a.Point, b.Point);
+            Key = new Combination2(A.Id, B.Id);
+            Segment = new LineSegment3D(A.Point, B.Point);
         }
         public int Id { get; }
-        public Combination2 Key { get; }
-        public IntermeshPoint A { get; }
-        public IntermeshPoint B { get; }
-        public LineSegment3D Segment { get; }
+        public Combination2 Key { get; private set; }
+        public IntermeshPoint A { get; private set; }
+        public IntermeshPoint B { get; private set; }
+        public LineSegment3D Segment { get; private set; }
+
         public IEnumerable<IntermeshPoint> Points
         {
             get { yield return A; yield return B; }
@@ -38,44 +39,25 @@ namespace Operations.Intermesh.Basics
             return $"Intermesh Capsule {Key}";
         }
 
-        public static bool IsNearParallel(IntermeshCapsule a, IntermeshCapsule b)
+        public bool IsInteriorNearParallel(IntermeshCapsule element)
         {
-            if (a is null || b is null) { return false; }
-            if (Point3D.Distance(a.A.Point, b.A.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.B.Point) < 1e-9) { return true; }
-            if (Point3D.Distance(a.A.Point, b.B.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.A.Point) < 1e-9) { return true; }
-            return false;
+            if (Id == element.Id) { return false; }
+            if (!Segment.PointIsWithIn(element.A.Point)) { return false; }
+            if (!Segment.PointIsWithIn(element.B.Point)) { return false; }
+            return Segment.Distance(element.A.Point) < 1e-9 && Segment.Distance(element.B.Point) < 1e-9;
         }
 
-        public static bool SharesOnlyOnePoint(IntermeshCapsule a, IntermeshCapsule b)
+        public IEnumerable<IntermeshCapsule> Split(IntermeshPoint p)
         {
-            if (a.A.Id == b.A.Id && a.B.Id != b.B.Id) { return true; }
-            if (a.A.Id == b.B.Id && a.B.Id != b.A.Id) { return true; }
-            if (a.B.Id == b.A.Id && a.A.Id != b.B.Id) { return true; }
-            if (a.B.Id == b.B.Id && a.A.Id != b.A.Id) { return true; }
-            return false;
-        }
-
-        public bool IsResolved(IntermeshCapsule c)
-        {
-            if (A.Id == c.A.Id && Segment.Distance(c.B.Point) > 1e-9) { return true; }
-            if (B.Id == c.B.Id && Segment.Distance(c.A.Point) > 1e-9) { return true; }
-            if (A.Id == c.B.Id && Segment.Distance(c.A.Point) > 1e-9) { return true; }
-            if (B.Id == c.A.Id && Segment.Distance(c.B.Point) > 1e-9) { return true; }
-            return false;
-        }
-
-        private static Combination2Dictionary<IntermeshCapsule> segmentTable = new Combination2Dictionary<IntermeshCapsule>();
-
-        public static IntermeshCapsule Fetch(IntermeshPoint a, IntermeshPoint b)
-        {
-            var key = new Combination2(a.Id, b.Id);
-            if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshCapsule(a, b); }
-            return segmentTable[key];
-        }
-
-        public static IntermeshCapsule Fetch(Point3D a, Point3D b)
-        {
-            return Fetch(IntermeshPoint.Fetch(a), IntermeshPoint.Fetch(b));
+            if (A.Id == p.Id || B.Id == p.Id) { yield return this; yield break; }
+            var projection = Segment.Projection(p.Point);
+            if (Segment.PointIsBetweenEndpoints(projection))
+            {
+                yield return IntermeshCapsuleExtensions.Fetch(A, p);
+                yield return IntermeshCapsuleExtensions.Fetch(p, B);
+                yield break;
+            }
+            yield return this;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Operations.ParallelSurfaces
             Mode.ThreadedRun = true;
             ConsoleLog.Push("Build face plate clusters");
 
-            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c))/*.Where(c => c.Id == 54)*/.ToArray();
+            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c)).Where(c => c.Id == 185).ToArray();
             foreach (var c in clusters)
             {
                 foreach (var f in GroupingCollection.ExtractFaces(c.Cluster)) { c.Faces.Add(new FaceSet(f)); }
@@ -40,7 +40,7 @@ namespace Operations.ParallelSurfaces
             faceState.Thickness = thickness;
 
             var facesIterator = new Iterator<FaceSet>(faces);
-            facesIterator.Run<FaceState, FaceThread>(FaceAction, faceState, 1, 4);
+            facesIterator.Run<FaceState, FaceThread>(FaceAction, faceState, 1, 1);
 
             ConsoleLog.Pop();
             ConsoleLog.WriteLine($"Build face plate clusters: Clusters {clusters.Length} Faces {faces.Length} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");

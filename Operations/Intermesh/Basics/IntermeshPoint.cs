@@ -41,20 +41,5 @@ namespace Operations.Intermesh.Basics
         {
             return Id;
         }
-
-        private static BoxBucket<IntermeshPoint> bucket = new BoxBucket<IntermeshPoint>();
-
-        internal static IntermeshPoint Fetch(Point3D point)
-        {
-            var match = bucket.Fetch(new Rectangle3D(point, BoxBucket.MARGINS));
-            var found = match.Where(m => Point3D.AreEqual(m.Point, point, 1e-15)).MinBy(p => Point3D.Distance(p.Point, point));
-            if (found is not null)
-            {
-                return found;
-            }
-            var intermeshPoint = new IntermeshPoint(point);
-            bucket.Add(intermeshPoint);
-            return intermeshPoint;
-        }
     }
 }

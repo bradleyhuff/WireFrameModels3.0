@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Diagnostics.Intermesh
 {
-    public static class IntermeshTriangle
+    public static class IntermeshTriangleOLD
     {
         internal static void Dump(Operations.Intermesh.Basics.IntermeshTriangleOLD triangle, Point3D focusAt, double magnification, double directionalScale)
         {

@@ -50,9 +50,21 @@ namespace Collections.Buckets
             return FetchInternal(input.Box).Where(n => Rectangle3D.Overlaps(input.Box, n.Box)).ToArray();
         }
 
+        public T[] Fetch<G>(G input, double margin) where G : IBox
+        {
+            var box = input.Box.Margin(margin);
+            return FetchInternal(box).Where(n => Rectangle3D.Overlaps(box, n.Box)).ToArray();
+        }
+
         public T[] Fetch(Rectangle3D box)
         {
             return FetchInternal(box).Where(n => Rectangle3D.Overlaps(box, n.Box)).ToArray();
+        }
+
+        public T[] Fetch(Rectangle3D box, double margin)
+        {
+            var boxM = box.Margin(margin);
+            return FetchInternal(boxM).Where(n => Rectangle3D.Overlaps(boxM, n.Box)).ToArray();
         }
 
         public void Add(T box)

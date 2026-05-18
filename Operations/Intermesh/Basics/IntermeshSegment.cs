@@ -49,7 +49,7 @@ namespace Operations.Intermesh.Basics
             get
             {
                 if (!_capsules.Any()) { return OriginalA; }
-                return _capsules.First().A;
+                return _capsules.First().A;//
             }
         }
 
@@ -58,7 +58,7 @@ namespace Operations.Intermesh.Basics
             get
             {
                 if (!_capsules.Any()) { return OriginalB; }
-                return _capsules.Last().B;
+                return _capsules.Last().B;//
             }
         }
 
@@ -73,7 +73,7 @@ namespace Operations.Intermesh.Basics
             get { yield return A; yield return B; }
         }
 
-        public List<IntermeshCapsule> Capsules { get { return _capsules; } set { _capsules = value; } }
+        public IReadOnlyList<IntermeshCapsule> Capsules { get { return _capsules; } }
 
         public bool IsRemoved
         {
@@ -83,14 +83,75 @@ namespace Operations.Intermesh.Basics
         public void Remove()
         {
             _previous.Add(Capsules.ToArray());
-            Capsules.Clear();
+            _capsules.Clear();
         }
 
-        public void ReplaceWith(IntermeshPoint a, IntermeshPoint b)
+        public void ReplaceStartAndEndWith(IntermeshPoint a, IntermeshPoint b)
         {
-            Remove();
-            _capsules.Add(IntermeshCapsuleExtensions.Fetch(a, b));
+            if (_capsules.Count == 0)
+            {
+                _capsules.Add(IntermeshCapsuleExtensions.Fetch(a, b));
+            }
+            else if (_capsules.Count == 1)
+            {
+                _previous.Add(Capsules.ToArray());
+                _capsules[0] = IntermeshCapsuleExtensions.Fetch(a, b);
+            }
+            else
+            {
+                _previous.Add(Capsules.ToArray());
+                //
+                var firstPoint = _capsules[0].B;
+                var lastPoint = _capsules[_capsules.Count - 1].A;
+                //
+                var firstElement = IntermeshCapsuleExtensions.Fetch(a, firstPoint);
+                var lastElement = IntermeshCapsuleExtensions.Fetch(lastPoint, b);
+
+                _capsules[0] = firstElement;
+                _capsules[_capsules.Count - 1] = lastElement;
+            }
             Segment = new LineSegment3D(a.Point, b.Point);
+        }
+
+        public bool SplitBy(IntermeshPoint p)
+        {
+            var splitBy = Capsules.SplitBy(p);
+            var wasSplit = splitBy.Count() > Capsules.Count();
+            if (wasSplit)
+            {
+                _previous.Add(splitBy.ToArray());
+                _capsules = splitBy.ToList();
+            }
+            return wasSplit;
+        }
+
+        public bool AddExtension(IntermeshPoint a, IntermeshPoint b)
+        {
+            if (A.Id == a.Id)
+            {
+                _previous.Add(Capsules.ToArray());
+                _capsules.Insert(0, IntermeshCapsuleExtensions.Fetch(b, a));
+                return true;
+            }
+            if (A.Id == b.Id)
+            {
+                _previous.Add(Capsules.ToArray());
+                _capsules.Insert(0, IntermeshCapsuleExtensions.Fetch(a, b));
+                return true;
+            }
+            if (B.Id == a.Id)
+            {
+                _previous.Add(Capsules.ToArray());
+                _capsules.Add(IntermeshCapsuleExtensions.Fetch(a, b));
+                return true;
+            }
+            if (B.Id == b.Id)
+            {
+                _previous.Add(Capsules.ToArray());
+                _capsules.Add(IntermeshCapsuleExtensions.Fetch(b, a));
+                return true;
+            }
+            return false;
         }
 
         public ReplacementType ReplacementStatus { get; set; } = ReplacementType.None;

@@ -41,7 +41,7 @@ namespace Operations.Intermesh.Basics
 
         public bool IsInteriorNearParallel(IntermeshCapsule element)
         {
-            if (Id == element.Id) { return false; }
+            if (Key == element.Key) { return false; }
             if (!Segment.PointIsWithIn(element.A.Point)) { return false; }
             if (!Segment.PointIsWithIn(element.B.Point)) { return false; }
             return Segment.Distance(element.A.Point) < 1e-9 && Segment.Distance(element.B.Point) < 1e-9;

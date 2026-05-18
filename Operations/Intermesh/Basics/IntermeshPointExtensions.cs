@@ -8,8 +8,45 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshPointExtensions
+    internal static class IntermeshPointExtensions
     {
+        public static void PointTransferFromTo(this BoxBucket<IntermeshSegment> bucket, IntermeshPoint from, IntermeshPoint to, IntermeshSegment containing = null)
+        {
+            foreach (var removal in bucket.LinkingSegments(from))
+            {
+                removal.ReplaceStartAndEndWith(
+                    from.ReplaceRemovalPoint(removal.A, to),
+                    from.ReplaceRemovalPoint(removal.B, to));
+            }
+
+            if (containing is not null)
+            {
+                foreach (var segment in bucket.LinkingSegments(to))
+                {
+                    segment.AddRangeContacts(containing.Contacts);
+                }
+            }
+            else
+            {
+                foreach (var segment in bucket.LinkingSegments(to))
+                {
+                    segment.AddRangeContacts(bucket.LinkingSegments(from));
+                    segment.AddRangeContacts(bucket.LinkingSegments(to));
+                }
+            }
+        }
+
+        public static IEnumerable<IntermeshSegment> LinkingSegments(this BoxBucket<IntermeshSegment> bucket, IntermeshPoint point)
+        {
+            return bucket.Fetch(point, 1e-5).Where(p => !p.IsRemoved && (p.A.Id == point.Id || p.B.Id == point.Id));
+        }
+
+        private static IntermeshPoint ReplaceRemovalPoint(this IntermeshPoint point, IntermeshPoint removalPoint, IntermeshPoint addPoint)
+        {
+            return point.Id == removalPoint.Id ? addPoint : removalPoint;
+        }
+
+
         private static BoxBucket<IntermeshPoint> bucket = new BoxBucket<IntermeshPoint>();
 
         internal static IntermeshPoint Fetch(Point3D point)

@@ -105,7 +105,8 @@ namespace BasicObjects.GeometricObjects
 
         public static bool AreParallel(Line3D a, Line3D b, double ε = E.Double.RadianDifferenceError)
         {
-            return Vector3D.Cross(a.Vector.Direction, b.Vector.Direction).Magnitude < ε;
+            var magnitude = Vector3D.Cross(a.Vector.Direction, b.Vector.Direction).Magnitude;
+            return magnitude < ε;
         }
 
 
@@ -129,7 +130,8 @@ namespace BasicObjects.GeometricObjects
 
         public bool PointIsOnLine(Point3D point, double error = E.Double.ProximityError)
         {
-            return Point3D.Distance(point, Projection(point)) < error;
+            var distance = Point3D.Distance(point, Projection(point));
+            return distance < error;
         }
 
         public bool SegmentIsOnLine(LineSegment3D segment, double error = E.Double.ProximityError)

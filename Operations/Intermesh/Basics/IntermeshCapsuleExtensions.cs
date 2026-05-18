@@ -43,28 +43,29 @@ namespace Operations.Intermesh.Basics
         public static bool IsNearParallel(IntermeshCapsule a, IntermeshCapsule b)
         {
             if (a is null || b is null) { return false; }
-            if (a.Id == b.Id) { return false; }
+            if (a.Key == b.Key) { return false; }
             if (Point3D.Distance(a.A.Point, b.A.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.B.Point) < 1e-9) { return true; }
             if (Point3D.Distance(a.A.Point, b.B.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.A.Point) < 1e-9) { return true; }
             return false;
         }
 
-        public static bool SharesOnlyOnePoint(IntermeshCapsule a, IntermeshCapsule b)
+        public static IEnumerable<IntermeshPoint> Points(this IEnumerable<IntermeshCapsule> capsules)
         {
-            if (a.A.Id == b.A.Id && a.B.Id != b.B.Id) { return true; }
-            if (a.A.Id == b.B.Id && a.B.Id != b.A.Id) { return true; }
-            if (a.B.Id == b.A.Id && a.A.Id != b.B.Id) { return true; }
-            if (a.B.Id == b.B.Id && a.A.Id != b.A.Id) { return true; }
-            return false;
+            if (!capsules.Any()) { yield break; }
+
+            yield return capsules.First().A;
+            foreach (var capsule in capsules)
+            {
+                yield return capsule.B;
+            }
         }
 
-        private static Combination2Dictionary<IntermeshCapsule> segmentTable = new Combination2Dictionary<IntermeshCapsule>();
+        private static Dictionary<(int, int), IntermeshCapsule> segmentTable = new Dictionary<(int, int), IntermeshCapsule>();
 
         public static IntermeshCapsule Fetch(IntermeshPoint a, IntermeshPoint b)
         {
-            var key = new Combination2(a.Id, b.Id);
-            if (!segmentTable.ContainsKey(key)) { segmentTable[key] = new IntermeshCapsule(a, b); }
-            return segmentTable[key];
+            if (!segmentTable.ContainsKey((a.Id, b.Id))) { segmentTable[(a.Id, b.Id)] = new IntermeshCapsule(a, b); }
+            return segmentTable[(a.Id, b.Id)];
         }
 
         public static IntermeshCapsule Fetch(Point3D a, Point3D b)

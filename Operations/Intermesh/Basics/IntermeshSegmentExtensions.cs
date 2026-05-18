@@ -115,5 +115,30 @@ namespace Operations.Intermesh.Basics
                 yield return element;
             }
         }
+
+        public static (IntermeshPoint A, IntermeshPoint B, double Distance) ShortestLink((IntermeshSegment, IntermeshSegment) p)
+        {
+            var distanceA = Point3D.Distance(p.Item1.A.Point, p.Item2.A.Point);
+            var distanceB = Point3D.Distance(p.Item1.A.Point, p.Item2.B.Point);
+            var distanceC = Point3D.Distance(p.Item1.B.Point, p.Item2.A.Point);
+            var distanceD = Point3D.Distance(p.Item1.B.Point, p.Item2.B.Point);
+
+            if (distanceA < distanceB && distanceA < distanceC && distanceA < distanceD)
+            {
+                return (p.Item1.A, p.Item2.A, distanceA);
+            }
+            else if (distanceB < distanceA && distanceB < distanceC && distanceB < distanceD)
+            {
+                return (p.Item1.A, p.Item2.B, distanceB);
+            }
+            else if (distanceC < distanceA && distanceC < distanceB && distanceC < distanceD)
+            {
+                return (p.Item1.B, p.Item2.A, distanceC);
+            }
+            else
+            {
+                return (p.Item1.B, p.Item2.B, distanceD);
+            }
+        }
     }
 }

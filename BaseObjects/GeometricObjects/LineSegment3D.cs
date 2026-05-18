@@ -315,9 +315,32 @@ namespace BasicObjects.GeometricObjects
             return a.PointIsAtOrBetweenEndpoints(point, error) && b.PointIsAtOrBetweenEndpoints(point, error) ? point : null;
         }
 
-        public static bool AreCollinear(LineSegment3D a, LineSegment3D b)
+        public static Point3D PointIntersection(LineSegment3D segment, Line3D line, double error = E.Double.ProximityError)
         {
-            return a.LineExtension.PointIsOnLine(b.Start) && a.LineExtension.PointIsOnLine(b.End);
+            if (line.SegmentIsOnLine(segment, error)) { return null; }
+            if (Line3D.AreParallel(line, segment.LineExtension)) { return null; }
+
+            var point = Line3D.MidPointIntersection(segment.Start, segment.Vector, line.Start, line.Vector, out double gap);
+            if (gap > error) { return null; }
+
+            return segment.PointIsAtOrBetweenEndpoints(point, error) ? point : null;
+        }
+
+        public static LineSegment3D SegmentExtensionToLine(LineSegment3D segment, Line3D line, double error = E.Double.ProximityError)
+        {
+            var intersection = PointIntersection(segment, line, error);
+
+            if (intersection is null) { return null; }
+
+            var extensionA = new LineSegment3D(intersection, segment.Start);
+            var extensionB = new LineSegment3D(intersection, segment.End);
+
+            return extensionA.Length > extensionB.Length ? extensionB : extensionA;
+        }
+
+        public static bool AreCollinear(LineSegment3D a, LineSegment3D b, double error = E.Double.ProximityError)
+        {
+            return a.LineExtension.PointIsOnLine(b.Start, error) && a.LineExtension.PointIsOnLine(b.End, error);
         }
 
         public IEnumerable<LineSegment3D> LineSegmentSplit(params LineSegment3D[] segments)
@@ -435,11 +458,11 @@ namespace BasicObjects.GeometricObjects
                 return intersection.Length;
             }
 
-            var projectionPointDistance = Math.Math.Min(a.ProjectionDistance(b.Start), a.ProjectionDistance(b.End), 
+            var projectionPointDistance = Math.Math.Min(a.ProjectionDistance(b.Start), a.ProjectionDistance(b.End),
                 b.ProjectionDistance(a.Start), b.ProjectionDistance(a.End));
             if (!double.IsNaN(projectionPointDistance)) { return projectionPointDistance; }
 
-            var endpointDistance = Math.Math.Min(Point3D.Distance(a.Start, b.Start), Point3D.Distance(a.Start, b.End), 
+            var endpointDistance = Math.Math.Min(Point3D.Distance(a.Start, b.Start), Point3D.Distance(a.Start, b.End),
                 Point3D.Distance(a.End, b.Start), Point3D.Distance(a.End, b.End));
             return endpointDistance;
         }

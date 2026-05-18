@@ -44,11 +44,11 @@ namespace BaseObjects
         public static string DisplayRow(this object[] row)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append($"{row.First()}");
+            sb.Append($"{row.First()} ");
 
             foreach (var element in row.Skip(1))
             {
-                sb.Append($": {element}");
+                sb.Append($": {element} ");
             }
 
             return sb.ToString();

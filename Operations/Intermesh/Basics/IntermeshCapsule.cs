@@ -51,7 +51,7 @@ namespace Operations.Intermesh.Basics
         {
             if (A.Id == p.Id || B.Id == p.Id) { yield return this; yield break; }
             var projection = Segment.Projection(p.Point);
-            if (Segment.PointIsBetweenEndpoints(projection))
+            if (Segment.PointIsBetweenEndpoints(projection, 1e-15))
             {
                 yield return IntermeshCapsuleExtensions.Fetch(A, p);
                 yield return IntermeshCapsuleExtensions.Fetch(p, B);

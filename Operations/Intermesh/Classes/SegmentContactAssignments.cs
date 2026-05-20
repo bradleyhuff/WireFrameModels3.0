@@ -23,19 +23,19 @@ namespace Operations.Intermesh.Classes
             var pointTable = new Dictionary<int, List<IntermeshSegment>>();
             foreach (var perimeter in perimeters)
             {
-                if (!pointTable.ContainsKey(perimeter.OriginalA.Id)) { pointTable[perimeter.OriginalA.Id] = new List<IntermeshSegment>(); }
-                if (!pointTable.ContainsKey(perimeter.OriginalB.Id)) { pointTable[perimeter.OriginalB.Id] = new List<IntermeshSegment>(); }
-                pointTable[perimeter.OriginalA.Id].Add(perimeter);
-                pointTable[perimeter.OriginalB.Id].Add(perimeter);
+                if (!pointTable.ContainsKey(perimeter.A.Id)) { pointTable[perimeter.A.Id] = new List<IntermeshSegment>(); }
+                if (!pointTable.ContainsKey(perimeter.B.Id)) { pointTable[perimeter.B.Id] = new List<IntermeshSegment>(); }
+                pointTable[perimeter.A.Id].Add(perimeter);
+                pointTable[perimeter.B.Id].Add(perimeter);
             }
 
             foreach (var perimeter in perimeters)
             {
-                perimeter.AddRangeContacts(pointTable[perimeter.OriginalA.Id].Where(s => s.Id != perimeter.Id));
-                perimeter.AddRangeContacts(pointTable[perimeter.OriginalB.Id].Where(s => s.Id != perimeter.Id));
+                perimeter.AddRangeContacts(pointTable[perimeter.A.Id].Where(s => s.Id != perimeter.Id));
+                perimeter.AddRangeContacts(pointTable[perimeter.B.Id].Where(s => s.Id != perimeter.Id));
             }
 
-            var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments.SelectMany(i => i.Segments)).DistinctBy(i => i.Id).ToArray();
+            var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(i => i.Id).ToArray();
 
             // Triangle intersection contact assignments
             var segmentBucket = new BoxBucket<IntermeshSegment>(intersections);

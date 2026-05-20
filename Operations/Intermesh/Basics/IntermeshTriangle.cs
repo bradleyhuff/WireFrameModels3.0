@@ -25,18 +25,7 @@ namespace Operations.Intermesh.Basics
         }
 
         public int Id { get; }
-        public Combination3 Key
-        {
-            get
-            {
-                return new Combination3(A.Id, B.Id, C.Id);
-            }
-        }
         public PositionTriangle PositionTriangle { get { return _triangle; } }
-
-        public IntermeshPoint A { get; set; }
-        public IntermeshPoint B { get; set; }
-        public IntermeshPoint C { get; set; }
 
         public Rectangle3D Box
         {
@@ -46,36 +35,10 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IIntermeshEdge AB { get; set; }
-        public IIntermeshEdge BC { get; set; }
-        public IIntermeshEdge CA { get; set; }
+        public IntermeshEdgeSlot AB { get; set; }
+        public IntermeshEdgeSlot BC { get; set; }
+        public IntermeshEdgeSlot CA { get; set; }
 
-        public void SwitchEdges()
-        {
-            AB = AB.Switch();
-            BC = BC.Switch();
-            CA = CA.Switch();
-            for (int i = 0; i < _intersectionSegments.Count; i++)
-            {
-                _intersectionSegments[i] = _intersectionSegments[i].Switch();
-            }
-
-            var group = AB.OriginalKey.Indicies.Concat(BC.OriginalKey.Indicies).Concat(CA.OriginalKey.Indicies).GroupBy(i => i);
-            if (group.Count() != 3)
-            {
-                throw new InvalidDataException($"Vertex assigning conflict in triangle id {Id}");
-            }
-        }
-
-        public IEnumerable<IntermeshPoint> Verticies
-        {
-            get
-            {
-                yield return A;
-                yield return B;
-                yield return C;
-            }
-        }
         public IEnumerable<IntermeshSegment> PerimeterSegments
         {
             get
@@ -86,7 +49,7 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public IEnumerable<IIntermeshEdge> PerimeterEdges
+        public IEnumerable<IntermeshEdgeSlot> PerimeterSlots
         {
             get
             {
@@ -96,20 +59,43 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private List<IIntermeshEdge> _intersectionSegments = new List<IIntermeshEdge>();
+        private List<IntermeshEdgeSlot> _intersectionSegments = new List<IntermeshEdgeSlot>();
 
-        public bool AddIntersection(IntermeshSegment intersection)
+        public bool AddIntersection(IntermeshEdgeSlot intersection)
         {
-            if (_intersectionSegments.Any(t => t.OriginalKey == intersection.OriginalKey)) { return false; }
+            if (_intersectionSegments.Any(t => t.Id == intersection.Id)) { return false; }
             _intersectionSegments.Add(intersection);
             return true;
         }
 
-        public IEnumerable<IIntermeshEdge> IntersectionSegments
+        public IEnumerable<IntermeshEdgeSlot> IntersectionSlots
         {
             get
             {
                 return _intersectionSegments;
+            }
+        }
+
+        public IEnumerable<IntermeshEdgeSlot> EdgeSlots
+        {
+            get
+            {
+                foreach (var slot in PerimeterSlots)
+                {
+                    yield return slot;
+                }
+                foreach (var slot in IntersectionSlots)
+                {
+                    yield return slot;
+                }
+            }
+        }
+
+        public IEnumerable<IntermeshSegment> IntersectionSegments
+        {
+            get
+            {
+                return _intersectionSegments.SelectMany(i => i.Segments);
             }
         }
 
@@ -123,10 +109,7 @@ namespace Operations.Intermesh.Basics
                 }
                 foreach (var intersection in IntersectionSegments)
                 {
-                    foreach (var segment in intersection.Segments)
-                    {
-                        yield return segment;
-                    }
+                    yield return intersection;
                 }
             }
         }
@@ -139,9 +122,5 @@ namespace Operations.Intermesh.Basics
         public List<IIntermeshTriangle> Gathering { get; } = new List<IIntermeshTriangle>();
         public List<IIntermeshTriangle> IntersectingTriangles { get; } = new List<IIntermeshTriangle>();
         public Dictionary<int, IntermeshIntersection> GatheringSets { get; } = new Dictionary<int, IntermeshIntersection>();
-
-
-
-
     }
 }

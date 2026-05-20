@@ -36,6 +36,18 @@ namespace Operations.Intermesh.Basics
             }
         }
 
+        public static IntermeshPoint NearestPoint(this IEnumerable<IntermeshPoint> points, IntermeshPoint point)
+        {
+            var distance = Double.MaxValue;
+            IntermeshPoint nearestPoint = null;
+            foreach (var p in points)
+            {
+                var distance2 = Point3D.Distance(point.Point, p.Point);
+                if (distance2 < distance) { distance = distance2; nearestPoint = p; }
+            }
+            return nearestPoint;
+        }
+
         public static IEnumerable<IntermeshSegment> LinkingSegments(this BoxBucket<IntermeshSegment> bucket, IntermeshPoint point)
         {
             return bucket.Fetch(point, 1e-5).Where(p => !p.IsRemoved && (p.A.Id == point.Id || p.B.Id == point.Id));

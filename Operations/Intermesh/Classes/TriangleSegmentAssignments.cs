@@ -14,21 +14,18 @@ namespace Operations.Intermesh.Classes
         {
             DateTime start = DateTime.Now;
 
-            ////Triangle vertex assignments
-            foreach (var triangle in intermeshTriangles)
-            {
-                triangle.A = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.A.Position);
-                triangle.B = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.B.Position);
-                triangle.C = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.C.Position);
-            }
-
             //Triangle perimeter assignments
-            var segmentTable = new Combination2Dictionary<IntermeshSegment>();
+            var segments  = new Combination2Dictionary<IntermeshSegment>();
+            var slots = new Combination2Dictionary<IntermeshEdgeSlot>();
             foreach (var triangle in intermeshTriangles)
             {
-                triangle.AB = triangle.AB ?? BuildSegment(triangle.A, triangle.B, segmentTable);
-                triangle.BC = triangle.BC ?? BuildSegment(triangle.B, triangle.C, segmentTable);
-                triangle.CA = triangle.CA ?? BuildSegment(triangle.C, triangle.A, segmentTable);
+                var a = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.A.Position);
+                var b = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.B.Position);
+                var c = IntermeshPointExtensions.Fetch(triangle.PositionTriangle.C.Position);
+
+                triangle.AB = triangle.AB ?? FetchEdgeSlot(FetchSegment(a, b, segments), slots);
+                triangle.BC = triangle.BC ?? FetchEdgeSlot(FetchSegment(b, c, segments), slots);
+                triangle.CA = triangle.CA ?? FetchEdgeSlot(FetchSegment(c, a, segments), slots);
             }
 
             // Triangle intersection segment assignments
@@ -42,21 +39,26 @@ namespace Operations.Intermesh.Classes
                         var b = IntermeshPointExtensions.Fetch(intersection.End);
 
                         if (a.Id == b.Id) { continue; }
-                        triangle.AddIntersection(BuildSegment(a, b, segmentTable));
+                        triangle.AddIntersection(FetchEdgeSlot(FetchSegment(a, b, segments), slots));
                     }
                 }
             }
 
-            foreach (var triangle in intermeshTriangles) { triangle.SwitchEdges(); }
-
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle segment assignments. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
-        private static IntermeshSegment BuildSegment(IntermeshPoint a, IntermeshPoint b, Combination2Dictionary<IntermeshSegment> table)
+        private static IntermeshEdgeSlot FetchEdgeSlot(IntermeshSegment segment, Combination2Dictionary<IntermeshEdgeSlot> slots)
+        {
+            var key = segment.Key;
+            if (!slots.ContainsKey(key)) { slots[key] = new IntermeshEdgeSlot(segment); }
+            return slots[key];
+        }
+
+        private static IntermeshSegment FetchSegment(IntermeshPoint a, IntermeshPoint b, Combination2Dictionary<IntermeshSegment> segments)
         {
             var key = new Combination2(a.Id, b.Id);
-            if (!table.ContainsKey(key)) { table[key] = new IntermeshSegment(a, b); }
-            return table[key];
+            if (!segments.ContainsKey(key)) { segments[key] = new IntermeshSegment(a, b); }
+            return segments[key];
         }
     }
 }

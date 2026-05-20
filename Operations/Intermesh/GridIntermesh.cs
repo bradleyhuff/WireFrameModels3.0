@@ -17,29 +17,25 @@ internal static class GridIntermesh
         if (!Mode.ThreadedRun) ConsoleLog.Push("Intermesh");
         
         var collection = mesh.Triangles.Select(t => new IntermeshTriangle(t)).ToArray();
-
-        //var collectionOLD = mesh.Triangles.Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
         TriangleGathering.Action(collection);
         CalculateIntersections.Action(collection);
         TriangleSegmentAssignments.Action(collection);
         SegmentContactAssignments.Action(collection);
         TriangleSegmentResolve.Action(collection);
+        ExtractFillTriangles.Action(collection);
+        UpdateResultsGrid.Action(mesh, collection);
 
-        //var collectionOLD = collection.Select(c => IntermeshTriangleOLD.ConvertFrom(c)).ToArray();
         var collectionOLD = mesh.Triangles.Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
-
         TriangleGathering.Action(collectionOLD);
         CalculateIntersections.Action(collectionOLD);
-
         LinkIntersectionsOLD.Action(collectionOLD, out BoxBucket<IntermeshPointOLD>  pointsBucket, out Combination2Dictionary<IntermeshSegmentOLD> segmentTable);
         SegmentBridgingOLD.Action(collectionOLD, pointsBucket, segmentTable);
         BuildDivisionsOLD.Action(collectionOLD);
-        //ResolveCapsules.Action(collection);
         collectionOLD = collectionOLD.Where(t => t.HasInternalDivisions).ToArray();
-        ExtractFillTriangles.Action(collectionOLD);
+        ExtractFillTrianglesOLD.Action(collectionOLD);
         //FillOverlapRemoval.Action(collection);
         //FillIntermesh.Action(collection);
-        UpdateResultsGrid.Action(mesh, collectionOLD);
+        UpdateResultsGridOLD.Action(mesh, collectionOLD);
         //OpenEdgesFill.Action(mesh);
         if (!Mode.ThreadedRun) ConsoleLog.Pop();
         if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
@@ -49,27 +45,25 @@ internal static class GridIntermesh
     {
         DateTime start = DateTime.Now;
         if (!Mode.ThreadedRun) ConsoleLog.Push("Intermesh Single");
-        //var collectionOLD = mesh.Triangles.Where(t => include(t)).Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
-        var collection = mesh.Triangles.Select(t => new Basics.IntermeshTriangle(t)).ToArray();
 
+        var collection = mesh.Triangles.Select(t => new Basics.IntermeshTriangle(t)).ToArray();
         TriangleGathering.ActionSingle(collection);
         CalculateIntersections.ActionSingle(collection);
         TriangleSegmentAssignments.Action(collection);
         SegmentContactAssignments.Action(collection);
         TriangleSegmentResolve.Action(collection);
+        ExtractFillTriangles.Action(collection);
+        UpdateResultsGrid.Action(mesh, collection);
 
-        //var collectionOLD = collection.Select(c => IntermeshTriangleOLD.ConvertFrom(c)).ToArray();
         var collectionOLD = mesh.Triangles.Where(t => include(t)).Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
         LinkIntersectionsOLD.Action(collectionOLD, out BoxBucket<IntermeshPointOLD> pointsBucket, out Combination2Dictionary<IntermeshSegmentOLD> segmentTable);
         SegmentBridgingOLD.Action(collectionOLD, pointsBucket, segmentTable);
-
         BuildDivisionsOLD.Action(collectionOLD);
-        ResolveCapsules.Action(collectionOLD);
         collectionOLD = collectionOLD.Where(t => t.HasInternalDivisions).ToArray();
-        ExtractFillTriangles.Action(collectionOLD);
+        ExtractFillTrianglesOLD.Action(collectionOLD);
         //FillOverlapRemoval.Action(collection);
         //FillIntermesh.Action(collection);
-        UpdateResultsGrid.Action(mesh, collectionOLD);
+        UpdateResultsGridOLD.Action(mesh, collectionOLD);
         //OpenEdgesFill.Action(mesh);
         if (!Mode.ThreadedRun) ConsoleLog.Pop();
         if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");

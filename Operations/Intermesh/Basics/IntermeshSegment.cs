@@ -13,15 +13,12 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshSegment : IBox, IIntermeshEdge
+    internal class IntermeshSegment : IBox
     {
         private static int _id = 0;
         private static object lockObject = new object();
 
-        public enum ReplacementType { None, ShortSegment, NearParallelSegment }
-
         private List<IntermeshCapsule> _capsules = new List<IntermeshCapsule>();
-        private IntermeshEdge _edge = new IntermeshEdge();
         private List<IntermeshCapsule[]> _previous = new List<IntermeshCapsule[]>();
 
         public IntermeshSegment(IntermeshPoint a, IntermeshPoint b) : this(IntermeshCapsuleExtensions.Fetch(a, b)) { }
@@ -36,7 +33,7 @@ namespace Operations.Intermesh.Basics
             OriginalKey = new Combination2(OriginalA.Id, OriginalB.Id);
             Segment = new LineSegment3D(OriginalA.Point, OriginalB.Point);
             _capsules.Add(capsule);
-            Segments.Add(this);
+            //Segments.Add(this);
         }
 
         public int Id { get; }
@@ -63,26 +60,27 @@ namespace Operations.Intermesh.Basics
         }
 
         public LineSegment3D Segment { get; private set; }
-        public IEnumerable<IntermeshPoint> OriginalPoints
-        {
-            get { yield return OriginalA; yield return OriginalB; }
-        }
 
         public IEnumerable<IntermeshPoint> Points
         {
             get { yield return A; yield return B; }
         }
 
+        public bool WasChanged
+        {
+            get { return _previous.Any(); }
+        }
+
         public IReadOnlyList<IntermeshCapsule> Capsules { get { return _capsules; } }
 
         public bool IsRemoved
         {
-            get { return !Capsules.Any(); }
+            get { return !_capsules.Any(); }
         }
 
         public void Remove()
         {
-            _previous.Add(Capsules.ToArray());
+            _previous.Add(_capsules.ToArray());
             _capsules.Clear();
         }
 
@@ -100,10 +98,9 @@ namespace Operations.Intermesh.Basics
             else
             {
                 _previous.Add(Capsules.ToArray());
-                //
+
                 var firstPoint = _capsules[0].B;
                 var lastPoint = _capsules[_capsules.Count - 1].A;
-                //
                 var firstElement = IntermeshCapsuleExtensions.Fetch(a, firstPoint);
                 var lastElement = IntermeshCapsuleExtensions.Fetch(lastPoint, b);
 
@@ -124,40 +121,6 @@ namespace Operations.Intermesh.Basics
             }
             return wasSplit;
         }
-
-        public bool AddExtension(IntermeshPoint a, IntermeshPoint b)
-        {
-            if (A.Id == a.Id)
-            {
-                _previous.Add(Capsules.ToArray());
-                _capsules.Insert(0, IntermeshCapsuleExtensions.Fetch(b, a));
-                return true;
-            }
-            if (A.Id == b.Id)
-            {
-                _previous.Add(Capsules.ToArray());
-                _capsules.Insert(0, IntermeshCapsuleExtensions.Fetch(a, b));
-                return true;
-            }
-            if (B.Id == a.Id)
-            {
-                _previous.Add(Capsules.ToArray());
-                _capsules.Add(IntermeshCapsuleExtensions.Fetch(a, b));
-                return true;
-            }
-            if (B.Id == b.Id)
-            {
-                _previous.Add(Capsules.ToArray());
-                _capsules.Add(IntermeshCapsuleExtensions.Fetch(b, a));
-                return true;
-            }
-            return false;
-        }
-
-        public ReplacementType ReplacementStatus { get; set; } = ReplacementType.None;
-
-        public IntermeshSegment ReplacedBy { get; set; }
-        public List<IntermeshSegment> Replaces { get; } = new List<IntermeshSegment>();
 
         public Combination2 OriginalKey { get; }
 
@@ -200,13 +163,6 @@ namespace Operations.Intermesh.Basics
             return count;
         }
 
-        public List<IntermeshSegment> Segments { get; set; } = new List<IntermeshSegment>();
-
-        public IIntermeshEdge Switch()
-        {
-            _edge.Segments = new List<IntermeshSegment>() { this };
-            return _edge;
-        }
 
         public override int GetHashCode()
         {

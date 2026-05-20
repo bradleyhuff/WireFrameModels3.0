@@ -326,14 +326,14 @@ namespace BasicObjects.GeometricObjects
             return segment.PointIsAtOrBetweenEndpoints(point, error) ? point : null;
         }
 
-        public static LineSegment3D SegmentExtensionToLine(LineSegment3D segment, Line3D line, double error = E.Double.ProximityError)
+        public static LineSegment3D SegmentExtensionToLine(LineSegment3D segment, LineSegment3D line, double error = E.Double.ProximityError)
         {
-            var intersection = PointIntersection(segment, line, error);
+            var intersection = PointIntersection(segment, line.LineExtension, error);
 
             if (intersection is null) { return null; }
 
-            var extensionA = new LineSegment3D(intersection, segment.Start);
-            var extensionB = new LineSegment3D(intersection, segment.End);
+            var extensionA = new LineSegment3D(intersection, line.Start);
+            var extensionB = new LineSegment3D(intersection, line.End);
 
             return extensionA.Length > extensionB.Length ? extensionB : extensionA;
         }

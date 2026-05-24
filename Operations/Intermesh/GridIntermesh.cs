@@ -23,7 +23,7 @@ internal static class GridIntermesh
         SegmentContactAssignments.Action(collection);
         TriangleSegmentResolve.Action(collection);
         ExtractFillTriangles.Action(collection);
-        UpdateResultsGrid.Action(mesh, collection);
+        //UpdateResultsGrid.Action(mesh, collection);
 
         var collectionOLD = mesh.Triangles.Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
         TriangleGathering.Action(collectionOLD);
@@ -53,7 +53,7 @@ internal static class GridIntermesh
         SegmentContactAssignments.Action(collection);
         TriangleSegmentResolve.Action(collection);
         ExtractFillTriangles.Action(collection);
-        UpdateResultsGrid.Action(mesh, collection);
+        //UpdateResultsGrid.Action(mesh, collection);
 
         var collectionOLD = mesh.Triangles.Where(t => include(t)).Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
         LinkIntersectionsOLD.Action(collectionOLD, out BoxBucket<IntermeshPointOLD> pointsBucket, out Combination2Dictionary<IntermeshSegmentOLD> segmentTable);

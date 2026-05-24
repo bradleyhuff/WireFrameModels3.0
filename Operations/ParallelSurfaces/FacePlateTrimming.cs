@@ -26,7 +26,7 @@ namespace Operations.ParallelSurfaces
             clusterIterator.Run<ClusterState, ClusterThread>(ClusterAction, clusterState, 1, 1);
 
             ConsoleLog.Pop();
-            ConsoleLog.WriteLine($"Cluster plate trim: Clusters {clusters.Count()} Simple {SimpleFillStrategy.Count} NearDegenerate {NearDegenerateFillStrategy.Count} Complex {ComplexFillStrategy.Count} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            ConsoleLog.WriteLine($"Cluster plate trim: Clusters {clusters.Count()} Simple {SimpleFillStrategyOLD.Count} NearDegenerate {NearDegenerateFillStrategyOLD.Count} Complex {ComplexFillStrategyOLD.Count} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
             Mode.ThreadedRun = true;
         }
 

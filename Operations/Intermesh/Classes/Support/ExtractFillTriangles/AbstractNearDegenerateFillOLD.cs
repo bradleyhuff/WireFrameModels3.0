@@ -2,7 +2,7 @@
 
 namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 {
-    internal class AbstractNearDegenerateFill<T>
+    internal class AbstractNearDegenerateFillOLD<T>
     {
         private class Node<TT>
         {
@@ -60,7 +60,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         static int _id = 0;
         private static object lockObject = new object();
         private Dictionary<int, Node<T>> _referenceMapping;
-        public AbstractNearDegenerateFill(IEnumerable<(T, T)> edges, Func<T, int> getId, Func<T, bool> isVertex)
+        public AbstractNearDegenerateFillOLD(IEnumerable<(T, T)> edges, Func<T, int> getId, Func<T, bool> isVertex)
         {
             lock (lockObject)
             {

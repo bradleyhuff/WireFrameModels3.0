@@ -2,6 +2,8 @@
 using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
 using Operations.Intermesh.Interfaces;
+using Operations.PlanarFilling.Basics;
+using Operations.SurfaceSegmentChaining.Basics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -122,5 +124,58 @@ namespace Operations.Intermesh.Basics
         public List<IIntermeshTriangle> Gathering { get; } = new List<IIntermeshTriangle>();
         public List<IIntermeshTriangle> IntersectingTriangles { get; } = new List<IIntermeshTriangle>();
         public Dictionary<int, IntermeshIntersection> GatheringSets { get; } = new Dictionary<int, IntermeshIntersection>();
+
+        public List<FillTriangle> Fillings { get; set; } = new List<FillTriangle>();
+        public Vector3D NormalFromProjectedPoint(Point3D point)
+        {
+            var projection = Triangle.Plane.Projection(point);
+
+            var c = Triangle.GetBarycentricCoordinate(projection);
+
+            return (c.λ1 * PositionTriangle.A.Normal.Direction + c.λ2 * PositionTriangle.B.Normal.Direction + c.λ3 * PositionTriangle.C.Normal.Direction).Direction;
+        }
+
+        public Ray3D RayFromProjectedPoint(Point3D point)
+        {
+            var projection = Triangle.Plane.Projection(point);
+            if (projection.IsNaN) { projection = point; }
+
+            var c = Triangle.GetBarycentricCoordinate(projection);
+            var normal = (c.λ1 * PositionTriangle.A.Normal.Direction + c.λ2 * PositionTriangle.B.Normal.Direction + c.λ3 * PositionTriangle.C.Normal.Direction).Direction;
+
+            return new Ray3D(projection, normal);
+        }
+
+        public SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint> CreateSurfaceSegmentSet()
+        {
+            return new SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint>
+            {
+                NodeId = Id,
+                GroupObject = new PlanarFillingGroup(Triangle.Plane, Triangle.Box.Diagonal),
+                DividingSegments = GetIntersectionSurfaceSegments().ToArray(),
+                PerimeterSegments = GetPerimeterSurfaceSegments().ToArray()
+            };
+        }
+
+        private IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetPerimeterSurfaceSegments()
+        {
+            foreach (var segment in PerimeterSegments)
+            {
+                yield return new SurfaceSegmentContainer<IntermeshPoint>(
+                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
+                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
+            }
+        }
+
+        private IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetIntersectionSurfaceSegments()
+        {
+            var perimeterSegments = PerimeterSegments.ToArray();
+            foreach (var segment in IntersectionSegments.Where(i => !perimeterSegments.Any(p => p.Key == i.Key)))
+            {
+                yield return new SurfaceSegmentContainer<IntermeshPoint>(
+                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
+                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
+            }
+        }
     }
 }

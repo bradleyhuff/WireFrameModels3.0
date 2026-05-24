@@ -9,7 +9,7 @@ namespace Operations.Intermesh.Classes
 {
     internal class ExtractFillTrianglesOLD
     {
-        static IFillStrategy[] _fillStrategies = { new SimpleFillStrategy(), /*new NearDegenerateFillStrategy(),*/ new ComplexFillStrategy() };
+        static IFillStrategyOLD[] _fillStrategies = { new SimpleFillStrategyOLD(), /*new NearDegenerateFillStrategy(),*/ new ComplexFillStrategyOLD() };
 
         internal static void Action(IEnumerable<IntermeshTriangleOLD> triangles)
         {
@@ -22,9 +22,9 @@ namespace Operations.Intermesh.Classes
             foreach (var triangle in triangles)
             {
                 var fillStrategy = _fillStrategies.First(s => s.ShouldUseStrategy(triangle));
-                if (fillStrategy is SimpleFillStrategy) { simpleFillCount++; }
-                if (fillStrategy is NearDegenerateFillStrategy) { nearDegenerateFillCount++; }
-                if (fillStrategy is ComplexFillStrategy) { complexFillCount++; }
+                if (fillStrategy is SimpleFillStrategyOLD) { simpleFillCount++; }
+                if (fillStrategy is NearDegenerateFillStrategyOLD) { nearDegenerateFillCount++; }
+                if (fillStrategy is ComplexFillStrategyOLD) { complexFillCount++; }
 
                 Logging.ShowLog = false;
                 fillStrategy.GetFillTriangles(triangle);

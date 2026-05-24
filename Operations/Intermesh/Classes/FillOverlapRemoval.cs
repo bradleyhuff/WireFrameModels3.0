@@ -23,10 +23,10 @@ namespace Operations.Intermesh.Classes
             var fillsDisabled = 0;
 
             var fillings = triangles.SelectMany(t => t.Fillings).ToArray();
-            var grouping = new GroupingDictionary<int, List<FillTriangle>>(() => new List<FillTriangle>());
+            var grouping = new GroupingDictionary<int, List<FillTriangleOLD>>(() => new List<FillTriangleOLD>());
 
-            var bucket = new BoxBucket<FillTriangle>(fillings);
-            var intersectedFillings = new List<FillTriangle>();
+            var bucket = new BoxBucket<FillTriangleOLD>(fillings);
+            var intersectedFillings = new List<FillTriangleOLD>();
             foreach(var filling in fillings)
             {
                 var matches = bucket.Fetch(filling).Where(f => TrianglesInterferance(f.Triangle, filling.Triangle));
@@ -39,7 +39,7 @@ namespace Operations.Intermesh.Classes
 
             foreach (var filling in intersectedFillings) { filling.Disabled = true; }
 
-            var bucket2 = new BoxBucket<FillTriangle>(intersectedFillings);
+            var bucket2 = new BoxBucket<FillTriangleOLD>(intersectedFillings);
             foreach(var filling in intersectedFillings)
             {
                 var matches = bucket2.Fetch(filling).Where(f => f.Id != filling.Id && f.ParentIntermesh.Id != filling.ParentIntermesh.Id && TrianglesInterferance(f.Triangle, filling.Triangle));

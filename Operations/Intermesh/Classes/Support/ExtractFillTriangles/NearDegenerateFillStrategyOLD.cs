@@ -8,7 +8,7 @@ using System;
 
 namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 {
-    internal class NearDegenerateFillStrategy : IFillStrategy
+    internal class NearDegenerateFillStrategyOLD : IFillStrategyOLD
     {
         private static int count = 0;
         public static int Count
@@ -24,11 +24,11 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             var vertices = triangle.Verticies;
             if (Logging.ShowLog) { Console.WriteLine($"Triangle\n{string.Join("\n", vertices.Select(v => v.Point))}"); }
 
-            var strategy = new NearDegenerateFill<IntermeshPointOLD>(divisions, p => p.Point, p => p.Id, p => vertices.Any(pp => pp.Id == p.Id), p => perimeterPoints.Any(pp => pp.Id == p.Id));
+            var strategy = new NearDegenerateFillOLD<IntermeshPointOLD>(divisions, p => p.Point, p => p.Id, p => vertices.Any(pp => pp.Id == p.Id), p => perimeterPoints.Any(pp => pp.Id == p.Id));
 
             foreach (var filling in strategy.GetFill())
             {
-                triangle.Fillings.Add(new FillTriangle(triangle, filling.Item1, filling.Item2, filling.Item3));
+                triangle.Fillings.Add(new FillTriangleOLD(triangle, filling.Item1, filling.Item2, filling.Item3));
             }
         }
 

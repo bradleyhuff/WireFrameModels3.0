@@ -16,7 +16,13 @@ namespace Operations.Intermesh.Classes
         {
             var start = DateTime.Now;
 
-
+            var processPositionTriangles = processTriangles.Select(p => p.PositionTriangle).ToArray();
+            var removalCount = mesh.RemoveAllTriangles(processPositionTriangles);
+            var fillings = processTriangles.SelectMany(t => t.Fillings).ToArray();
+            foreach (var filling in fillings)
+            {
+                filling.AddWireFrameTriangle(mesh);
+            }
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Update result grid: Triangle removals:  Fills:  Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }

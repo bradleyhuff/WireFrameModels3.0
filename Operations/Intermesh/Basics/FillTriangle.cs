@@ -1,11 +1,14 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
-using Collections.Buckets;
 using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
-using Operations.Intermesh.Classes;
-using Operations.ParallelSurfaces.Internals;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
@@ -13,48 +16,29 @@ namespace Operations.Intermesh.Basics
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        internal FillTriangle(IntermeshTriangleOLD triangle, IntermeshPointOLD pointA, IntermeshPointOLD pointB, IntermeshPointOLD pointC) :
-            this(triangle, pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point), pointA.Id,
-                pointB.Point, triangle.NormalFromProjectedPoint(pointB.Point), pointB.Id,
-                pointC.Point, triangle.NormalFromProjectedPoint(pointC.Point), pointC.Id,
-                -1, triangle.PositionTriangle.Trace, triangle.PositionTriangle.Tag)
-        { }
-        internal FillTriangle(IntermeshTriangleOLD node) :
-            this(node, node.A.Point, node.PositionTriangle.A.Normal, node.A.Id,
-                node.B.Point, node.PositionTriangle.B.Normal, node.B.Id,
-                node.C.Point, node.PositionTriangle.C.Normal, node.C.Id,
-                -1, node.PositionTriangle.Trace, node.PositionTriangle.Tag)
+
+        internal FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, IntermeshPoint pointB, IntermeshPoint pointC) :
+            this(pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point),
+            pointB.Point, triangle.NormalFromProjectedPoint(pointB.Point),
+            pointC.Point, triangle.NormalFromProjectedPoint(pointC.Point))
         { }
 
-        public FillTriangle(Point3D pointA, Vector3D normalA, int indexA, Point3D pointB, Vector3D normalB, int indexB, Point3D pointC, Vector3D normalC, int indexC, string trace, int tag) : this(null, pointA, normalA, indexA, pointB, normalB, indexB, pointC, normalC, indexC, 0, trace, tag) { }
-        internal FillTriangle(IntermeshTriangleOLD node, Point3D pointA, Vector3D normalA, int indexA, Point3D pointB, Vector3D normalB, int indexB, Point3D pointC, Vector3D normalC, int indexC, int fillId, string trace, int tag)
+        internal FillTriangle(Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC)
         {
             lock (lockObject)
             {
                 Id = _id++;
             }
-            ParentIntermesh = node;
+
             PointA = pointA;
             PointB = pointB;
             PointC = pointC;
             NormalA = normalA;
             NormalB = normalB;
             NormalC = normalC;
-            Triplet = new Combination3(indexA, indexB, indexC);
-            FillId = fillId;
-            Trace = trace;
-            Tag = tag;
         }
 
         public int Id { get; }
-        public int FillId { get; }
-
-        public int[] NodeIndices { get; set; } = new int[0];
-        public string Trace { get; }
-        public int Tag { get; }
-        public bool Disabled { get; set; }
-
-        internal IntermeshTriangleOLD ParentIntermesh { get; }
 
         private Triangle3D _triangle = null;
 
@@ -66,14 +50,13 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        public Combination3 Triplet { get; }
-
         public Point3D PointA { get; }
         public Vector3D NormalA { get; }
         public Point3D PointB { get; }
         public Vector3D NormalB { get; }
         public Point3D PointC { get; }
         public Vector3D NormalC { get; }
+
         public Triangle3D Triangle
         {
             get
@@ -85,18 +68,11 @@ namespace Operations.Intermesh.Basics
                 return _triangle;
             }
         }
-
         public PositionTriangle PositionTriangle { get; private set; }
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            if (Disabled) return;
-            PositionTriangle = mesh.AddTriangle(PointA, NormalA, PointB, NormalB, PointC, NormalC, Trace, Tag);
-        }
-
-        public void ExportTriangle(IWireFrameMesh mesh)
-        {
-            mesh.AddTriangle(PointA, Triangle.Normal, PointB, Triangle.Normal, PointC, Triangle.Normal, "", 0);
+            PositionTriangle = mesh.AddTriangle(PointA, NormalA, PointB, NormalB, PointC, NormalC, String.Empty, 0);
         }
     }
 }

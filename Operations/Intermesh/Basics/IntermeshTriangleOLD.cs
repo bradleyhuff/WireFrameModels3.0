@@ -186,7 +186,7 @@ namespace Operations.Intermesh.Basics
             get { return _segments; }
         }
 
-        public List<FillTriangle> Fillings { get; set; } = new List<FillTriangle>();
+        public List<FillTriangleOLD> Fillings { get; set; } = new List<FillTriangleOLD>();
         public bool Add(IntermeshSegmentOLD segment)
         {
             if (_segments.Any(t => t.Key == segment.Key)) { return false; }

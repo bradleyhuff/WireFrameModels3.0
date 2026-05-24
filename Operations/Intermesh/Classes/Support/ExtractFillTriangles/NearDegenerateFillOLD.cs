@@ -10,7 +10,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
     {
         public static bool ShowLog { get; set; }
     }
-    internal class NearDegenerateFill<T>
+    internal class NearDegenerateFillOLD<T>
     {
         private class Node
         {
@@ -143,7 +143,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         private List<Triangle3D> _fillTriangles = new List<Triangle3D>();
         private Func<T, int> _getId;
 
-        public NearDegenerateFill(IEnumerable<(T, T)> edges, Func<T, Point3D> getPoint, Func<T, int> getId, Func<T, bool> isVertex, Func<T, bool> isPerimeter)
+        public NearDegenerateFillOLD(IEnumerable<(T, T)> edges, Func<T, Point3D> getPoint, Func<T, int> getId, Func<T, bool> isVertex, Func<T, bool> isPerimeter)
         {
             lock (lockObject)
             {

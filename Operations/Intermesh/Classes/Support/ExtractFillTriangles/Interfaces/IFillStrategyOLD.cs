@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles.Interfaces
 {
-    internal interface IFillStrategy
+    internal interface IFillStrategyOLD
     {
-        public void GetFillTriangles(IntermeshTriangle triangle);
-        public bool ShouldUseStrategy(IntermeshTriangle triangle);
+        public void GetFillTriangles(IntermeshTriangleOLD triangle);
+        public bool ShouldUseStrategy(IntermeshTriangleOLD triangle);
     }
 }

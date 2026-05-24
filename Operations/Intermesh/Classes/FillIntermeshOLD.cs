@@ -18,19 +18,19 @@ namespace Operations.Intermesh.Classes
             var start = DateTime.Now;
             var fillings = triangles.SelectMany(t => t.Fillings).ToArray();
 
-            var bucket = new BoxBucket<FillTriangle>(fillings);
+            var bucket = new BoxBucket<FillTriangleOLD>(fillings);
             int fillingsAdded = 0;
             foreach (var triangle in triangles)
             {
-                var triangleFillings = new List<FillTriangle>();
+                var triangleFillings = new List<FillTriangleOLD>();
                 foreach (var fill in triangle.Fillings.Where(f => !f.Disabled))
                 {
                     var matches = bucket.Fetch(fill).Where(f => f.Id != fill.Id && !f.Disabled);
-                    var divisions = new List<FillTriangle>() { fill };
+                    var divisions = new List<FillTriangleOLD>() { fill };
 
                     foreach (var match in matches)
                     {
-                        var subDivisions = new List<FillTriangle>();
+                        var subDivisions = new List<FillTriangleOLD>();
                         foreach(var division in divisions)
                         {
                             var coplanarDivisions = division.CoplanarDivideFrom(match);

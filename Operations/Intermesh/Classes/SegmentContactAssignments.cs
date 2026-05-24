@@ -36,9 +36,10 @@ namespace Operations.Intermesh.Classes
             }
 
             var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(i => i.Id).ToArray();
+            var allSegments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(i => i.Id).ToArray();
 
             // Triangle intersection contact assignments
-            var segmentBucket = new BoxBucket<IntermeshSegment>(intersections);
+            var segmentBucket = new BoxBucket<IntermeshSegment>(allSegments);
             foreach (var intersection in intersections)
             {
                 var matches = segmentBucket.Fetch(intersection, 1e-5).Where(m => m.Id != intersection.Id);

@@ -12,6 +12,7 @@ namespace Operations.Intermesh.Basics
     {
         public static void PointTransferFromTo(this BoxBucket<IntermeshSegment> bucket, IntermeshPoint from, IntermeshPoint to, IntermeshSegment containing = null)
         {
+            if (from.Id == to.Id) { return; }
             foreach (var removal in bucket.LinkingSegments(from))
             {
                 removal.ReplaceStartAndEndWith(

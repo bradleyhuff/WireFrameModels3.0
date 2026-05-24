@@ -40,8 +40,8 @@ namespace Projects.Projects
 
             //return;
 
-            var clusters = import.BuildFacePlateClusters(-0.000100).ToArray();
-            //var clusters = import.BuildFacePlateClusters(-0.01000).ToArray();
+            //var clusters = import.BuildFacePlateClusters(-0.000100).ToArray();
+            var clusters = import.BuildFacePlateClusters(-0.01000).ToArray();
 
             //WavefrontFile.Export(clusters[0].Cluster.Create(), $"Wavefront/Cluster-{clusters[0].Cluster.Id}");
             //foreach (var face in clusters[0].Faces)

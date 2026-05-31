@@ -18,12 +18,12 @@ namespace Operations.Intermesh.Basics
         private static object lockObject = new object();
 
         internal FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, IntermeshPoint pointB, IntermeshPoint pointC) :
-            this(pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point),
+            this(triangle, pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point),
             pointB.Point, triangle.NormalFromProjectedPoint(pointB.Point),
             pointC.Point, triangle.NormalFromProjectedPoint(pointC.Point))
         { }
 
-        internal FillTriangle(Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC)
+        internal FillTriangle(IntermeshTriangle triangle, Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC)
         {
             lock (lockObject)
             {
@@ -36,11 +36,13 @@ namespace Operations.Intermesh.Basics
             NormalA = normalA;
             NormalB = normalB;
             NormalC = normalC;
+            _positionTriangle = triangle.PositionTriangle;
         }
 
         public int Id { get; }
 
         private Triangle3D _triangle = null;
+        private PositionTriangle _positionTriangle;
 
         public Rectangle3D Box
         {
@@ -68,11 +70,10 @@ namespace Operations.Intermesh.Basics
                 return _triangle;
             }
         }
-        public PositionTriangle PositionTriangle { get; private set; }
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            PositionTriangle = mesh.AddTriangle(PointA, NormalA, PointB, NormalB, PointC, NormalC, String.Empty, 0);
+            mesh.AddTriangle(PointA, NormalA, PointB, NormalB, PointC, NormalC, _positionTriangle.Trace, _positionTriangle.Tag);
         }
     }
 }

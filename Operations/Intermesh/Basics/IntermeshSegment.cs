@@ -33,7 +33,6 @@ namespace Operations.Intermesh.Basics
             OriginalKey = new Combination2(OriginalA.Id, OriginalB.Id);
             Segment = new LineSegment3D(OriginalA.Point, OriginalB.Point);
             _capsules.Add(capsule);
-            //Segments.Add(this);
         }
 
         public int Id { get; }
@@ -116,10 +115,70 @@ namespace Operations.Intermesh.Basics
             var wasSplit = splitBy.Count() > Capsules.Count();
             if (wasSplit)
             {
-                _previous.Add(splitBy.ToArray());
+                _previous.Add(Capsules.ToArray());
                 _capsules = splitBy.ToList();
             }
             return wasSplit;
+        }
+
+        public bool ExtendWith(IntermeshPoint p)
+        {
+            if (A.Id == p.Id || B.Id == p.Id) { return false; }
+
+            var distanceA = Point3D.Distance(p.Point, A.Point);
+            var distanceB = Point3D.Distance(p.Point, B.Point);
+
+            var projection = Segment.Projection(p.Point, 0);
+            if (projection is not null && distanceA > 1e-9 && distanceB > 1e-9) { return false; }
+
+            _previous.Add(Capsules.ToArray());
+            if (distanceA < distanceB)
+            {
+                _capsules.Insert(0, IntermeshCapsuleExtensions.Fetch(p, _capsules.First().A));
+            }
+            else
+            {
+                _capsules.Add(IntermeshCapsuleExtensions.Fetch(_capsules.Last().B, p));
+            }
+
+            return true;
+        }
+
+        public bool ReplaceWith(IntermeshPoint old_, IntermeshPoint new_)
+        {
+            if (old_.Id == new_.Id) { return false; }
+            if (!_capsules.SelectMany(c => c.Points).Any(p => p.Id == old_.Id))
+            {
+                return false;
+            }
+            _previous.Add(Capsules.ToArray());
+            for (int i = 0; i < _capsules.Count; i++)
+            {
+                if (_capsules[i].A.Id == old_.Id) { _capsules[i] = IntermeshCapsuleExtensions.Fetch(new_, _capsules[i].B); }
+                if (_capsules[i].B.Id == old_.Id) { _capsules[i] = IntermeshCapsuleExtensions.Fetch(_capsules[i].A, new_); }
+            }
+
+            return true;
+        }
+
+        public void ResolvePoints(IEnumerable<IntermeshPoint> points)
+        {
+            foreach (var point in points)
+            {
+                ResolvePoint(point);
+            }
+        }
+
+        public void ResolvePoint(IntermeshPoint p)
+        {
+            _resolvedPoints[p.Id] = true;
+        }
+
+        private Dictionary<int, bool> _resolvedPoints = new Dictionary<int, bool>();
+
+        public bool PointIsResolved(IntermeshPoint p)
+        {
+            return _resolvedPoints.ContainsKey(p.Id);
         }
 
         public Combination2 OriginalKey { get; }
@@ -144,11 +203,22 @@ namespace Operations.Intermesh.Basics
 
         private List<IntermeshSegment> _contacts = new List<IntermeshSegment>();
         public IReadOnlyList<IntermeshSegment> Contacts { get { return _contacts; } }
+        public IEnumerable<IntermeshSegment> ContactsAtA { get { return _contacts.Where(c => c.Capsules.Points().Any(p => p.Id == A.Id)); } }
+        public IEnumerable<IntermeshSegment> ContactsAtB { get { return _contacts.Where(c => c.Capsules.Points().Any(p => p.Id == B.Id)); } }
+
+        public IEnumerable<IntermeshSegment> FreeContacts
+        {
+            get
+            {
+                return _contacts.Where(c => !c.Capsules.Points().Any(p => p.Id == A.Id) && !c.Capsules.Points().Any(p => p.Id == B.Id));
+            }
+        }
 
         public bool AddContacts(IntermeshSegment segment)
         {
             if (Id == segment.Id) { return false; }
             if (_contacts.Any(c => c.Id == segment.Id)) { return false; }
+
             _contacts.Add(segment);
             return true;
         }
@@ -163,14 +233,13 @@ namespace Operations.Intermesh.Basics
             return count;
         }
 
-
         public override int GetHashCode()
         {
             return Id;
         }
         public override string ToString()
         {
-            return $"Intermesh Segment Key: {Key} Original: {OriginalKey}  Id: {Id}";
+            return $"Intermesh Segment Key: {Key} Id: {Id}";
         }
     }
 }

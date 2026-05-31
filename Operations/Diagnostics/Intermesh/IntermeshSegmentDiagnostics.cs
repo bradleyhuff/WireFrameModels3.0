@@ -44,7 +44,7 @@ namespace Operations.Diagnostics
         internal static void Dump(this IEnumerable<Operations.Intermesh.Basics.IntermeshSegment> segments, Point3D focusAt, double magnification, string text = "")
         {
             var zone = new Rectangle3D(focusAt, 1 / magnification);
-
+            WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/IntermeshSegments{text}/Zone");
             foreach (var segment in segments)
             {
                 var clip = zone.Clip(segment.Segment);

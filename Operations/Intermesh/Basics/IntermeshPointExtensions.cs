@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,11 @@ namespace Operations.Intermesh.Basics
         public static void PointTransferFromTo(this BoxBucket<IntermeshSegment> bucket, IntermeshPoint from, IntermeshPoint to, IntermeshSegment containing = null)
         {
             if (from.Id == to.Id) { return; }
+
+            var distance = Point3D.Distance(from.Point, to.Point);
+            if (distance > 1e-9) { 
+                BaseObjects.Console.WriteLine($"Long transfer {new Combination2(from.Id, to.Id)} {distance}", ConsoleColor.Yellow); }
+
             foreach (var removal in bucket.LinkingSegments(from))
             {
                 removal.ReplaceStartAndEndWith(

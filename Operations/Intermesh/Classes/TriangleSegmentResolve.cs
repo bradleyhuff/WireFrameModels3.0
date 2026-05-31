@@ -10,6 +10,7 @@ using Operations.Basics;
 using Operations.Diagnostics;
 using Operations.Diagnostics.Intermesh;
 using Operations.Intermesh.Basics;
+using System.Net.Sockets;
 
 namespace Operations.Intermesh.Classes
 {
@@ -32,6 +33,20 @@ namespace Operations.Intermesh.Classes
             var unresolvedPairsBefore = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
             ResolveCycle(segments, ref pairs);
 
+            SegmentReplacements(intermeshTriangles);
+            segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
+            pairs = BuildPairsTable(segments);
+            ResolveCycle(segments, ref pairs);
+
+            SegmentReplacements(intermeshTriangles);
+            segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
+            pairs = BuildPairsTable(segments);
+            ResolveCycle(segments, ref pairs);
+
+            //ResolveCycle(segments, ref pairs);
+            //ResolveCycle(segments, ref pairs);
+            //ResolveCycle(segments, ref pairs);
+
             //SegmentReplacements(intermeshTriangles);
             //segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
             //pairs = BuildPairsTable(segments);
@@ -43,20 +58,37 @@ namespace Operations.Intermesh.Classes
 
             var unresolvedPairsAfter = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
             //BaseObjects.Console.WriteLine($"Unresolved pairs {unresolvedPairs.Count()} ", ConsoleColor.Cyan, unresolvedPairs.Any() ? ConsoleColor.DarkRed : System.Console.BackgroundColor);
-            foreach (var unresolvedPair in unresolvedPairsAfter)
-            {
-                var segment1 = unresolvedPair.Value.Item1.Segment;
-                var segment2 = unresolvedPair.Value.Item2.Segment;
-                BaseObjects.Console.WriteLine($"{unresolvedPair.Value.Item1} {unresolvedPair.Value.Item2} Distance: {LineSegment3D.Distance(segment1, segment2)}", ConsoleColor.Magenta);
-                var magnification = 1e3;
-                IntermeshSegmentDiagnostics.Dump([unresolvedPair.Value.Item1, unresolvedPair.Value.Item2], unresolvedPair.Value.Item1.A.Point, magnification, $"-Unresolved-{unresolvedPair.Value.Item1.Key}-{unresolvedPair.Value.Item2.Key}");
-            }
+ 
             //var shortCapsules = segments.SelectMany(s => s.Capsules).Where(c => c.Segment.Length < 1e-9);
             //if(shortCapsules.Any()) BaseObjects.Console.WriteLine($"Short capsules {shortCapsules.Count()}", ConsoleColor.Cyan);
 
             BaseObjects.Console.WriteLine($"Was unresolved: {unresolvedPairsBefore.Count()} WasChanged: {segments.Count(s => s.WasChanged)}  Left unresolved: {unresolvedPairsAfter.Count()} ", 
                 !unresolvedPairsBefore.Any() ? ConsoleColor.Gray : (!unresolvedPairsAfter.Any() ? ConsoleColor.Green : ConsoleColor.White), 
                 !unresolvedPairsAfter.Any() ? System.Console.BackgroundColor : ConsoleColor.Red);
+
+
+            //var bucket = new BoxBucket<IntermeshSegment>(segments);
+            //foreach (var unresolvedPair in unresolvedPairsAfter)
+            //{
+            //    var segment1 = unresolvedPair.Value.Item1.Segment;
+            //    var segment2 = unresolvedPair.Value.Item2.Segment;
+            //    BaseObjects.Console.WriteLine($"{unresolvedPair.Value.Item1} {unresolvedPair.Value.Item2} Distance: {LineSegment3D.Distance(segment1, segment2)}", ConsoleColor.Red);
+            //    var isResolved0 = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Value);
+            //    if (isResolved0) { BaseObjects.Console.WriteLine($"Resolve attempt already resolved", ConsoleColor.Yellow); continue; }
+            //    //var magnification = 1e0;
+            //    //IntermeshSegmentDiagnostics.Dump([unresolvedPair.Value.Item1, unresolvedPair.Value.Item2], unresolvedPair.Value.Item1.A.Point, magnification, $"-Unresolved-{unresolvedPair.Value.Item1.Key}-{unresolvedPair.Value.Item2.Key}");
+
+            //    var inLine = IntermeshSegmentExtensions.IsNearInLineParallel(unresolvedPair.Value);
+            //    var isCross = IntermeshSegmentExtensions.IsCross(unresolvedPair.Value);
+
+            //    if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value, bucket); else GapResolve(unresolvedPair.Value, bucket);
+
+            //    var isResolved = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Value);
+            //    BaseObjects.Console.WriteLine($"Resolve attempt {isResolved}", isResolved ? ConsoleColor.Green: ConsoleColor.Red);
+            //}
+
+            //var unresolvedPairsAfter2 = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
+            //if (unresolvedPairsAfter2.Any()) BaseObjects.Console.WriteLine($"Resolve attempt Is resolved: {unresolvedPairsAfter2.Count()}", ConsoleColor.Red);
 
             //if(unresolvedPairs.Any()) segments.PointCountDisplay();
             //if (unresolvedPairs.Any()) segments.ShowSingleSegmentPoints();
@@ -83,8 +115,12 @@ namespace Operations.Intermesh.Classes
 
         private static void ResolveCycle(IntermeshSegment[] segments, ref Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> pairs)
         {
+            BaseObjects.Console.WriteLine($"(1) Long pair distances {pairs.Count(p => LineSegment3D.Distance(p.Value.Item1.Segment, p.Value.Item2.Segment) > 1e-9)}");
             ShortSegmentReplacements(segments, ref pairs);
+            BaseObjects.Console.WriteLine($"(2) Long pair distances {pairs.Count(p => LineSegment3D.Distance(p.Value.Item1.Segment, p.Value.Item2.Segment) > 1e-9)}");
             NearParallelReplacements(segments, ref pairs);
+            BaseObjects.Console.WriteLine($"(3) Long pair distances {pairs.Count(p => LineSegment3D.Distance(p.Value.Item1.Segment, p.Value.Item2.Segment) > 1e-9)}");
+            BaseObjects.Console.WriteLine($"(3B) Short segments {segments.SelectMany(s => s.Capsules).Count(c => c.Segment.Length < 1e-9)}");
 
             var unresolvedPairs = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
             var unresolvedNearInlinePairs = unresolvedPairs.Where(u => IntermeshSegmentExtensions.IsNearInLineParallel(u.Value)).ToArray();
@@ -101,10 +137,42 @@ namespace Operations.Intermesh.Classes
                 var inLine = IntermeshSegmentExtensions.IsNearInLineParallel(unresolvedPair.Value);
                 var isCross = IntermeshSegmentExtensions.IsCross(unresolvedPair.Value);
 
-                if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value, bucket, segments); else GapResolve(unresolvedPair.Value, bucket);
+                if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value, bucket); else GapResolve(unresolvedPair.Value, bucket);
 
-                index++;
+                //var isResolved = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Value);
+                //if (!isResolved)
+                //{
+                //    BaseObjects.Console.WriteLine($"{(inLine ? "LINE" : (isCross ? "CROSS" : "GAP"))} {(isCross && withIntersection ? " INTERSECTION" : "")} Resolve failed {unresolvedPair.Value.Item1} {unresolvedPair.Value.Item2}", ConsoleColor.Red);
+                //}
+                //else
+                //{
+                //    BaseObjects.Console.WriteLine($"{(inLine ? "LINE" : (isCross ? "CROSS" : "GAP"))} {(isCross && withIntersection ? " INTERSECTION" : "")} Resolve succeeded {unresolvedPair.Value.Item1} {unresolvedPair.Value.Item2}", ConsoleColor.Green);
+                //}
+                    index++;
             }
+            BaseObjects.Console.WriteLine($"(4) Long pair distances {pairs.Count(p => LineSegment3D.Distance(p.Value.Item1.Segment, p.Value.Item2.Segment) > 1e-9)}");
+            BaseObjects.Console.WriteLine($"(4B) Short segments {segments.SelectMany(s => s.Capsules).Count(c => c.Segment.Length < 1e-9)}");
+            //shortSegments = segments.Where(s => s.Segment.Length < 1e-9 && !s.IsRemoved).ToArray();
+
+            //unresolvedPairs = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
+            //foreach (var unresolvedPair in unresolvedPairs)
+            //{
+            //    var segment1 = unresolvedPair.Value.Item1.Segment;
+            //    var segment2 = unresolvedPair.Value.Item2.Segment;
+            //    var inLine = IntermeshSegmentExtensions.IsNearInLineParallel(unresolvedPair.Value);
+            //    var isCross = IntermeshSegmentExtensions.IsCross(unresolvedPair.Value);
+            //    if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value, bucket); else GapResolve(unresolvedPair.Value, bucket);
+            //    var isResolved = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Value);
+            //    if (!isResolved)
+            //    {
+            //        BaseObjects.Console.WriteLine($"{(inLine ? "LINE" : (isCross ? "CROSS" : "GAP"))} {(isCross && withIntersection ? " INTERSECTION" : "")} Resolve failed {unresolvedPair.Value.Item1} {unresolvedPair.Value.Item2}", ConsoleColor.Red);
+            //    }
+            //    else
+            //    {
+            //        BaseObjects.Console.WriteLine($"{(inLine ? "LINE" : (isCross ? "CROSS" : "GAP"))} {(isCross && withIntersection ? " INTERSECTION" : "")} Resolve succeeded {unresolvedPair.Value.Item1} {unresolvedPair.Value.Item2}", ConsoleColor.Green);
+            //    }
+            //    index++;
+            //}
         }
 
         private static void SegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
@@ -213,186 +281,149 @@ namespace Operations.Intermesh.Classes
                 unresolvedPair.Item1.SplitBy(point);
             }
         }
-        private static void CrossResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket, IEnumerable<IntermeshSegment> segments)
-        {
-            var intersection = LineSegment3D.PointIntersection(unresolvedPair.Item1.Segment, unresolvedPair.Item2.Segment, 1e-15);
-            if (intersection is not null)
+
+        private static bool withIntersection = false;
+        private static void CrossResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket)
+        {//Failed cross 13639 13060 Code 10 Segment1 split False Segment2 split False
+            //if (unresolvedPair.Item1.Id == 13605 && unresolvedPair.Item2.Id == 13616)
+            //{
+            //    var magnification = 1e10;
+                
+            //    Operations.Diagnostics.IntermeshSegmentDiagnostics.Dump([unresolvedPair.Item1, unresolvedPair.Item2], unresolvedPair.Item1.A.Point, magnification, $"-CrossResolve-{unresolvedPair.Item1.Key}-{unresolvedPair.Item2.Key}");
+
+            //}
+
+            var unresolvedSet = IntermeshSegmentExtensions.PointIntersection(unresolvedPair);
+            //var intersection = LineSegment3D.PointIntersection(unresolvedPair.Item1.Segment, unresolvedPair.Item2.Segment, 1e-15);
+            var intersection = unresolvedSet.Item1;
+            //if (intersection is not null)
             {
-                CrossWithIntersectionResolve(unresolvedPair, intersection, bucket, segments);
+                //CrossWithIntersectionResolve(unresolvedPair, intersection, bucket);
+                IntermeshSegmentExtensions.CrossWithIntersectionResolve(unresolvedSet, bucket);
+                withIntersection = true;
             }
-            else
-            {
-                CrossWithoutIntersectionResolve(unresolvedPair, bucket);
-            }
+            //else
+            //{
+            //    CrossWithoutIntersectionResolve(unresolvedPair, bucket);
+            //    withIntersection = false;
+            //}
         }
-        private static void CrossWithoutIntersectionResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket)
-        {
-            var linkSegment = IntermeshSegmentExtensions.ShortestLink((unresolvedPair.Item1, unresolvedPair.Item2));
+        //private static void CrossWithoutIntersectionResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket)
+        //{
+        //    var linkSegment = IntermeshSegmentExtensions.ShortestLink((unresolvedPair.Item1, unresolvedPair.Item2));
 
-            var extensionA = LineSegment3D.SegmentExtensionToLine(unresolvedPair.Item1.Segment, unresolvedPair.Item2.Segment, 1e-15);
-            var extensionB = LineSegment3D.SegmentExtensionToLine(unresolvedPair.Item2.Segment, unresolvedPair.Item1.Segment, 1e-15);
-            if (extensionA is not null && extensionA.Length < linkSegment.Distance)
-            {
-                //BaseObjects.Console.WriteLine($"Extension A split {unresolvedPair.Item1} {unresolvedPair.Item2}  {extensionA.Length}", ConsoleColor.Red);
-                var to = IntermeshPointExtensions.Fetch(extensionA.Start);
-                var from = IntermeshPointExtensions.Fetch(extensionA.End);
+        //    var extensionA = LineSegment3D.SegmentExtensionToLine(unresolvedPair.Item1.Segment, unresolvedPair.Item2.Segment, 1e-15);
+        //    var extensionB = LineSegment3D.SegmentExtensionToLine(unresolvedPair.Item2.Segment, unresolvedPair.Item1.Segment, 1e-15);
 
-                var points = unresolvedPair.Item1.Capsules.SelectMany(c => c.Points);
-                var nearestPoint = points.NearestPoint(to);
-                if (Point3D.Distance(nearestPoint.Point, to.Point) < 1e-9) { to = nearestPoint; } else { unresolvedPair.Item1.SplitBy(to); }
+        //    if (extensionA is not null && extensionB is not null)
+        //    {
+        //        var extension = extensionA.Length > extensionB.Length ? extensionB : extensionA;
+        //        var to = IntermeshPointExtensions.Fetch(extension.Start);
+        //        var from = IntermeshPointExtensions.Fetch(extension.End);
 
-                bucket.PointTransferFromTo(from, to);
+        //        var points = unresolvedPair.Item1.Capsules.SelectMany(c => c.Points);
+        //        var nearestPoint = points.NearestPoint(to);
+        //        if (Point3D.Distance(nearestPoint.Point, to.Point) < 1e-9) { to = nearestPoint; } else { unresolvedPair.Item1.SplitBy(to); }
 
-                //var isResolved = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Item1, unresolvedPair.Item2);
-                //BaseObjects.Console.WriteLine($"Is resolved: {isResolved}  Short capsules {unresolvedPair.Item1.Capsules.Count(c => c.Segment.Length < 1e-9)}");
+        //        //bucket.PointTransferFromTo(from, to);
 
-                //var magnification = 1e10;
-                //Operations.Diagnostics.IntermeshSegmentDiagnostics.Dump([unresolvedPair.Item1, unresolvedPair.Item2], unresolvedPair.Item1.A.Point, magnification, $"-Extension-A-{unresolvedPair.Item1.Key}-{unresolvedPair.Item2.Key}");
+        //        //unresolvedPair.Item2.ExtendWith(to);
+        //        //unresolvedPair.Item1.ResolvePoint(to);
 
-            }
-            else if (extensionB is not null && extensionB.Length < linkSegment.Distance)
-            {
-                //BaseObjects.Console.WriteLine($"Extension B split {unresolvedPair.Item1} {unresolvedPair.Item2}  {extensionB.Length}", ConsoleColor.Red);
-                var to = IntermeshPointExtensions.Fetch(extensionB.Start);
-                var from = IntermeshPointExtensions.Fetch(extensionB.End);
+        //        var isResolved2 = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Item1, unresolvedPair.Item2);
+        //        if (!isResolved2)
+        //        {
+        //            BaseObjects.Console.WriteLine($"Failed ExtentionAB gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Red);
+        //        }
+        //        else
+        //        {
+        //            BaseObjects.Console.WriteLine($"Successful ExtentionAB gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Green);
+        //        }
+        //    }
 
-                var points = unresolvedPair.Item2.Capsules.SelectMany(c => c.Points);
-                var nearestPoint = points.NearestPoint(to);
-                if (Point3D.Distance(nearestPoint.Point, to.Point) < 1e-9) { to = nearestPoint; } else { unresolvedPair.Item2.SplitBy(to); }
-                bucket.PointTransferFromTo(from, to);
+        //    else if (extensionA is not null && extensionA.Length < linkSegment.Distance)
+        //    {
+        //        //BaseObjects.Console.WriteLine($"Extension A split {unresolvedPair.Item1} {unresolvedPair.Item2}  {extensionA.Length}", ConsoleColor.Red);
+        //        var to = IntermeshPointExtensions.Fetch(extensionA.Start);
+        //        var from = IntermeshPointExtensions.Fetch(extensionA.End);
 
-                //var isResolved = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Item1, unresolvedPair.Item2);
-                //BaseObjects.Console.WriteLine($"Is resolved: {isResolved}  Short capsules {unresolvedPair.Item2.Capsules.Count(c => c.Segment.Length < 1e-9)}");
+        //        var points = unresolvedPair.Item1.Capsules.SelectMany(c => c.Points);
+        //        var nearestPoint = points.NearestPoint(to);
+        //        if (Point3D.Distance(nearestPoint.Point, to.Point) < 1e-9) { to = nearestPoint; } else { unresolvedPair.Item1.SplitBy(to); }
 
-                //var magnification = 1e10;
-                //Operations.Diagnostics.IntermeshSegmentDiagnostics.Dump([unresolvedPair.Item1, unresolvedPair.Item2], unresolvedPair.Item1.A.Point, magnification, $"-Extension-B-{unresolvedPair.Item1.Key}-{unresolvedPair.Item2.Key}");
-            }
-            else
-            {
-                var linksA = bucket.LinkingSegments(linkSegment.A).Count();
-                var linksB = bucket.LinkingSegments(linkSegment.B).Count();
-                var from = (linksA > linksB) || (linksA == linksB && linkSegment.A.Id > linkSegment.B.Id) ? linkSegment.A : linkSegment.B;
-                var to = (linksA < linksB) || (linksA == linksB && linkSegment.A.Id < linkSegment.B.Id) ? linkSegment.A : linkSegment.B;
-                bucket.PointTransferFromTo(from, to);
-            }
-        }
-        private static void CrossWithIntersectionResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, Point3D intersection, BoxBucket<IntermeshSegment> bucket, IEnumerable<IntermeshSegment> segments)
-        {
-            var distanceAA = Point3D.Distance(intersection, unresolvedPair.Item1.A.Point);
-            var distanceAB = Point3D.Distance(intersection, unresolvedPair.Item1.B.Point);
-            var distanceBA = Point3D.Distance(intersection, unresolvedPair.Item2.A.Point);
-            var distanceBB = Point3D.Distance(intersection, unresolvedPair.Item2.B.Point);
+        //        //bucket.PointTransferFromTo(from, to);
 
-            var code = (distanceBB < 1e-9 ? 8 : 0) | (distanceBA < 1e-9 ? 4 : 0) | (distanceAB < 1e-9 ? 2 : 0) | (distanceAA < 1e-9 ? 1 : 0);
-            switch (code)
-            {
-                case 0:
-                    {
-                        var point = IntermeshPointExtensions.Fetch(intersection);
-                        unresolvedPair.Item1.SplitBy(point);
-                        unresolvedPair.Item2.SplitBy(point);
-                    }
-                    break;
-                case 1:
-                    {
-                        //unresolvedPair.Value.Item2.SplitBy(unresolvedPair.Value.Item1.A);
-                        var to = IntermeshPointExtensions.Fetch(intersection);
-                        unresolvedPair.Item2.SplitBy(to);
-                        var from = unresolvedPair.Item1.A;
-                        bucket.PointTransferFromTo(from, to);
-                    }
-                    break;
-                case 2:
-                    {
-                        //unresolvedPair.Value.Item2.SplitBy(unresolvedPair.Value.Item1.B);
-                        var to = IntermeshPointExtensions.Fetch(intersection);
-                        unresolvedPair.Item2.SplitBy(to);
-                        var from = unresolvedPair.Item1.B;
-                        bucket.PointTransferFromTo(from, to);
-                    }
-                    break;
-                case 3:
-                    {
-                        // Two ...
-                        BaseObjects.Console.WriteLine($"CASE {code}", ConsoleColor.Red);
-                    }
-                    break;
-                case 4:
-                    {
-                        //unresolvedPair.Value.Item1.SplitBy(unresolvedPair.Value.Item2.A);
-                        var to = IntermeshPointExtensions.Fetch(intersection);
-                        unresolvedPair.Item1.SplitBy(to);
-                        var from = unresolvedPair.Item2.A;
-                        bucket.PointTransferFromTo(from, to);
-                    }
-                    break;
-                case 5:
-                    {
-                        // Two
-                        var to = IntermeshPointExtensions.Fetch(intersection);
-                        bucket.PointTransferFromTo(unresolvedPair.Item1.A, to);
-                        bucket.PointTransferFromTo(unresolvedPair.Item2.A, to);
-                    }
-                    break;
-                case 6:
-                    {
-                        // Two
-                        var to = IntermeshPointExtensions.Fetch(intersection);
-                        bucket.PointTransferFromTo(unresolvedPair.Item1.B, to);
-                        bucket.PointTransferFromTo(unresolvedPair.Item2.A, to);
-                    }
-                    break;
-                case 7:
-                    BaseObjects.Console.WriteLine($"CASE {code}", ConsoleColor.Red);
-                    break;
-                case 8:
-                    {
-                        //unresolvedPair.Value.Item1.SplitBy(unresolvedPair.Value.Item2.B);
-                        var to = IntermeshPointExtensions.Fetch(intersection);
-                        unresolvedPair.Item1.SplitBy(to);
-                        var from = unresolvedPair.Item2.B;
-                        bucket.PointTransferFromTo(from, to);
-                    }
-                    break;
-                case 9:
-                    {
-                        // Two
-                        var to = IntermeshPointExtensions.Fetch(intersection);
-                        bucket.PointTransferFromTo(unresolvedPair.Item1.A, to);
-                        bucket.PointTransferFromTo(unresolvedPair.Item2.B, to);
-                    }
-                    break;
-                case 10:
-                    {
-                        // Two
-                        var to = IntermeshPointExtensions.Fetch(intersection);
-                        bucket.PointTransferFromTo(unresolvedPair.Item1.B, to);
-                        bucket.PointTransferFromTo(unresolvedPair.Item2.B, to);
-                    }
-                    break;
-                case 11:
-                    BaseObjects.Console.WriteLine($"CASE {code}", ConsoleColor.Red);
-                    break;
-                case 12:
-                    {
-                        // Two ...
-                        BaseObjects.Console.WriteLine($"CASE {code}", ConsoleColor.Red);
-                    }
-                    break;
-                case 13: BaseObjects.Console.WriteLine($"CASE {code}", ConsoleColor.Red); break;
-                case 14: BaseObjects.Console.WriteLine($"CASE {code}", ConsoleColor.Red); break;
-                case 15: BaseObjects.Console.WriteLine($"CASE {code}", ConsoleColor.Red); break;
-            }
-        }
+        //        //unresolvedPair.Item2.ExtendWith(to);
+        //        //unresolvedPair.Item1.ResolvePoint(to);
+
+        //        var isResolved2 = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Item1, unresolvedPair.Item2);
+        //        if (!isResolved2)
+        //        {
+        //            BaseObjects.Console.WriteLine($"Failed ExtentionA gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Red);
+        //        }
+        //        else
+        //        {
+        //            BaseObjects.Console.WriteLine($"Successful ExtentionA gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Green);
+        //        }
+
+        //        //var isResolved = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Item1, unresolvedPair.Item2);
+        //        //BaseObjects.Console.WriteLine($"Is resolved: {isResolved}  Short capsules {unresolvedPair.Item1.Capsules.Count(c => c.Segment.Length < 1e-9)}");
+
+        //        //var magnification = 1e10;
+        //        //Operations.Diagnostics.IntermeshSegmentDiagnostics.Dump([unresolvedPair.Item1, unresolvedPair.Item2], unresolvedPair.Item1.A.Point, magnification, $"-Extension-A-{unresolvedPair.Item1.Key}-{unresolvedPair.Item2.Key}");
+
+        //    }
+        //    else if (extensionB is not null && extensionB.Length < linkSegment.Distance)
+        //    {
+        //        //BaseObjects.Console.WriteLine($"Extension B split {unresolvedPair.Item1} {unresolvedPair.Item2}  {extensionB.Length}", ConsoleColor.Red);
+        //        var to = IntermeshPointExtensions.Fetch(extensionB.Start);
+        //        var from = IntermeshPointExtensions.Fetch(extensionB.End);
+
+        //        var points = unresolvedPair.Item2.Capsules.SelectMany(c => c.Points);
+        //        var nearestPoint = points.NearestPoint(to);
+        //        if (Point3D.Distance(nearestPoint.Point, to.Point) < 1e-9) { to = nearestPoint; } else { unresolvedPair.Item2.SplitBy(to); }
+
+        //        //unresolvedPair.Item1.ExtendWith(to);
+        //        //bucket.PointTransferFromTo(from, to);
+
+        //        var isResolved2 = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Item1, unresolvedPair.Item2);
+        //        if (!isResolved2)
+        //        {
+        //            BaseObjects.Console.WriteLine($"Failed ExtentionB gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Red);
+        //        }
+        //        else
+        //        {
+        //            BaseObjects.Console.WriteLine($"Successful ExtentionB gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Green);
+        //        }
+        //        //BaseObjects.Console.WriteLine($"Is resolved: {isResolved}  Short capsules {unresolvedPair.Item2.Capsules.Count(c => c.Segment.Length < 1e-9)}");
+
+        //        //var magnification = 1e10;
+        //        //Operations.Diagnostics.IntermeshSegmentDiagnostics.Dump([unresolvedPair.Item1, unresolvedPair.Item2], unresolvedPair.Item1.A.Point, magnification, $"-Extension-B-{unresolvedPair.Item1.Key}-{unresolvedPair.Item2.Key}");
+        //    }
+        //    else
+        //    {
+        //        GapResolve(unresolvedPair, bucket);
+        //    }
+        //}
 
         private static void GapResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket)
         {
             var linkSegment = IntermeshSegmentExtensions.ShortestLink((unresolvedPair.Item1, unresolvedPair.Item2));
-            var linksA = bucket.LinkingSegments(linkSegment.A).Count();
-            var linksB = bucket.LinkingSegments(linkSegment.B).Count();
-            var from = (linksA > linksB) || (linksA == linksB && linkSegment.A.Id > linkSegment.B.Id) ? linkSegment.A : linkSegment.B;
-            var to = (linksA < linksB) || (linksA == linksB && linkSegment.A.Id < linkSegment.B.Id) ? linkSegment.A : linkSegment.B;
-            bucket.PointTransferFromTo(from, to);
+
+            unresolvedPair.Item1.ExtendWith(linkSegment.A);
+            unresolvedPair.Item1.ExtendWith(linkSegment.B);
+            unresolvedPair.Item2.ResolvePoint(linkSegment.A);
+            unresolvedPair.Item2.ResolvePoint(linkSegment.B);
+
+            var isResolved2 = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Item1, unresolvedPair.Item2);
+            if (!isResolved2)
+            {
+                BaseObjects.Console.WriteLine($"Failed gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Red);
+            }
+            //else
+            //{
+            //    BaseObjects.Console.WriteLine($"Successful gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Green);
+            //}
         }
     }
 }

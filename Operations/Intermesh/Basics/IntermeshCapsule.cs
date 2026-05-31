@@ -50,8 +50,8 @@ namespace Operations.Intermesh.Basics
         public IEnumerable<IntermeshCapsule> Split(IntermeshPoint p)
         {
             if (A.Id == p.Id || B.Id == p.Id) { yield return this; yield break; }
-            var projection = Segment.Projection(p.Point);
-            if (Segment.PointIsBetweenEndpoints(projection, 1e-15))
+            var projection = Segment.Projection(p.Point, 1e-9);
+            if (Segment.PointIsAtOrBetweenEndpoints(projection, 1e-9))
             {
                 yield return IntermeshCapsuleExtensions.Fetch(A, p);
                 yield return IntermeshCapsuleExtensions.Fetch(p, B);

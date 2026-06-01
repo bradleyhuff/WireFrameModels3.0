@@ -83,6 +83,11 @@ namespace Operations.Intermesh.Basics
             _capsules.Clear();
         }
 
+        public void ClearHistory()
+        {
+            _previous.Clear();
+        }
+
         public void ReplaceStartAndEndWith(IntermeshPoint a, IntermeshPoint b)
         {
             if (_capsules.Count == 0)

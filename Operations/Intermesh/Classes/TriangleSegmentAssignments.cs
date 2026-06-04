@@ -39,7 +39,7 @@ namespace Operations.Intermesh.Classes
                         var b = IntermeshPointExtensions.Fetch(intersection.End);
 
                         if (a.Id == b.Id) { continue; }
-                        triangle.AddIntersection(FetchEdgeSlot(FetchSegment(a, b, segments), slots));
+                        triangle.AddIntersectionSlot(FetchEdgeSlot(FetchSegment(a, b, segments), slots));
                     }
                 }
             }

@@ -63,7 +63,20 @@ namespace Operations.Intermesh.Basics
 
         private List<IntermeshEdgeSlot> _intersectionSegments = new List<IntermeshEdgeSlot>();
 
-        public bool AddIntersection(IntermeshEdgeSlot intersection)
+        public void RemoveIntersectionSlot(IntermeshEdgeSlot intersection)
+        {
+            _intersectionSegments.Remove(intersection);
+        }
+
+        public void RemoveIntersectionSlots(IEnumerable<IntermeshEdgeSlot> intersections)
+        {
+            foreach (var intersection in intersections)
+            {
+                RemoveIntersectionSlot(intersection);
+            }
+        }
+
+        public bool AddIntersectionSlot(IntermeshEdgeSlot intersection)
         {
             if (_intersectionSegments.Any(t => t.Id == intersection.Id)) { return false; }
             _intersectionSegments.Add(intersection);
@@ -148,6 +161,8 @@ namespace Operations.Intermesh.Basics
 
         public SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint> CreateSurfaceSegmentSet()
         {
+            if (PerimeterSlots.Any(s => !s.Segments.Any())) { Console.WriteLine($"Triangle {Id} has an empty perimeter slot."); }
+
             return new SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint>
             {
                 NodeId = Id,
@@ -169,8 +184,7 @@ namespace Operations.Intermesh.Basics
 
         private IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetIntersectionSurfaceSegments()
         {
-            var perimeterSegments = PerimeterSegments.ToArray();
-            foreach (var segment in IntersectionSegments.Where(i => !perimeterSegments.Any(p => p.Key == i.Key)))
+            foreach (var segment in IntersectionSegments)
             {
                 yield return new SurfaceSegmentContainer<IntermeshPoint>(
                     new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),

@@ -72,6 +72,8 @@ namespace Operations.Intermesh.Basics
 
         public IReadOnlyList<IntermeshCapsule> Capsules { get { return _capsules; } }
 
+        public IntermeshSegment Replacement { get; set; }
+
         public bool IsRemoved
         {
             get { return !_capsules.Any(); }

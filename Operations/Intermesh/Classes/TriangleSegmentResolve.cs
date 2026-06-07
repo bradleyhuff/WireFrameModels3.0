@@ -18,15 +18,12 @@ namespace Operations.Intermesh.Classes
 {
     internal static class TriangleSegmentResolve
     {
-        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles, bool lastResolve = false)
         {
-            DateTime start = DateTime.Now;
+            BaseObjects.Console.WriteLine("Triangle Segment Resolve", ConsoleColor.Yellow);
             var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(s => s.Id).ToArray();
             if (!intersections.Any()) return;
-
-            while (ResolveCycle(intermeshTriangles)) { }
-
-            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle segment resolve. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            while (ResolveCycle(intermeshTriangles, lastResolve)) { }
         }
 
         private static Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> BuildPairsTable(IntermeshSegment[] segments)
@@ -45,7 +42,7 @@ namespace Operations.Intermesh.Classes
             return pairs;
         }
 
-        private static bool ResolveCycle(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        private static bool ResolveCycle(IEnumerable<IntermeshTriangle> intermeshTriangles, bool lastResolve = false)
         {
             var segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
             var pairs = BuildPairsTable(segments);
@@ -65,17 +62,20 @@ namespace Operations.Intermesh.Classes
                 var segment2 = unresolvedPair.Value.Item2.Segment;
                 var inLine = IntermeshSegmentExtensions.IsNearInLineParallel(unresolvedPair.Value);
                 var isCross = IntermeshSegmentExtensions.IsCross(unresolvedPair.Value);
+                if (isCross && inLine) { BaseObjects.Console.WriteLine($"InLine and IsCross Pair {unresolvedPair.Value.Item1.Id} {unresolvedPair.Value.Item2.Id}"); }
 
                 if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value, bucket); else GapResolve(unresolvedPair.Value, bucket);
             }
             BaseObjects.Console.WriteLine($"Long pair distances {pairs.Count(p => LineSegment3D.Distance(p.Value.Item1.Segment, p.Value.Item2.Segment) > 1e-9)}");
             BaseObjects.Console.WriteLine($"Short segments {segments.SelectMany(s => s.Capsules).Count(c => c.Segment.Length < 1e-9)}");
             var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
-            var perimeterSlots = intermeshTriangles.SelectMany(t => t.PerimeterSlots).DistinctBy(s => s.Id).ToArray();
-            BaseObjects.Console.WriteLine($"Removed segments {segments.Count(s => s.IsRemoved)} Empty perimeter slots {perimeterSlots.Count(s => !s.Segments.Any())}");
+            BaseObjects.Console.WriteLine($"Removed segments {segments.Count(s => s.IsRemoved)} Empty slots {slots.Count(s => !s.Segments.Any())}");
             var unresolvedPairsAfter = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
             var wasChanged = segments.Any(s => s.WasChanged);
             var last = !wasChanged;
+            if(!lastResolve)
+            BaseObjects.Console.WriteLine($"Segments {segments.Count()} Unresolved: {unresolvedPairs.Count()} Changed: {segments.Count(s => s.WasChanged)}  Left unresolved: {unresolvedPairsAfter.Count()} ");
+            if(lastResolve)
             BaseObjects.Console.WriteLine($"Segments {segments.Count()} Unresolved: {unresolvedPairs.Count()} Changed: {segments.Count(s => s.WasChanged)}  Left unresolved: {unresolvedPairsAfter.Count()} ",
                 !last ? ConsoleColor.Gray : (!unresolvedPairsAfter.Any() ? ConsoleColor.Black : ConsoleColor.White),
                 !last ? System.Console.BackgroundColor : (!unresolvedPairsAfter.Any() ? ConsoleColor.Green : ConsoleColor.Red));
@@ -92,11 +92,13 @@ namespace Operations.Intermesh.Classes
             BaseObjects.Console.WriteLine(allSegments.GroupCounts(s => s.Capsules.Count()).DisplayByLine(), ConsoleColor.Cyan);
 
             ReplaceEmptySlots(slots);
+            RemoveEmptySlots(intermeshTriangles);
 
-            var replacements = slots.Where(s => s.Segments.Any(ss => ss.Capsules.Count() != 1));
+            var replacements = slots.Where(s => s.Segments.Any(ss => ss.Capsules.Count() != 1)).ToArray();
             var replacementTable = BuildReplacementTable(replacements);
-            BaseObjects.Console.WriteLine($"Replacement table", ConsoleColor.Cyan);
-            BaseObjects.Console.WriteLine(replacementTable.Values.GroupCounts(s => s.Count()).DisplayByLine(), ConsoleColor.Cyan);
+            //BuildContacts(replacementTable);
+            //BaseObjects.Console.WriteLine($"Replacement table", ConsoleColor.Cyan);
+            //BaseObjects.Console.WriteLine(replacementTable.Values.GroupCounts(s => s.Replacement.Count()).DisplayByLine(), ConsoleColor.Cyan);
             ApplyReplacements(replacements, replacementTable);
             RemoveDuplicateIntersectionSlots(intermeshTriangles);
             ClearSegmentHistories(intermeshTriangles);
@@ -111,9 +113,20 @@ namespace Operations.Intermesh.Classes
             var removedSlots = slots.Where(s => s.Segments.Any(ss => ss.IsRemoved && ss.Replacement is not null)).ToArray();
             foreach (var removedSlot in removedSlots)
             {
-                var toBeReplaced = removedSlot.Segments.Where(s => s.IsRemoved).ToArray();
-                removedSlot.Segments.RemoveAll(s => s.IsRemoved);
+                var toBeReplaced = removedSlot.Segments.Where(s => s.IsRemoved && s.Replacement is not null).ToArray();
+                removedSlot.Segments.RemoveAll(s => s.IsRemoved && s.Replacement is not null);
                 removedSlot.Segments.AddRange(toBeReplaced.Select(r => r.Replacement));
+            }
+        }
+
+        private static void RemoveEmptySlots(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            foreach (var triangle in intermeshTriangles)
+            {
+                foreach (var slot in triangle.IntersectionSlots.Where(ss => !ss.Segments.Any(s => !s.IsRemoved)).ToArray())
+                {
+                    triangle.RemoveIntersectionSlot(slot);
+                }
             }
         }
 
@@ -131,34 +144,65 @@ namespace Operations.Intermesh.Classes
             {
                 triangle.RemoveIntersectionSlots(triangle.IntersectionSlots.Where(i => triangle.PerimeterSegments.Any(p => p.Key == i.Key)).ToArray());
             }
+            //foreach (var triangle in intermeshTriangles)
+            //{
+            //    triangle.RemoveIntersections(triangle.Intersections.Where(i => triangle.PerimeterSegments.Any(p => p.Key == i.Key)).ToArray());
+            //}
         }
 
-        private static void ApplyReplacements(IEnumerable<IntermeshEdgeSlot> replacements, Dictionary<int, List<IntermeshSegment>> replacementTable)
+        private static void ApplyReplacements(IEnumerable<IntermeshEdgeSlot> replacements, Dictionary<int, (IntermeshSegment Segment, List<IntermeshSegment> Replacement)> replacementTable)
         {
             foreach (var replacement in replacements)
             {
                 var segments = new List<IntermeshSegment>();
                 foreach (var element in replacement.Segments.Where(ss => ss.Capsules.Any()))
                 {
-                    if (replacementTable.ContainsKey(element.Id)) { segments.AddRange(replacementTable[element.Id]); }
+                    if (replacementTable.ContainsKey(element.Id))
+                    {
+                        segments.AddRange(replacementTable[element.Id].Replacement);
+                    }
+                    else
+                    {
+                        segments.Add(element);
+                    }
                 }
                 replacement.Segments = segments;
             }
         }
 
-        private static Dictionary<int, List<IntermeshSegment>> BuildReplacementTable(IEnumerable<IntermeshEdgeSlot> replacements)
+        private static Dictionary<int, (IntermeshSegment Segment, List<IntermeshSegment> Replacement)> BuildReplacementTable(IEnumerable<IntermeshEdgeSlot> replacements)
         {
             var segmentTable = new Combination2Dictionary<IntermeshSegment>();
-            var replacementTable = new Dictionary<int, List<IntermeshSegment>>();
+            var replacementTable = new Dictionary<int, (IntermeshSegment, List<IntermeshSegment>)>();
             foreach (var replacement in replacements)
             {
-                foreach (var element in replacement.Segments.Where(ss => ss.Capsules.Any()))
+                var segments = replacement.Segments.Where(ss => ss.Capsules.Any()).ToArray();
+                foreach (var element in segments.Where(ss => ss.Capsules.Count() > 1))
                 {
-                    replacementTable[element.Id] = ApplyCapsules(element, segmentTable);
+                    replacementTable[element.Id] = (element, ApplyCapsules(element, segmentTable));
                 }
             }
             return replacementTable;
         }
+
+        //private static void BuildContacts(Dictionary<int, (IntermeshSegment Segment, List<IntermeshSegment> Replacement)> table)
+        //{
+        //    foreach (var element in table.Select(p => p.Value))
+        //    {
+        //        foreach (var contact in element.Segment.Contacts)
+        //        {
+        //            IEnumerable<IntermeshSegment> contactReplacement = new IntermeshSegment[] { contact };
+        //            if (table.ContainsKey(contact.Id)) { contactReplacement = table[contact.Id].Replacement; }
+
+        //            var nearestReplacements = contact.NearestOrLinked(element.Replacement);
+        //            foreach (var nearestReplacement in nearestReplacements)
+        //            {                       
+        //                var nearestContacts = nearestReplacement.NearestOrLinked(contactReplacement).ToArray();
+        //                nearestReplacement.AddRangeContacts(nearestContacts);
+        //            }
+        //        }
+        //    }
+        //}
 
         private static List<IntermeshSegment> ApplyCapsules(IntermeshSegment segment, Combination2Dictionary<IntermeshSegment> segmentTable)
         {
@@ -167,10 +211,16 @@ namespace Operations.Intermesh.Classes
             {
                 output.Add(FetchSegment(capsule, segmentTable));
             }
+            //for (int i = 0; i < output.Count - 1; i++)
+            //{
+            //    output[i].AddContacts(output[i + 1]);
+            //    output[i + 1].AddContacts(output[i]);
+            //}
+
             return output;
         }
 
-        private static IntermeshSegment FetchSegment(IntermeshCapsule capsule, Combination2Dictionary<IntermeshSegment> segments/*, IEnumerable<IntermeshSegment> contacts*/)
+        private static IntermeshSegment FetchSegment(IntermeshCapsule capsule, Combination2Dictionary<IntermeshSegment> segments)
         {
             var key = new Combination2(capsule.A.Id, capsule.B.Id);
             if (!segments.ContainsKey(key)) { segments[key] = new IntermeshSegment(capsule.A, capsule.B); }
@@ -222,6 +272,10 @@ namespace Operations.Intermesh.Classes
                 if (pair.Item1.Contacts.Count > pair.Item2.Contacts.Count) { toRemove = pair.Item2; toAddTo = pair.Item1; }
                 toAddTo.AddRangeContacts(toRemove.Contacts.Where(c => !c.IsRemoved));
                 nearParallelRemoved = true;
+                if (toRemove.Id == 7650)
+                {
+
+                }
                 toRemove.Remove();
                 toRemove.Replacement = toAddTo;
             }
@@ -249,8 +303,6 @@ namespace Operations.Intermesh.Classes
         private static void CrossResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket)
         {
             var unresolvedSet = IntermeshSegmentExtensions.PointIntersection(unresolvedPair);
-            var intersection = unresolvedSet.Item1;
-
             CrossWithIntersectionResolve(unresolvedSet, bucket);
         }
 

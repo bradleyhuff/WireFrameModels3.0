@@ -47,17 +47,11 @@ namespace Operations.Intermesh.Basics
             return Segment.Distance(element.A.Point) < 1e-9 && Segment.Distance(element.B.Point) < 1e-9;
         }
 
-        public IEnumerable<IntermeshCapsule> Split(IntermeshPoint p)
+        internal bool CanSplit(IntermeshPoint p, double error = BasicObjects.Math.Double.DifferenceError)
         {
-            if (A.Id == p.Id || B.Id == p.Id) { yield return this; yield break; }
-            var projection = Segment.Projection(p.Point, 1e-9);
-            if (Segment.PointIsAtOrBetweenEndpoints(projection, 1e-9))
-            {
-                yield return IntermeshCapsuleExtensions.Fetch(A, p);
-                yield return IntermeshCapsuleExtensions.Fetch(p, B);
-                yield break;
-            }
-            yield return this;
+            if (A.Id == p.Id || B.Id == p.Id) { return false; }
+            var projection = Segment.Projection(p.Point, error);
+            return Segment.PointIsAtOrBetweenEndpoints(projection, error);
         }
     }
 }

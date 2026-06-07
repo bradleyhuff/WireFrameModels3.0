@@ -14,7 +14,6 @@ namespace Operations.Intermesh.Classes
     {
         internal static void Action(IWireFrameMesh mesh, IEnumerable<IntermeshTriangle> processTriangles)
         {
-            return;
             var start = DateTime.Now;
 
             var processPositionTriangles = processTriangles.Select(p => p.PositionTriangle).ToArray();

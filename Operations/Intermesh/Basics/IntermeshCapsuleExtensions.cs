@@ -29,14 +29,42 @@ namespace Operations.Intermesh.Basics
             return split;
         }
 
-        public static IEnumerable<IntermeshCapsule> SplitBy(this IEnumerable<IntermeshCapsule> line, IntermeshPoint p)
+        private static IntermeshCapsule UseForSplit(this IEnumerable<IntermeshCapsule> line, IntermeshPoint p)
         {
+            IntermeshCapsule output = null;
+            double outSideDistance = System.Double.MaxValue;
+
             foreach (var element in line)
             {
-                foreach (var split in element.Split(p))
+                var distance = element.Segment.OutsideDistance(p.Point);
+                if (distance < outSideDistance)
                 {
-                    yield return split;
+                    outSideDistance = distance;
+                    output = element;
                 }
+            }
+
+            return output;
+        }
+
+        public static IEnumerable<IntermeshCapsule> SplitBy(this IEnumerable<IntermeshCapsule> line, IntermeshPoint p)
+        {
+            var canSplit = line.Where(l => l.CanSplit(p, 1e-9));
+            var useForSplit = canSplit.FirstOrDefault();
+            if (canSplit.Count() > 1) 
+            {
+                useForSplit = UseForSplit(canSplit, p);
+            }
+
+            foreach (var element in line)
+            {
+                if (useForSplit is not null && useForSplit.Id == element.Id)
+                {
+                    yield return Fetch(useForSplit.A, p);
+                    yield return Fetch(p, useForSplit.B);
+                    continue;
+                }
+                yield return element;
             }
         }
 

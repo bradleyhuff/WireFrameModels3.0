@@ -240,6 +240,11 @@ namespace Operations.Intermesh.Basics
             return count;
         }
 
+        public void ClearContacts()
+        {
+            _contacts.Clear();
+        }
+
         public override int GetHashCode()
         {
             return Id;

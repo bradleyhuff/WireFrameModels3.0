@@ -401,6 +401,11 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        public double OutsideDistance(Point3D point)
+        {
+            return Point3D.Distance(Start, point) + Point3D.Distance(End, point) - Length;
+        }
+
         public bool PointIsAtOrBetweenEndpoints(Point3D point, double error = E.Double.DifferenceError)
         {
             double distanceStart = Point3D.Distance(Start, point);
@@ -474,6 +479,21 @@ namespace BasicObjects.GeometricObjects
 
             var endpointDistance = Math.Math.Min(Point3D.Distance(Start, p), Point3D.Distance(End, p));
             return endpointDistance;
+        }
+
+        public LineSegment3D Nearest(IEnumerable<LineSegment3D> segments)
+        {
+            var distance = System.Double.MaxValue;
+            LineSegment3D nearest = null;
+            foreach (var segment in segments) {
+                var distance2 = Distance(this, segment);
+                if (distance2 < distance)
+                {
+                    distance = distance2;
+                    nearest = segment;
+                }
+            }
+            return nearest;
         }
     }
 }

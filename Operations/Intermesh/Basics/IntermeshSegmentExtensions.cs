@@ -18,6 +18,7 @@ namespace Operations.Intermesh.Basics
         {
             if (a is null || b is null) { return false; }
             if (a.Id == b.Id) { return false; }
+            if (a.Key == b.Key) { return false; }
             if (a.IsRemoved || b.IsRemoved) { return false; }
             if (Point3D.Distance(a.A.Point, b.A.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.B.Point) < 1e-9) { return true; }
             if (Point3D.Distance(a.A.Point, b.B.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.A.Point) < 1e-9) { return true; }
@@ -158,6 +159,41 @@ namespace Operations.Intermesh.Basics
                 }
             }
             return (null, null, null, pair.Item1, pair.Item2);
+        }
+
+        public static bool IsLinked(IntermeshSegment a, IntermeshSegment b)
+        {
+            if (a.A.Id == b.A.Id) { return true; }
+            if (a.A.Id == b.B.Id) { return true; }
+            if (a.B.Id == b.A.Id) { return true; }
+            if (a.B.Id == b.B.Id) { return true; }
+            return false;
+        }
+
+        public static IEnumerable<IntermeshSegment> NearestOrLinked(this IntermeshSegment given, IEnumerable<IntermeshSegment> segments)
+        {
+            var linkedSegments = segments.Where(s => IsLinked(given, s)).ToArray();
+            if (linkedSegments.Any()) 
+            {
+                foreach (var linkedSegment in linkedSegments)
+                {
+                    yield return linkedSegment;
+                }
+                yield break;
+            }
+
+            var distance = System.Double.MaxValue;
+            IntermeshSegment nearest = null;
+            foreach (var segment in segments)
+            {
+                var distance2 = LineSegment3D.Distance(given.Segment, segment.Segment);
+                if (distance2 < distance)
+                {
+                    distance = distance2;
+                    nearest = segment;
+                }
+            }
+            yield return nearest;
         }
     }
 }

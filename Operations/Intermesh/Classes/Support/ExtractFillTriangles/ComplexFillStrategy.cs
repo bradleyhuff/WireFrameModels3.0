@@ -45,6 +45,9 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             catch (Exception e)
             {
                 BaseObjects.Console.WriteLine($"Triangle: {triangle.Id} {e.Message}", ConsoleColor.Red);
+
+                //triangle.Dump(triangle.Triangle.Center, 1e0);
+
             }
         }
 

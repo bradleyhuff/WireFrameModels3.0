@@ -16,10 +16,9 @@ namespace Operations.Intermesh.Classes
     {
         internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            DateTime start = DateTime.Now;
-
-            //Triangle perimeter contact assignments
+            BaseObjects.Console.WriteLine("Segment Contact Assignments", ConsoleColor.Yellow);
             var perimeters = intermeshTriangles.SelectMany(t => t.PerimeterSegments).DistinctBy(p => p.Id).ToArray();
+            foreach (var perimeter in perimeters) { perimeter.ClearContacts(); }
             var pointTable = new Dictionary<int, List<IntermeshSegment>>();
             foreach (var perimeter in perimeters)
             {
@@ -36,6 +35,7 @@ namespace Operations.Intermesh.Classes
             }
 
             var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(i => i.Id).ToArray();
+            foreach (var intersection in intersections) { intersection.ClearContacts(); }
             var allSegments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(i => i.Id).ToArray();
 
             // Triangle intersection contact assignments
@@ -45,8 +45,6 @@ namespace Operations.Intermesh.Classes
                 var matches = segmentBucket.Fetch(intersection, 1e-5).Where(m => m.Id != intersection.Id);
                 intersection.AddRangeContacts(matches.Where(m => LineSegment3D.Distance(m.Segment, intersection.Segment) < 1e-9));
             }
-
-            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Segment contact assignments. Intersections {intersections.Count()} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }
 }

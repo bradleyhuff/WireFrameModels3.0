@@ -1,5 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Interfaces;
+using Operations.Intermesh.Basics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +17,7 @@ namespace Operations.ParallelSurfaces.Internals
         public List<Quadrangle> QuadrangleSets { get; set; }
 
         public IEnumerable<IPerimeterChainLink> BasePerimeterLinks { get; set; }
+
+        public Dictionary<int, IntermeshPoint> ParallelSurfaceMatch { get; } = new Dictionary<int, IntermeshPoint>();
     }
 }

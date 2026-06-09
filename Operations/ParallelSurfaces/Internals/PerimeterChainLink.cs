@@ -1,5 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
+using Operations.Intermesh.Basics;
 
 namespace Operations.ParallelSurfaces.Internals
 {
@@ -61,6 +62,9 @@ namespace Operations.ParallelSurfaces.Internals
             B = b.Position;
             NormalB = b.Normal;
             Id = GetId();
+
+            PointA = IntermeshPointExtensions.Fetch(A);
+            PointB = IntermeshPointExtensions.Fetch(B);
         }
 
         internal static int GetId()
@@ -72,6 +76,10 @@ namespace Operations.ParallelSurfaces.Internals
         }
 
         public int Id { get; }
+
+        public IntermeshPoint PointA { get; }
+        public IntermeshPoint PointB { get; }
+
         public Point3D A { get; }
         public Vector3D NormalA { get; }
         public Vector3D BinormalA { 

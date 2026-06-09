@@ -44,7 +44,7 @@ namespace Operations.Intermesh.Basics
             if (Key == element.Key) { return false; }
             if (!Segment.PointIsWithIn(element.A.Point)) { return false; }
             if (!Segment.PointIsWithIn(element.B.Point)) { return false; }
-            return Segment.Distance(element.A.Point) < 1e-9 && Segment.Distance(element.B.Point) < 1e-9;
+            return Segment.Distance(element.A.Point) < GapConstants.Resolver && Segment.Distance(element.B.Point) < GapConstants.Resolver;
         }
 
         internal bool CanSplit(IntermeshPoint p, double error = BasicObjects.Math.Double.DifferenceError)

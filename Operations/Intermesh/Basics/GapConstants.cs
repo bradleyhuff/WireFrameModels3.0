@@ -6,5 +6,7 @@ namespace Operations.Intermesh.Basics
         public const double Resolution = 2e-10;
         public const double Filler = 6e-10;
         public const double Proximity = 10e-10;
+
+        public const double Resolver = 1e-9;
     }
 }

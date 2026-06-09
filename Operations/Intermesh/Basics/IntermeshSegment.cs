@@ -118,7 +118,7 @@ namespace Operations.Intermesh.Basics
 
         public bool SplitBy(IntermeshPoint p)
         {
-            var splitBy = Capsules.SplitBy(p);
+            var splitBy = Capsules.SplitBy(p).ToArray();
             var wasSplit = splitBy.Count() > Capsules.Count();
             if (wasSplit)
             {
@@ -136,7 +136,7 @@ namespace Operations.Intermesh.Basics
             var distanceB = Point3D.Distance(p.Point, B.Point);
 
             var projection = Segment.Projection(p.Point, 0);
-            if (projection is not null && distanceA > 1e-9 && distanceB > 1e-9) { return false; }
+            if (projection is not null && distanceA > GapConstants.Resolver && distanceB > GapConstants.Resolver) { return false; }
 
             _previous.Add(Capsules.ToArray());
             if (distanceA < distanceB)

@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using FileExportImport;
 using Operations.Diagnostics;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Classes.Support.ExtractFillTriangles.Interfaces;
@@ -16,6 +17,18 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         {
             var surfaceSet = triangle.CreateSurfaceSegmentSet();
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, IntermeshPoint>(surfaceSet);
+
+            //if (triangle.Id == 13267)
+            //{
+            //    foreach (var element in surfaceSet.PerimeterSegments)
+            //    {
+            //        WavefrontFile.Export([element.Segment.Segment], $"Wavefront/SurfaceSet-{triangle.Id}/Perimeter-Segment-{element.A.Index}-{element.B.Index}");
+            //    }
+            //    foreach (var element in surfaceSet.DividingSegments)
+            //    {
+            //        WavefrontFile.Export([element.Segment.Segment], $"Wavefront/SurfaceSet-{triangle.Id}/Dividing-Segment-{element.A.Index}-{element.B.Index}");
+            //    }
+            //}
 
             try
             {

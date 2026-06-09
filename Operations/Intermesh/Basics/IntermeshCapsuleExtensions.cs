@@ -49,7 +49,7 @@ namespace Operations.Intermesh.Basics
 
         public static IEnumerable<IntermeshCapsule> SplitBy(this IEnumerable<IntermeshCapsule> line, IntermeshPoint p)
         {
-            var canSplit = line.Where(l => l.CanSplit(p, 1e-9));
+            var canSplit = line.Where(l => l.CanSplit(p, GapConstants.Resolver));
             var useForSplit = canSplit.FirstOrDefault();
             if (canSplit.Count() > 1) 
             {
@@ -72,8 +72,8 @@ namespace Operations.Intermesh.Basics
         {
             if (a is null || b is null) { return false; }
             if (a.Key == b.Key) { return false; }
-            if (Point3D.Distance(a.A.Point, b.A.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.B.Point) < 1e-9) { return true; }
-            if (Point3D.Distance(a.A.Point, b.B.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.A.Point) < 1e-9) { return true; }
+            if (Point3D.Distance(a.A.Point, b.A.Point) < GapConstants.Resolver && Point3D.Distance(a.B.Point, b.B.Point) < GapConstants.Resolver) { return true; }
+            if (Point3D.Distance(a.A.Point, b.B.Point) < GapConstants.Resolver && Point3D.Distance(a.B.Point, b.A.Point) < GapConstants.Resolver) { return true; }
             return false;
         }
 

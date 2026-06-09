@@ -161,8 +161,6 @@ namespace Operations.Intermesh.Basics
 
         public SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint> CreateSurfaceSegmentSet()
         {
-            if (PerimeterSlots.Any(s => !s.Segments.Any())) { Console.WriteLine($"Triangle {Id} has an empty perimeter slot."); }
-
             return new SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint>
             {
                 NodeId = Id,
@@ -174,7 +172,7 @@ namespace Operations.Intermesh.Basics
 
         private IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetPerimeterSurfaceSegments()
         {
-            foreach (var segment in PerimeterSegments)
+            foreach (var segment in PerimeterSegments.NonRepeating().NoSpurs())
             {
                 yield return new SurfaceSegmentContainer<IntermeshPoint>(
                     new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
@@ -184,7 +182,7 @@ namespace Operations.Intermesh.Basics
 
         private IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetIntersectionSurfaceSegments()
         {
-            foreach (var segment in IntersectionSegments)
+            foreach (var segment in IntersectionSegments.ExceptBy(PerimeterSegments.NoSpurs().Select(s => s.Key), s => s.Key, new Combination2Comparer()).DistinctBy(i => i.Key, new Combination2Comparer())/*.NoSpurs()*/)
             {
                 yield return new SurfaceSegmentContainer<IntermeshPoint>(
                     new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),

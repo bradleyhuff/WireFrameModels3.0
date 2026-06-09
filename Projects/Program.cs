@@ -11,8 +11,8 @@
 //new VectorAngleCheck().Run();
 //new RoundedCube().Run();
 //new IntermeshDevelopment().Run();
-new DiceMeshTest().Run();
-//new UnionCheck().Run();
+//new DiceMeshTest().Run();
+new UnionCheck().Run();
 //new TriangleIntersections().Run();
 //new TriangleIntersectionTests().Run();
 

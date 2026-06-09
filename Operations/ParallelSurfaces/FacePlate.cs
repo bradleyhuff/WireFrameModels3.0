@@ -1,22 +1,27 @@
 ﻿using BaseObjects;
+using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
+using Collections.Buckets;
+using Collections.Threading;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
+using FileExportImport;
+using Operations.Basics;
 using Operations.Groupings.Basics;
+using Operations.Groupings.Types;
 using Operations.Intermesh;
+using Operations.Intermesh.Basics;
+using Operations.ParallelSurfaces.Basics;
+using Operations.ParallelSurfaces.Internals;
+using Operations.PlanarFilling.Basics;
+using Operations.Regions;
+using Operations.SetOperators;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Collections;
-using Collections.Buckets;
-using Operations.PlanarFilling.Basics;
-using BasicObjects.MathExtensions;
-using Operations.Regions;
-using Operations.Intermesh.Basics;
-using Operations.SetOperators;
-using Operations.ParallelSurfaces.Basics;
-using Collections.Threading;
-using Operations.ParallelSurfaces.Internals;
-using Operations.Basics;
+using System;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Operations.ParallelSurfaces
 {
@@ -28,7 +33,7 @@ namespace Operations.ParallelSurfaces
             Mode.ThreadedRun = true;
             ConsoleLog.Push("Build face plate clusters");
 
-            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c))./*Where(c => c.Id == 103).*/ToArray();
+            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c)).Where(c => c.Id == 0).ToArray();
             foreach (var c in clusters)
             {
                 foreach (var f in GroupingCollection.ExtractFaces(c.Cluster)) { c.Faces.Add(new FaceSet(f)); }
@@ -184,8 +189,24 @@ namespace Operations.ParallelSurfaces
 
             foreach (var quadrangle in facePlate.QuadrangleSets)
             {
-                quadrangle.SurfaceA = GetNearestPoint(quadrangle.BaseA, bucket, thickness);
-                quadrangle.SurfaceB = GetNearestPoint(quadrangle.BaseB, bucket, thickness);
+                int basePointAId = IntermeshPointExtensions.Fetch(quadrangle.BaseA).Id;
+                int basePointBId = IntermeshPointExtensions.Fetch(quadrangle.BaseB).Id;
+                if (facePlate.ParallelSurfaceMatch.ContainsKey(basePointAId))
+                {
+                    quadrangle.SurfaceA = facePlate.ParallelSurfaceMatch[basePointAId].Point;
+                }
+                else
+                {
+                    quadrangle.SurfaceA = GetNearestPoint(quadrangle.BaseA, bucket, thickness);
+                }
+                if (facePlate.ParallelSurfaceMatch.ContainsKey(basePointBId))
+                {
+                    quadrangle.SurfaceB = facePlate.ParallelSurfaceMatch[basePointBId].Point;
+                }
+                else
+                {
+                    quadrangle.SurfaceB = GetNearestPoint(quadrangle.BaseB, bucket, thickness);
+                }
             }
         }
 
@@ -319,10 +340,10 @@ namespace Operations.ParallelSurfaces
             }
         }
 
-        private static bool IsNearDegenerate(Triangle3D triangle)
-        {
-            return triangle.LengthAB < GapConstants.Proximity || triangle.LengthBC < GapConstants.Proximity || triangle.LengthCA < GapConstants.Proximity;
-        }
+        //private static bool IsNearDegenerate(Triangle3D triangle)
+        //{
+        //    return triangle.LengthAB < GapConstants.Proximity || triangle.LengthBC < GapConstants.Proximity || triangle.LengthCA < GapConstants.Proximity;
+        //}
 
         private static void RemoveInternalFolds(IWireFrameMesh output, double thickness)
         {
@@ -511,8 +532,16 @@ namespace Operations.ParallelSurfaces
             foreach (var triangle in set.Mesh.Triangles)
             {
                 var surfaceTriangle = CreateParallelSurface(triangle, displacement);
-                if (IsNearDegenerate(surfaceTriangle.Triangle)) { continue; }
+                //if (IsNearDegenerate(surfaceTriangle.Triangle)) { continue; }
                 additions.Add(surfaceTriangle);
+
+                var pointA = IntermeshPointExtensions.Fetch(triangle.A.Position);
+                var pointB = IntermeshPointExtensions.Fetch(triangle.B.Position);
+                var pointC = IntermeshPointExtensions.Fetch(triangle.C.Position);
+
+                set.ParallelSurfaceMatch[pointA.Id] = IntermeshPointExtensions.Fetch(surfaceTriangle.A.Point);
+                set.ParallelSurfaceMatch[pointB.Id] = IntermeshPointExtensions.Fetch(surfaceTriangle.B.Point);
+                set.ParallelSurfaceMatch[pointC.Id] = IntermeshPointExtensions.Fetch(surfaceTriangle.C.Point);
             }
 
             set.Mesh.AddRangeTriangles(additions, $"S{set.Index}", 0);

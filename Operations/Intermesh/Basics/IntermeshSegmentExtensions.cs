@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using System;
 using System.Collections.Generic;
@@ -20,8 +21,8 @@ namespace Operations.Intermesh.Basics
             if (a.Id == b.Id) { return false; }
             if (a.Key == b.Key) { return false; }
             if (a.IsRemoved || b.IsRemoved) { return false; }
-            if (Point3D.Distance(a.A.Point, b.A.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.B.Point) < 1e-9) { return true; }
-            if (Point3D.Distance(a.A.Point, b.B.Point) < 1e-9 && Point3D.Distance(a.B.Point, b.A.Point) < 1e-9) { return true; }
+            if (Point3D.Distance(a.A.Point, b.A.Point) < GapConstants.Resolver && Point3D.Distance(a.B.Point, b.B.Point) < GapConstants.Resolver) { return true; }
+            if (Point3D.Distance(a.A.Point, b.B.Point) < GapConstants.Resolver && Point3D.Distance(a.B.Point, b.A.Point) < GapConstants.Resolver) { return true; }
             return false;
         }
 
@@ -49,7 +50,7 @@ namespace Operations.Intermesh.Basics
             if (distances.Count() < collinearPoints) { distances = distancesToB; }
             if (distances.Count() < collinearPoints) { return false; }
 
-            return distances.All(d => d < 1e-9);
+            return distances.All(d => d < GapConstants.Resolver);
         }
 
         public static bool IsCross((IntermeshSegment, IntermeshSegment) p)
@@ -61,7 +62,7 @@ namespace Operations.Intermesh.Basics
         {
             if (a is null || b is null) { return false; }
             if (a.Id == b.Id) { return false; }
-            if (LineSegment3D.Distance(a.Segment, b.Segment) > 1e-9) { return false; }
+            if (LineSegment3D.Distance(a.Segment, b.Segment) > GapConstants.Resolver) { return false; }
 
             var lineA = a.Segment.LineExtension;
             var lineB = b.Segment.LineExtension;
@@ -73,7 +74,7 @@ namespace Operations.Intermesh.Basics
             var maxDistanceA = Math.Max(distance1, distance2);
             var maxDistanceB = Math.Max(distance3, distance4);
 
-            return Math.Max(maxDistanceA, maxDistanceB) > 1e-9;
+            return Math.Max(maxDistanceA, maxDistanceB) > GapConstants.Resolver;
         }
 
         public static bool IsResolved((IntermeshSegment, IntermeshSegment) p)
@@ -101,7 +102,7 @@ namespace Operations.Intermesh.Basics
                 if (p.Id == capsule.A.Id || p.Id == capsule.B.Id) { return false; }
             }
 
-            return segment.Capsules.Any(c => c.Segment.Distance(p.Point) < 1e-9);
+            return segment.Capsules.Any(c => c.Segment.Distance(p.Point) < GapConstants.Resolver);
         }
 
         public static IEnumerable<IntermeshSegment> NonAdjoining(this IEnumerable<IntermeshSegment> input)
@@ -151,7 +152,7 @@ namespace Operations.Intermesh.Basics
                 foreach (var capsule2 in pair.Item2.Capsules)
                 {
                     if (capsule1.Id == capsule2.Id) { continue; }
-                    var intersection = LineSegment3D.PointIntersection(capsule1.Segment, capsule2.Segment, 1e-9);
+                    var intersection = LineSegment3D.PointIntersection(capsule1.Segment, capsule2.Segment, GapConstants.Resolver);
                     if (intersection is not null)
                     {
                         return (intersection, capsule1, capsule2, pair.Item1, pair.Item2);
@@ -170,30 +171,51 @@ namespace Operations.Intermesh.Basics
             return false;
         }
 
-        public static IEnumerable<IntermeshSegment> NearestOrLinked(this IntermeshSegment given, IEnumerable<IntermeshSegment> segments)
+        public static IEnumerable<IntermeshSegment> NonRepeating(this IEnumerable<IntermeshSegment> input)
         {
-            var linkedSegments = segments.Where(s => IsLinked(given, s)).ToArray();
-            if (linkedSegments.Any()) 
+            return input.GroupBy(g => g.Key, new Combination2Comparer()).Where(g => g.Count() == 1).Select(l => l.Single());
+        }
+
+        public static IEnumerable<IntermeshSegment> NoSpurs(this IEnumerable<IntermeshSegment> input)
+        {
+            var pointCount = new Dictionary<int, List<IntermeshSegment>>();
+            foreach (var element in input)
             {
-                foreach (var linkedSegment in linkedSegments)
-                {
-                    yield return linkedSegment;
-                }
-                yield break;
+                if (!pointCount.ContainsKey(element.A.Id)) { pointCount[element.A.Id] = new List<IntermeshSegment>(); }
+                if (!pointCount.ContainsKey(element.B.Id)) { pointCount[element.B.Id] = new List<IntermeshSegment>(); }
+                pointCount[element.A.Id].Add(element);
+                pointCount[element.B.Id].Add(element);
             }
 
-            var distance = System.Double.MaxValue;
-            IntermeshSegment nearest = null;
-            foreach (var segment in segments)
-            {
-                var distance2 = LineSegment3D.Distance(given.Segment, segment.Segment);
-                if (distance2 < distance)
-                {
-                    distance = distance2;
-                    nearest = segment;
-                }
-            }
-            yield return nearest;
+            var spurs = pointCount.Values.Where(v => v.Count == 1).Select(l => l.Single()).ToArray();
+
+            return input.Where(i => !spurs.Any(s => s.Id == i.Id));
         }
+
+        //public static IEnumerable<IntermeshSegment> NearestOrLinked(this IntermeshSegment given, IEnumerable<IntermeshSegment> segments)
+        //{
+        //    var linkedSegments = segments.Where(s => IsLinked(given, s)).ToArray();
+        //    if (linkedSegments.Any()) 
+        //    {
+        //        foreach (var linkedSegment in linkedSegments)
+        //        {
+        //            yield return linkedSegment;
+        //        }
+        //        yield break;
+        //    }
+
+        //    var distance = System.Double.MaxValue;
+        //    IntermeshSegment nearest = null;
+        //    foreach (var segment in segments)
+        //    {
+        //        var distance2 = LineSegment3D.Distance(given.Segment, segment.Segment);
+        //        if (distance2 < distance)
+        //        {
+        //            distance = distance2;
+        //            nearest = segment;
+        //        }
+        //    }
+        //    yield return nearest;
+        //}
     }
 }

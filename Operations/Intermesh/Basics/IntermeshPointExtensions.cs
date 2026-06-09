@@ -16,7 +16,7 @@ namespace Operations.Intermesh.Basics
             if (from.Id == to.Id) { return; }
 
             var distance = Point3D.Distance(from.Point, to.Point);
-            if (distance > 1e-9) { 
+            if (distance > GapConstants.Resolver) { 
                 BaseObjects.Console.WriteLine($"Long transfer {new Combination2(from.Id, to.Id)} {distance}", ConsoleColor.Yellow); }
 
             foreach (var removal in bucket.LinkingSegments(from))

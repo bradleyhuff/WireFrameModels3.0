@@ -16,7 +16,6 @@ namespace Operations.Intermesh.Classes
     {
         internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            BaseObjects.Console.WriteLine("Segment Contact Assignments", ConsoleColor.Yellow);
             var perimeters = intermeshTriangles.SelectMany(t => t.PerimeterSegments).DistinctBy(p => p.Id).ToArray();
             foreach (var perimeter in perimeters) { perimeter.ClearContacts(); }
             var pointTable = new Dictionary<int, List<IntermeshSegment>>();
@@ -43,7 +42,7 @@ namespace Operations.Intermesh.Classes
             foreach (var intersection in intersections)
             {
                 var matches = segmentBucket.Fetch(intersection, 1e-5).Where(m => m.Id != intersection.Id);
-                intersection.AddRangeContacts(matches.Where(m => LineSegment3D.Distance(m.Segment, intersection.Segment) < 1e-9));
+                intersection.AddRangeContacts(matches.Where(m => LineSegment3D.Distance(m.Segment, intersection.Segment) < GapConstants.Resolver));
             }
         }
     }

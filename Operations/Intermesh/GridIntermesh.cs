@@ -17,7 +17,7 @@ internal static class GridIntermesh
         if (!Mode.ThreadedRun) ConsoleLog.Push("Intermesh");
         
         var collection = mesh.Triangles.Select(t => new IntermeshTriangle(t)).ToArray();
-        BaseObjects.Console.WriteLine("New Process", ConsoleColor.Yellow);
+        //BaseObjects.Console.WriteLine("New Process", ConsoleColor.Yellow);
         TriangleGathering.Action(collection);
         CalculateIntersections.Action(collection);
         TriangleSegmentAssignments.Action(collection);
@@ -50,7 +50,7 @@ internal static class GridIntermesh
 
         var collection = mesh.Triangles.Select(t => new Basics.IntermeshTriangle(t)).ToArray();
 
-        BaseObjects.Console.WriteLine("New Process", ConsoleColor.Yellow);
+        //BaseObjects.Console.WriteLine("New Process", ConsoleColor.Yellow);
         TriangleGathering.ActionSingle(collection);
         CalculateIntersections.ActionSingle(collection);
         TriangleSegmentAssignments.Action(collection);
@@ -58,7 +58,7 @@ internal static class GridIntermesh
         ExtractFillTriangles.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);
 
-        //BaseObjects.Console.WriteLine("Old Process", ConsoleColor.Yellow);
+        ////BaseObjects.Console.WriteLine("Old Process", ConsoleColor.Yellow);
         //var collectionOLD = mesh.Triangles.Where(t => include(t)).Select(t => new Basics.IntermeshTriangleOLD(t)).ToArray();
         //LinkIntersectionsOLD.Action(collectionOLD, out BoxBucket<IntermeshPointOLD> pointsBucket, out Combination2Dictionary<IntermeshSegmentOLD> segmentTable);
         //SegmentBridgingOLD.Action(collectionOLD, pointsBucket, segmentTable);

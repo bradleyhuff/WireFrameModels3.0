@@ -21,9 +21,9 @@ namespace Operations.Intermesh.Basics
             this(triangle, pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point),
             pointB.Point, triangle.NormalFromProjectedPoint(pointB.Point),
             pointC.Point, triangle.NormalFromProjectedPoint(pointC.Point))
-        { }
+        { Key = new Combination3(pointA.Id, pointB.Id, pointC.Id); }
 
-        internal FillTriangle(IntermeshTriangle triangle, Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC)
+        private FillTriangle(IntermeshTriangle triangle, Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC)
         {
             lock (lockObject)
             {
@@ -38,6 +38,8 @@ namespace Operations.Intermesh.Basics
             NormalC = normalC;
             _positionTriangle = triangle.PositionTriangle;
         }
+
+        public Combination3 Key { get; }
 
         public int Id { get; }
 

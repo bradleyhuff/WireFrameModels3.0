@@ -27,7 +27,7 @@ namespace Projects.Projects
             var steps = 6;
 
             var faces = GroupingCollection.ExtractFaces(cube.Triangles).ToArray();
-            var edgeGroups = faces.SelectMany(f => f.PerimeterEdges).GroupBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var edgeGroups = faces.SelectMany(f => f.PerimeterEdges).GroupBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             var corners = cube.Positions.Where(p => p.Cardinality > 2).ToArray();
 
             var roundedCube = cube.CreateNewInstance();

@@ -20,7 +20,7 @@ namespace Operations.Basics
         {
             Console.WriteLine();
             Console.WriteLine("Segment lengths", ConsoleColor.Yellow);
-            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             Console.WriteLine(segments.GroupCountAccumulates(
                 p => (int)Math.Floor(3 * Math.Log10(Point3D.Distance(p.A.Position, p.B.Position))), 
                 (key, count, accumulate) => [Math.Pow(10, key / 3.0).ToString("E3") , count.ToString("#,##0"), accumulate.ToString("#,##0")])
@@ -70,18 +70,18 @@ namespace Operations.Basics
             var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
             if (openEdges.Length == 0) { Console.WriteLine("No open edges"); return; }
             Console.WriteLine($"Open edges {openEdges.Length}");
-            foreach (var openEdge in openEdges)
-            {
-                Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
-            }
-            Console.WriteLine();
+            //foreach (var openEdge in openEdges)
+            //{
+            //    Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
+            //}
+            //Console.WriteLine();
 
-            if (index > -1)
-            {
-                var grid = WireFrameMesh.Create();
-                grid.AddRangeTriangles(tags.SelectMany(t => t.OpenEdges).Select(o => new Triangle3D(o.Segment.Start, o.Segment.Center, o.Segment.End)), "", 0);
-                WavefrontFile.Export(grid, $"Wavefront/OpenEdges-{index}");
-            }
+            //if (index > -1)
+            //{
+            //    var grid = WireFrameMesh.Create();
+            //    grid.AddRangeTriangles(tags.SelectMany(t => t.OpenEdges).Select(o => new Triangle3D(o.Segment.Start, o.Segment.Center, o.Segment.End)), "", 0);
+            //    WavefrontFile.Export(grid, $"Wavefront/OpenEdges-{index}");
+            //}
         }
 
         public static void ShowSmallDistances(this IWireFrameMesh mesh)

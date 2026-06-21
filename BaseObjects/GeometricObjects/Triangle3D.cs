@@ -709,18 +709,6 @@ namespace BasicObjects.GeometricObjects
                 if (match is not null) { yield return match; yield break; }
             }
 
-            //var bb = a.AspectRatio > b.AspectRatio ? a : b;
-            //var cc = a.AspectRatio > b.AspectRatio ? b : a;
-
-            //var lineIntersection = bb.Plane.Intersection(cc);
-            //if (lineIntersection is null) { yield break; }
-            //{
-            //    var match = bb.LineSegmentIntersection(lineIntersection);
-            //    if (match is not null)
-            //    {
-            //        yield return match;
-            //    }
-            //}
 
             Line3D line = Plane.Intersection(a.Plane, b.Plane);
             if (line is null) { yield break; }
@@ -764,12 +752,6 @@ namespace BasicObjects.GeometricObjects
             foreach (var element in output.DistinctBy(l => l)) { yield return element; }
 
         }
-
-        //public LineSegment3D LineSegmentIntersection(LineSegment3D segment)
-        //{
-        //    if (PointIsContainedOn(segment.Start) && PointIsContainedOn(segment.End)) { return segment; }
-        //    return LineSegment3D.Intersection(LineSegmentIntersection(segment.LineExtension), segment);
-        //}
 
         public LineSegment3D LineSegmentIntersection(Line3D line)
         {

@@ -53,6 +53,15 @@ namespace BasicObjects.MathExtensions
 
     public class Combination2Comparer : IEqualityComparer<Combination2>, IComparer<Combination2>
     {
+        private static Combination2Comparer _comparer;
+        public static Combination2Comparer Comparer
+        {
+            get {
+                if (_comparer is null) { _comparer = new Combination2Comparer(); }
+                return _comparer;
+            }
+        }
+        private Combination2Comparer() { }
         public int Compare(Combination2 a, Combination2 b)
         {
             if (a.A < b.A)
@@ -85,7 +94,7 @@ namespace BasicObjects.MathExtensions
     }
     public class Combination2Dictionary<T> : Dictionary<Combination2, T>
     {
-        public Combination2Dictionary() : base(new Combination2Comparer()) { }
+        public Combination2Dictionary() : base(Combination2Comparer.Comparer) { }
 
         public T this[int i, int j]
         {
@@ -169,6 +178,16 @@ namespace BasicObjects.MathExtensions
     }
     public class Combination3Comparer : IEqualityComparer<Combination3>, IComparer<Combination3>
     {
+        private static Combination3Comparer _comparer;
+        public static Combination3Comparer Comparer
+        {
+            get
+            {
+                if (_comparer is null) { _comparer = new Combination3Comparer(); }
+                return _comparer;
+            }
+        }
+        private Combination3Comparer() { }
         public int Compare(Combination3 a, Combination3 b)
         {
             if (a.A < b.A)
@@ -210,7 +229,7 @@ namespace BasicObjects.MathExtensions
 
     public class Combination3Dictionary<T> : Dictionary<Combination3, T>
     {
-        public Combination3Dictionary() : base(new Combination3Comparer()) { }
+        public Combination3Dictionary() : base(Combination3Comparer.Comparer) { }
 
         public T this[int i, int j, int k]
         {
@@ -321,6 +340,16 @@ namespace BasicObjects.MathExtensions
 
     public class Combination4Comparer : IEqualityComparer<Combination4>, IComparer<Combination4>
     {
+        private static Combination4Comparer _comparer;
+        public static Combination4Comparer Comparer
+        {
+            get
+            {
+                if (_comparer is null) { _comparer = new Combination4Comparer(); }
+                return _comparer;
+            }
+        }
+        private Combination4Comparer() { }
         public int Compare(Combination4 a, Combination4 b)
         {
             if (a.A < b.A)
@@ -370,7 +399,7 @@ namespace BasicObjects.MathExtensions
 
     public class Combination4Dictionary<T> : Dictionary<Combination4, T>
     {
-        public Combination4Dictionary() : base(new Combination4Comparer()) { }
+        public Combination4Dictionary() : base(Combination4Comparer.Comparer) { }
 
         public T this[int i, int j, int k, int l]
         {

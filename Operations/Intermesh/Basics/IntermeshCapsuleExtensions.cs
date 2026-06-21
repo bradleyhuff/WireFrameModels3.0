@@ -60,8 +60,13 @@ namespace Operations.Intermesh.Basics
             {
                 if (useForSplit is not null && useForSplit.Id == element.Id)
                 {
-                    yield return Fetch(useForSplit.A, p);
-                    yield return Fetch(p, useForSplit.B);
+                    var split1 = Fetch(useForSplit.A, p);
+                    var split2 =  Fetch(p, useForSplit.B);
+                    if (line.Any(l => l.Id == split1.Id)) { yield return element; continue; }
+                    if (line.Any(l => l.Id == split2.Id)) { yield return element; continue; }
+
+                    yield return split1;
+                    yield return split2;
                     continue;
                 }
                 yield return element;

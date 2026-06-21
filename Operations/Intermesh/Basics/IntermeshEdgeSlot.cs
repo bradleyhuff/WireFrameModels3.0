@@ -26,5 +26,11 @@ namespace Operations.Intermesh.Basics
         public Combination2 Key { get; }
 
         public List<IntermeshSegment> Segments { get; set; } = new List<IntermeshSegment>();
+
+        public override string ToString()
+        {
+            return $"Intermesh Slot Key: {Key} Id: {Id}";
+        }
+
     }
 }

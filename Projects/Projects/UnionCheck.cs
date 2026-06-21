@@ -182,75 +182,75 @@ PointA only Border triangle id 341310
             //WavefrontFile.Export(zone.Clip(cornerTriangle11.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles11");
             //WavefrontFile.Export(zone.Clip(cornerTriangle12.Triangle).Select(c => c.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Surfaces/CornerTriangles12");
 
-            {
-                var grid = WireFrameMesh.Create();
-                var pointCount = new Dictionary<int, int>();
-                var indexTable = new Combination2Dictionary<bool>();
-                foreach (var triangle in output.Triangles)
-                {
-                    if (triangle.ABadjacents.Count > 1)
-                    {
-                        var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeAB.Start, triangle.Triangle.EdgeAB.Center, triangle.Triangle.EdgeAB.End), "", 0);
-                        var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
-                        if (!indexTable.ContainsKey(edgeIndex))
-                        {
-                            AddCount(position.A.PositionObject.Id, pointCount);
-                            AddCount(position.C.PositionObject.Id, pointCount);
-                            indexTable[edgeIndex] = true;
-                        }
-                    }
-                    if (triangle.BCadjacents.Count > 1)
-                    {
-                        var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeBC.Start, triangle.Triangle.EdgeBC.Center, triangle.Triangle.EdgeBC.End), "", 0);
-                        var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
-                        if (!indexTable.ContainsKey(edgeIndex))
-                        {
-                            AddCount(position.A.PositionObject.Id, pointCount);
-                            AddCount(position.C.PositionObject.Id, pointCount);
-                            indexTable[edgeIndex] = true;
-                        }
-                    }
-                    if (triangle.CAadjacents.Count > 1)
-                    {
-                        var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeCA.Start, triangle.Triangle.EdgeCA.Center, triangle.Triangle.EdgeCA.End), "", 0);
-                        var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
-                        if (!indexTable.ContainsKey(edgeIndex))
-                        {
-                            AddCount(position.A.PositionObject.Id, pointCount);
-                            AddCount(position.C.PositionObject.Id, pointCount);
-                            indexTable[edgeIndex] = true;
-                        }
-                    }
-                }
+            //{
+            //    var grid = WireFrameMesh.Create();
+            //    var pointCount = new Dictionary<int, int>();
+            //    var indexTable = new Combination2Dictionary<bool>();
+            //    foreach (var triangle in output.Triangles)
+            //    {
+            //        if (triangle.ABadjacents.Count > 1)
+            //        {
+            //            var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeAB.Start, triangle.Triangle.EdgeAB.Center, triangle.Triangle.EdgeAB.End), "", 0);
+            //            var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
+            //            if (!indexTable.ContainsKey(edgeIndex))
+            //            {
+            //                AddCount(position.A.PositionObject.Id, pointCount);
+            //                AddCount(position.C.PositionObject.Id, pointCount);
+            //                indexTable[edgeIndex] = true;
+            //            }
+            //        }
+            //        if (triangle.BCadjacents.Count > 1)
+            //        {
+            //            var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeBC.Start, triangle.Triangle.EdgeBC.Center, triangle.Triangle.EdgeBC.End), "", 0);
+            //            var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
+            //            if (!indexTable.ContainsKey(edgeIndex))
+            //            {
+            //                AddCount(position.A.PositionObject.Id, pointCount);
+            //                AddCount(position.C.PositionObject.Id, pointCount);
+            //                indexTable[edgeIndex] = true;
+            //            }
+            //        }
+            //        if (triangle.CAadjacents.Count > 1)
+            //        {
+            //            var position = grid.AddTriangle(new Triangle3D(triangle.Triangle.EdgeCA.Start, triangle.Triangle.EdgeCA.Center, triangle.Triangle.EdgeCA.End), "", 0);
+            //            var edgeIndex = new Combination2(position.A.PositionObject.Id, position.C.PositionObject.Id);
+            //            if (!indexTable.ContainsKey(edgeIndex))
+            //            {
+            //                AddCount(position.A.PositionObject.Id, pointCount);
+            //                AddCount(position.C.PositionObject.Id, pointCount);
+            //                indexTable[edgeIndex] = true;
+            //            }
+            //        }
+            //    }
 
-                var tallyTable = new Dictionary<int, int>();
-                foreach (var kp in pointCount)
-                {
-                    if (!tallyTable.ContainsKey(kp.Value)) { tallyTable[kp.Value] = 0; }
-                    tallyTable[kp.Value]++;
-                }
-                foreach (var kp in tallyTable)
-                {
-                    Console.WriteLine($"Tally {kp.Key}: {kp.Value}");
-                }
+            //    var tallyTable = new Dictionary<int, int>();
+            //    foreach (var kp in pointCount)
+            //    {
+            //        if (!tallyTable.ContainsKey(kp.Value)) { tallyTable[kp.Value] = 0; }
+            //        tallyTable[kp.Value]++;
+            //    }
+            //    foreach (var kp in tallyTable)
+            //    {
+            //        Console.WriteLine($"Tally {kp.Key}: {kp.Value}");
+            //    }
 
-                var brokenPoints = pointCount.Where(kp => kp.Value == 1).Select(kp => kp.Key);
-                Console.WriteLine($"Broken points {string.Join(",", brokenPoints)}");
-                var brokenPointsP = grid.Positions.Where(p => brokenPoints.Contains(p.Id)).ToArray();
-                Console.WriteLine($"Broken points \n{string.Join("\n", brokenPointsP.Select(p => $"{p.Id} {p.Point}"))}");
+            //    var brokenPoints = pointCount.Where(kp => kp.Value == 1).Select(kp => kp.Key);
+            //    Console.WriteLine($"Broken points {string.Join(",", brokenPoints)}");
+            //    var brokenPointsP = grid.Positions.Where(p => brokenPoints.Contains(p.Id)).ToArray();
+            //    Console.WriteLine($"Broken points \n{string.Join("\n", brokenPointsP.Select(p => $"{p.Id} {p.Point}"))}");
 
-                WavefrontFile.Export(grid, $"Wavefront/SurfaceBoundary");
+            //    WavefrontFile.Export(grid, $"Wavefront/SurfaceBoundary");
                 //var gridB = WireFrameMesh.Create();
                 //gridB.AddTriangle(new Triangle3D(brokenPointsP[0].Point,Point3D.Average([brokenPointsP[0].Point, brokenPointsP[1].Point]), brokenPointsP[1].Point), "", 0);
                 //gridB.AddTriangle(new Triangle3D(brokenPointsP[2].Point, Point3D.Average([brokenPointsP[2].Point, brokenPointsP[3].Point]), brokenPointsP[3].Point), "", 0);
                 //WavefrontFile.Export(gridB, $"Wavefront/BrokenPoints");
 
-            }
+            //}
 
             //WavefrontFileGroups.ExportByFaces(output, "Wavefront/Faces");
 
-            var erred = clusters.Select(c => c.OriginalClusterGrid).Combine();
-            WavefrontFile.Export(erred, "Wavefront/Erred");
+            //var erred = clusters.Select(c => c.OriginalClusterGrid).Combine();
+            //WavefrontFile.Export(erred, "Wavefront/Erred");
 
             //WavefrontFileGroups.ExportBySurfaces(output, "Wavefront/Surface");
 

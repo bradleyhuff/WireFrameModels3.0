@@ -182,12 +182,17 @@ namespace Operations.Intermesh.Basics
 
         private IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetIntersectionSurfaceSegments()
         {
-            foreach (var segment in IntersectionSegments.ExceptBy(PerimeterSegments.NoSpurs().Select(s => s.Key), s => s.Key, new Combination2Comparer()).DistinctBy(i => i.Key, new Combination2Comparer())/*.NoSpurs()*/)
+            foreach (var segment in IntersectionSegments.ExceptBy(PerimeterSegments.NoSpurs().Select(s => s.Key), s => s.Key, Combination2Comparer.Comparer).DistinctBy(i => i.Key, Combination2Comparer.Comparer)/*.NoSpurs()*/)
             {
                 yield return new SurfaceSegmentContainer<IntermeshPoint>(
                     new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
                     new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
             }
+        }
+
+        public override string ToString()
+        {
+            return $"Intermesh Triangle Id: {Id}";
         }
     }
 }

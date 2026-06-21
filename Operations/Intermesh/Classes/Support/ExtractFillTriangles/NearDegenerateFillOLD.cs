@@ -247,7 +247,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                     var pair = branchNode.Links.First(l => l.Links.Count > 2);
                     pairs.Add(new(branchNode, pair));
                 }
-                var distinctPairs = pairs.DistinctBy(p => new Combination2(p.Item1.Id, p.Item2.Id), new Combination2Comparer());
+                var distinctPairs = pairs.DistinctBy(p => new Combination2(p.Item1.Id, p.Item2.Id), Combination2Comparer.Comparer);
                 foreach (var pair in distinctPairs)
                 {
                     PerimeterNode.Unlink(pair.Item1, pair.Item2);

@@ -173,7 +173,7 @@ namespace Operations.Intermesh.Basics
 
         public static IEnumerable<IntermeshSegment> NonRepeating(this IEnumerable<IntermeshSegment> input)
         {
-            return input.GroupBy(g => g.Key, new Combination2Comparer()).Where(g => g.Count() == 1).Select(l => l.Single());
+            return input.GroupBy(g => g.Key, Combination2Comparer.Comparer).Where(g => g.Count() == 1).Select(l => l.Single());
         }
 
         public static IEnumerable<IntermeshSegment> NoSpurs(this IEnumerable<IntermeshSegment> input)
@@ -191,6 +191,19 @@ namespace Operations.Intermesh.Basics
 
             return input.Where(i => !spurs.Any(s => s.Id == i.Id));
         }
+
+        //private static Dictionary<(int, int), IntermeshSegment> segmentTable = new Dictionary<(int, int), IntermeshSegment>();
+
+        //public static IntermeshSegment Fetch(IntermeshPoint a, IntermeshPoint b)
+        //{
+        //    if (!segmentTable.ContainsKey((a.Id, b.Id))) { segmentTable[(a.Id, b.Id)] = new IntermeshSegment(a, b); }
+        //    return segmentTable[(a.Id, b.Id)];
+        //}
+
+        //public static IntermeshSegment Fetch(Point3D a, Point3D b)
+        //{
+        //    return Fetch(IntermeshPointExtensions.Fetch(a), IntermeshPointExtensions.Fetch(b));
+        //}
 
         //public static IEnumerable<IntermeshSegment> NearestOrLinked(this IntermeshSegment given, IEnumerable<IntermeshSegment> segments)
         //{

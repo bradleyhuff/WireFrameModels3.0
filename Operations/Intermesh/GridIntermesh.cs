@@ -1,4 +1,5 @@
 ﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.WireFrameMesh.Basics;
@@ -6,6 +7,7 @@ using Collections.WireFrameMesh.Interfaces;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Classes;
+using Operations.Intermesh.Interfaces;
 
 namespace Operations.Intermesh;
 
@@ -21,6 +23,10 @@ internal static class GridIntermesh
         TriangleGathering.Action(collection);
         CalculateIntersections.Action(collection);
         TriangleSegmentAssignments.Action(collection);
+
+        //collection = collection.Where(c => c.IntersectionSlots.Any() || c.AB.Segments.Count() > 1 || c.BC.Segments.Count() > 1 || c.CA.Segments.Count() > 1).ToArray();
+        //collection = collection.Where(c => c.IntersectionSlots.Any()).ToArray();
+
         TriangleSegmentContactResolve.Action(collection);
         ExtractFillTriangles.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);
@@ -50,10 +56,24 @@ internal static class GridIntermesh
 
         var collection = mesh.Triangles.Select(t => new Basics.IntermeshTriangle(t)).ToArray();
 
-        //BaseObjects.Console.WriteLine("New Process", ConsoleColor.Yellow);
+        BaseObjects.Console.WriteLine("New Process", ConsoleColor.Yellow);
         TriangleGathering.ActionSingle(collection);
         CalculateIntersections.ActionSingle(collection);
         TriangleSegmentAssignments.Action(collection);
+
+        //var intersections = collection.SelectMany(t => t.IntersectionSegments).DistinctBy(s => s.Id).ToArray();
+        //var lineSegmentBucket = new BoxBucket<IntermeshSegment>(intersections);
+
+        //var newCollection = new List<IntermeshTriangle>();
+        //foreach (var triangle in collection)
+        //{
+        //    var matches = lineSegmentBucket.Fetch(triangle, 1e-5);
+        //    if (matches.Any()) { newCollection.Add(triangle); }
+        //}
+
+        //collection = collection.Where(c => c.IntersectionSlots.Any() || c.AB.Segments.Count() > 1 || c.BC.Segments.Count() > 1 || c.CA.Segments.Count() > 1).ToArray();
+        //collection = newCollection.ToArray();
+
         TriangleSegmentContactResolve.Action(collection);
         ExtractFillTriangles.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);

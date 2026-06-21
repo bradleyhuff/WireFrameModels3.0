@@ -25,7 +25,7 @@ namespace Operations.PositionRemovals
         public static void RemoveShortSegments(this IWireFrameMesh mesh, double minimumLength)
         {
             var start = DateTime.Now;
-            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
 
             mesh.ShowSegmentLengths(ConsoleColor.Red);
@@ -42,7 +42,7 @@ namespace Operations.PositionRemovals
                 ShortEdgeSurfaceSegmentRemoval(mesh, minimumLength);
                 ShortEdgeCornerSegmentRemoval(mesh, minimumLength);
                 ShortCornerSegmentRemoval(mesh, minimumLength);
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
                 shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
                 ConsoleLog.WriteLine($"Remaining short segments {shortSegments.Length}");
                 ShowRemainingGroups(shortSegments);
@@ -72,7 +72,7 @@ namespace Operations.PositionRemovals
         {
             var start = DateTime.Now;
             ConsoleLog.Push("Remove collinear edge points");
-            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             var edgeSegments = segments.Where(s => s.A.PositionObject.Cardinality > 1 && s.B.PositionObject.Cardinality > 1).ToArray();
             var edgePositions = edgeSegments.SelectMany(e => e.Positions).Select(p => p.PositionObject).Where(p => p.Cardinality == 2).DistinctBy(p => p.Id).ToArray();
             ConsoleLog.WriteLine($"Candidate edge positions {edgePositions.Length}");
@@ -88,7 +88,7 @@ namespace Operations.PositionRemovals
 
         private static void ShowRemainingGroups(PositionEdge[] shortSegments)
         {
-            var groups = shortSegments.GroupBy(s => s.Cardinality, new Combination2Comparer()).ToArray();
+            var groups = shortSegments.GroupBy(s => s.Cardinality, Combination2Comparer.Comparer).ToArray();
             foreach (var group in groups.OrderBy(g => g.Key.A))
             {
                 ConsoleLog.WriteLine($"{group.Key} {group.Count()}");
@@ -110,7 +110,7 @@ namespace Operations.PositionRemovals
 
         private static void ShortEdgeSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
         {
-            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
             ConsoleLog.WriteLine($"Edge short segments {shortSegments.Length}");
             int lastLength = -1;
@@ -123,7 +123,7 @@ namespace Operations.PositionRemovals
                 GetMarkedPositions(removalSets, out List<Position> markedPositions, out List<Position> unmarkedPositions);
                 mesh.RemovePositions(markedPositions.ToArray(), new GeneralRemovalFill<PositionNormal>());
 
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
                 shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
                 ConsoleLog.WriteLine($"Edge short segments {shortSegments.Length} Positions removed {removalSets.Length}");
             }
@@ -132,7 +132,7 @@ namespace Operations.PositionRemovals
 
         private static void ShortSurfaceSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
         {
-            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
             int lastLength = -1;
             do
@@ -144,7 +144,7 @@ namespace Operations.PositionRemovals
                 GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
                 mesh.RemovePositions(markedPositions.ToArray(), new GeneralRemovalFill<PositionNormal>());
 
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
                 shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
                 Console.WriteLine($"Surface short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
             }
@@ -153,7 +153,7 @@ namespace Operations.PositionRemovals
 
         private static void ShortEdgeSurfaceSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
         {
-            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
 
             int lastLength = -1;
@@ -166,7 +166,7 @@ namespace Operations.PositionRemovals
                 GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
                 mesh.RemovePositions(markedPositions.ToArray(), new GeneralRemovalFill<PositionNormal>());
 
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
                 shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
                 ConsoleLog.WriteLine($"Edge surface short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
             }
@@ -175,7 +175,7 @@ namespace Operations.PositionRemovals
 
         private static void ShortEdgeCornerSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
         {
-            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
 
             int lastLength = -1;
@@ -188,7 +188,7 @@ namespace Operations.PositionRemovals
                 GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
                 mesh.RemovePositions(markedPositions.ToArray(), new GeneralRemovalFill<PositionNormal>());
 
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
                 shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
                 ConsoleLog.WriteLine($"Edge corner short segments {shortSegments.Length} Positions removed {removalPositions.Length}");
             }
@@ -197,7 +197,7 @@ namespace Operations.PositionRemovals
 
         private static void ShortCornerSegmentRemoval(IWireFrameMesh mesh, double minimumLength)
         {
-            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+            var segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
             var shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
 
             int lastLength = -1;
@@ -210,7 +210,7 @@ namespace Operations.PositionRemovals
                 GetMarkedPositions(removalPositions, out List<Position> markedPositions, out List<Position> unmarkedPositions);
                 mesh.RemovePositions(markedPositions.ToArray(), new CornerRemovalFill<PositionNormal>());
 
-                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, new Combination2Comparer()).ToArray();
+                segments = mesh.Triangles.SelectMany(t => t.Edges).DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToArray();
                 shortSegments = segments.Where(s => s.Segment.Length < minimumLength).ToArray();
                 ConsoleLog.WriteLine($"Corner short segments {shortSegments.Length}  Positions removed {removalPositions.Length}");
             }
@@ -439,7 +439,7 @@ namespace Operations.PositionRemovals
 
         private static SurfaceSegmentSets<PlanarFillingGroup, PositionNormal> CreateSurfaceSegmentSet(Position position, Vector3D normal, IEnumerable<PositionTriangle> triangles)
         {
-            var arc0 = triangles.SelectMany(t => t.Edges).DistinctBy(e => e.Key, new Combination2Comparer()).ToList();
+            var arc0 = triangles.SelectMany(t => t.Edges).DistinctBy(e => e.Key, Combination2Comparer.Comparer).ToList();
             var arc = arc0.Where(e => !e.ContainsPosition(position)).ToList();
             var plane = new Plane(position.Point, normal);
             var box = Rectangle3D.Containing(triangles.Select(t => t.Box).ToArray());
@@ -478,7 +478,7 @@ namespace Operations.PositionRemovals
             var endPoints = endPointGroups.Where(g => g.Count() == 1).Select(g => g.Single());
             var links = endPoints.Select(e => new PositionEdge(e, antipode, null)).Where(l => l.A.PositionObject.Id != l.B.PositionObject.Id).ToArray();
 
-            var perimeter = perimeterArc.Concat(links).DistinctBy(p => p.Key, new Combination2Comparer()).ToArray();
+            var perimeter = perimeterArc.Concat(links).DistinctBy(p => p.Key, Combination2Comparer.Comparer).ToArray();
             if (perimeter.Length < 3) { return null; }
 
             var plane = new Plane(position.Point, position.Normal);

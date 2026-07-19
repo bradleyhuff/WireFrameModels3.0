@@ -408,20 +408,24 @@ namespace BasicObjects.GeometricObjects
 
         public bool PointIsAtOrBetweenEndpoints(Point3D point, double error = E.Double.DifferenceError)
         {
+            if (point is null) { return false; }
             double distanceStart = Point3D.Distance(Start, point);
             double distanceEnd = Point3D.Distance(End, point);
-            return distanceStart < error ||
+            var result = distanceStart < error ||
                 distanceEnd < error ||
                 (distanceStart < Length && distanceEnd < Length);
+            return result;
         }
 
         public bool PointIsBetweenEndpoints(Point3D point, double error = E.Double.DifferenceError)
         {
+            if (point is null) { return false; }
             double distanceStart = Point3D.Distance(Start, point);
             double distanceEnd = Point3D.Distance(End, point);
-            return distanceStart > error &&
+            var result = distanceStart > error &&
                 distanceEnd > error &&
                 (distanceStart < Length && distanceEnd < Length);
+            return result;
         }
 
         public bool PointIsOnSegment(Point3D point, double error = E.Double.ProximityError)
@@ -494,6 +498,16 @@ namespace BasicObjects.GeometricObjects
                 }
             }
             return nearest;
+        }
+
+        public double Coordinate(Point3D point)
+        {
+            var projection = LineExtension.Projection(point);
+            var startDistance = Point3D.Distance(Start, projection);
+            var endDistance = Point3D.Distance(End, projection);
+            var sign = 1;
+            if (endDistance > Length && endDistance > startDistance) { sign = -1; }
+            return startDistance * sign / Length;
         }
     }
 }

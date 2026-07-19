@@ -63,5 +63,21 @@ namespace BaseObjects
         {
             return string.Join("\n", line);
         }
+
+        public static bool Replace<T>(this List<T> list, T replaced, IEnumerable<T> replaceWith)
+        {
+            var index = list.IndexOf(replaced);
+            if (index >= 0)
+            {
+                list.RemoveAt(index);
+                foreach (var insert in replaceWith)
+                {
+                    list.Insert(index, insert);
+                    index++;
+                }
+                return true;
+            }
+            return false;
+        }
     }
 }

@@ -41,6 +41,15 @@ namespace Operations.Intermesh.Basics
         public IntermeshEdgeSlot BC { get; set; }
         public IntermeshEdgeSlot CA { get; set; }
 
+        public Combination3 Key
+        {
+            get
+            {
+                var points = PerimeterSlots.SelectMany(p => p.EndPoints).DistinctBy(p => p.Id).ToArray();
+                return new Combination3(points[0].Id, points[1].Id, points[2].Id);
+            }
+        }
+
         public IEnumerable<IntermeshSegment> PerimeterSegments
         {
             get
@@ -61,11 +70,11 @@ namespace Operations.Intermesh.Basics
             }
         }
 
-        private List<IntermeshEdgeSlot> _intersectionSegments = new List<IntermeshEdgeSlot>();
+        private List<IntermeshEdgeSlot> _intersectionSlots = new List<IntermeshEdgeSlot>();
 
         public void RemoveIntersectionSlot(IntermeshEdgeSlot intersection)
         {
-            _intersectionSegments.Remove(intersection);
+            _intersectionSlots.Remove(intersection);
         }
 
         public void RemoveIntersectionSlots(IEnumerable<IntermeshEdgeSlot> intersections)
@@ -78,8 +87,8 @@ namespace Operations.Intermesh.Basics
 
         public bool AddIntersectionSlot(IntermeshEdgeSlot intersection)
         {
-            if (_intersectionSegments.Any(t => t.Id == intersection.Id)) { return false; }
-            _intersectionSegments.Add(intersection);
+            if (_intersectionSlots.Any(t => t.Id == intersection.Id)) { return false; }
+            _intersectionSlots.Add(intersection);
             return true;
         }
 
@@ -87,7 +96,7 @@ namespace Operations.Intermesh.Basics
         {
             get
             {
-                return _intersectionSegments;
+                return _intersectionSlots;
             }
         }
 
@@ -110,7 +119,7 @@ namespace Operations.Intermesh.Basics
         {
             get
             {
-                return _intersectionSegments.SelectMany(i => i.Segments);
+                return _intersectionSlots.SelectMany(i => i.Segments);
             }
         }
 
@@ -157,37 +166,6 @@ namespace Operations.Intermesh.Basics
             var normal = (c.λ1 * PositionTriangle.A.Normal.Direction + c.λ2 * PositionTriangle.B.Normal.Direction + c.λ3 * PositionTriangle.C.Normal.Direction).Direction;
 
             return new Ray3D(projection, normal);
-        }
-
-        public SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint> CreateSurfaceSegmentSet()
-        {
-            return new SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint>
-            {
-                NodeId = Id,
-                GroupObject = new PlanarFillingGroup(Triangle.Plane, Triangle.Box.Diagonal),
-                DividingSegments = GetIntersectionSurfaceSegments().ToArray(),
-                PerimeterSegments = GetPerimeterSurfaceSegments().ToArray()
-            };
-        }
-
-        private IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetPerimeterSurfaceSegments()
-        {
-            foreach (var segment in PerimeterSegments.NonRepeating().NoSpurs())
-            {
-                yield return new SurfaceSegmentContainer<IntermeshPoint>(
-                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
-                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
-            }
-        }
-
-        private IEnumerable<SurfaceSegmentContainer<IntermeshPoint>> GetIntersectionSurfaceSegments()
-        {
-            foreach (var segment in IntersectionSegments.ExceptBy(PerimeterSegments.NoSpurs().Select(s => s.Key), s => s.Key, Combination2Comparer.Comparer).DistinctBy(i => i.Key, Combination2Comparer.Comparer)/*.NoSpurs()*/)
-            {
-                yield return new SurfaceSegmentContainer<IntermeshPoint>(
-                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.A.Point), Triangle.Normal, segment.A.Id, segment.A),
-                    new SurfaceRayContainer<IntermeshPoint>(RayFromProjectedPoint(segment.B.Point), Triangle.Normal, segment.B.Id, segment.B));
-            }
         }
 
         public override string ToString()

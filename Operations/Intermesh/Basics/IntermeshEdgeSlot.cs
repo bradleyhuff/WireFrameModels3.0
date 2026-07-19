@@ -1,4 +1,5 @@
-﻿using BasicObjects.MathExtensions;
+﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,22 @@ namespace Operations.Intermesh.Basics
         public Combination2 Key { get; }
 
         public List<IntermeshSegment> Segments { get; set; } = new List<IntermeshSegment>();
+        public LineSegment3D TotalSegment
+        {
+            get {
+                var firstPoint = Segments.First(s => !s.IsRemoved).A.Point;
+                var lastPoint = Segments.Last(s => !s.IsRemoved).B.Point;
+                return new LineSegment3D(firstPoint, lastPoint);
+            }
+        }
+        public IEnumerable<IntermeshPoint> EndPoints
+        {
+            get
+            {
+                yield return Segments.First(s => !s.IsRemoved).A;
+                yield return Segments.Last(s => !s.IsRemoved).B;
+            }
+        }
 
         public override string ToString()
         {

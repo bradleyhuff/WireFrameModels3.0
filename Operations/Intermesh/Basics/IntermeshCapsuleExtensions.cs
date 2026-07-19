@@ -10,26 +10,7 @@ namespace Operations.Intermesh.Basics
 {
     internal static class IntermeshCapsuleExtensions
     {
-        public static IEnumerable<IntermeshCapsule> SplitBy(this IEnumerable<IntermeshCapsule> line, IEnumerable<IntermeshCapsule> splitBy)
-        {
-            var points = splitBy.SelectMany(c => c.Points).DistinctBy(p => p.Id);
-            return SplitBy(line, points);
-        }
-        public static IEnumerable<IntermeshCapsule> SplitBy(IEnumerable<IntermeshCapsule> line, IEnumerable<IntermeshPoint> points)
-        {
-            if (!points.Any())
-            {
-                return line;
-            }
-            var split = SplitBy(line, points.First()).ToArray();
-            foreach (var p in points.Skip(1))
-            {
-                split = SplitBy(split, p).ToArray();
-            }
-            return split;
-        }
-
-        private static IntermeshCapsule UseForSplit(this IEnumerable<IntermeshCapsule> line, IntermeshPoint p)
+        public static IntermeshCapsule Nearest(this IEnumerable<IntermeshCapsule> line, IntermeshPoint p)
         {
             IntermeshCapsule output = null;
             double outSideDistance = System.Double.MaxValue;
@@ -45,32 +26,6 @@ namespace Operations.Intermesh.Basics
             }
 
             return output;
-        }
-
-        public static IEnumerable<IntermeshCapsule> SplitBy(this IEnumerable<IntermeshCapsule> line, IntermeshPoint p)
-        {
-            var canSplit = line.Where(l => l.CanSplit(p, GapConstants.Resolver));
-            var useForSplit = canSplit.FirstOrDefault();
-            if (canSplit.Count() > 1) 
-            {
-                useForSplit = UseForSplit(canSplit, p);
-            }
-
-            foreach (var element in line)
-            {
-                if (useForSplit is not null && useForSplit.Id == element.Id)
-                {
-                    var split1 = Fetch(useForSplit.A, p);
-                    var split2 =  Fetch(p, useForSplit.B);
-                    if (line.Any(l => l.Id == split1.Id)) { yield return element; continue; }
-                    if (line.Any(l => l.Id == split2.Id)) { yield return element; continue; }
-
-                    yield return split1;
-                    yield return split2;
-                    continue;
-                }
-                yield return element;
-            }
         }
 
         public static bool IsNearParallel(IntermeshCapsule a, IntermeshCapsule b)

@@ -37,6 +37,7 @@ namespace Operations.Intermesh.Basics
             NormalB = normalB;
             NormalC = normalC;
             _positionTriangle = triangle.PositionTriangle;
+            _intermeshTriangle = triangle;
         }
 
         public Combination3 Key { get; }
@@ -45,6 +46,7 @@ namespace Operations.Intermesh.Basics
 
         private Triangle3D _triangle = null;
         private PositionTriangle _positionTriangle;
+        private IntermeshTriangle _intermeshTriangle;
 
         public Rectangle3D Box
         {
@@ -75,7 +77,7 @@ namespace Operations.Intermesh.Basics
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            mesh.AddTriangle(PointA, NormalA, PointB, NormalB, PointC, NormalC, _positionTriangle.Trace, _positionTriangle.Tag);
+            var positionTriangle = mesh.AddTriangle(PointA, NormalA, PointB, NormalB, PointC, NormalC, _positionTriangle.Trace, _positionTriangle.Tag);
         }
     }
 }

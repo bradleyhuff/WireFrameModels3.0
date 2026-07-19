@@ -8,38 +8,49 @@ namespace Operations.Diagnostics
 {
     internal static class IntermeshTriangleDiagnotics
     {
-        internal static void Show(this Operations.Intermesh.Basics.IntermeshTriangle triangle)
+        internal static void Show(this IntermeshTriangle triangle)
         {
-            var errorTable = new Dictionary<int, (bool A, bool B)>();
+            var errorTableCapsule = new Dictionary<int, (bool A, bool B)>();
+            var errorTablePoint = new Dictionary<int, bool>();
 
-            var perimeterCapsules = triangle.PerimeterSlots.SelectMany(s => s.Segments.SelectMany(ss => ss.Capsules)).ToArray();
-            SetErrors(perimeterCapsules[perimeterCapsules.Length - 1], perimeterCapsules[0], errorTable);
-            for (int i = 1; i < perimeterCapsules.Length - 1; i++)
+            var endPointGroups = triangle.PerimeterSlots.SelectMany(s => s.EndPoints).GroupBy(g => g.Id);
+            var mismatchedGroups = endPointGroups.Where(g => g.Count() != 2);
+
+            foreach (var group in mismatchedGroups)
             {
-                SetErrors(perimeterCapsules[i - 1], perimeterCapsules[i], errorTable);
+                errorTablePoint[group.Key] = true;
             }
+
+            foreach (var slot in triangle.PerimeterSlots)
+            {
+                var capsules = slot.Segments.SelectMany(s => s.Capsules).ToArray();
+                for (int i = 1; i < capsules.Length - 1; i++)
+                {
+                    SetErrors(capsules[i - 1], capsules[i], errorTableCapsule);
+                }
+            }
+
 
             foreach (var slot in triangle.IntersectionSlots)
             {
                 var capsules = slot.Segments.SelectMany(s => s.Capsules).ToArray();
                 for (int i = 1; i < capsules.Length - 1; i++)
                 {
-                    SetErrors(capsules[i - 1], capsules[i], errorTable);
+                    SetErrors(capsules[i - 1], capsules[i], errorTableCapsule);
                 }
             }
 
-            BaseObjects.Console.Write($"AB: {triangle.AB.Id, 6:#####0} ", ConsoleColor.Green);
-            triangle.AB.Show(errorTable);
-            BaseObjects.Console.Write($"BC: {triangle.BC.Id, 6:#####0} ", ConsoleColor.Green);
-            triangle.BC.Show(errorTable);
-            BaseObjects.Console.Write($"CA: {triangle.CA.Id, 6:#####0} ", ConsoleColor.Green);
-            triangle.CA.Show(errorTable);
-            foreach (var intersectionSlot in triangle.IntersectionSlots)
+            BaseObjects.Console.Write($"AB: {triangle.AB.Id,6:#####0} ", ConsoleColor.Green);
+            triangle.AB.Show(errorTableCapsule, errorTablePoint);
+            BaseObjects.Console.Write($"BC: {triangle.BC.Id,6:#####0} ", ConsoleColor.Green);
+            triangle.BC.Show(errorTableCapsule, errorTablePoint);
+            BaseObjects.Console.Write($"CA: {triangle.CA.Id,6:#####0} ", ConsoleColor.Green);
+            triangle.CA.Show(errorTableCapsule, errorTablePoint);
+            foreach (var intersectionSlot in triangle.IntersectionSlots/*.Where(s => s.Id == 5869)*/)
             {
-                BaseObjects.Console.Write($"I:  {intersectionSlot.Id, 6:#####0} ", ConsoleColor.Green);
-                intersectionSlot.Show(errorTable);
+                BaseObjects.Console.Write($"I:  {intersectionSlot.Id,6:#####0} ", ConsoleColor.Green);
+                intersectionSlot.Show(errorTableCapsule, errorTablePoint);
             }
-
         }
 
         internal static void SetErrors(IntermeshCapsule a, IntermeshCapsule b, Dictionary<int, (bool A, bool B)> errorTable)
@@ -53,11 +64,11 @@ namespace Operations.Diagnostics
                 if (!errorTable.ContainsKey(capsuleBId)) { errorTable[capsuleBId] = (true, true); }
 
                 errorTable[capsuleAId] = (errorTable[capsuleAId].A, false);
-                errorTable[capsuleBId] = (false, errorTable[capsuleBId].B);              
+                errorTable[capsuleBId] = (false, errorTable[capsuleBId].B);
             }
         }
 
-        internal static void Show(this IntermeshEdgeSlot slot, Dictionary<int, (bool A, bool B)> errorTable)
+        internal static void Show(this IntermeshEdgeSlot slot, Dictionary<int, (bool A, bool B)> errorTableCapsule, Dictionary<int, bool> errorTablePoint)
         {
             if (!slot.Segments.Any()) { BaseObjects.Console.WriteLine("[]", ConsoleColor.Green); return; }
 
@@ -66,7 +77,7 @@ namespace Operations.Diagnostics
             {
                 var first = slot.Segments[0];
                 BaseObjects.Console.Write("[", ConsoleColor.Green);
-                first.Show(errorTable, true, false);
+                first.Show(slot, errorTableCapsule, errorTablePoint, true, false);
                 BaseObjects.Console.WriteLine("]", ConsoleColor.Green);
                 return;
             }
@@ -74,21 +85,21 @@ namespace Operations.Diagnostics
             {
                 var first = slot.Segments.First();
                 BaseObjects.Console.Write("[", ConsoleColor.Green);
-                first.Show(errorTable, true, true);
+                first.Show(slot, errorTableCapsule, errorTablePoint, true, true);
             }
 
             foreach (var segment in slot.Segments.Skip(1).Take(length - 2))
             {
-                segment.Show(errorTable, false, true);
+                segment.Show(slot, errorTableCapsule, errorTablePoint, false, true);
             }
             {
                 var last = slot.Segments.Last();
-                last.Show(errorTable, false, false);
+                last.Show(slot, errorTableCapsule, errorTablePoint, false, false);
                 BaseObjects.Console.WriteLine("]", ConsoleColor.Green);
             }
         }
 
-        internal static void Show(this IntermeshSegment segment, Dictionary<int, (bool A, bool B)> errorTable, bool isFirst, bool nextLine)
+        internal static void Show(this IntermeshSegment segment, IntermeshEdgeSlot slot, Dictionary<int, (bool A, bool B)> errorTableCapsule, Dictionary<int, bool> errorTablePoint, bool isFirst, bool nextLine)
         {
             if (!isFirst) BaseObjects.Console.Write($"            ", ConsoleColor.Yellow);
             if (!segment.Capsules.Any())
@@ -102,7 +113,7 @@ namespace Operations.Diagnostics
             {
                 var first = segment.Capsules[0];
                 BaseObjects.Console.Write($"[", ConsoleColor.Yellow);
-                if (errorTable.ContainsKey(first.Id)) first.Show(errorTable[first.Id]); else first.Show((true, true));
+                if (errorTableCapsule.ContainsKey(first.Id)) first.Show(slot, errorTableCapsule[first.Id], errorTablePoint); else first.Show(slot, (true, true), errorTablePoint);
                 BaseObjects.Console.Write("]", ConsoleColor.Yellow);
                 if (nextLine) BaseObjects.Console.WriteLine();
                 return;
@@ -110,32 +121,40 @@ namespace Operations.Diagnostics
             {
                 var first = segment.Capsules.First();
                 BaseObjects.Console.Write($"[", ConsoleColor.Yellow);
-                if (errorTable.ContainsKey(first.Id)) first.Show(errorTable[first.Id]); else first.Show((true, true));
+                if (errorTableCapsule.ContainsKey(first.Id)) first.Show(slot, errorTableCapsule[first.Id], errorTablePoint); else first.Show(slot, (true, true), errorTablePoint);
                 BaseObjects.Console.WriteLine();
             }
             foreach (var capsule in segment.Capsules.Skip(1).Take(length - 2))
             {
                 BaseObjects.Console.Write($"             ", ConsoleColor.Cyan);
-                if (errorTable.ContainsKey(capsule.Id)) capsule.Show(errorTable[capsule.Id]); else capsule.Show((true, true));
+                if (errorTableCapsule.ContainsKey(capsule.Id)) capsule.Show(slot, errorTableCapsule[capsule.Id], errorTablePoint); else capsule.Show(slot, (true, true), errorTablePoint);
                 BaseObjects.Console.WriteLine();
             }
             {
                 var last = segment.Capsules.Last();
                 BaseObjects.Console.Write($"             ", ConsoleColor.Cyan);
-                if (errorTable.ContainsKey(last.Id)) last.Show(errorTable[last.Id]); else last.Show((true, true));
+                if (errorTableCapsule.ContainsKey(last.Id)) last.Show(slot, errorTableCapsule[last.Id], errorTablePoint); else last.Show(slot, (true, true), errorTablePoint);
                 BaseObjects.Console.Write("]", ConsoleColor.Yellow);
+
                 if (nextLine) BaseObjects.Console.WriteLine();
             }
         }
 
-        internal static void Show(this IntermeshCapsule capsule, (bool A, bool B) check)
+        private static void Show(this IntermeshCapsule capsule, IntermeshEdgeSlot slot, (bool A, bool B) check, Dictionary<int, bool> others)
         {
             BaseObjects.Console.Write($"{{", ConsoleColor.Cyan);
-            BaseObjects.Console.Write($"{capsule.A.Id,6:#####0}", ConsoleColor.Cyan, !check.A ? ConsoleColor.DarkRed : System.Console.BackgroundColor);
+            BaseObjects.Console.Write($"{capsule.A.Id,6:#####0}", ConsoleColor.Cyan, (!check.A || others.ContainsKey(capsule.A.Id)) ? ConsoleColor.DarkRed : System.Console.BackgroundColor);
             BaseObjects.Console.Write($", ", ConsoleColor.Cyan);
-            BaseObjects.Console.Write($"{capsule.B.Id,6:#####0}", ConsoleColor.Cyan, !check.B ? ConsoleColor.DarkRed : System.Console.BackgroundColor);
+            BaseObjects.Console.Write($"{capsule.B.Id,6:#####0}", ConsoleColor.Cyan, (!check.B || others.ContainsKey(capsule.B.Id)) ? ConsoleColor.DarkRed : System.Console.BackgroundColor);
             BaseObjects.Console.Write($"}}", ConsoleColor.Cyan);
-            BaseObjects.Console.Write($" {capsule.Segment.Length.ToString("E2")} ", capsule.Segment.Length < GapConstants.Resolver ? ConsoleColor.Yellow : ConsoleColor.Gray);
+            BaseObjects.Console.Write($" L {capsule.Segment.Length.ToString("E2")} D [{capsule.Segment.Vector.Direction.X.ToString("0.000")}, {capsule.Segment.Vector.Direction.Y.ToString("0.000")}, {capsule.Segment.Vector.Direction.Z.ToString("0.000")}]", capsule.Segment.Length < GapConstants.Resolver ? ConsoleColor.Yellow : ConsoleColor.Gray);
+            //BaseObjects.Console.WriteLine(("A", ConsoleColor.Red), ("B", ConsoleColor.Green));
+            BaseObjects.Console.Write($" λMin {slot.TotalSegment.Coordinate(capsule.A.Point),7:#0.0000} λMax {slot.TotalSegment.Coordinate(capsule.B.Point),7:#0.0000}  ΣL {slot.TotalSegment.Length.ToString("E2")}", ConsoleColor.Gray);
+        }
+
+        private static void ShowDirection(Vector3D direction)
+        {
+
         }
 
 

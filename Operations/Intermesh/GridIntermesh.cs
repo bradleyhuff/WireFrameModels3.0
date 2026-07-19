@@ -56,7 +56,7 @@ internal static class GridIntermesh
 
         var collection = mesh.Triangles.Select(t => new Basics.IntermeshTriangle(t)).ToArray();
 
-        BaseObjects.Console.WriteLine("New Process", ConsoleColor.Yellow);
+        //BaseObjects.Console.WriteLine("New Process", ConsoleColor.Yellow);
         TriangleGathering.ActionSingle(collection);
         CalculateIntersections.ActionSingle(collection);
         TriangleSegmentAssignments.Action(collection);

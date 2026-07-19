@@ -21,7 +21,7 @@ namespace Operations.Intermesh.Classes
     {
         internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            BaseObjects.Console.WriteLine("Triangle Segment Resolve", ConsoleColor.Yellow);
+            //BaseObjects.Console.WriteLine("Triangle Segment Resolve", ConsoleColor.Yellow);
             var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(s => s.Id).ToArray();
             if (!intersections.Any()) return;
             while (ResolveCycle(intermeshTriangles)) { }
@@ -50,8 +50,8 @@ namespace Operations.Intermesh.Classes
             var segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
             var pairs = BuildPairsTable(segments);
 
-            ShortSegmentReplacements(segments, ref pairs);
-            NearParallelReplacements(segments, ref pairs);
+            ShortSegmentReplacements(intermeshTriangles, segments, ref pairs);
+            NearParallelReplacements(intermeshTriangles,segments, ref pairs);
 
             var unresolvedPairs = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
             var unresolvedNearInlinePairs = unresolvedPairs.Where(u => IntermeshSegmentExtensions.IsNearInLineParallel(u.Value)).ToArray();
@@ -61,12 +61,15 @@ namespace Operations.Intermesh.Classes
 
             foreach (var unresolvedPair in unresolvedPairs)
             {
+                //BaseObjects.Console.WriteLine($"Being resolve {unresolvedPair.Value.Item1}, {unresolvedPair.Value.Item2}");
                 var segment1 = unresolvedPair.Value.Item1.Segment;
                 var segment2 = unresolvedPair.Value.Item2.Segment;
                 var inLine = IntermeshSegmentExtensions.IsNearInLineParallel(unresolvedPair.Value);
                 var isCross = IntermeshSegmentExtensions.IsCross(unresolvedPair.Value);
 
                 if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value, bucket); else GapResolve(unresolvedPair.Value, bucket);
+                //BaseObjects.Console.WriteLine($"Resolved {unresolvedPair.Value.Item1}, {unresolvedPair.Value.Item2}");
+
             }
             //BaseObjects.Console.WriteLine($"Long pair distances {pairs.Count(p => LineSegment3D.Distance(p.Value.Item1.Segment, p.Value.Item2.Segment) > GapConstants.Resolver)}");
             //BaseObjects.Console.WriteLine($"Short segments {segments.SelectMany(s => s.Capsules).Count(c => c.Segment.Length < GapConstants.Resolver)}");
@@ -76,7 +79,7 @@ namespace Operations.Intermesh.Classes
             var wasChanged = segments.Any(s => s.WasChanged);
             var last = !wasChanged;
             //if(!lastResolve)
-            BaseObjects.Console.WriteLine($"Segments {segments.Count()} Unresolved: {unresolvedPairs.Count()} Changed: {segments.Count(s => s.WasChanged)}  Left unresolved: {unresolvedPairsAfter.Count()} ");
+            //BaseObjects.Console.WriteLine($"Segments {segments.Count()} Unresolved: {unresolvedPairs.Count()} Changed: {segments.Count(s => s.WasChanged)}  Left unresolved: {unresolvedPairsAfter.Count()} ");
             //if(lastResolve)
             //BaseObjects.Console.WriteLine($"Segments {segments.Count()} Unresolved: {unresolvedPairs.Count()} Changed: {segments.Count(s => s.WasChanged)}  Left unresolved: {unresolvedPairsAfter.Count()} ",
             //    !last ? ConsoleColor.Gray : (!unresolvedPairsAfter.Any() ? ConsoleColor.Black : ConsoleColor.White),
@@ -94,8 +97,8 @@ namespace Operations.Intermesh.Classes
 
         private static void SegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 2571);
-            if (t2571 is not null) { BaseObjects.Console.WriteLine($"Before replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
+            //var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 3123);
+            //if (t2571 is not null) { BaseObjects.Console.WriteLine($"Before replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
 
             var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
             //var allSegments = slots.SelectMany(s => s.Segments).ToArray();
@@ -129,8 +132,8 @@ namespace Operations.Intermesh.Classes
             //BaseObjects.Console.WriteLine(allSegments.GroupCounts(s => s.Capsules.Count()).DisplayByLine(), ConsoleColor.Cyan);
             //BaseObjects.Console.WriteLine($"Replacements finished.", ConsoleColor.Cyan);
 
-            t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 2571);
-            if (t2571 is not null) { BaseObjects.Console.WriteLine($"After replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
+            //t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 3123);
+            //if (t2571 is not null) { BaseObjects.Console.WriteLine($"After replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
         }
 
         private static void ReplaceEmptySlots(IEnumerable<IntermeshEdgeSlot> slots)
@@ -234,7 +237,7 @@ namespace Operations.Intermesh.Classes
             return segments[key];
         }
 
-        private static void ShortSegmentReplacements(IntermeshSegment[] segments, ref Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> pairs)
+        private static void ShortSegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles, IntermeshSegment[] segments, ref Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> pairs)
         {
             var bucket = new BoxBucket<IntermeshSegment>(segments);
             IntermeshSegment[] shortSegments;
@@ -243,7 +246,7 @@ namespace Operations.Intermesh.Classes
             while (true)
             {
                 shortSegments = segments.Where(s => s.Segment.Length < GapConstants.Resolver && !s.IsRemoved).ToArray();
-                BaseObjects.Console.WriteLine($"Short segments {shortSegments.Count()}", ConsoleColor.Cyan);
+                //BaseObjects.Console.WriteLine($"Short segments {shortSegments.Count()}", ConsoleColor.Cyan);
                 if (!shortSegments.Any()) { break; }
 
                 foreach (var shortSegment in shortSegments.NonAdjoining())
@@ -258,6 +261,9 @@ namespace Operations.Intermesh.Classes
                     shortSegment.Remove();
                     shortSegmentsRemoved = true;
                 }
+
+                //var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 2571);
+                //if (t2571 is not null) { BaseObjects.Console.WriteLine($"Short segment replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
             }
             if (shortSegmentsRemoved)
             {
@@ -266,12 +272,16 @@ namespace Operations.Intermesh.Classes
             //BaseObjects.Console.WriteLine($"Short segment replacements end. ");
         }
 
-        private static void NearParallelReplacements(IntermeshSegment[] segments, ref Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> pairs)
+        private static void NearParallelReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles, IntermeshSegment[] segments, ref Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> pairs)
         {
+            //{
+            //    var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 2571);
+            //    if (t2571 is not null) { BaseObjects.Console.WriteLine($"Before Near parallel replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
+            //}
             bool nearParallelRemoved = false;
             var nearParallelPairs = pairs.Where(p => IntermeshSegmentExtensions.IsNearParallel(p.Value)).ToArray();
 
-            BaseObjects.Console.WriteLine($"Near parallel pairs {nearParallelPairs.Count()}", ConsoleColor.Cyan);
+            //BaseObjects.Console.WriteLine($"Near parallel pairs {nearParallelPairs.Count()}", ConsoleColor.Cyan);
 
             foreach (var pair in nearParallelPairs.Select(p => p.Value))
             {
@@ -279,11 +289,26 @@ namespace Operations.Intermesh.Classes
                 var toAddTo = pair.Item2;
                 if (pair.Item1.Contacts.Count > pair.Item2.Contacts.Count) { toRemove = pair.Item2; toAddTo = pair.Item1; }
                 if (pair.Item1.Contacts.Count == pair.Item2.Contacts.Count && pair.Item1.Id > pair.Item2.Id) { toRemove = pair.Item2; toAddTo = pair.Item1; }
+
+                //BaseObjects.Console.WriteLine($"Remove Near parallel segment [{toRemove.A.Id} {toRemove.B.Id}] Use Near parallel segment [{toAddTo.A.Id} {toAddTo.B.Id}]", ConsoleColor.Cyan);
+
                 toAddTo.AddRangeContacts(toRemove.Contacts.Where(c => !c.IsRemoved));
                 nearParallelRemoved = true;
                 toRemove.Remove();
-                toRemove.Replacement = toAddTo;
+                toRemove.Replacement = toAddTo;                
             }
+            //{
+            //    var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 2571);
+            //    if (t2571 is not null) { BaseObjects.Console.WriteLine($"After Near parallel replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
+
+            //    //if (nearParallelPairs.Count() == 5)
+            //    //{
+            //    //    foreach (var segment in t2571.IntersectionSlots.Single(s => s.Id == 5869).Segments.Where(s => !s.IsRemoved))
+            //    //    {
+            //    //        WavefrontFile.Export([segment.Segment], $"Wavefront/IntersectionSlot-{5869}/Segment-{segment.A.Id}-{segment.B.Id}");
+            //    //    }
+            //    //}
+            //}
 
             if (nearParallelRemoved)
             {
@@ -297,11 +322,11 @@ namespace Operations.Intermesh.Classes
             var pointsB = unresolvedPair.Item2.Capsules.Points().ToArray();
             foreach (var point in pointsA)
             {
-                unresolvedPair.Item2.SplitBy(point);
+                unresolvedPair.Item2.CapsuleSplit(point);
             }
             foreach (var point in pointsB)
             {
-                unresolvedPair.Item1.SplitBy(point);
+                unresolvedPair.Item1.CapsuleSplit(point);
             }
         }
 
@@ -321,27 +346,8 @@ namespace Operations.Intermesh.Classes
             var segment2 = unresolvedSet.Item5;
 
             var point = IntermeshPointExtensions.Fetch(intersection);
-            var wasSplit1 = segment1.SplitBy(point);
-            var wasSplit2 = segment2.SplitBy(point);
-
-            var nearbyPoints1 = segment1.Capsules.Points().Where(p => Point3D.Distance(p.Point, point.Point) < GapConstants.Resolver).ToArray();
-            var nearbyPoints2 = segment2.Capsules.Points().Where(p => Point3D.Distance(p.Point, point.Point) < GapConstants.Resolver).ToArray();
-
-            segment1.ResolvePoints(nearbyPoints1);
-            segment1.ResolvePoints(nearbyPoints2);
-
-            segment2.ResolvePoints(nearbyPoints1);
-            segment2.ResolvePoints(nearbyPoints2);
-
-            //var isResolved2 = IntermeshSegmentExtensions.IsResolved(segment1, segment2);
-            //if (!isResolved2)
-            //{
-            //    BaseObjects.Console.WriteLine($"Failed cross {segment1.Id} {segment2.Id} Segment1 split {wasSplit1} Segment2 split {wasSplit2}", ConsoleColor.Red);
-            //}
-            //else
-            //{
-            //    BaseObjects.Console.WriteLine($"Successful cross {segment1.Id} {segment2.Id} Segment1 split {wasSplit1} Segment2 split {wasSplit2}", ConsoleColor.Green);
-            //}
+            segment1.CapsuleSplit(point);
+            segment2.CapsuleSplit(point);
         }
 
         private static void GapResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket)
@@ -350,18 +356,6 @@ namespace Operations.Intermesh.Classes
 
             unresolvedPair.Item1.ExtendWith(linkSegment.A);
             unresolvedPair.Item1.ExtendWith(linkSegment.B);
-            unresolvedPair.Item2.ResolvePoint(linkSegment.A);
-            unresolvedPair.Item2.ResolvePoint(linkSegment.B);
-
-            //var isResolved2 = IntermeshSegmentExtensions.IsResolved(unresolvedPair.Item1, unresolvedPair.Item2);
-            //if (!isResolved2)
-            //{
-            //    BaseObjects.Console.WriteLine($"Failed gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Red);
-            //}
-            //else
-            //{
-            //    BaseObjects.Console.WriteLine($"Successful gap {unresolvedPair.Item1.Id} {unresolvedPair.Item2.Id}", ConsoleColor.Green);
-            //}
         }
     }
 }

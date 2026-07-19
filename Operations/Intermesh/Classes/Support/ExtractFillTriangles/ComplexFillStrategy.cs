@@ -8,6 +8,7 @@ using Operations.PlanarFilling.Filling;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Collections;
+using System.Runtime.CompilerServices;
 
 namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 {
@@ -15,24 +16,27 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
     {
         public void GetFillTriangles(IntermeshTriangle triangle)
         {
-            var surfaceSet = triangle.CreateSurfaceSegmentSet();
+            var surfaceSets = triangle.CreateSurfaceSegmentSets();
+
+            foreach (var surfaceSet in surfaceSets)
+            {
+                GetFillTriangles(triangle, surfaceSet);
+            }
+        }
+
+        private void GetFillTriangles(IntermeshTriangle triangle, SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint> surfaceSet)
+        {
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, IntermeshPoint>(surfaceSet);
-
-            //if (triangle.Id == 13267)
-            //{
-            //    foreach (var element in surfaceSet.PerimeterSegments)
-            //    {
-            //        WavefrontFile.Export([element.Segment.Segment], $"Wavefront/SurfaceSet-{triangle.Id}/Perimeter-Segment-{element.A.Index}-{element.B.Index}");
-            //    }
-            //    foreach (var element in surfaceSet.DividingSegments)
-            //    {
-            //        WavefrontFile.Export([element.Segment.Segment], $"Wavefront/SurfaceSet-{triangle.Id}/Dividing-Segment-{element.A.Index}-{element.B.Index}");
-            //    }
-            //}
-
             try
             {
                 var chain = SurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>.Create(collection);
+                if (chain.Spurs.Any())
+                {
+                    foreach (var spur in chain.Spurs)
+                    {
+                        BaseObjects.Console.WriteLine($"{triangle.Id} Spurs [{string.Join(",", spur.Select(s => s.Reference.Id))}]", ConsoleColor.Red);
+                    }
+                }
 
                 var fillings = new SurfaceTriangleContainer<IntermeshPoint>[0];
                 try
@@ -42,7 +46,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 }
                 catch (Exception e)
                 {
-                   BaseObjects.Console.WriteLine($"Triangle: {triangle.Id} {e.Message}", ConsoleColor.Yellow);
+                    BaseObjects.Console.WriteLine($"Triangle: {triangle.Id} {e.Message}", ConsoleColor.Yellow);
                     return;
                 }
 
@@ -58,8 +62,13 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             catch (Exception e)
             {
                 BaseObjects.Console.WriteLine($"Triangle: {triangle.Id} {e.Message}", ConsoleColor.Red);
-                //triangle.Show();
-                //triangle.Dump(triangle.Triangle.Center, 1e0);
+                triangle.Show();
+                BaseObjects.Console.WriteLine();
+                BaseObjects.Console.WriteLine($"Perimeters {string.Join(", ", surfaceSet.PerimeterSegments.Select(s => $"[{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
+                BaseObjects.Console.WriteLine($"Dividings {string.Join(", ", surfaceSet.DividingSegments.Select(s => $"[{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
+                var pointCount = surfaceSet.PerimeterSegments.SelectMany(ss => ss.Points).GroupBy(g => g.Reference.Id);
+                BaseObjects.Console.WriteLine($"Boundary points [{string.Join(",", pointCount.Where(g => g.Count() > 2).Select(g => g.Key))}]");
+                //triangle.Dump(triangle.Triangle.Center, 1e2);
 
 
             }

@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using System;
@@ -90,8 +91,8 @@ namespace Operations.Intermesh.Basics
             var sharedPoints = pointsOfA.IntersectBy(pointsOfB.Select(p => p.Id), p => p.Id);
             if (!sharedPoints.Any()) { return false; }
 
-            if (pointsOfB.Any(p => IsANearbyPoint(p, a) && !a.PointIsResolved(p))) { return false; }
-            if (pointsOfA.Any(p => IsANearbyPoint(p, b) && !b.PointIsResolved(p))) { return false; }
+            if (pointsOfB.Any(p => IsANearbyPoint(p, a))) { return false; }
+            if (pointsOfA.Any(p => IsANearbyPoint(p, b))) { return false; }
             return true;
         }
 
@@ -173,62 +174,26 @@ namespace Operations.Intermesh.Basics
 
         public static IEnumerable<IntermeshSegment> NonRepeating(this IEnumerable<IntermeshSegment> input)
         {
-            return input.GroupBy(g => g.Key, Combination2Comparer.Comparer).Where(g => g.Count() == 1).Select(l => l.Single());
+            return input.GroupBy(g => g.Key, Combination2Comparer.Comparer).Select(l => l.First());
         }
 
         public static IEnumerable<IntermeshSegment> NoSpurs(this IEnumerable<IntermeshSegment> input)
         {
-            var pointCount = new Dictionary<int, List<IntermeshSegment>>();
-            foreach (var element in input)
+            while (true)
             {
-                if (!pointCount.ContainsKey(element.A.Id)) { pointCount[element.A.Id] = new List<IntermeshSegment>(); }
-                if (!pointCount.ContainsKey(element.B.Id)) { pointCount[element.B.Id] = new List<IntermeshSegment>(); }
-                pointCount[element.A.Id].Add(element);
-                pointCount[element.B.Id].Add(element);
+                var pointCount = new GroupingDictionary<int, List<IntermeshSegment>>(() => new List<IntermeshSegment>());
+                foreach (var element in input)
+                {
+                    pointCount[element.A.Id].Add(element);
+                    pointCount[element.B.Id].Add(element);
+                }
+
+                var spurs = pointCount.Values.Where(v => v.Count == 1).Select(l => l.Single()).ToArray();
+
+                if (!spurs.Any()) { return input; }
+
+                input = input.Where(i => !spurs.Any(s => s.Id == i.Id)).ToArray();
             }
-
-            var spurs = pointCount.Values.Where(v => v.Count == 1).Select(l => l.Single()).ToArray();
-
-            return input.Where(i => !spurs.Any(s => s.Id == i.Id));
         }
-
-        //private static Dictionary<(int, int), IntermeshSegment> segmentTable = new Dictionary<(int, int), IntermeshSegment>();
-
-        //public static IntermeshSegment Fetch(IntermeshPoint a, IntermeshPoint b)
-        //{
-        //    if (!segmentTable.ContainsKey((a.Id, b.Id))) { segmentTable[(a.Id, b.Id)] = new IntermeshSegment(a, b); }
-        //    return segmentTable[(a.Id, b.Id)];
-        //}
-
-        //public static IntermeshSegment Fetch(Point3D a, Point3D b)
-        //{
-        //    return Fetch(IntermeshPointExtensions.Fetch(a), IntermeshPointExtensions.Fetch(b));
-        //}
-
-        //public static IEnumerable<IntermeshSegment> NearestOrLinked(this IntermeshSegment given, IEnumerable<IntermeshSegment> segments)
-        //{
-        //    var linkedSegments = segments.Where(s => IsLinked(given, s)).ToArray();
-        //    if (linkedSegments.Any()) 
-        //    {
-        //        foreach (var linkedSegment in linkedSegments)
-        //        {
-        //            yield return linkedSegment;
-        //        }
-        //        yield break;
-        //    }
-
-        //    var distance = System.Double.MaxValue;
-        //    IntermeshSegment nearest = null;
-        //    foreach (var segment in segments)
-        //    {
-        //        var distance2 = LineSegment3D.Distance(given.Segment, segment.Segment);
-        //        if (distance2 < distance)
-        //        {
-        //            distance = distance2;
-        //            nearest = segment;
-        //        }
-        //    }
-        //    yield return nearest;
-        //}
     }
 }

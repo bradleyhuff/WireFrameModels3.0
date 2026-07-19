@@ -49,12 +49,10 @@ namespace Operations.SetOperators
             if (Mode.ThreadedRun)
             {
                 sum.IntermeshSingle(t => true);
-                //sum.NearCollinearTrianglePairs();
             }
             else
             {
                 sum.Intermesh();
-                //sum.NearCollinearTrianglePairs();
             }
 
             var groups = GroupExtraction(sum);
@@ -67,10 +65,7 @@ namespace Operations.SetOperators
             //sum.RemoveCoplanarSurfacePoints();
 
             FoldPrimming(sum);
-            //FillSmallDistanceHoles(sum);
-            //if (RemoveTagss) { RemoveTags(sum); } else { RemoveTags2(sum); }
             RemoveTags(sum);
-            //RemoveTagsWithCondition(sum, (a, b) => Triangle3D.LengthOfCommonSide(a.Triangle, b.Triangle) > 1e-8);
 
             if (!Mode.ThreadedRun) ConsoleLog.Pop();
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
@@ -261,10 +256,13 @@ namespace Operations.SetOperators
         {
             var start = DateTime.Now;
             var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
+
+            //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Triangle.MinimumHeight.Magnitude.ToString("E2")}"))}");
             var table = tags.ToDictionary(t => t.Id, t => t);
             while (tags.Any())
             {
                 tags = tags.SelectMany(t => t.SingleAdjacents).Where(t => !table.ContainsKey(t.Id)).DistinctBy(t => t.Id).ToArray();
+                //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Triangle.MinimumHeight.Magnitude.ToString("E2")}"))}");
                 foreach (var tag in tags) { table[tag.Id] = tag; }
             }
             output.RemoveAllTriangles(table.Values);

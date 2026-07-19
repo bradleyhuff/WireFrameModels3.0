@@ -11,6 +11,7 @@ using System.Linq;
 using Collections.Buckets;
 using Operations.ParallelSurfaces.Internals;
 using BaseObjects;
+using Operations.Groupings.FileExportImport;
 
 namespace Operations.Basics
 {
@@ -45,6 +46,8 @@ namespace Operations.Basics
             BaseObjects.Console.WriteLine("CA Adjacency counts", ConsoleColor.Yellow);
             BaseObjects.Console.WriteLine(mesh.Triangles.Select(t => t.CAadjacents).GroupCounts(g => g.Count).DisplayByLine());
 
+            //WavefrontFileGroups.ExportByFaces(mesh, "Wavefront/Faces");
+
             //Console.WriteLine($"Aspect 1e-3: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-3)}");
             //Console.WriteLine($"Aspect 1e-4: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-4)}");
             //Console.WriteLine($"Aspect 1e-5: {mesh.Triangles.Count(t => t.Triangle.AspectRatio < 1e-5)}");
@@ -70,18 +73,19 @@ namespace Operations.Basics
             var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
             if (openEdges.Length == 0) { Console.WriteLine("No open edges"); return; }
             Console.WriteLine($"Open edges {openEdges.Length}");
-            //foreach (var openEdge in openEdges)
-            //{
-            //    Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
-            //}
+            foreach (var openEdge in openEdges)
+            {
+                Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
+                //Console.WriteLine($"Open edges {string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
+            }
             //Console.WriteLine();
 
             //if (index > -1)
-            //{
-            //    var grid = WireFrameMesh.Create();
-            //    grid.AddRangeTriangles(tags.SelectMany(t => t.OpenEdges).Select(o => new Triangle3D(o.Segment.Start, o.Segment.Center, o.Segment.End)), "", 0);
-            //    WavefrontFile.Export(grid, $"Wavefront/OpenEdges-{index}");
-            //}
+            {
+                var grid = WireFrameMesh.Create();
+                grid.AddRangeTriangles(tags.SelectMany(t => t.OpenEdges).Select(o => new Triangle3D(o.Segment.Start, o.Segment.Center, o.Segment.End)), "", 0);
+                WavefrontFile.Export(grid, $"Wavefront/OpenEdges");
+            }
         }
 
         public static void ShowSmallDistances(this IWireFrameMesh mesh)

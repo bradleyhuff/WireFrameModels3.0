@@ -15,5 +15,13 @@ namespace Operations.SurfaceSegmentChaining.Basics
 
         public SurfaceRayContainer<T> A { get; }
         public SurfaceRayContainer<T> B { get; }
+
+        public IEnumerable<SurfaceRayContainer<T>> Points
+        {
+            get
+            {
+                yield return A; yield return B;
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
@@ -60,6 +61,24 @@ namespace Operations.Intermesh.Basics
 
         public LineSegment3D Segment { get; private set; }
 
+        public double SegmentAngleDifference
+        {
+            get
+            {
+                var vector1 = B.Point - A.Point;
+                return Vector3D.Angle(vector1.Direction, Segment.Vector.Direction);
+            }
+        }
+        public double CollinearDeviation
+        {
+            get
+            {
+                var line = new Line3D(A.Point, B.Point);
+                var distances = _capsules.Points().Select(p => line.Distance(p.Point)).ToArray();
+                return BasicObjects.Math.Math.Max(distances);
+            }
+        }
+
         public IEnumerable<IntermeshPoint> Points
         {
             get { yield return A; yield return B; }
@@ -116,16 +135,51 @@ namespace Operations.Intermesh.Basics
             Segment = new LineSegment3D(a.Point, b.Point);
         }
 
-        public bool SplitBy(IntermeshPoint p)
+        public bool CapsuleSplit(IntermeshPoint p)
         {
-            var splitBy = Capsules.SplitBy(p).ToArray();
-            var wasSplit = splitBy.Count() > Capsules.Count();
-            if (wasSplit)
+            var split = GetCapsuleToSplit(p);
+            if (split is not null)
             {
-                _previous.Add(Capsules.ToArray());
-                _capsules = splitBy.ToList();
+                var split1 = IntermeshCapsuleExtensions.Fetch(split.A, p);
+                var split2 = IntermeshCapsuleExtensions.Fetch(p, split.B);
+
+                if (_capsules.Any(c => c.Id == split1.Id)) { return false; }
+                if (_capsules.Any(c => c.Id == split2.Id)) { return false; }
+
+                if (_capsules.Replace(split, [split1, split2]))
+                {
+                    _previous.Add(_capsules.ToArray());
+                }
+                else { return false; }
+
+
+                return true;
             }
-            return wasSplit;
+
+            return false;
+        }
+
+        private IntermeshCapsule GetCapsuleToSplit(IntermeshPoint p)
+        {
+            {
+                var projection = Segment.Projection(p.Point, GapConstants.Resolver);
+                if (projection is null) { return null; }
+            }
+
+            var eligibleCapsules = new List<IntermeshCapsule>();
+
+            foreach (var capsule in _capsules.Where(c => c.A.Id != p.Id && c.B.Id != p.Id))
+            {
+                var projection = capsule.Segment.Projection(p.Point, GapConstants.Resolver);
+                if (projection is null) { continue; }
+                //var distance = Point3D.Distance(projection, p.Point);
+                //if (distance < 1e-12)
+                {
+                    eligibleCapsules.Add(capsule);
+                }
+            }
+
+            return eligibleCapsules.Nearest(p);
         }
 
         public bool ExtendWith(IntermeshPoint p)
@@ -168,26 +222,6 @@ namespace Operations.Intermesh.Basics
             return true;
         }
 
-        public void ResolvePoints(IEnumerable<IntermeshPoint> points)
-        {
-            foreach (var point in points)
-            {
-                ResolvePoint(point);
-            }
-        }
-
-        public void ResolvePoint(IntermeshPoint p)
-        {
-            _resolvedPoints[p.Id] = true;
-        }
-
-        private Dictionary<int, bool> _resolvedPoints = new Dictionary<int, bool>();
-
-        public bool PointIsResolved(IntermeshPoint p)
-        {
-            return _resolvedPoints.ContainsKey(p.Id);
-        }
-
         public Combination2 OriginalKey { get; }
 
         public Combination2 Key
@@ -210,16 +244,6 @@ namespace Operations.Intermesh.Basics
 
         private List<IntermeshSegment> _contacts = new List<IntermeshSegment>();
         public IReadOnlyList<IntermeshSegment> Contacts { get { return _contacts; } }
-        public IEnumerable<IntermeshSegment> ContactsAtA { get { return _contacts.Where(c => c.Capsules.Points().Any(p => p.Id == A.Id)); } }
-        public IEnumerable<IntermeshSegment> ContactsAtB { get { return _contacts.Where(c => c.Capsules.Points().Any(p => p.Id == B.Id)); } }
-
-        public IEnumerable<IntermeshSegment> FreeContacts
-        {
-            get
-            {
-                return _contacts.Where(c => !c.Capsules.Points().Any(p => p.Id == A.Id) && !c.Capsules.Points().Any(p => p.Id == B.Id));
-            }
-        }
 
         public bool AddContacts(IntermeshSegment segment)
         {

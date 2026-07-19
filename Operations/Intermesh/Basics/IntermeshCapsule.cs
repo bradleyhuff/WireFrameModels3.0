@@ -46,12 +46,5 @@ namespace Operations.Intermesh.Basics
             if (!Segment.PointIsWithIn(element.B.Point)) { return false; }
             return Segment.Distance(element.A.Point) < GapConstants.Resolver && Segment.Distance(element.B.Point) < GapConstants.Resolver;
         }
-
-        internal bool CanSplit(IntermeshPoint p, double error = BasicObjects.Math.Double.DifferenceError)
-        {
-            if (A.Id == p.Id || B.Id == p.Id) { return false; }
-            var projection = Segment.Projection(p.Point, error);
-            return Segment.PointIsAtOrBetweenEndpoints(projection, error);
-        }
     }
 }

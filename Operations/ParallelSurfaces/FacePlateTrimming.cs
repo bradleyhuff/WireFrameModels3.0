@@ -50,13 +50,15 @@ namespace Operations.ParallelSurfaces
                 //WavefrontFile.Export(difference, $"Wavefront/Difference-{index}");
                 index++;
 
-                foreach (var set in disjointSets.Skip(1)/*.Take(4)*/)
+                foreach (var set in disjointSets.Skip(1)/*.Take(10)*/)
                 {
                     difference = difference.Difference(set);
                     //WavefrontFile.Export(set, $"Wavefront/Sets-{index}");
                     //WavefrontFile.Export(difference, $"Wavefront/Difference-{index}");
                     index++;
                 }
+
+                //Sets.RemoveTags(difference);
 
                 //var disjointSet = disjointSets.Skip(4).First();
                 //WavefrontFile.Export(disjointSet, $"Wavefront/Sets-{4}");

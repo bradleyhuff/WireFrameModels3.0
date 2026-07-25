@@ -3,17 +3,7 @@ using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
-using Collections.WireFrameMesh.Basics;
-using FileExportImport;
-using Microsoft.VisualBasic;
-using Operations.Basics;
-using Operations.Diagnostics;
-using Operations.Diagnostics.Intermesh;
 using Operations.Intermesh.Basics;
-using Operations.Intermesh.Interfaces;
-using System.Net.Sockets;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace Operations.Intermesh.Classes
 {
@@ -21,12 +11,11 @@ namespace Operations.Intermesh.Classes
     {
         internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            //BaseObjects.Console.WriteLine("Triangle Segment Resolve", ConsoleColor.Yellow);
             var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(s => s.Id).ToArray();
             if (!intersections.Any()) return;
-            while (ResolveCycle(intermeshTriangles)) { }
-            //BaseObjects.Console.WriteLine($"Cumulative max capsule size: {maxCapsuleSize} Distinct Key: {maxDistinctKeyCapsuleSize} Distinct: {maxDistinctCapsuleSize}", ConsoleColor.Yellow);
-            //BaseObjects.Console.WriteLine($"Cumulative max capsules: {string.Join(",",maxCapsules.Select(c => $"[{c.A.Id}, {c.B.Id}]"))}", ConsoleColor.Yellow);
+            while (ResolveCycle(intermeshTriangles));
+
+            InlineSlotSegmentReplacements(intermeshTriangles);
         }
 
         private static Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> BuildPairsTable(IntermeshSegment[] segments)
@@ -61,89 +50,42 @@ namespace Operations.Intermesh.Classes
 
             foreach (var unresolvedPair in unresolvedPairs)
             {
-                //BaseObjects.Console.WriteLine($"Being resolve {unresolvedPair.Value.Item1}, {unresolvedPair.Value.Item2}");
                 var segment1 = unresolvedPair.Value.Item1.Segment;
                 var segment2 = unresolvedPair.Value.Item2.Segment;
                 var inLine = IntermeshSegmentExtensions.IsNearInLineParallel(unresolvedPair.Value);
                 var isCross = IntermeshSegmentExtensions.IsCross(unresolvedPair.Value);
 
                 if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value, bucket); else GapResolve(unresolvedPair.Value, bucket);
-                //BaseObjects.Console.WriteLine($"Resolved {unresolvedPair.Value.Item1}, {unresolvedPair.Value.Item2}");
-
             }
-            //BaseObjects.Console.WriteLine($"Long pair distances {pairs.Count(p => LineSegment3D.Distance(p.Value.Item1.Segment, p.Value.Item2.Segment) > GapConstants.Resolver)}");
-            //BaseObjects.Console.WriteLine($"Short segments {segments.SelectMany(s => s.Capsules).Count(c => c.Segment.Length < GapConstants.Resolver)}");
-            //var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
-            //BaseObjects.Console.WriteLine($"Removed segments {segments.Count(s => s.IsRemoved)} Empty slots {slots.Count(s => !s.Segments.Any())}");
-            var unresolvedPairsAfter = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
+
             var wasChanged = segments.Any(s => s.WasChanged);
-            var last = !wasChanged;
-            //if(!lastResolve)
-            //BaseObjects.Console.WriteLine($"Segments {segments.Count()} Unresolved: {unresolvedPairs.Count()} Changed: {segments.Count(s => s.WasChanged)}  Left unresolved: {unresolvedPairsAfter.Count()} ");
-            //if(lastResolve)
-            //BaseObjects.Console.WriteLine($"Segments {segments.Count()} Unresolved: {unresolvedPairs.Count()} Changed: {segments.Count(s => s.WasChanged)}  Left unresolved: {unresolvedPairsAfter.Count()} ",
-            //    !last ? ConsoleColor.Gray : (!unresolvedPairsAfter.Any() ? ConsoleColor.Black : ConsoleColor.White),
-            //    !last ? System.Console.BackgroundColor : (!unresolvedPairsAfter.Any() ? ConsoleColor.Green : ConsoleColor.Red));
 
             SegmentReplacements(intermeshTriangles);
 
             return wasChanged;
         }
 
-        //private static int maxCapsuleSize = 0;
-        //private static int maxDistinctCapsuleSize = 0;
-        //private static int maxDistinctKeyCapsuleSize = 0;
-        //private static IntermeshCapsule[] maxCapsules = new IntermeshCapsule[0];
-
         private static void SegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            //var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 3123);
-            //if (t2571 is not null) { BaseObjects.Console.WriteLine($"Before replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
-
             var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
-            //var allSegments = slots.SelectMany(s => s.Segments).ToArray();
-
-            //int lastSize = maxCapsuleSize;
-            //maxCapsuleSize = Math.Max(maxCapsuleSize, allSegments.Max(s => s.Capsules.Count()));
-            //maxDistinctKeyCapsuleSize = Math.Max(maxDistinctKeyCapsuleSize, allSegments.Max(s => s.Capsules.DistinctBy(c => c.Key, Combination2Comparer.Comparer).Count()));
-            //maxDistinctCapsuleSize = Math.Max(maxDistinctCapsuleSize, allSegments.Max(s => s.Capsules.DistinctBy(c => c.Id).Count()));
-            //if (maxCapsuleSize > lastSize) { 
-            //    var segmentWithMaxCapsules = allSegments.FirstOrDefault(s => s.Capsules.Count() == maxCapsuleSize);
-            //    if (segmentWithMaxCapsules is not null) { maxCapsules = segmentWithMaxCapsules.Capsules.ToArray(); }
-            //}
-            
-
-            //BaseObjects.Console.WriteLine($"Segment/Capsule counts", ConsoleColor.Cyan);
-            //BaseObjects.Console.WriteLine(allSegments.GroupCounts(s => s.Capsules.Count()).DisplayByLine(), ConsoleColor.Cyan);
-
-            ReplaceEmptySlots(slots);
+            ReplaceEmptySegments(slots);
             RemoveEmptySlots(intermeshTriangles);
 
             var replacements = slots.Where(s => s.Segments.Any(ss => ss.Capsules.Count() != 1)).ToArray();
             var replacementTable = BuildReplacementTable(replacements);
-            //BuildContacts(replacementTable);
-            //BaseObjects.Console.WriteLine($"Replacement table", ConsoleColor.Cyan);
-            //BaseObjects.Console.WriteLine(replacementTable.Values.GroupCounts(s => s.Replacement.Count()).DisplayByLine(), ConsoleColor.Cyan);
             ApplyReplacements(replacements, replacementTable);
             RemoveDuplicateIntersectionSlots(intermeshTriangles);
             ClearSegmentHistories(intermeshTriangles);
-
-            //BaseObjects.Console.WriteLine($"Segment/Capsule counts", ConsoleColor.Cyan);
-            //BaseObjects.Console.WriteLine(allSegments.GroupCounts(s => s.Capsules.Count()).DisplayByLine(), ConsoleColor.Cyan);
-            //BaseObjects.Console.WriteLine($"Replacements finished.", ConsoleColor.Cyan);
-
-            //t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 3123);
-            //if (t2571 is not null) { BaseObjects.Console.WriteLine($"After replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
         }
 
-        private static void ReplaceEmptySlots(IEnumerable<IntermeshEdgeSlot> slots)
+        private static void ReplaceEmptySegments(IEnumerable<IntermeshEdgeSlot> slots)
         {
-            var removedSlots = slots.Where(s => s.Segments.Any(ss => ss.IsRemoved && ss.Replacement is not null)).ToArray();
-            foreach (var removedSlot in removedSlots)
+            var emptySegmentSlots = slots.Where(s => s.Segments.Any(ss => ss.IsRemoved && ss.Replacement is not null)).ToArray();
+            foreach (var emptySegmentSlot in emptySegmentSlots)
             {
-                var toBeReplaced = removedSlot.Segments.Where(s => s.IsRemoved && s.Replacement is not null).ToArray();
-                removedSlot.Segments.RemoveAll(s => s.IsRemoved && s.Replacement is not null);
-                removedSlot.Segments.AddRange(toBeReplaced.Select(r => GetReplacement(r)));
+                var toBeReplaced = emptySegmentSlot.Segments.Where(s => s.IsRemoved && s.Replacement is not null).ToArray();
+                emptySegmentSlot.Segments.RemoveAll(s => s.IsRemoved && s.Replacement is not null);
+                emptySegmentSlot.Segments.AddRange(toBeReplaced.Select(GetReplacement));
             }
         }
 
@@ -246,7 +188,6 @@ namespace Operations.Intermesh.Classes
             while (true)
             {
                 shortSegments = segments.Where(s => s.Segment.Length < GapConstants.Resolver && !s.IsRemoved).ToArray();
-                //BaseObjects.Console.WriteLine($"Short segments {shortSegments.Count()}", ConsoleColor.Cyan);
                 if (!shortSegments.Any()) { break; }
 
                 foreach (var shortSegment in shortSegments.NonAdjoining())
@@ -261,27 +202,17 @@ namespace Operations.Intermesh.Classes
                     shortSegment.Remove();
                     shortSegmentsRemoved = true;
                 }
-
-                //var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 2571);
-                //if (t2571 is not null) { BaseObjects.Console.WriteLine($"Short segment replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
             }
             if (shortSegmentsRemoved)
             {
                 pairs = BuildPairsTable(segments);
             }
-            //BaseObjects.Console.WriteLine($"Short segment replacements end. ");
         }
 
         private static void NearParallelReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles, IntermeshSegment[] segments, ref Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> pairs)
         {
-            //{
-            //    var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 2571);
-            //    if (t2571 is not null) { BaseObjects.Console.WriteLine($"Before Near parallel replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
-            //}
             bool nearParallelRemoved = false;
             var nearParallelPairs = pairs.Where(p => IntermeshSegmentExtensions.IsNearParallel(p.Value)).ToArray();
-
-            //BaseObjects.Console.WriteLine($"Near parallel pairs {nearParallelPairs.Count()}", ConsoleColor.Cyan);
 
             foreach (var pair in nearParallelPairs.Select(p => p.Value))
             {
@@ -290,25 +221,11 @@ namespace Operations.Intermesh.Classes
                 if (pair.Item1.Contacts.Count > pair.Item2.Contacts.Count) { toRemove = pair.Item2; toAddTo = pair.Item1; }
                 if (pair.Item1.Contacts.Count == pair.Item2.Contacts.Count && pair.Item1.Id > pair.Item2.Id) { toRemove = pair.Item2; toAddTo = pair.Item1; }
 
-                //BaseObjects.Console.WriteLine($"Remove Near parallel segment [{toRemove.A.Id} {toRemove.B.Id}] Use Near parallel segment [{toAddTo.A.Id} {toAddTo.B.Id}]", ConsoleColor.Cyan);
-
                 toAddTo.AddRangeContacts(toRemove.Contacts.Where(c => !c.IsRemoved));
                 nearParallelRemoved = true;
                 toRemove.Remove();
                 toRemove.Replacement = toAddTo;                
             }
-            //{
-            //    var t2571 = intermeshTriangles.SingleOrDefault(t => t.Id == 2571);
-            //    if (t2571 is not null) { BaseObjects.Console.WriteLine($"After Near parallel replacement {t2571.Id}", ConsoleColor.DarkYellow); t2571.Show(); }
-
-            //    //if (nearParallelPairs.Count() == 5)
-            //    //{
-            //    //    foreach (var segment in t2571.IntersectionSlots.Single(s => s.Id == 5869).Segments.Where(s => !s.IsRemoved))
-            //    //    {
-            //    //        WavefrontFile.Export([segment.Segment], $"Wavefront/IntersectionSlot-{5869}/Segment-{segment.A.Id}-{segment.B.Id}");
-            //    //    }
-            //    //}
-            //}
 
             if (nearParallelRemoved)
             {
@@ -356,6 +273,60 @@ namespace Operations.Intermesh.Classes
 
             unresolvedPair.Item1.ExtendWith(linkSegment.A);
             unresolvedPair.Item1.ExtendWith(linkSegment.B);
+        }
+
+        public static void InlineSlotSegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            var start = DateTime.Now;
+            var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
+            var segments = slots.SelectMany(s => s.Segments).DistinctBy(s => s.Id).ToArray();
+            var points = segments.Points().ToArray();
+
+            var pointSlotsMap = new GroupingDictionary<int, List<IntermeshEdgeSlot>>(() => new List<IntermeshEdgeSlot>());
+            foreach (var slot in slots)
+            {
+                foreach (var point in slot.Segments.Points())
+                {
+                    if (!pointSlotsMap[point.Id].Any(s => s.Id == slot.Id))
+                    {
+                        pointSlotsMap[point.Id].Add(slot);
+                    }
+                }
+            }
+
+            var inLineReplacements = new List<(IEnumerable<IntermeshEdgeSlot>ReplaceIn, IntermeshSegment ToBeReplaced, IEnumerable<IntermeshSegment> ReplaceWith)>();
+
+            foreach (var segment in segments)
+            {
+                var slotsA = pointSlotsMap[segment.A.Id];
+                var slotsB = pointSlotsMap[segment.B.Id];
+
+                var commonSlots = slotsA.Concat(slotsB).GroupBy(g => g.Id).Where(g => g.Count() == 2).Select(g => g.First()).ToArray();
+                if(commonSlots.Count() > 1)
+                {
+                    var slotsWithSegment = commonSlots.Where(s => s.Segments.Any(ss => ss.Key == segment.Key));
+                    var replacements = commonSlots.Where(s => !s.Segments.Any(ss => ss.Key == segment.Key));
+                    foreach (var replacement in replacements.Take(1))
+                    {
+                        var replaceWith = replacement.Segments.Between(segment);
+                        inLineReplacements.Add((slotsWithSegment, segment, replaceWith));
+                    }
+                }
+            }
+
+            foreach (var inlineReplacement in inLineReplacements)
+            {
+                //BaseObjects.Console.WriteLine($"Segment replacement: <{string.Join(",", inlineReplacement.ReplaceIn.Select(s => s.Id))}> {inlineReplacement.ToBeReplaced.Key} => [{string.Join(",", inlineReplacement.ReplaceWith.Select(s => s.Key))}]", ConsoleColor.Cyan);
+                foreach (var slot in inlineReplacement.ReplaceIn)
+                {
+                    var list = slot.Segments;
+                    int index = list.IndexOf(inlineReplacement.ToBeReplaced);
+                    if (index == -1) { continue; }
+                    list.RemoveAt(index);                    
+                    list.InsertRange(index, inlineReplacement.ReplaceWith);
+                }                
+            }
+            //BaseObjects.Console.WriteLine($"InLineSlotSegmentReplacements Slots: {slots.Count()} Segments: {segments.Count()} Points: {points.Count()}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Cyan);
         }
     }
 }

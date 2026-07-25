@@ -173,7 +173,7 @@ namespace Operations.Intermesh.Basics
                 var projection = capsule.Segment.Projection(p.Point, GapConstants.Resolver);
                 if (projection is null) { continue; }
                 //var distance = Point3D.Distance(projection, p.Point);
-                //if (distance < 1e-12)
+                //if (distance < 1e-9)
                 {
                     eligibleCapsules.Add(capsule);
                 }

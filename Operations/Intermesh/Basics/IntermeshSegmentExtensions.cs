@@ -1,12 +1,6 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
-using Collections.Buckets;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
@@ -194,6 +188,55 @@ namespace Operations.Intermesh.Basics
 
                 input = input.Where(i => !spurs.Any(s => s.Id == i.Id)).ToArray();
             }
+        }
+        public static IEnumerable<IntermeshPoint> Points(this IEnumerable<IntermeshSegment> input)
+        {
+            return input.SelectMany(s => s.Points).DistinctBy(p => p.Id);
+        }
+
+        public static IEnumerable<IntermeshSegment> Between(this IEnumerable<IntermeshSegment> input, IntermeshSegment segment)
+        {
+            var links = new GroupingDictionary<int, List<IntermeshSegment>>(() => new List<IntermeshSegment>());
+            foreach (var element in input)
+            {
+                links[element.A.Id].Add(element);
+                links[element.B.Id].Add(element);
+            }
+
+            int depth = 0;
+            while (true)
+            {
+                depth++;
+                var output = LinkToDepth(depth, links, segment);
+                if (depth > input.Count() || output.Any()) {
+                    return output;
+                }
+            }
+        }
+
+        private static IEnumerable<IntermeshSegment> LinkToDepth(int depth, GroupingDictionary<int, List<IntermeshSegment>> links, IntermeshSegment segment)
+        {
+            var chain = new List<(int Leader, IntermeshSegment Link)>() { (Leader: segment.A.Id, Link: null) };
+            var usedLinks = new Dictionary<int, bool>();
+
+            while (true)
+            {
+                var chainEnd = chain.Last();
+                var newLink = links[chainEnd.Leader].FirstOrDefault(l => !usedLinks.ContainsKey(l.Id));
+                if (newLink is null || chain.Count > depth)
+                {
+                    chain.Remove(chainEnd);
+                    if (chainEnd.Link is null) { break; }
+                    continue;
+                }
+                var newLead = newLink.Points.Single(p => p.Id != chainEnd.Leader).Id;
+
+                usedLinks[newLink.Id] = true;
+                chain.Add((newLead, newLink));
+
+                if (newLead == segment.B.Id) { return chain.Skip(1).Select(c => c.Link); }
+            }
+            return Enumerable.Empty<IntermeshSegment>();
         }
     }
 }

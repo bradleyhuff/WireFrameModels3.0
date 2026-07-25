@@ -1,4 +1,5 @@
 ﻿using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using FileExportImport;
 using Operations.Diagnostics;
 using Operations.Intermesh.Basics;
@@ -63,12 +64,22 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             {
                 BaseObjects.Console.WriteLine($"Triangle: {triangle.Id} {e.Message}", ConsoleColor.Red);
                 triangle.Show();
+
+                var slotTable = new Combination2Dictionary<int>();
+                foreach (var slot in triangle.EdgeSlots)
+                {
+                    foreach (var segment in slot.Segments)
+                    {
+                        slotTable[segment.Key] = slot.Id;
+                    }
+                }
+
                 BaseObjects.Console.WriteLine();
-                BaseObjects.Console.WriteLine($"Perimeters {string.Join(", ", surfaceSet.PerimeterSegments.Select(s => $"[{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
-                BaseObjects.Console.WriteLine($"Dividings {string.Join(", ", surfaceSet.DividingSegments.Select(s => $"[{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
+                BaseObjects.Console.WriteLine($"Perimeters {string.Join(", ", surfaceSet.PerimeterSegments.Select(s => $"{slotTable[new Combination2(s.A.Reference.Id, s.B.Reference.Id)]}: [{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
+                BaseObjects.Console.WriteLine($"Dividings {string.Join(", ", surfaceSet.DividingSegments.Select(s => $"{slotTable[new Combination2(s.A.Reference.Id, s.B.Reference.Id)]}: [{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
                 var pointCount = surfaceSet.PerimeterSegments.SelectMany(ss => ss.Points).GroupBy(g => g.Reference.Id);
                 BaseObjects.Console.WriteLine($"Boundary points [{string.Join(",", pointCount.Where(g => g.Count() > 2).Select(g => g.Key))}]");
-                //triangle.Dump(triangle.Triangle.Center, 1e2);
+                //triangle.Dump(triangle.Triangle.Center, 1e0);
 
 
             }

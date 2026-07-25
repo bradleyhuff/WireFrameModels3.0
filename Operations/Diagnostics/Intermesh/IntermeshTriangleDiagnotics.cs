@@ -196,6 +196,13 @@ namespace Operations.Diagnostics
                 clips = clips.TranslateToPointAndScale(focusAt, magnification);
                 WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/FillTriangle-{filling.Id}");
             }
+
+            foreach (var intersectingTriangle in triangle.IntersectingTriangles)
+            {
+                var clips = zone.Clip(intersectingTriangle.Triangle.Edges);
+                clips = clips.TranslateToPointAndScale(focusAt, magnification);
+                WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/IntersectingTriangle -{intersectingTriangle.Id}");
+            }
         }
     }
 }

@@ -21,6 +21,12 @@ namespace Operations.Intermesh.Classes
             SegmentContactAssignments.Action(intermeshTriangles);
             TriangleSegmentResolve.Action(intermeshTriangles);
 
+            SegmentContactAssignments.Action(intermeshTriangles);
+            TriangleSegmentResolve.Action(intermeshTriangles);
+
+            SegmentContactAssignments.Action(intermeshTriangles);
+            TriangleSegmentResolve.Action(intermeshTriangles);
+
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle segment contact resolve. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
     }

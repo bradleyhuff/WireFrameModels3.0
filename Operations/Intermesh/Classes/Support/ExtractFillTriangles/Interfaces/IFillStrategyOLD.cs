@@ -1,15 +1,15 @@
-﻿using Operations.Intermesh.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿//using Operations.Intermesh.Basics;
+//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Text;
+//using System.Threading.Tasks;
 
-namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles.Interfaces
-{
-    internal interface IFillStrategyOLD
-    {
-        public void GetFillTriangles(IntermeshTriangleOLD triangle);
-        public bool ShouldUseStrategy(IntermeshTriangleOLD triangle);
-    }
-}
+//namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles.Interfaces
+//{
+//    internal interface IFillStrategyOLD
+//    {
+//        public void GetFillTriangles(IntermeshTriangleOLD triangle);
+//        public bool ShouldUseStrategy(IntermeshTriangleOLD triangle);
+//    }
+//}

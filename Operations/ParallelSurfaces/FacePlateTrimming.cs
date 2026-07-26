@@ -15,19 +15,18 @@ namespace Operations.ParallelSurfaces
 {
     public static class FacePlateTrimming
     {
-        public static void PlateTrim(this IEnumerable<ClusterSet> clusters, Func<IWireFrameMesh, IWireFrameMesh> o)
+        public static void PlateTrim(this IEnumerable<ClusterSet> clusters)
         {
             DateTime start = DateTime.Now;
             Mode.ThreadedRun = true;
             ConsoleLog.Push("Cluster plate trim");
 
             var clusterState = new ClusterState();
-            clusterState.Operation = o;
             var clusterIterator = new Iterator<ClusterSet>(clusters.ToArray());
             clusterIterator.Run<ClusterState, ClusterThread>(ClusterAction, clusterState, 1, 1);
 
             ConsoleLog.Pop();
-            ConsoleLog.WriteLine($"Cluster plate trim: Clusters {clusters.Count()} Simple {SimpleFillStrategyOLD.Count} NearDegenerate {NearDegenerateFillStrategyOLD.Count} Complex {ComplexFillStrategyOLD.Count} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
+            //ConsoleLog.WriteLine($"Cluster plate trim: Clusters {clusters.Count()} Simple {SimpleFillStrategyOLD.Count} NearDegenerate {NearDegenerateFillStrategyOLD.Count} Complex {ComplexFillStrategyOLD.Count} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
             Mode.ThreadedRun = true;
         }
 
@@ -41,37 +40,21 @@ namespace Operations.ParallelSurfaces
             {
                 cluster.TrimmedClusterGrid = WireFrameMesh.Create();
                 GridIntermesh.ClusterId = cluster.Id;
-                var grid = cluster.Cluster.Create();
-                grid = state.Operation(grid);
-                int index = 0;
-                //WavefrontFile.Export(disjointSets.First(), $"Wavefront/Sets-{index}");
-                      
-                difference = grid.Difference(disjointSets.First());
-                //WavefrontFile.Export(difference, $"Wavefront/Difference-{index}");
-                index++;
+                difference = cluster.Cluster.Create();
 
-                foreach (var set in disjointSets.Skip(1)/*.Take(10)*/)
+                //difference.ShowVitals();
+                WavefrontFile.Export(difference, $"Wavefront/BeforeTrim/Cluster-{cluster.Id}");
+
+                foreach (var set in disjointSets)
                 {
                     difference = difference.Difference(set);
-                    //WavefrontFile.Export(set, $"Wavefront/Sets-{index}");
-                    //WavefrontFile.Export(difference, $"Wavefront/Difference-{index}");
-                    index++;
                 }
 
-                //Sets.RemoveTags(difference);
-
-                //var disjointSet = disjointSets.Skip(4).First();
-                //WavefrontFile.Export(disjointSet, $"Wavefront/Sets-{4}");
-
-                //foreach (var set in disjointSets.Skip(1).Take(1))
-                //{
-                //    difference = difference.Sum(set);
-                //    difference.NearCollinearTrianglePairs();
-                //    //index++;
-                //}
+                difference.ShowVitals();
+                WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}");
 
                 cluster.TrimmedClusterGrid = difference;
-                if(!cluster.TrimmedClusterGrid.Triangles.Any()) cluster.OriginalClusterGrid = cluster.Cluster.Create();
+                if (!cluster.TrimmedClusterGrid.Triangles.Any()) cluster.OriginalClusterGrid = cluster.Cluster.Create();
 
             }
             catch (Exception e)
@@ -79,7 +62,9 @@ namespace Operations.ParallelSurfaces
                 Console.WriteLine(e.Message, ConsoleColor.Red);
             }
             var clusters = GroupingCollection.ExtractClusters(difference.Triangles);
-            Console.WriteLine($"Cluster {cluster.Id} Disjoint sets {disjointSets.Length} Triangles {cluster.TrimmedClusterGrid.Triangles.Count} Clusters [{string.Join(",", clusters.Select(c => c.Triangles.Count()))}] Thread {threadState.ThreadId} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.", cluster.TrimmedClusterGrid.Triangles.Count > 0 ? ConsoleColor.Black: ConsoleColor.White, cluster.TrimmedClusterGrid.Triangles.Count > 0 ? ConsoleColor.Green : ConsoleColor.Red);
+            Console.WriteLine($"Cluster {cluster.Id} Disjoint sets {disjointSets.Length} Triangles {cluster.TrimmedClusterGrid.Triangles.Count} Clusters [{string.Join(",", clusters.Select(c => c.Triangles.Count()))}] Thread {threadState.ThreadId} Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.",
+                cluster.TrimmedClusterGrid.Triangles.Count > 0 ? ConsoleColor.Black : ConsoleColor.White,
+                cluster.TrimmedClusterGrid.Triangles.Count > 0 ? (clusters.Count() == 1 ? ConsoleColor.Green : ConsoleColor.Yellow) : ConsoleColor.Red);
         }
         private class ClusterThread : BaseThreadState
         {
@@ -87,7 +72,7 @@ namespace Operations.ParallelSurfaces
 
         private class ClusterState : BaseState<ClusterThread>
         {
-            public Func<IWireFrameMesh, IWireFrameMesh> Operation;
+
         }
     }
 }

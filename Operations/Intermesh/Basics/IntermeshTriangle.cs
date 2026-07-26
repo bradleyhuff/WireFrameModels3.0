@@ -1,5 +1,6 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
+using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
 using Operations.Intermesh.Interfaces;
 using Operations.PlanarFilling.Basics;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshTriangle : IIntermeshTriangle
+    internal class IntermeshTriangle : IBox
     {
         private static int _id = 0;
         private PositionTriangle _triangle;
@@ -143,8 +144,8 @@ namespace Operations.Intermesh.Basics
             get { return _triangle.Triangle; }
         }
 
-        public List<IIntermeshTriangle> Gathering { get; } = new List<IIntermeshTriangle>();
-        public List<IIntermeshTriangle> IntersectingTriangles { get; } = new List<IIntermeshTriangle>();
+        public List<IntermeshTriangle> Gathering { get; } = new List<IntermeshTriangle>();
+        public List<IntermeshTriangle> IntersectingTriangles { get; } = new List<IntermeshTriangle>();
         public Dictionary<int, IntermeshIntersection> GatheringSets { get; } = new Dictionary<int, IntermeshIntersection>();
 
         public List<FillTriangle> Fillings { get; set; } = new List<FillTriangle>();

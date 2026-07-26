@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Interfaces
 {
-    internal interface IIntermeshTriangle: IBox
-    {
-        int Id { get; }
-        Triangle3D Triangle { get; }
-        List<IIntermeshTriangle> Gathering { get; }
-        List<IIntermeshTriangle> IntersectingTriangles { get; }
-        Dictionary<int, IntermeshIntersection> GatheringSets { get; }
-    }
+    //internal interface IIntermeshTriangle: IBox
+    //{
+    //    int Id { get; }
+    //    Triangle3D Triangle { get; }
+    //    List<IIntermeshTriangle> Gathering { get; }
+    //    List<IIntermeshTriangle> IntersectingTriangles { get; }
+    //    Dictionary<int, IntermeshIntersection> GatheringSets { get; }
+    //}
 }

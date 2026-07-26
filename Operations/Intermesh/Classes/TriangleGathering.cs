@@ -15,27 +15,27 @@ namespace Operations.Intermesh.Classes
 {
     internal class TriangleGathering
     {
-        internal static void Action(IEnumerable<IIntermeshTriangle> intermeshTriangles)
+        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var start = DateTime.Now;
             var gatheringState = new GatheringState(intermeshTriangles);
-            var gatheringIterator = new Iterator<IIntermeshTriangle>(intermeshTriangles.ToArray());
+            var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.Run<GatheringState, GatheringThread>(GatheringAction, gatheringState);
             AssignIntersectionNodes(intermeshTriangles);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds. Threads {gatheringState.Threads}");
         }
 
-        internal static void ActionSingle(IEnumerable<IIntermeshTriangle> intermeshTriangles)
+        internal static void ActionSingle(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var start = DateTime.Now;
             var gatheringState = new GatheringState(intermeshTriangles);
-            var gatheringIterator = new Iterator<IIntermeshTriangle>(intermeshTriangles.ToArray());
+            var gatheringIterator = new Iterator<IntermeshTriangle>(intermeshTriangles.ToArray());
             gatheringIterator.RunSingle<GatheringState, GatheringThread>(GatheringAction, gatheringState);
             AssignIntersectionNodes(intermeshTriangles);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle gathering. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
-        private static void GatheringAction(IIntermeshTriangle triangle, GatheringThread threadState, GatheringState state)
+        private static void GatheringAction(IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)
         {
             var boxMatches = state.Bucket.Fetch(triangle).Where(m => m.Id != triangle.Id);
             var planarMatches = boxMatches.Where(b => triangle.Triangle.Plane.Intersects(b.Box.Margin(BoxBucket.MARGINS)));
@@ -43,7 +43,7 @@ namespace Operations.Intermesh.Classes
             triangle.Gathering.AddRange(planarMatches);
         }
 
-        private static void AssignIntersectionNodes(IEnumerable<IIntermeshTriangle> intermeshTriangles)
+        private static void AssignIntersectionNodes(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             foreach (var element in intermeshTriangles)
             {
@@ -63,12 +63,12 @@ namespace Operations.Intermesh.Classes
 
         private class GatheringState : BaseState<GatheringThread>
         {
-            public GatheringState(IEnumerable<IIntermeshTriangle> triangles)
+            public GatheringState(IEnumerable<IntermeshTriangle> triangles)
             {
-                Bucket = new BoxBucket<IIntermeshTriangle>(triangles.ToArray());
+                Bucket = new BoxBucket<IntermeshTriangle>(triangles.ToArray());
             }
 
-            public BoxBucket<IIntermeshTriangle> Bucket { get; }
+            public BoxBucket<IntermeshTriangle> Bucket { get; }
         }
     }
 }

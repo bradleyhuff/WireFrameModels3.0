@@ -45,10 +45,10 @@ namespace FileExportImport
             FileWrite(mesh, fileName);
             DateTime end = DateTime.Now;
             FileInfo info = new FileInfo(fileName);
+            Console.WriteLine();
             Console.WriteLine($"Exported .OBJ Wavefront File: {fileName}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine($"Positions: {(mesh?.Positions?.Count ?? 0).ToString("#,##0")} PositionNormals: {(mesh?.Positions?.Sum(p => p.PositionNormals.Count) ?? 0).ToString("#,##0")} Triangles: {(mesh?.Triangles?.Count ?? 0).ToString("#,##0")}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
-            Console.WriteLine($"Elapsed time: {(end - start).TotalMilliseconds.ToString("#,##0")} milliseconds. File size: {info.DisplayFileSize()}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
-            Console.WriteLine();
+            Console.WriteLine($"Elapsed time: {(end - start).TotalMilliseconds.ToString("#,##0")} milliseconds. File size: {info.DisplayFileSize()}", ConsoleColor.Cyan, ConsoleColor.DarkBlue);           
         }
 
         public static void ErrorExport(IWireFrameMesh mesh, string fileName)

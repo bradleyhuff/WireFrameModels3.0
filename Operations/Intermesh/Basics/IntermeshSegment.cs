@@ -172,8 +172,8 @@ namespace Operations.Intermesh.Basics
             {
                 var projection = capsule.Segment.Projection(p.Point, GapConstants.Resolver);
                 if (projection is null) { continue; }
-                //var distance = Point3D.Distance(projection, p.Point);
-                //if (distance < 1e-9)
+                var distance = Point3D.Distance(projection, p.Point);
+                if (distance < GapConstants.Resolver)
                 {
                     eligibleCapsules.Add(capsule);
                 }

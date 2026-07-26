@@ -5,7 +5,7 @@ using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
 using Operations.Intermesh.Basics;
-using Operations.Intermesh.Extensions;
+//using Operations.Intermesh.Extensions;
 using Operations.ParallelSurfaces.Internals;
 using System.Net.Http.Headers;
 using System.Xml.Linq;

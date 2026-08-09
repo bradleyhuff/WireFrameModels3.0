@@ -7,6 +7,9 @@ namespace Collections.WireFrameMesh.Basics
 {
     public class PositionEdge : IBox
     {
+        private static int _id = 0;
+        private static object lockObject = new object();
+
         public PositionEdge(PositionNormal a, PositionNormal b, PositionTriangle triangle)
         {
             A = a;
@@ -14,7 +17,14 @@ namespace Collections.WireFrameMesh.Basics
             Triangle = triangle;
             Key = new Combination2(a.PositionObject.Id, b.PositionObject.Id);
             SurfaceKey = new Combination2(a.Id, b.Id);
+
+            lock (lockObject)
+            {
+                Id = _id++;
+            }
         }
+
+        public int Id { get; }
 
         public PositionNormal A { get; }
         public PositionNormal B { get; }

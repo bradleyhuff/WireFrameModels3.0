@@ -37,7 +37,7 @@ namespace Operations.Intermesh.Classes
 
         private static void GatheringAction(IntermeshTriangle triangle, GatheringThread threadState, GatheringState state)
         {
-            var boxMatches = state.Bucket.Fetch(triangle).Where(m => m.Id != triangle.Id);
+            var boxMatches = state.Bucket.Fetch(triangle, BoxBucket.MARGINS).Where(m => m.Id != triangle.Id);
             var planarMatches = boxMatches.Where(b => triangle.Triangle.Plane.Intersects(b.Box.Margin(BoxBucket.MARGINS)));
 
             triangle.Gathering.AddRange(planarMatches);

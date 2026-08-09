@@ -67,11 +67,28 @@ namespace BaseObjects
             WriteLine();
         }
 
+        public static void WriteLine(params (string, ConsoleColor, ConsoleColor)[] input)
+        {
+            foreach (var line in input)
+            {
+                Write(line.Item1, line.Item2, line.Item3);
+            }
+            WriteLine();
+        }
+
         public static void Write(params (string, ConsoleColor)[] input)
         {
             foreach (var line in input)
             {
                 Write(line.Item1, line.Item2);
+            }
+        }
+
+        public static void Write(params (string, ConsoleColor, ConsoleColor)[] input)
+        {
+            foreach (var line in input)
+            {
+                Write(line.Item1, line.Item2, line.Item3);
             }
         }
     }

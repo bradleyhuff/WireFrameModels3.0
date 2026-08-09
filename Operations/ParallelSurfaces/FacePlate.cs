@@ -33,7 +33,7 @@ namespace Operations.ParallelSurfaces
             Mode.ThreadedRun = true;
             ConsoleLog.Push("Build face plate clusters");
 
-            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c))/*.Where(c => c.Id == 172)*//*.Where(c => c.Id == 106)*/.ToArray();
+            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c))/*.Where(c => c.Id == 172)*/.Where(c => c.Id == 0).ToArray();
             foreach (var c in clusters)
             {
                 foreach (var f in GroupingCollection.ExtractFaces(c.Cluster)) { c.Faces.Add(new FaceSet(f)); }
@@ -64,7 +64,7 @@ namespace Operations.ParallelSurfaces
             //AddPerimeterZone(output, faceMesh, 1e-7);
             CreateParallelSurface(output, faceMesh, state.Thickness);
 
-            output.Mesh.IntermeshSingle(t => t.Trace[0] == 'S');
+            output.Mesh.IntermeshSingle();
             RemoveInternalFolds(output.Mesh, state.Thickness);
             BuildSurfaceLoops(output);
             BuildQuadrangles(output);
@@ -99,7 +99,7 @@ namespace Operations.ParallelSurfaces
             var output = BuildParallelSurfaces(mesh, thickness).ToArray();
             foreach (var facePlate in output)
             {
-                facePlate.Mesh.IntermeshSingle(t => t.Trace[0] == 'S');
+                facePlate.Mesh.IntermeshSingle();
                 RemoveInternalFolds(facePlate.Mesh, thickness);
                 BuildSurfaceLoops(facePlate);
                 BuildQuadrangles(facePlate);

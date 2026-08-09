@@ -5,61 +5,6 @@ using SMath = System.Math;
 
 namespace BasicObjects.GeometricObjects
 {
-    public class BasisPlane: Plane
-    {
-        public BasisPlane(Point3D P, Point3D PX, Point3D Q):base(P, PX, Q)
-        {
-            BasisX = (PX - P).Direction;
-
-            var basisPlaneY = new Plane(P, BasisX);
-            var basisLine = Intersection(this, basisPlaneY);
-            BasisY = basisLine.Vector.Direction;
-        }
-
-        public Vector3D BasisX { get; }
-        public Vector3D BasisY { get; }
-        public Vector3D BasisZ { get { return Normal; } }
-
-        public Point3D MapToSpaceCoordinates(Point2D point)
-        {
-            return Center + point.X * BasisX + point.Y * BasisY;
-        }
-
-        public Ray3D MapToSpaceCoordinates(Ray2D ray)
-        {
-            var point = MapToSpaceCoordinates(ray.Point);
-            var endPoint = MapToSpaceCoordinates(ray.Point + ray.Normal);
-            return new Ray3D(point, endPoint - point);
-        }
-
-        public Point2D MapToSurfaceCoordinates(Point3D point)
-        {
-            var surface = MapToSurfaceCoordinates(point, out double distance);
-            if (distance > E.Double.DifferenceError) { return null; }
-            return surface;
-        }
-
-        public Ray2D MapToSurfaceCoordinates(Ray3D ray)
-        {
-            var point = MapToSurfaceCoordinates(ray.Point);
-            var endPoint = MapToSurfaceCoordinates(ray.Point + ray.Normal);
-            return new Ray2D(point, endPoint - point);
-        }
-
-        public Point2D MapToSurfaceCoordinates(Point3D point, out double zz)
-        {
-            var delta = new Point3D(point.X - Center.X, point.Y - Center.Y, point.Z - Center.Z);
-            E.LinearSystems.Solve3x3(
-                BasisX.X, BasisY.X, BasisZ.X,
-                BasisX.Y, BasisY.Y, BasisZ.Y,
-                BasisX.Z, BasisY.Z, BasisZ.Z,
-                delta.X, delta.Y, delta.Z,
-                out double x, out double y, out double z);
-            zz = z;
-            return new Point2D(x, y);
-        }
-    }
-
     public class Plane : IShape3D<Plane>
     {
         public Plane(Point3D P, Point3D Q, Point3D R) : this(P, Q - P, R - P) { }
@@ -177,11 +122,6 @@ namespace BasicObjects.GeometricObjects
 
         public LineSegment3D Intersection(Triangle3D triangle)
         {
-            //var line = Intersection(this, triangle.Plane);
-            //if (line is null) { return null; }
-
-            //return triangle.LineSegmentIntersection(line);
-
             var pointAB = Intersection(triangle.EdgeAB);
             var pointBC = Intersection(triangle.EdgeBC);
             var pointCA = Intersection(triangle.EdgeCA);
@@ -255,10 +195,15 @@ namespace BasicObjects.GeometricObjects
             return false;
         }
 
+        public static Vector3D Cross(Plane aa, Plane bb)
+        {
+            return Vector3D.Cross(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C);
+        }
+
         public static Line3D Intersection(Plane aa, Plane bb)
         {
             // cross of plane and other plane to give the normal plane.
-            var vector = Vector3D.Cross(aa.A, aa.B, aa.C, bb.A, bb.B, bb.C);
+            var vector = Cross(aa, bb);
             if (vector.Magnitude < E.Double.ProximityError) { return null; }
 
             // solves for a point in line which is intersection between given planes and the normal plane.

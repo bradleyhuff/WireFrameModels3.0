@@ -18,7 +18,7 @@ namespace Operations.Intermesh.Classes
 
             var processPositionTriangles = processTriangles.Select(p => p.PositionTriangle).ToArray();
             var removalCount = mesh.RemoveAllTriangles(processPositionTriangles);
-            var fillings = processTriangles.SelectMany(t => t.Fillings).ToArray();
+            var fillings = processTriangles.SelectMany(t => t.Fillings).Where(f => !f.IsDisabled).ToArray();
             foreach (var filling in fillings)
             {
                 filling.AddWireFrameTriangle(mesh);

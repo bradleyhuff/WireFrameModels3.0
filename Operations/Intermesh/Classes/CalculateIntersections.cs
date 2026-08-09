@@ -37,7 +37,20 @@ namespace Operations.Intermesh.Classes
                 if (intersectionSet.IsSet) { continue; }
                 intersectionSet.IsSet = true;
 
-                var intersections = Triangle3D.LineSegmentIntersections(triangle.Triangle, gathering.Triangle).ToArray();
+                var gatheringTriangle = gathering.Triangle;
+                var triangleTriangle = triangle.Triangle;
+                if (Triangle3D.AreCoplanar(triangle.Triangle, gathering.Triangle, 1e-9))
+                {
+                    //gatheringTriangle = gathering.Triangle.ProjectionOnto(triangle.Triangle.Plane);
+                    triangleTriangle = triangle.Triangle.ProjectionOnto(gathering.Triangle.Plane);
+
+                    //if (Point3D.Distance(gatheringTriangle.A, gathering.Triangle.A) > 1e-12)
+                    //{
+                    //    BaseObjects.Console.WriteLine($"Parallel triangle distance {Point3D.Distance(gatheringTriangle.A, gathering.Triangle.A).ToString("E3")}");
+                    //}
+                }
+
+                var intersections = Triangle3D.LineSegmentIntersections(triangleTriangle, gatheringTriangle).ToArray();//
                 intersectionSet.Intersections = intersections;
                 intersectionSet.IntersectedTriangle = triangle.Triangle;
                 intersectionSet.GatheringTriangle = gathering.Triangle;

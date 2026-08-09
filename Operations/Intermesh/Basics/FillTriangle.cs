@@ -18,12 +18,12 @@ namespace Operations.Intermesh.Basics
         private static object lockObject = new object();
 
         internal FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, IntermeshPoint pointB, IntermeshPoint pointC) :
-            this(triangle, pointA.Point, triangle.NormalFromProjectedPoint(pointA.Point),
-            pointB.Point, triangle.NormalFromProjectedPoint(pointB.Point),
-            pointC.Point, triangle.NormalFromProjectedPoint(pointC.Point))
+            this(triangle, pointA, triangle.NormalFromProjectedPoint(pointA.Point),
+            pointB, triangle.NormalFromProjectedPoint(pointB.Point),
+            pointC, triangle.NormalFromProjectedPoint(pointC.Point))
         { Key = new Combination3(pointA.Id, pointB.Id, pointC.Id); }
 
-        private FillTriangle(IntermeshTriangle triangle, Point3D pointA, Vector3D normalA, Point3D pointB, Vector3D normalB, Point3D pointC, Vector3D normalC)
+        private FillTriangle(IntermeshTriangle triangle, IntermeshPoint pointA, Vector3D normalA, IntermeshPoint pointB, Vector3D normalB, IntermeshPoint pointC, Vector3D normalC)
         {
             lock (lockObject)
             {
@@ -55,21 +55,26 @@ namespace Operations.Intermesh.Basics
                 return Triangle.Box;
             }
         }
+        public IntermeshTriangle Parent
+        {
+            get { return _intermeshTriangle; }
+        }
 
-        public Point3D PointA { get; }
+        public IntermeshPoint PointA { get; }
         public Vector3D NormalA { get; }
-        public Point3D PointB { get; }
+        public IntermeshPoint PointB { get; }
         public Vector3D NormalB { get; }
-        public Point3D PointC { get; }
+        public IntermeshPoint PointC { get; }
         public Vector3D NormalC { get; }
 
+        public bool IsDisabled { get; set; }
         public Triangle3D Triangle
         {
             get
             {
                 if (_triangle is null)
                 {
-                    _triangle = new Triangle3D(PointA, PointB, PointC);
+                    _triangle = new Triangle3D(PointA.Point, PointB.Point, PointC.Point);
                 }
                 return _triangle;
             }
@@ -77,7 +82,7 @@ namespace Operations.Intermesh.Basics
 
         public void AddWireFrameTriangle(IWireFrameMesh mesh)
         {
-            var positionTriangle = mesh.AddTriangle(PointA, NormalA, PointB, NormalB, PointC, NormalC, _positionTriangle.Trace, _positionTriangle.Tag);
+            var positionTriangle = mesh.AddTriangle(PointA.Point, NormalA, PointB.Point, NormalB, PointC.Point, NormalC, _positionTriangle.Trace, _positionTriangle.Tag);
         }
     }
 }

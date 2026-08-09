@@ -35,29 +35,46 @@ namespace Projects.Projects
 
 
             */
+            //var intersector = new Triangle3D(
+            //    new Point3D(0.498375974084575, 0.158062354287749, 0.466095109770848), 
+            //    new Point3D(0.500000000000000, 0.153053511144470, 0.466037844847931), 
+            //    new Point3D(0.500000000000000, 0.153053511143441, 0.466037844848277));
+
+            //var gathering = new Triangle3D(
+            //    new Point3D(0.501423803223381, 0.158123450101038, 0.465859624462612),
+            //    new Point3D(0.500000000000000, 0.152916092505751, 0.466084099946972),
+            //    new Point3D(0.500000000000000, 0.153053511143441, 0.466037844848277));
+
             var intersector = new Triangle3D(
-                new Point3D(0.498375974084575, 0.158062354287749, 0.466095109770848), 
-                new Point3D(0.500000000000000, 0.153053511144470, 0.466037844847931), 
-                new Point3D(0.500000000000000, 0.153053511143441, 0.466037844848277));
+                new Point3D(0, 0, 0),
+                new Point3D(0, 1, 0),
+                new Point3D(1, 0, 0));
 
             var gathering = new Triangle3D(
-                new Point3D(0.501423803223381, 0.158123450101038, 0.465859624462612),
-                new Point3D(0.500000000000000, 0.152916092505751, 0.466084099946972),
-                new Point3D(0.500000000000000, 0.153053511143441, 0.466037844848277));
+                new Point3D(0.1, 0.1, 1e-10),
+                new Point3D(0.1, 1.1, 1e-10),
+                new Point3D(1.1, 0.1, 1e-10));
 
-            var center = new Point3D(0.500000000000000, 0.153053511144470, 0.466037844847931);
-            var magnification = 1e10;
 
-            var zone = new Rectangle3D(center, 1 / magnification);
-            WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Zone");
 
-            WavefrontFile.Export(zone.Clip(intersector).Select(i => i.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-Intersector");
-            WavefrontFile.Export(zone.Clip(gathering).Select(g => g.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-Gathering");
+            //var center = new Point3D(0.500000000000000, 0.153053511144470, 0.466037844847931);
+            //var magnification = 1e10;
 
+            //var zone = new Rectangle3D(center, 1 / magnification);
+            //WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Zone");
+
+            //WavefrontFile.Export(zone.Clip(intersector).Select(i => i.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-Intersector");
+            //WavefrontFile.Export(zone.Clip(gathering).Select(g => g.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-Gathering");
+
+            if (Triangle3D.AreCoplanar(intersector, gathering, 1e-9))
+            {
+                gathering = gathering.ProjectionOnto(intersector.Plane);
+            }
+            
             var intersections = Triangle3D.LineSegmentIntersections(intersector, gathering).ToArray();
             Console.WriteLine($"Intersections \n{string.Join("\n", intersections.Select(i => i))}");
 
-            WavefrontFile.Export(zone.Clip(intersections).Select(i => i.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-Intersections");
+            //WavefrontFile.Export(zone.Clip(intersections).Select(i => i.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-Intersections");
             /*
              * a = {[[ X: 0.500000000000000 Y: 0.153053511144470 Z: 0.466037844847931 ], [ X: 0.500000000000000 Y: 0.153053511143441 Z: 0.466037844848277 ]] 1.0855973416399235E-12}
 b = {[[ X: 0.501423803223381 Y: 0.158123450101038 Z: 0.465859624462612 ], [ X: 0.500000000000000 Y: 0.152916092505751 Z: 0.466084099946972 ]] 0.00540316370168275}
@@ -66,11 +83,11 @@ b = {[[ X: 0.501423803223381 Y: 0.158123450101038 Z: 0.465859624462612 ], [ X: 0
             a = {[[ X: 0.500000000000000 Y: 0.153053511144470 Z: 0.466037844847931 ], [ X: 0.500000000000000 Y: 0.153053511143441 Z: 0.466037844848277 ]] 1.0855973416399235E-12}
 b = {[[ X: 0.500000000000000 Y: 0.153053511143441 Z: 0.466037844848277 ], [ X: 0.501423803223381 Y: 0.158123450101038 Z: 0.465859624462612 ]] 0.005269085229765826}
             */
-            var testA = new LineSegment3D(0.500000000000000, 0.153053511144470, 0.466037844847931, 0.500000000000000, 0.153053511143441, 0.466037844848277);
-            var testB = new LineSegment3D(0.500000000000000, 0.153053511143441, 0.466037844848277, 0.501423803223381, 0.158123450101038, 0.465859624462612);
+            //var testA = new LineSegment3D(0.500000000000000, 0.153053511144470, 0.466037844847931, 0.500000000000000, 0.153053511143441, 0.466037844848277);
+            //var testB = new LineSegment3D(0.500000000000000, 0.153053511143441, 0.466037844848277, 0.501423803223381, 0.158123450101038, 0.465859624462612);
 
-            WavefrontFile.Export(zone.Clip([testA]).Select(i => i.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-TestA");
-            WavefrontFile.Export(zone.Clip([testB]).Select(g => g.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-TestB");
+            //WavefrontFile.Export(zone.Clip([testA]).Select(i => i.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-TestA");
+            //WavefrontFile.Export(zone.Clip([testB]).Select(g => g.TranslateToPointAndScale(center, magnification)), $"Wavefront/Surfaces/Triangle-TestB");
 
 
             //var intersections = Triangle3D.LineSegmentIntersections(triangle, border1).ToArray();

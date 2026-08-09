@@ -15,7 +15,8 @@ namespace Operations.Intermesh.Classes
             if (!intersections.Any()) return;
             while (ResolveCycle(intermeshTriangles));
 
-            InlineSlotSegmentReplacements(intermeshTriangles);
+            InlineMultiSlotSegmentReplacements(intermeshTriangles);
+            InLineSingleSlotSegmentRemovals(intermeshTriangles);
         }
 
         private static Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> BuildPairsTable(IntermeshSegment[] segments)
@@ -275,7 +276,37 @@ namespace Operations.Intermesh.Classes
             unresolvedPair.Item1.ExtendWith(linkSegment.B);
         }
 
-        public static void InlineSlotSegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        public static void InLineSingleSlotSegmentRemovals(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            var start = DateTime.Now;
+            var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
+
+            int count = 0;
+            int count2 = 0;
+            foreach (var slot in slots)
+            {
+                var pointSegmentMap = new GroupingDictionary<int, List<IntermeshSegment>>(() => new List<IntermeshSegment>());
+                foreach (var segment in slot.Segments.Where(s => !s.IsRemoved))
+                {
+                    pointSegmentMap[segment.A.Id].Add(segment);
+                    pointSegmentMap[segment.B.Id].Add(segment);
+                }
+
+                var junctionPoints = pointSegmentMap.Where(p => p.Value.Count() > 2 || (slot.Key.Indicies.Any(i => i == p.Key) && p.Value.Count() > 1)).ToArray();
+                if (junctionPoints.Any())
+                {
+                    count++;
+                }
+                var mismatched = /*slot.Segments.Count > 1 &&*/ slot.Key.Indicies.Any(i => !pointSegmentMap.ContainsKey(i));
+                if (mismatched)
+                {
+                    count2++;
+                }
+            }
+            BaseObjects.Console.WriteLine($"InLineSingleSlotSegmentRemovals Slots: {slots.Count()} Slots with junctions: {count} Mismatched slots {count2}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Yellow);
+        }
+
+        public static void InlineMultiSlotSegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var start = DateTime.Now;
             var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
@@ -326,7 +357,7 @@ namespace Operations.Intermesh.Classes
                     list.InsertRange(index, inlineReplacement.ReplaceWith);
                 }                
             }
-            //BaseObjects.Console.WriteLine($"InLineSlotSegmentReplacements Slots: {slots.Count()} Segments: {segments.Count()} Points: {points.Count()}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Cyan);
+            //BaseObjects.Console.WriteLine($"InLineMultiSlotSegmentReplacements Slots: {slots.Count()} Segments: {segments.Count()} Points: {points.Count()}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Cyan);
         }
     }
 }

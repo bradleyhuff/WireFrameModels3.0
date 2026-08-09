@@ -35,6 +35,42 @@ namespace Operations.Basics
             var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles);
             var faces = GroupingCollection.ExtractFaces(mesh.Triangles);
 
+            //var badTriangles = new List<PositionTriangle>();
+            //foreach (var triangle in mesh.Triangles)
+            //{
+            //    if (triangle.ABadjacents.Count > 1)
+            //    {
+            //        //Console.WriteLine($"{triangle.Id} AB count {triangle.ABadjacents.Count} Parent tag {triangle.Tag} Adjacent tags {string.Join(",", triangle.ABadjacents.Select(t => t.Tag))}");
+            //        //badTriangles.Add(triangle);
+            //        badTriangles.AddRange(triangle.ABadjacents.Where(a => a.Tag != triangle.Tag));
+
+            //    }
+            //    if (triangle.BCadjacents.Count > 1)
+            //    {
+            //        //Console.WriteLine($"{triangle.Id} BC count {triangle.BCadjacents.Count} Parent tag {triangle.Tag} Adjacent tags {string.Join(",", triangle.BCadjacents.Select(t => t.Tag))}");
+            //        //badTriangles.Add(triangle);
+            //        badTriangles.AddRange(triangle.BCadjacents.Where(a => a.Tag != triangle.Tag));
+            //    }
+            //    if (triangle.CAadjacents.Count > 1)
+            //    {
+            //        //Console.WriteLine($"{triangle.Id} CA count {triangle.CAadjacents.Count} Parent tag {triangle.Tag} Adjacent tags {string.Join(",", triangle.CAadjacents.Select(t => t.Tag))}");
+            //        //badTriangles.Add(triangle);
+            //        badTriangles.AddRange(triangle.CAadjacents.Where(a => a.Tag != triangle.Tag));
+            //    }
+            //}
+
+            //mesh.RemoveAllTriangles(badTriangles);
+
+            //var test = mesh.Triangles.SingleOrDefault(t => t.Id == 318561);
+            //if (test is not null)
+            //{
+            //    var adjacents = test.ABadjacents;
+            //    WavefrontFile.Export([test], $"Wavefront/Parent-318561");
+            //    WavefrontFile.Export(adjacents, $"Wavefront/Adjacents-318561");
+            //}
+
+
+
             Console.WriteLine($"Clusters {clusters.Count()}  Surfaces {surfaces.Count()}  Faces {faces.Count()}", ConsoleColor.Yellow);
             Console.WriteLine();
             BaseObjects.Console.WriteLine("Position cardinalities", ConsoleColor.Yellow);
@@ -45,6 +81,8 @@ namespace Operations.Basics
             BaseObjects.Console.WriteLine(mesh.Triangles.Select(t => t.BCadjacents).GroupCounts(g => g.Count).DisplayByLine());
             BaseObjects.Console.WriteLine("CA Adjacency counts", ConsoleColor.Yellow);
             BaseObjects.Console.WriteLine(mesh.Triangles.Select(t => t.CAadjacents).GroupCounts(g => g.Count).DisplayByLine());
+
+            //WavefrontFile.Export(badTriangles, $"Wavefront/BadTriangles");
 
             var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
             var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();

@@ -162,13 +162,13 @@ namespace BasicObjects.GeometricObjects
             get
             {
                 if (IsCollinear) { return 0; }
-                return MinimumHeight.Magnitude / MaxEdge.Length;
+                return MinimumHeight.Normal.Magnitude / MaxEdge.Length;
             }
         }
 
-        private Vector3D _minimumHeight = null;
+        private Ray3D _minimumHeight = null;
 
-        public Vector3D MinimumHeight
+        public Ray3D MinimumHeight
         {
             get
             {
@@ -178,8 +178,9 @@ namespace BasicObjects.GeometricObjects
                     var minEdgePoints = MinEdge.Points;
                     var maxEdgePoints = maxEdge.Points.ToArray();
                     var loosePoint = minEdgePoints.Single(p => p != maxEdgePoints[0] && p != maxEdgePoints[1]);
+                    var projection = MaxEdge.LineExtension.Projection(loosePoint);
 
-                    _minimumHeight = loosePoint - MaxEdge.LineExtension.Projection(loosePoint);
+                    _minimumHeight = new Ray3D(projection, loosePoint - projection);
                 }
                 return _minimumHeight;
             }
@@ -502,6 +503,11 @@ namespace BasicObjects.GeometricObjects
             return new Triangle3D(center + scale * aCenter, center + scale * bCenter, center + scale * cCenter);
         }
 
+        public Triangle3D ProjectionOnto(Plane plane)
+        {
+            return new Triangle3D(plane.Projection(A), plane.Projection(B), plane.Projection(C));
+        }
+
         public Triangle3D Margin(double margin)
         {
             var a = (A - Center).Direction;
@@ -580,9 +586,9 @@ namespace BasicObjects.GeometricObjects
             return new Triangle3D(cardinalPoints[0], cardinalPoints[1], cardinalPoints[2]);
         }
 
-        public static bool AreCoplanar(Triangle3D a, Triangle3D b)
+        public static bool AreCoplanar(Triangle3D a, Triangle3D b, double error = E.Double.ProximityError)
         {
-            return a.Plane.PointIsOnPlane(b.A) && a.Plane.PointIsOnPlane(b.B) && a.Plane.PointIsOnPlane(b.C);
+            return a.Plane.PointIsOnPlane(b.A, error) && a.Plane.PointIsOnPlane(b.B, error) && a.Plane.PointIsOnPlane(b.C, error);
         }
 
         public bool PointIsIn(Point3D point)
@@ -657,7 +663,7 @@ namespace BasicObjects.GeometricObjects
             return $"Triangle A: {A} B: {B} C: {C}";
         }
 
-        public static IEnumerable<LineSegment3D> LineSegmentIntersections(Triangle3D a, Triangle3D b)
+        public static IEnumerable<LineSegment3D> LineSegmentIntersections(Triangle3D a, Triangle3D b, double error = E.Double.ProximityError)
         {
             if (a.IsCollinear && b.IsCollinear)
             {
@@ -682,7 +688,7 @@ namespace BasicObjects.GeometricObjects
                 }
             }
 
-            if (AreCoplanar(a, b))
+            if (AreCoplanar(a, b, error))
             {
                 foreach (var intersection in CoplanarIntersections(a, b)) { yield return intersection; }
                 yield break;
@@ -790,37 +796,13 @@ namespace BasicObjects.GeometricObjects
             return LineSegment3D.Intersection(match, segment);
         }
 
-        public static bool Overlaps(Triangle3D a, Triangle3D b)
+        public static bool Overlaps(Triangle3D a, Triangle3D b, double error = E.Double.ProximityError)
         {
-            if (!AreCoplanar(a, b)) { return false; }
-            if (a.PointIsContainedOn(b.A) && a.PointIsContainedOn(b.B) && a.PointIsContainedOn(b.C)) { return true; }
-            if (b.PointIsContainedOn(a.A) && b.PointIsContainedOn(a.B) && b.PointIsContainedOn(a.C)) { return true; }
+            if (!AreCoplanar(a, b, error)) { return false; }
 
-            return false;
+            var intersections = LineSegmentIntersections(a, b, error);
+
+            return intersections.Any();
         }
-
-        public static bool Intersects(Triangle3D a, Triangle3D b)
-        {
-            if (!AreCoplanar(a, b)) { return false; }
-
-            var segmentsA = a.Edges.ToArray();
-            var segmentsB = b.Edges.ToArray();
-
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    if (i == j) { continue; }
-                    if (segmentsA[i].Start == segmentsB[j].Start) { continue; }
-                    if (segmentsA[i].Start == segmentsB[j].End) { continue; }
-                    if (segmentsA[i].End == segmentsB[j].Start) { continue; }
-                    if (segmentsA[i].End == segmentsB[j].End) { continue; }
-                    if (LineSegment3D.PointIntersection(segmentsA[i], segmentsB[j]) is not null) { return true; }
-                }
-            }
-
-            return false;
-        }
-
     }
 }

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshTriangle : IBox
+    public class IntermeshTriangle : IBox
     {
         private static int _id = 0;
         private PositionTriangle _triangle;
@@ -69,6 +69,20 @@ namespace Operations.Intermesh.Basics
                 if (BC is not null) { yield return BC; }
                 if (CA is not null) { yield return CA; }
             }
+        }
+
+        private List<IntermeshTriangle> _coplanarOverlaps = new List<IntermeshTriangle>();
+
+        internal bool AddCoplanarOverlap(IntermeshTriangle overlap)
+        {
+            if (_coplanarOverlaps.Any(t => t.Id == overlap.Id)) { return false; }
+            _coplanarOverlaps.Add(overlap);
+            return true;
+        }
+
+        public IReadOnlyList<IntermeshTriangle> CoplanarOverlaps
+        {
+            get { return _coplanarOverlaps; }
         }
 
         private List<IntermeshEdgeSlot> _intersectionSlots = new List<IntermeshEdgeSlot>();

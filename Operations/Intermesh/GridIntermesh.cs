@@ -30,12 +30,13 @@ internal static class GridIntermesh
         TriangleSegmentContactResolve.Action(collection);
         ExtractFillTriangles.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);
+        SurfaceBoundaryResolve.Action(mesh);
 
         if (!Mode.ThreadedRun) ConsoleLog.Pop();
         if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
     }
 
-    public static void IntermeshSingle(this IWireFrameMesh mesh, Func<PositionTriangle, bool> include)
+    public static void IntermeshSingle(this IWireFrameMesh mesh)
     {
         DateTime start = DateTime.Now;
         if (!Mode.ThreadedRun) ConsoleLog.Push("Intermesh Single");
@@ -62,6 +63,7 @@ internal static class GridIntermesh
         TriangleSegmentContactResolve.Action(collection);
         ExtractFillTriangles.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);
+        SurfaceBoundaryResolve.Action(mesh);
 
         if (!Mode.ThreadedRun) ConsoleLog.Pop();
         if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");

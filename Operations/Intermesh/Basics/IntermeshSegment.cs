@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshSegment : IBox
+    public class IntermeshSegment : IBox
     {
         private static int _id = 0;
         private static object lockObject = new object();

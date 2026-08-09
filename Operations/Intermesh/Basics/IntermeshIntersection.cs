@@ -2,7 +2,7 @@
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshIntersection
+    public class IntermeshIntersection
     {
         private static int _id = 0;
         private static object lockObject = new object();

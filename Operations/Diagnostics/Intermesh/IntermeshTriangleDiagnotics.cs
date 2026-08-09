@@ -152,13 +152,7 @@ namespace Operations.Diagnostics
             BaseObjects.Console.Write($" λMin {slot.TotalSegment.Coordinate(capsule.A.Point),7:#0.0000} λMax {slot.TotalSegment.Coordinate(capsule.B.Point),7:#0.0000}  ΣL {slot.TotalSegment.Length.ToString("E2")}", ConsoleColor.Gray);
         }
 
-        private static void ShowDirection(Vector3D direction)
-        {
-
-        }
-
-
-        internal static void Dump(this Operations.Intermesh.Basics.IntermeshTriangle triangle, Point3D focusAt, double magnification, string text = "")
+        internal static void Dump(this IntermeshTriangle triangle, Point3D focusAt, double magnification, string text = "")
         {
             var zone = new Rectangle3D(focusAt, 1 / magnification);
             {
@@ -202,6 +196,38 @@ namespace Operations.Diagnostics
                 var clips = zone.Clip(intersectingTriangle.Triangle.Edges);
                 clips = clips.TranslateToPointAndScale(focusAt, magnification);
                 WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/IntersectingTriangle -{intersectingTriangle.Id}");
+            }
+        }
+
+        internal static void Dump(this FillTriangle triangle, Point3D focusAt, double magnification, double directionalScale)
+        {
+            var directionalTransform = Transform.DirectionalScaling(triangle.Triangle.Center, triangle.Triangle.MinimumHeight.Normal.Direction, directionalScale);
+            Dump(triangle, focusAt, magnification, directionalTransform);
+        }
+
+        internal static void Dump(this FillTriangle triangle, Point3D focusAt, double magnification, Transform directionalTransform)
+        {
+            var zone = new Rectangle3D(focusAt, 1 / magnification);
+            WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Fill-{triangle.Id}/Zone");
+
+            var clippedTriangle = zone.Clip(triangle.Triangle.Transform(directionalTransform));
+            if (clippedTriangle.Any())
+            {
+                clippedTriangle = clippedTriangle.Select(c => c.TranslateToPointAndScale(focusAt, magnification));
+                WavefrontFile.Export(clippedTriangle, $"Wavefront/Fill-{triangle.Id}/Fill-{triangle.Id}-{triangle.Key}");
+            }
+        }
+
+        internal static void Dump(this IntermeshTriangle triangle, Point3D focusAt, double magnification, Transform directionalTransform)
+        {
+            var zone = new Rectangle3D(focusAt, 1 / magnification);
+            WavefrontFile.Export(zone.LineSegments.Select(z => z.TranslateToPointAndScale(focusAt, magnification)), $"Wavefront/Intermesh-{triangle.Id}/Zone");
+
+            var clippedTriangle = zone.Clip(triangle.Triangle.Transform(directionalTransform));
+            if (clippedTriangle.Any())
+            {
+                clippedTriangle = clippedTriangle.Select(c => c.TranslateToPointAndScale(focusAt, magnification));
+                WavefrontFile.Export(clippedTriangle, $"Wavefront/Intermesh-{triangle.Id}/Intermesh-{triangle.Id}-{triangle.Key}");
             }
         }
     }

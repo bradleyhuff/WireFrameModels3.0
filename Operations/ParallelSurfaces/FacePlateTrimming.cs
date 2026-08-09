@@ -43,15 +43,39 @@ namespace Operations.ParallelSurfaces
                 difference = cluster.Cluster.Create();
 
                 //difference.ShowVitals();
-                WavefrontFile.Export(difference, $"Wavefront/BeforeTrim/Cluster-{cluster.Id}");
-
-                foreach (var set in disjointSets)
+                //WavefrontFile.Export(difference, $"Wavefront/BeforeTrim/Cluster-{cluster.Id}");
+                int i = 0;
+                foreach (var set in disjointSets.Take(3))
                 {
                     difference = difference.Difference(set);
+                    difference.ShowVitals();
+                    WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}-{i}");
+                    //WavefrontFile.Export(set, $"Wavefront/AfterTrim/Set-{cluster.Id}-{i}");
+                    //set.ShowVitals();
+
+                    //var faces = GroupingCollection.ExtractFaces(difference.Triangles);
+                    //int j = 0;
+                    //foreach (var face in faces)
+                    //{
+                    //    WavefrontFile.Export(face.Create(), $"Wavefront/AfterTrim/Face-{cluster.Id}-{i}-{j}");
+                    //    j++;
+                    //}
+
+                    //i++;
+
+                    //var surfaces = GroupingCollection.ExtractSurfaces(difference.Triangles);
+                    //int j = 0;
+                    //foreach (var surface in surfaces)
+                    //{
+                    //    WavefrontFile.Export(surface.Create(), $"Wavefront/AfterTrim/Surface-{cluster.Id}-{i}-{j}");
+                    //    j++;
+                    //}
+
+                    //i++;
                 }
 
-                difference.ShowVitals();
-                WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}");
+                //difference.ShowVitals();
+                //WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}");
 
                 cluster.TrimmedClusterGrid = difference;
                 if (!cluster.TrimmedClusterGrid.Triangles.Any()) cluster.OriginalClusterGrid = cluster.Cluster.Create();

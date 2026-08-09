@@ -1,19 +1,11 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
-using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
-using FileExportImport;
 using Operations.Basics;
 using Operations.Groupings.Basics;
 using Operations.Intermesh;
-using Operations.Intermesh.Classes;
-using Operations.PositionRemovals;
 using Operations.Regions;
-using System;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security;
 using Console = BaseObjects.Console;
 
 namespace Operations.SetOperators
@@ -48,15 +40,15 @@ namespace Operations.SetOperators
             var sum = CombineAndMark(gridA, gridB, out Space space);
             if (Mode.ThreadedRun)
             {
-                sum.IntermeshSingle(t => true);
+                sum.IntermeshSingle();
             }
             else
             {
                 sum.Intermesh();
             }
 
-            var groups = GroupExtraction(sum);
-            var remainingGroups = TestAndRemoveGroups(sum, groups, space, includeGroup);
+            var groups = SurfaceExtraction(sum);
+            var remainingGroups = TestAndRemoveSurfaces(sum, groups, space, includeGroup);
             IncludedGroupInverts(remainingGroups);
 
             //ConsoleLog.MaximumLevels = 8;
@@ -90,22 +82,21 @@ namespace Operations.SetOperators
             return result;
         }
 
-        private static GroupingCollection[] GroupExtraction(IWireFrameMesh intermesh)
+        private static GroupingCollection[] SurfaceExtraction(IWireFrameMesh intermesh)
         {
             var start = DateTime.Now;
-            var groups = GroupingCollection.ExtractSurfaces(intermesh.Triangles).ToArray();
-
-            ConsoleLog.WriteLine($"Group extraction: Groups {groups.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
-            return groups;
+            var surfaces = GroupingCollection.ExtractSurfaces(intermesh.Triangles).ToArray();
+            ConsoleLog.WriteLine($"Surface extraction: Groups {surfaces.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            return surfaces;
         }
 
-        private static List<GroupingCollection> TestAndRemoveGroups(IWireFrameMesh grid, GroupingCollection[] groups, Space space, Func<Region, Region, bool> includeGroup)
+        private static List<GroupingCollection> TestAndRemoveSurfaces(IWireFrameMesh grid, GroupingCollection[] surfaces, Space space, Func<Region, Region, bool> includeGroup)
         {
             var start = DateTime.Now;
-            var remainingGroups = new List<GroupingCollection>();
-            foreach (var group in groups)
+            var remainingSurfaces = new List<GroupingCollection>();
+            foreach (var surface in surfaces)
             {
-                var testPoint = GetTestPoint(group.Triangles);
+                var testPoint = GetTestPoint(surface.Triangles);
                 if (testPoint is null)
                 {
                     continue;
@@ -113,20 +104,20 @@ namespace Operations.SetOperators
 
                 var tag1Region = Region.OnBoundary;
                 var tag2Rregion = Region.OnBoundary;
-                var tag = group.Triangles.First().Tag;
+                var tag = surface.Triangles.First().Tag;
                 if (tag == 1) { tag2Rregion = space.RegionOfPoint(testPoint, 2); }
                 if (tag == 2) { tag1Region = space.RegionOfPoint(testPoint, 1); }
                 if (!includeGroup(tag1Region, tag2Rregion))
                 {
-                    grid.RemoveAllTriangles(group.Triangles);
+                    grid.RemoveAllTriangles(surface.Triangles);
                 }
                 else
                 {
-                    remainingGroups.Add(group);
+                    remainingSurfaces.Add(surface);
                 }
             }
-            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Test and remove groups: Remaining groups {remainingGroups.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
-            return remainingGroups;
+            if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Test and remove surfaces: Remaining surfaces {remainingSurfaces.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            return remainingSurfaces;
         }
 
         private static List<GroupingCollection> UnionTestAndRemoveGroups(IWireFrameMesh grid, GroupingCollection[] groups, Space space)

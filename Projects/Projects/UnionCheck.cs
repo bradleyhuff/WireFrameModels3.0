@@ -26,9 +26,9 @@ namespace Projects.Projects
 
             clusters.PlateTrim();
 
-            var output = clusters.Select(c => c.TrimmedClusterGrid).Combine();
+            //var output = clusters.Select(c => c.TrimmedClusterGrid).Combine();
             //output.Apply(Transform.Scale(1000));
-            //var output = clusters.First().TrimmedClusterGrid;
+            var output = clusters.First().TrimmedClusterGrid;
             WavefrontFile.Export(output, "Wavefront/Output");
 
             output.ShowVitals();

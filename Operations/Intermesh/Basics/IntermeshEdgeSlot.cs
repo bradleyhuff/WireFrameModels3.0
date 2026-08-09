@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshEdgeSlot
+    public class IntermeshEdgeSlot
     {
         private static int _id = 0;
         private static object lockObject = new object();

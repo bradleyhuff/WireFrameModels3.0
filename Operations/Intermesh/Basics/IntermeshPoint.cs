@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {
-    internal class IntermeshPoint : IBox
+    public class IntermeshPoint : IBox
     {
         private static int _id = 0;
         private static object lockObject = new object();

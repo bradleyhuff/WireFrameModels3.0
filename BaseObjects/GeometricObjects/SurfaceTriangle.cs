@@ -33,7 +33,7 @@ namespace BasicObjects.GeometricObjects
 
             var c = Triangle.GetBarycentricCoordinate(projection);
 
-            return new Ray3D(projection, (c.λ1 * A.Normal + c.λ2 * B.Normal + c.λ3 * C.Normal).Direction);
+            return new Ray3D(point, (c.λ1 * A.Normal + c.λ2 * B.Normal + c.λ3 * C.Normal).Direction);
         }
 
         public Point3D[] CardinalPoints { get { return [A.Point, B.Point, C.Point]; } }

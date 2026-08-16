@@ -180,7 +180,7 @@ namespace Operations.Intermesh.Basics
             var c = Triangle.GetBarycentricCoordinate(projection);
             var normal = (c.λ1 * PositionTriangle.A.Normal.Direction + c.λ2 * PositionTriangle.B.Normal.Direction + c.λ3 * PositionTriangle.C.Normal.Direction).Direction;
 
-            return new Ray3D(projection, normal);
+            return new Ray3D(point, normal);
         }
 
         public override string ToString()

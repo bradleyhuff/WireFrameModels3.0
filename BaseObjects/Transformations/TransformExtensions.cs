@@ -11,6 +11,7 @@ namespace BaseObjects.Transformations
         }
         public static T Translate<T>(this IShape3D<T> shape, double x, double y, double z)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.Translation(x, y, z);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }
@@ -21,6 +22,7 @@ namespace BaseObjects.Transformations
         }
         public static T Rotate<T>(this IShape3D<T> shape, double x, double y, double z, double angle)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.Rotation(x, y, z, angle);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }
@@ -32,6 +34,7 @@ namespace BaseObjects.Transformations
 
         public static T Scale<T>(this IShape3D<T> shape, double x, double y, double z)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.Scale(x, y, z);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }
@@ -42,31 +45,37 @@ namespace BaseObjects.Transformations
         }
         public static T Reflect<T>(this IShape3D<T> shape, double x, double y, double z)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.Reflection(x, y, z);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }
         public static T ShearXY<T>(this IShape3D<T> shape, double x, double y)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.ShearXY(x, y);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }
         public static T ShearYZ<T>(this IShape3D<T> shape, double y, double z)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.ShearXY(y, z);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }
         public static T ShearXZ<T>(this IShape3D<T> shape, double x, double z)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.ShearXZ(x, z);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }
         public static T Transform<T>(this IShape3D<T> shape, ITransform transformation)
         {
+            if (shape is null) { return default; }
             return shape.Constructor(shape.CardinalPoints.Select(transformation.Apply).ToArray(), shape.CardinalVectors.Select(transformation.Apply).ToArray());
         }
 
         public static T TranslateToPointAndScale<T>(this IShape3D<T> shape, Point3D point, double scale)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.TranslateToPointAndScale(point, scale);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }
@@ -81,6 +90,7 @@ namespace BaseObjects.Transformations
 
         public static T DirectionalScaling<T>(this IShape3D<T> shape, Point3D center, Vector3D scaleDirection, double scale)
         {
+            if (shape is null) { return default; }
             var t = Transformations.Transform.DirectionalScaling(center, scaleDirection, scale);
             return shape.Constructor(shape.CardinalPoints.Select(t.Apply).ToArray(), shape.CardinalVectors.Select(t.Apply).ToArray());
         }

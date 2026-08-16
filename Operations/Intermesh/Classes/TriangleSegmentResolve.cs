@@ -278,6 +278,7 @@ namespace Operations.Intermesh.Classes
 
         public static void InLineSingleSlotSegmentRemovals(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
+            return;
             var start = DateTime.Now;
             var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
 
@@ -303,7 +304,7 @@ namespace Operations.Intermesh.Classes
                     count2++;
                 }
             }
-            BaseObjects.Console.WriteLine($"InLineSingleSlotSegmentRemovals Slots: {slots.Count()} Slots with junctions: {count} Mismatched slots {count2}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Yellow);
+            //BaseObjects.Console.WriteLine($"InLineSingleSlotSegmentRemovals Slots: {slots.Count()} Slots with junctions: {count} Mismatched slots {count2}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Yellow);
         }
 
         public static void InlineMultiSlotSegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)

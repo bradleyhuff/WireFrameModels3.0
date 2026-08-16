@@ -70,41 +70,27 @@ namespace Operations.PlanarFilling.Filling.Internals
             var crossX = Plane.Cross(xPlane, _plane);
             var crossY = Plane.Cross(yPlane, _plane);
             var crossZ = Plane.Cross(zPlane, _plane);
-            
-            if (crossX.Magnitude >= crossY.Magnitude && crossX.Magnitude >= crossZ.Magnitude)
+
+            var sequence =  new (double Magnitude, Plane Plane)[] { (crossX.Magnitude, xPlane), (crossY.Magnitude, yPlane), (crossZ.Magnitude, zPlane) };
+            sequence = sequence.Where(o => o.Magnitude > 1e-9).OrderByDescending(o => o.Magnitude).ToArray();
+
+            foreach (var direction in sequence)
             {
-                var lineX = Plane.Intersection(xPlane, _plane);
-                var testSegment = new PlanarSegment<T>(point + -_testSegmentLength * lineX.Vector.Direction, point + _testSegmentLength * lineX.Vector.Direction);
-                var matches = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment).ToArray();
-                if (IsOnBoundary(point, matches)) { return Region.OnBoundary; }
-                var checkingPoints = GetCheckingPoints(lineX, matches).ToArray();
-                var region = Manifold.GetRegion(point, checkingPoints);
-                if (region != Region.Indeterminant) { return region; }
-            }
-            
-            if (crossY.Magnitude >= crossX.Magnitude && crossY.Magnitude >= crossZ.Magnitude)
-            {
-                var lineY = Plane.Intersection(yPlane, _plane);
-                var testSegment = new PlanarSegment<T>(point + -_testSegmentLength * lineY.Vector.Direction, point + _testSegmentLength * lineY.Vector.Direction);
-                var matches = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment).ToArray();
-                if (IsOnBoundary(point, matches)) { return Region.OnBoundary; }
-                var checkingPoints = GetCheckingPoints(lineY, matches).ToArray();
-                var region = Manifold.GetRegion(point, checkingPoints);
-                if (region != Region.Indeterminant) { return region; }
-            }
-           
-            if (crossZ.Magnitude >= crossX.Magnitude && crossZ.Magnitude >= crossY.Magnitude)
-            {
-                var lineZ = Plane.Intersection(zPlane, _plane);
-                var testSegment = new PlanarSegment<T>(point + -_testSegmentLength * lineZ.Vector.Direction, point + _testSegmentLength * lineZ.Vector.Direction);
-                var matches = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment).ToArray();
-                if (IsOnBoundary(point, matches)) { return Region.OnBoundary; }
-                var checkingPoints = GetCheckingPoints(lineZ, matches).ToArray();
-                var region = Manifold.GetRegion(point, checkingPoints);
+                var region = GetRegion(point, direction.Plane);
                 if (region != Region.Indeterminant) { return region; }
             }
             Console.WriteLine($"Indeterminant point {point}");
             return Region.Indeterminant;
+        }
+
+        private Region GetRegion(Point3D point, Plane directionPlane)
+        {
+            var line = Plane.Intersection(directionPlane, _plane);
+            var testSegment = new PlanarSegment<T>(point + -_testSegmentLength * line.Vector.Direction, point + _testSegmentLength * line.Vector.Direction);
+            var matches = GetNonLinkingSegments(Bucket.Fetch(testSegment), testSegment).ToArray();
+            if (IsOnBoundary(point, matches)) { return Region.OnBoundary; }
+            var checkingPoints = GetCheckingPoints(line, matches).ToArray();
+            return Manifold.GetRegion(point, checkingPoints);
         }
 
         private IEnumerable<PlanarSegment<T>> GetNonLinkingSegments(IEnumerable<PlanarSegment<T>> matches, PlanarSegment<T> segment)

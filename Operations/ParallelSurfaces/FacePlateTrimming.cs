@@ -45,11 +45,11 @@ namespace Operations.ParallelSurfaces
                 //difference.ShowVitals();
                 //WavefrontFile.Export(difference, $"Wavefront/BeforeTrim/Cluster-{cluster.Id}");
                 int i = 0;
-                foreach (var set in disjointSets.Take(3))
+                foreach (var set in disjointSets)
                 {
                     difference = difference.Difference(set);
-                    difference.ShowVitals();
-                    WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}-{i}");
+                    //difference.ShowVitals();
+                    //WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}-{i}");
                     //WavefrontFile.Export(set, $"Wavefront/AfterTrim/Set-{cluster.Id}-{i}");
                     //set.ShowVitals();
 
@@ -74,7 +74,7 @@ namespace Operations.ParallelSurfaces
                     //i++;
                 }
 
-                //difference.ShowVitals();
+                difference.ShowVitals();
                 //WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}");
 
                 cluster.TrimmedClusterGrid = difference;

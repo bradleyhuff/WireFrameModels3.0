@@ -33,7 +33,7 @@ namespace FileExportImport
         public static void Export(IEnumerable<LineSegment3D> segments, string fileName)
         {
             var grid = WireFrameMesh.Create();
-            grid.AddRangeTriangles(segments.Select(s => new Triangle3D(s.Start, s.Center, s.End)), "", 0);
+            grid.AddRangeTriangles(segments.Where(s => s is not null).Select(s => new Triangle3D(s.Start, s.Center, s.End)), "", 0);
             Export(grid, fileName);
         }
         public static void Export(IEnumerable<IWireFrameMesh> meshes, string fileName)

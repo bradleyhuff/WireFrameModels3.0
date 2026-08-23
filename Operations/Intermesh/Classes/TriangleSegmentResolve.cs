@@ -13,10 +13,10 @@ namespace Operations.Intermesh.Classes
         {
             var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(s => s.Id).ToArray();
             if (!intersections.Any()) return;
-            while (ResolveCycle(intermeshTriangles));
+            while (ResolveCycle(intermeshTriangles)) ;
 
-            InlineMultiSlotSegmentReplacements(intermeshTriangles);
-            InLineSingleSlotSegmentRemovals(intermeshTriangles);
+            InlineMultiSlotSegmentResolve(intermeshTriangles);
+            JunctionSlotResolve(intermeshTriangles);
         }
 
         private static Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> BuildPairsTable(IntermeshSegment[] segments)
@@ -41,7 +41,7 @@ namespace Operations.Intermesh.Classes
             var pairs = BuildPairsTable(segments);
 
             ShortSegmentReplacements(intermeshTriangles, segments, ref pairs);
-            NearParallelReplacements(intermeshTriangles,segments, ref pairs);
+            NearParallelReplacements(intermeshTriangles, segments, ref pairs);
 
             var unresolvedPairs = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
             var unresolvedNearInlinePairs = unresolvedPairs.Where(u => IntermeshSegmentExtensions.IsNearInLineParallel(u.Value)).ToArray();
@@ -225,7 +225,7 @@ namespace Operations.Intermesh.Classes
                 toAddTo.AddRangeContacts(toRemove.Contacts.Where(c => !c.IsRemoved));
                 nearParallelRemoved = true;
                 toRemove.Remove();
-                toRemove.Replacement = toAddTo;                
+                toRemove.Replacement = toAddTo;
             }
 
             if (nearParallelRemoved)
@@ -276,8 +276,42 @@ namespace Operations.Intermesh.Classes
             unresolvedPair.Item1.ExtendWith(linkSegment.B);
         }
 
-        public static void InLineSingleSlotSegmentRemovals(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        public static void JunctionSlotResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
+            var junctionSlots = intermeshTriangles.SelectMany(s => s.EdgeSlots).Where(s => s.JunctionPoints.Any()).DistinctBy(j => j.Id).ToArray();
+            //if (junctionSlots.Any())
+            //{
+            //    BaseObjects.Console.WriteLine($"Junction slots {string.Join(",", junctionSlots.Select(s => s.Id))}");
+            //}
+            foreach (var junctionSlot in junctionSlots)
+            {
+                var junctionPoints = junctionSlot.JunctionPoints.ToArray();
+                //BaseObjects.Console.WriteLine($"Junction slot {junctionSlot.Id} {string.Join(", ", junctionSlot.JunctionPoints.Select(j => $"{j.Junction.Id}: [{string.Join(", ", j.Segments.Select(s => s.Key))}]"))}");
+                foreach (var junctionPoint in junctionPoints)
+                {
+                    var overlaps = junctionPoint.Segments.Where(s => junctionPoints.Any(j => j.Junction.Id == s.A.Id && j.Junction.Id == s.B.Id));
+                    foreach (var overlap in overlaps)
+                    {
+                        overlap.Remove();
+                    }
+                }
+
+                junctionPoints = junctionSlot.JunctionPoints.ToArray();
+                foreach (var junctionPoint in junctionPoints)
+                {
+                    foreach (var wayward in junctionPoint.Waywards)
+                    {
+                        var segments = junctionPoint.Segments.Where(s => s.Id != wayward.Id);
+                        var waywardPoint = wayward.Points.Single(w => !segments.SelectMany(s => s.Points).Any(s => s.Id == w.Id));
+                        segments.CapsuleSplit(waywardPoint);
+                    }
+                }
+            }
+
+            var replacements = junctionSlots.Where(s => s.Segments.Any(ss => ss.Capsules.Count() != 1)).ToArray();
+            var replacementTable = BuildReplacementTable(replacements);
+            ApplyReplacements(replacements, replacementTable);
+
             return;
             var start = DateTime.Now;
             var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
@@ -307,17 +341,17 @@ namespace Operations.Intermesh.Classes
             //BaseObjects.Console.WriteLine($"InLineSingleSlotSegmentRemovals Slots: {slots.Count()} Slots with junctions: {count} Mismatched slots {count2}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Yellow);
         }
 
-        public static void InlineMultiSlotSegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        public static void InlineMultiSlotSegmentResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var start = DateTime.Now;
             var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
-            var segments = slots.SelectMany(s => s.Segments).DistinctBy(s => s.Id).ToArray();
+            var segments = slots.SelectMany(s => s.Segments.Where(ss => !ss.IsRemoved)).DistinctBy(s => s.Id).ToArray();
             var points = segments.Points().ToArray();
 
             var pointSlotsMap = new GroupingDictionary<int, List<IntermeshEdgeSlot>>(() => new List<IntermeshEdgeSlot>());
             foreach (var slot in slots)
             {
-                foreach (var point in slot.Segments.Points())
+                foreach (var point in slot.Segments.Where(ss => !ss.IsRemoved).Points())
                 {
                     if (!pointSlotsMap[point.Id].Any(s => s.Id == slot.Id))
                     {
@@ -326,7 +360,7 @@ namespace Operations.Intermesh.Classes
                 }
             }
 
-            var inLineReplacements = new List<(IEnumerable<IntermeshEdgeSlot>ReplaceIn, IntermeshSegment ToBeReplaced, IEnumerable<IntermeshSegment> ReplaceWith)>();
+            var inLineReplacements = new List<(IEnumerable<IntermeshEdgeSlot> ReplaceIn, IntermeshSegment ToBeReplaced, IEnumerable<IntermeshSegment> ReplaceWith)>();
 
             foreach (var segment in segments)
             {
@@ -334,13 +368,13 @@ namespace Operations.Intermesh.Classes
                 var slotsB = pointSlotsMap[segment.B.Id];
 
                 var commonSlots = slotsA.Concat(slotsB).GroupBy(g => g.Id).Where(g => g.Count() == 2).Select(g => g.First()).ToArray();
-                if(commonSlots.Count() > 1)
+                if (commonSlots.Count() > 1)
                 {
-                    var slotsWithSegment = commonSlots.Where(s => s.Segments.Any(ss => ss.Key == segment.Key));
-                    var replacements = commonSlots.Where(s => !s.Segments.Any(ss => ss.Key == segment.Key));
+                    var slotsWithSegment = commonSlots.Where(s => s.Segments.Where(ss => !ss.IsRemoved).Any(ss => ss.Key == segment.Key));
+                    var replacements = commonSlots.Where(s => !s.Segments.Where(ss => !ss.IsRemoved).Any(ss => ss.Key == segment.Key));
                     foreach (var replacement in replacements.Take(1))
                     {
-                        var replaceWith = replacement.Segments.Between(segment);
+                        var replaceWith = replacement.Segments.Where(ss => !ss.IsRemoved).Between(segment);
                         inLineReplacements.Add((slotsWithSegment, segment, replaceWith));
                     }
                 }
@@ -354,9 +388,9 @@ namespace Operations.Intermesh.Classes
                     var list = slot.Segments;
                     int index = list.IndexOf(inlineReplacement.ToBeReplaced);
                     if (index == -1) { continue; }
-                    list.RemoveAt(index);                    
+                    list.RemoveAt(index);
                     list.InsertRange(index, inlineReplacement.ReplaceWith);
-                }                
+                }
             }
             //BaseObjects.Console.WriteLine($"InLineMultiSlotSegmentReplacements Slots: {slots.Count()} Segments: {segments.Count()} Points: {points.Count()}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Cyan);
         }

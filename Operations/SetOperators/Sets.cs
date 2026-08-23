@@ -248,12 +248,35 @@ namespace Operations.SetOperators
             var start = DateTime.Now;
             var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
 
+            //tags = tags.Where(t =>
+            //    t.Id != 299998 &&
+            //    t.Id != 299999 &&
+            //    t.Id != 300008 &&
+            //    t.Id != 300022 &&
+            //    t.Id != 300036 &&
+            //    t.Id != 300071 &&
+            //    t.Id != 300135 &&
+            //    t.Id != 300140 &&
+            //    t.Id != 300141 &&
+
+            //    t.Id != 300144 &&
+            //    t.Id != 300147 &&
+            //    t.Id != 300180 &&
+            //    t.Id != 300243 &&
+            //    t.Id != 300298 &&
+            //    t.Id != 300476 &&
+            //    t.Id != 300565 &&
+            //    t.Id != 300660 &&
+            //    t.Id != 300678 &&
+            //    true
+            //    ).ToArray();
+
             //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Triangle.MinimumHeight.Magnitude.ToString("E2")}"))}");
             var table = tags.ToDictionary(t => t.Id, t => t);
             while (tags.Any())
             {
                 tags = tags.SelectMany(t => t.SingleAdjacents).Where(t => !table.ContainsKey(t.Id)).DistinctBy(t => t.Id).ToArray();
-                //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Triangle.MinimumHeight.Magnitude.ToString("E2")}"))}");
+                //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Triangle.MinimumHeight.Normal.Magnitude.ToString("E2")}"))}");
                 foreach (var tag in tags) { table[tag.Id] = tag; }
             }
             output.RemoveAllTriangles(table.Values);

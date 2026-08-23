@@ -92,6 +92,7 @@ namespace Operations.Basics
             {
                 Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
                 //Console.WriteLine($"Open edges {string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
+                //WavefrontFile.Export([openEdge.t], $"Wavefront/OpenEdgeTriangles/{openEdge.t.Id}");
             }
         }
 

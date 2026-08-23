@@ -1,10 +1,11 @@
 ﻿using BasicObjects.MathExtensions;
+using Collections.WireFrameMesh.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Collections
 {
-    internal class SurfaceSegmentCollections<G, T> : ISurfaceSegmentCollections<G, T> where G : class
+    internal class SurfaceSegmentCollections<G, T> : ISurfaceSegmentCollections<G, T> where G : class where T: IId
     {
         public SurfaceSegmentCollections(IEnumerable<SurfaceSegmentSets<G, T>> segmentSets)
         {

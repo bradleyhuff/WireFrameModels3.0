@@ -4,6 +4,7 @@ using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
+using FileExportImport;
 using Operations.Basics;
 
 namespace Operations.Intermesh.Classes
@@ -12,48 +13,15 @@ namespace Operations.Intermesh.Classes
     {
         internal static void Action(IWireFrameMesh mesh)
         {
+            //return;
             DateTime start = DateTime.Now;
             var surfaceBoundaryEdges = GetSurfaceBoundaryEdges(mesh.Triangles);
+
+            
+
             var points = mesh.Positions.Select(p => new KeyValuePair<int, Position>(p.Id, p)).ToDictionary();
             var pointsBucket = new BoxBucket<Position>(mesh.Positions);
-            //return;
-            //var magnification = 1e4;
-            //int id = 153974;
-            //var focusAt = mesh.Positions.FirstOrDefault(p => p.Id == id);
-            //if (focusAt is not null)
-            //{
-            //    var zone = new Rectangle3D(focusAt.Point, 1 / magnification);
-
-            //    WavefrontFile.Export(edges.Values.Select(e => zone.Clip(e.Segment))
-            //        .Where(c => c is not null)
-            //        .Select(c => c.TranslateToPointAndScale(focusAt.Point, magnification)), $"Wavefront/Set/BorderSegments");
-            //    var bucket = new BoxBucket<Position>(mesh.Positions);
-
-            //    var matches = bucket.Fetch(focusAt, 1e-4).Where(m => m.Id != focusAt.Id);
-            //    var gapTriangles2 = new List<PositionTriangle>();
-            //    foreach (var match in matches)
-            //    {
-            //        var gapTriangles = mesh.Triangles.SelectMany(t => t.Edges).Where(e => e.Key == new Combination2(focusAt.Id, match.Id)).SelectMany(s => s.Triangles);
-            //        Console.WriteLine($"Match of {id}: {match.Id} Distance {Point3D.Distance(match.Point, focusAt.Point).ToString("E2")} Triangles {string.Join(",", gapTriangles.Select(t => t.Key))}");
-            //        gapTriangles2.AddRange(gapTriangles);
-            //    }
-
-            //    WavefrontFile.Export(gapTriangles2.SelectMany(t => t.Edges).Select(e => zone.Clip(e.Segment))
-            //    .Where(c => c is not null)
-            //    .Select(c => c.TranslateToPointAndScale(focusAt.Point, magnification)), $"Wavefront/Set/GapTriangles-{id}");
-
-            //    var missingEdge1 = mesh.Triangles.SelectMany(t => t.Edges).Where(e => e.Key == new Combination2(153102, 153103)).First();
-            //    var missingEdge2 = mesh.Triangles.SelectMany(t => t.Edges).Where(e => e.Key == new Combination2(153210, 153211)).First();
-            //    var missingEdge3 = mesh.Triangles.SelectMany(t => t.Edges).Where(e => e.Key == new Combination2(153197, 153199)).First();
-            //    WavefrontFile.Export([
-            //        zone.Clip(missingEdge1.Segment).TranslateToPointAndScale(focusAt.Point, magnification),
-            //        zone.Clip(missingEdge2.Segment).TranslateToPointAndScale(focusAt.Point, magnification),
-            //        zone.Clip(missingEdge3.Segment).TranslateToPointAndScale(focusAt.Point, magnification),
-            //        ], $"Wavefront/Set/MissingEdges");
-            //    Console.WriteLine($"Missing edge: {missingEdge1.Key} Length {missingEdge1.Segment.Length}");
-            //    Console.WriteLine($"Missing edge: {missingEdge2.Key} Length {missingEdge2.Segment.Length}");
-            //    Console.WriteLine($"Missing edge: {missingEdge3.Key} Length {missingEdge3.Segment.Length}");
-            //}
+            var edgesBucket = new BoxBucket<PositionEdge>(mesh.Triangles.SelectMany(t => t.Edges).ToArray());
 
             var pointCount = GetPointCount(surfaceBoundaryEdges);
             if (!pointCount.Any()) {
@@ -84,6 +52,7 @@ namespace Operations.Intermesh.Classes
             }
 
             ShowSurfaceBoundary(mesh);
+            //WavefrontFile.Export(surfaceBoundaryEdges.Values, $"Wavefront/Set/BorderSegments");
             //mesh.ShowVitals();
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Surface Boundary resolve. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
@@ -98,9 +67,10 @@ namespace Operations.Intermesh.Classes
                 var triangle = PositionTriangle.GetSurfaceTriangle(commonTriangle);
                 var verticies = commonTriangle.Positions.Where(p => p.PositionObject?.Id != A.Id && p.PositionObject?.Id != B.Id);
                 if (verticies.Count() != 1) { continue; }
-                mesh.RemoveTriangle(commonTriangle);
                 var rayC = PositionNormal.GetRay(verticies.Single());
 
+                mesh.RemoveTriangle(commonTriangle);
+                
                 for (int i = 0; i < orderedLinkedSequence.Length - 1; i++)
                 {
                     var a = orderedLinkedSequence[i];
@@ -112,6 +82,48 @@ namespace Operations.Intermesh.Classes
                     //BaseObjects.Console.WriteLine($"Add triangles {added.Id} {added.Key}");
                 }
             }
+        }
+
+        private static IEnumerable<Position[]> GetOrderedPaths(Position A, Position B, BoxBucket<Position> positions, BoxBucket<PositionEdge> edges)
+        {
+            var segment = new LineSegment3D(A.Point, B.Point);
+
+            var matches = positions.Fetch(Rectangle3D.Containing([segment]), 1e-6)
+                .Where(pp => segment.Distance(pp.Point) < 1e-8 && A.Id != pp.Id && B.Id != pp.Id).ToArray();
+            var pointsToLink = CombinePoints(A, matches, B).ToArray();
+            var linkedSets = pointsToLink.Select(l => (Point: l, Links: GetLinkTosFromPoint(l, pointsToLink))).ToArray();
+
+            if (matches.Any()) {
+
+                //var distance1 = Point3D.Distance(pointsToLink[0].Point, pointsToLink[1].Point);
+                //var distance2 = Point3D.Distance(pointsToLink[0].Point, pointsToLink[2].Point);
+                //var distance3 = Point3D.Distance(pointsToLink[0].Point, pointsToLink[3].Point);
+                BaseObjects.Console.WriteLine($"Point[0] {0.ToString("0.00000000")} {pointsToLink[0].Id} Triangles [{string.Join(", ", pointsToLink[0].Triangles.OrderBy(t => t.Id).Select(t => t.Id))}]");
+                var segment1 = pointsToLink[1].Point - pointsToLink[0].Point;
+                BaseObjects.Console.WriteLine($"Point[1] {(segment1.Magnitude / segment.Length).ToString("0.00000000")} {segment1.Direction} {pointsToLink[1].Id} Triangles [{string.Join(", ", pointsToLink[1].Triangles.OrderBy(t => t.Id).Select(t => t.Id))}]");
+                var segment2 = pointsToLink[2].Point - pointsToLink[1].Point;
+                BaseObjects.Console.WriteLine($"Point[2] {(segment2.Magnitude / segment.Length).ToString("0.00000000")} {segment2.Direction} {pointsToLink[2].Id} Triangles [{string.Join(", ", pointsToLink[2].Triangles.OrderBy(t => t.Id).Select(t => t.Id))}]");
+                var segment3 = pointsToLink[3].Point - pointsToLink[2].Point;
+                BaseObjects.Console.WriteLine($"Point[3] {(segment3.Magnitude / segment.Length).ToString("0.00000000")} {segment3.Direction} {pointsToLink[3].Id} Triangles [{string.Join(", ", pointsToLink[3].Triangles.OrderBy(t => t.Id).Select(t => t.Id))}]");
+                //WavefrontFile.Export([segment1], $"Wavefront/Set/TestSegment1");
+                //WavefrontFile.Export([segment2], $"Wavefront/Set/TestSegment2");
+                //WavefrontFile.Export([segment3], $"Wavefront/Set/TestSegment3");
+                //WavefrontFile.Export([new LineSegment3D(pointsToLink[3].Point, pointsToLink[4].Point)], $"Wavefront/Set/TestSegment4");
+
+                var edgeMatches = edges.Fetch(Rectangle3D.Containing([segment])).Where(e => LineSegment3D.Distance(e.Segment, segment) < 1e-15 && e.A.PositionObject.Id != A.Id && e.A.PositionObject.Id != B.Id && e.B.PositionObject.Id != A.Id && e.B.PositionObject.Id != B.Id);
+                if (edgeMatches.Any())
+                {
+                    int i = 0;
+                    foreach (var match in edgeMatches)
+                    {
+                        WavefrontFile.Export([match.Segment], $"Wavefront/Set/Edge-{i}-{match.Key}");
+                        BaseObjects.Console.WriteLine($"Triangles [{string.Join(", ", match.Triangles.Select(t => t.Id))}]");
+                        i++;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static IEnumerable<Position> GetOrderedLinkingPositions(Position A, IEnumerable<Position> matches, Position B)

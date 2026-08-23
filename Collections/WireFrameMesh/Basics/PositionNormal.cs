@@ -6,7 +6,7 @@ using Collections.WireFrameMesh.Interfaces;
 
 namespace Collections.WireFrameMesh.Basics
 {
-    public class PositionNormal : IBox
+    public class PositionNormal : IBox, IId
     {
         private static int _id = 0;
         private static object lockObject = new object();

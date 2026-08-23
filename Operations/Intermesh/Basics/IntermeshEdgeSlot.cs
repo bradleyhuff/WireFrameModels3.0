@@ -1,4 +1,5 @@
-﻿using BasicObjects.GeometricObjects;
+﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,30 @@ namespace Operations.Intermesh.Basics
             {
                 yield return Segments.First(s => !s.IsRemoved).A;
                 yield return Segments.Last(s => !s.IsRemoved).B;
+            }
+        }
+
+        public IEnumerable<(IntermeshPoint Junction, IReadOnlyList<IntermeshSegment> Segments, IReadOnlyList<IntermeshSegment> Waywards)> JunctionPoints
+        {
+            get
+            {
+                var table = new GroupingDictionary<int, List<IntermeshSegment>>(() => new List<IntermeshSegment>());
+                var listing = new Dictionary<int, IntermeshPoint>();
+
+                foreach (var segment in Segments.Where(s => !s.IsRemoved))
+                {
+                    table[segment.A.Id].Add(segment);
+                    table[segment.B.Id].Add(segment);
+                    listing[segment.A.Id] = segment.A;
+                    listing[segment.B.Id] = segment.B;
+                }
+
+                var junctionPoints = table.Where(p => p.Value.Count() > 2 || (Key.Indicies.Any(i => i == p.Key) && p.Value.Count() > 1)).ToArray();
+
+                foreach (var junctionPoint in junctionPoints)
+                {
+                    yield return new (listing[junctionPoint.Key], junctionPoint.Value, junctionPoint.Value.Where(j => table[j.A.Id].Count == 1 || table[j.B.Id].Count == 1).ToList());
+                }
             }
         }
 

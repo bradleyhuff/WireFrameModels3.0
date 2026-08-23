@@ -159,13 +159,19 @@ namespace Operations.Intermesh.Basics
             return false;
         }
 
+        internal bool CapsuleReplace(IntermeshCapsule split, IEnumerable<IntermeshCapsule> replaceWith)
+        {
+            var previousCapsules = _capsules.ToArray();
+            if (_capsules.Replace(split, replaceWith))
+            {
+                _previous.Add(previousCapsules);
+                return true;
+            }
+            return false;
+        }
+
         private IntermeshCapsule GetCapsuleToSplit(IntermeshPoint p)
         {
-            {
-                var projection = Segment.Projection(p.Point, GapConstants.Resolver);
-                if (projection is null) { return null; }
-            }
-
             var eligibleCapsules = new List<IntermeshCapsule>();
 
             foreach (var capsule in _capsules.Where(c => c.A.Id != p.Id && c.B.Id != p.Id))

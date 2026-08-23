@@ -1,7 +1,9 @@
 ﻿
+using Collections.WireFrameMesh.Basics;
+
 namespace Operations.SurfaceSegmentChaining.Basics
 {
-    internal class SurfaceSegmentSets<G, T>
+    internal class SurfaceSegmentSets<G, T> where T: IId
     {
         public int NodeId;
         public int GroupKey;

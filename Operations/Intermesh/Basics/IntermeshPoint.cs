@@ -1,15 +1,11 @@
 ﻿using BasicObjects.GeometricObjects;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Collections.WireFrameMesh.Basics;
 
 namespace Operations.Intermesh.Basics
 {
-    public class IntermeshPoint : IBox
+    public class IntermeshPoint : IBox, IId
     {
         private static int _id = 0;
         private static object lockObject = new object();

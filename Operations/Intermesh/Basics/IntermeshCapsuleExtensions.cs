@@ -48,6 +48,50 @@ namespace Operations.Intermesh.Basics
             }
         }
 
+        public static bool CapsuleSplit(this IEnumerable<IntermeshSegment> segments, IntermeshPoint p)
+        {
+            var capsules = segments.SelectMany(s => s.Capsules);
+            var split = capsules.GetCapsuleToSplit(p);
+            if (split is not null)
+            {
+                var split1 = Fetch(split.A, p);
+                var split2 = Fetch(p, split.B);
+
+                if (capsules.Any(c => c.Id == split1.Id)) { return false; }
+                if (capsules.Any(c => c.Id == split2.Id)) { return false; }
+
+                bool replaced = false;
+                foreach (var segment in segments)
+                {
+                    if (segment.CapsuleReplace(split, [split1, split2]))
+                    {
+                        replaced = true;
+                    }
+                }
+                return replaced;
+            }
+
+            return false;
+        }
+
+        private static IntermeshCapsule GetCapsuleToSplit(this IEnumerable<IntermeshCapsule> capsules, IntermeshPoint p)
+        {
+            return capsules.GetEligibleCapsuleToSplit(p).Nearest(p);
+        }
+        private static IEnumerable<IntermeshCapsule> GetEligibleCapsuleToSplit(this IEnumerable<IntermeshCapsule> capsules, IntermeshPoint p)
+        {
+            foreach (var capsule in capsules.Where(c => c.A.Id != p.Id && c.B.Id != p.Id))
+            {
+                var projection = capsule.Segment.Projection(p.Point, GapConstants.Resolver);
+                if (projection is null) { continue; }
+                var distance = Point3D.Distance(projection, p.Point);
+                if (distance < GapConstants.Resolver)
+                {
+                    yield return capsule;
+                }
+            }
+        }
+
         private static Dictionary<(int, int), IntermeshCapsule> segmentTable = new Dictionary<(int, int), IntermeshCapsule>();
 
         public static IntermeshCapsule Fetch(IntermeshPoint a, IntermeshPoint b)

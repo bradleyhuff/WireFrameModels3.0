@@ -1,7 +1,9 @@
 ﻿using BaseObjects;
+using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
+using FileExportImport;
 using Operations.Basics;
 using Operations.Groupings.Basics;
 using Operations.Intermesh;
@@ -57,7 +59,11 @@ namespace Operations.SetOperators
             //sum.RemoveCoplanarSurfacePoints();
 
             FoldPrimming(sum);
-            RemoveTags(sum);
+            int removedTags = RemoveTags(sum);
+            //if (removedTags > 0) { BaseObjects.Console.WriteLine($"Tags removed {removedTags}", ConsoleColor.White, ConsoleColor.Red); }
+
+            int removedSpikes = RemoveSpikes(sum);
+            //if (removedSpikes > 0) { BaseObjects.Console.WriteLine($"Spikes removed {removedSpikes}", ConsoleColor.Black, ConsoleColor.Yellow); }
 
             if (!Mode.ThreadedRun) ConsoleLog.Pop();
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"{note}: Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.\n");
@@ -90,6 +96,14 @@ namespace Operations.SetOperators
             return surfaces;
         }
 
+        private static GroupingCollection[] ClusterExtraction(IWireFrameMesh intermesh)
+        {
+            var start = DateTime.Now;
+            var clusters = GroupingCollection.ExtractClusters(intermesh.Triangles).ToArray();
+            ConsoleLog.WriteLine($"Cluster extraction: Groups {clusters.Length} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            return clusters;
+        }
+
         private static List<GroupingCollection> TestAndRemoveSurfaces(IWireFrameMesh grid, GroupingCollection[] surfaces, Space space, Func<Region, Region, bool> includeGroup)
         {
             var start = DateTime.Now;
@@ -113,6 +127,7 @@ namespace Operations.SetOperators
                 }
                 else
                 {
+                    //BaseObjects.Console.WriteLine($"Remaining surface {surface.Id}");
                     remainingSurfaces.Add(surface);
                 }
             }
@@ -186,15 +201,17 @@ namespace Operations.SetOperators
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Included group and invert: Groups inverted {invertedGroups} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
+        private const double SpikeThresehold = 1e-5;
+
         private static Point3D GetTestPoint(IEnumerable<PositionTriangle> triangles)
         {
-            var internalTriangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).Skip(0).FirstOrDefault();
+            var internalTriangle = triangles.Where(t => t.Triangle.MinHeight > SpikeThresehold).OrderByDescending(t => t.Triangle.Area).FirstOrDefault();
             return internalTriangle?.Triangle.Center;
         }
 
         private static Point3D GetInternalTestPoint(IEnumerable<PositionTriangle> triangles)
         {
-            var triangle = triangles.Where(t => !t.Triangle.IsCollinear).OrderByDescending(t => t.Triangle.Area).FirstOrDefault();
+            var triangle = triangles.Where(t => t.Triangle.MinHeight > SpikeThresehold).OrderByDescending(t => t.Triangle.Area).FirstOrDefault();
             if (triangle is null)
             {
                 return null;
@@ -243,44 +260,32 @@ namespace Operations.SetOperators
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Fold Priming Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
-        public static void RemoveTags(IWireFrameMesh output)
+        private static int RemoveTags(IWireFrameMesh output)
         {
             var start = DateTime.Now;
             var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
-
-            //tags = tags.Where(t =>
-            //    t.Id != 299998 &&
-            //    t.Id != 299999 &&
-            //    t.Id != 300008 &&
-            //    t.Id != 300022 &&
-            //    t.Id != 300036 &&
-            //    t.Id != 300071 &&
-            //    t.Id != 300135 &&
-            //    t.Id != 300140 &&
-            //    t.Id != 300141 &&
-
-            //    t.Id != 300144 &&
-            //    t.Id != 300147 &&
-            //    t.Id != 300180 &&
-            //    t.Id != 300243 &&
-            //    t.Id != 300298 &&
-            //    t.Id != 300476 &&
-            //    t.Id != 300565 &&
-            //    t.Id != 300660 &&
-            //    t.Id != 300678 &&
-            //    true
-            //    ).ToArray();
-
-            //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Triangle.MinimumHeight.Magnitude.ToString("E2")}"))}");
+            //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Key} {t.Triangle.MinimumHeight.Normal.Magnitude.ToString("E2")}"))}");
             var table = tags.ToDictionary(t => t.Id, t => t);
             while (tags.Any())
             {
                 tags = tags.SelectMany(t => t.SingleAdjacents).Where(t => !table.ContainsKey(t.Id)).DistinctBy(t => t.Id).ToArray();
-                //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Triangle.MinimumHeight.Normal.Magnitude.ToString("E2")}"))}");
+                //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Key} {t.Triangle.MinimumHeight.Normal.Magnitude.ToString("E2")}"))}");
                 foreach (var tag in tags) { table[tag.Id] = tag; }
             }
             output.RemoveAllTriangles(table.Values);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Remove tags {table.Values.Count} {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+            return table.Values.Count;
+        }
+
+        private static int RemoveSpikes(IWireFrameMesh output)
+        {
+            int count = 0;
+            var clusters = ClusterExtraction(output);
+            foreach (var cluster in clusters)
+            {
+                if (cluster.Triangles.All(t => t.Triangle.MinHeight < SpikeThresehold)) { output.RemoveAllTriangles(cluster.Triangles); count++; }
+            }
+            return count;
         }
 
         public static void NearCollinearTrianglePairs(this IWireFrameMesh mesh)

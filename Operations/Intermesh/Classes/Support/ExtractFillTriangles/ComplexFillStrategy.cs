@@ -80,8 +80,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 var pointCount = surfaceSet.PerimeterSegments.SelectMany(ss => ss.Points).GroupBy(g => g.Reference.Id);
                 BaseObjects.Console.WriteLine($"Boundary points [{string.Join(",", pointCount.Where(g => g.Count() > 2).Select(g => g.Key))}]");
                 //triangle.Dump(triangle.Triangle.Center, 1e0);
-
-
+                //WavefrontFile.Export([triangle.Triangle], $"Wavefront/Trim/ErrorTriangle-{triangle.Id}");
             }
         }
 

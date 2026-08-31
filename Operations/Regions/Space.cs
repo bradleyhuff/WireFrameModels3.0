@@ -111,20 +111,19 @@ namespace Operations.Regions
         private Triangle3DNodeBucketX _bucketX;
         private Triangle3DNodeBucketY _bucketY;
         private Triangle3DNodeBucketZ _bucketZ;
+        private static int _id = 0;
 
-        public Space(IEnumerable<Triangle3D> triangles)
-        {
-            _bucketX = new Triangle3DNodeBucketX(triangles.Select(t => new TriangleNode(t, 0)));
-            _bucketY = new Triangle3DNodeBucketY(triangles.Select(t => new TriangleNode(t, 0)));
-            _bucketZ = new Triangle3DNodeBucketZ(triangles.Select(t => new TriangleNode(t, 0)));
-        }
+        public Space(IEnumerable<Triangle3D> triangles) : this(triangles.Select(t => new TriangleNode(t, 0))) { }
 
         public Space(IEnumerable<ITriangle> triangles)
         {
             _bucketX = new Triangle3DNodeBucketX(triangles);
             _bucketY = new Triangle3DNodeBucketY(triangles);
             _bucketZ = new Triangle3DNodeBucketZ(triangles);
+            Id = _id++;
         }
+
+        public int Id { get; }
 
         public Region RegionOfPoint(Point3D point)
         {

@@ -174,14 +174,16 @@ namespace Operations.Diagnostics
             foreach (var segment in triangle.PerimeterSegments)
             {
                 var clip = zone.Clip(segment.Segment);
-                clip = clip.TranslateToPointAndScale(focusAt, magnification);
+                clip = clip.TranslateToPointAndScale(focusAt, magnification);                
                 WavefrontFile.Export([clip], $"Wavefront/IntermeshTriangle-{triangle.Id}/Perimeter-Segment-{segment.Key}-{segment.Id}");
+                //BaseObjects.Console.WriteLine($"Length {segment.Segment.Length.ToString("E3")}");
             }
             foreach (var segment in triangle.IntersectionSegments)
             {
                 var clip = zone.Clip(segment.Segment);
                 clip = clip.TranslateToPointAndScale(focusAt, magnification);
                 WavefrontFile.Export([clip], $"Wavefront/IntermeshTriangle-{triangle.Id}/Intersection-Segment-{segment.Key}-{segment.Id}");
+                //BaseObjects.Console.WriteLine($"Length {segment.Segment.Length.ToString("E3")}");
             }
 
             foreach (var filling in triangle.Fillings)

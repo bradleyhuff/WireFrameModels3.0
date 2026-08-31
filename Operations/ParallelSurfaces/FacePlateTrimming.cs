@@ -45,13 +45,14 @@ namespace Operations.ParallelSurfaces
                 //difference.ShowVitals();
                 //WavefrontFile.Export(difference, $"Wavefront/BeforeTrim/Cluster-{cluster.Id}");
                 int i = 0;
-                foreach (var set in disjointSets/*.Take(2)*/)
+                foreach (var set in disjointSets)
                 {
                     //Sets.RemoveTags2 = i != 1;
+                    //WavefrontFile.Export(difference, $"Wavefront/Trim/BeforeTrim-{cluster.Id}-{i}");
                     difference = difference.Difference(set);
                     //difference.ShowVitals();
-                    //WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}-{i}");
-                    //WavefrontFile.Export(set, $"Wavefront/AfterTrim/Set-{cluster.Id}-{i}");
+                    //WavefrontFile.Export(difference, $"Wavefront/Trim/AfterTrim-{cluster.Id}-{i}");
+                    //WavefrontFile.Export(set, $"Wavefront/Trim/Set-{cluster.Id}-{i}");
                     //set.ShowVitals();
 
                     //var faces = GroupingCollection.ExtractFaces(difference.Triangles);

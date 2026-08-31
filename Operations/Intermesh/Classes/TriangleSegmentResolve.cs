@@ -9,14 +9,17 @@ namespace Operations.Intermesh.Classes
 {
     internal static class TriangleSegmentResolve
     {
-        internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        internal static bool Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(s => s.Id).ToArray();
-            if (!intersections.Any()) return;
-            while (ResolveCycle(intermeshTriangles)) ;
+            if (!intersections.Any()) return false;
+            var wasChanged = ResolveCycle(intermeshTriangles);
+            if (!wasChanged) return false;
+            while (ResolveCycle(intermeshTriangles));
 
             InlineMultiSlotSegmentResolve(intermeshTriangles);
             JunctionSlotResolve(intermeshTriangles);
+            return true;
         }
 
         private static Combination2Dictionary<(IntermeshSegment, IntermeshSegment)> BuildPairsTable(IntermeshSegment[] segments)
@@ -61,7 +64,7 @@ namespace Operations.Intermesh.Classes
 
             var wasChanged = segments.Any(s => s.WasChanged);
 
-            SegmentReplacements(intermeshTriangles);
+            if(wasChanged) SegmentReplacements(intermeshTriangles);
 
             return wasChanged;
         }

@@ -17,17 +17,17 @@ namespace Operations.Intermesh.Classes
         internal static void Action(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var allSegments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(i => i.Id).ToArray();
-            foreach (var intersection in allSegments) { intersection.ClearContacts(); }
-            // Triangle intersection contact assignments
-            var segmentBucket = new BoxBucket<IntermeshSegment>(allSegments);
-            foreach (var intersection in allSegments)
+            foreach (var segment in allSegments) { segment.ClearContacts(); }
+            // Triangle segment contact assignments
+            var segmentBucket = new BoxBucket<IntermeshSegment>(allSegments.Where(s => !s.IsRemoved));
+            foreach (var segment in allSegments.Where(s => !s.IsRemoved))
             {
-                var matches = segmentBucket.Fetch(intersection, 1e-5).Where(m => m.Id != intersection.Id);
-                intersection.AddRangeContacts(matches.Where(m => LineSegment3D.Distance(m.Segment, intersection.Segment) < GapConstants.Resolver));
+                var matches = segmentBucket.Fetch(segment, 1e-5).Where(m => m.Id != segment.Id);
+                segment.AddRangeContacts(matches.Where(m => LineSegment3D.Distance(m.Segment, segment.Segment) < GapConstants.Resolver));
             }
 
-            var contacts = intermeshTriangles.SelectMany(t => t.Segments.Where(s => !s.IsRemoved).SelectMany(s => s.Contacts).DistinctBy(c => c.Id));
-            BaseObjects.Console.WriteLine($"Contacts {contacts.Count()}");
+            //var contacts = intermeshTriangles.SelectMany(t => t.Segments.Where(s => !s.IsRemoved).SelectMany(s => s.Contacts.Where(s => !s.IsRemoved)).DistinctBy(c => c.Id));
+            //BaseObjects.Console.WriteLine($"Contacts {contacts.Count()}");
         }
     }
 }

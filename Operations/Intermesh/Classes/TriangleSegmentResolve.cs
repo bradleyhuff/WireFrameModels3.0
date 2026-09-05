@@ -16,7 +16,6 @@ namespace Operations.Intermesh.Classes
             var wasChanged = ResolveCycle(intermeshTriangles);
             if (!wasChanged) return false;
             while (ResolveCycle(intermeshTriangles));
-
             InlineMultiSlotSegmentResolve(intermeshTriangles);
             JunctionSlotResolve(intermeshTriangles);
             return true;
@@ -50,8 +49,6 @@ namespace Operations.Intermesh.Classes
             var unresolvedNearInlinePairs = unresolvedPairs.Where(u => IntermeshSegmentExtensions.IsNearInLineParallel(u.Value)).ToArray();
             var unresolvedCrossPairs = unresolvedPairs.Where(u => IntermeshSegmentExtensions.IsCross(u.Value)).ToArray();
 
-            var bucket = new BoxBucket<IntermeshSegment>(segments);
-
             foreach (var unresolvedPair in unresolvedPairs)
             {
                 var segment1 = unresolvedPair.Value.Item1.Segment;
@@ -59,7 +56,7 @@ namespace Operations.Intermesh.Classes
                 var inLine = IntermeshSegmentExtensions.IsNearInLineParallel(unresolvedPair.Value);
                 var isCross = IntermeshSegmentExtensions.IsCross(unresolvedPair.Value);
 
-                if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value, bucket); else GapResolve(unresolvedPair.Value, bucket);
+                if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value); else GapResolve(unresolvedPair.Value);
             }
 
             var wasChanged = segments.Any(s => s.WasChanged);
@@ -251,13 +248,13 @@ namespace Operations.Intermesh.Classes
             }
         }
 
-        private static void CrossResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket)
+        private static void CrossResolve((IntermeshSegment, IntermeshSegment) unresolvedPair)
         {
             var unresolvedSet = IntermeshSegmentExtensions.PointIntersection(unresolvedPair);
-            CrossWithIntersectionResolve(unresolvedSet, bucket);
+            CrossWithIntersectionResolve(unresolvedSet);
         }
 
-        private static void CrossWithIntersectionResolve((Point3D, IntermeshCapsule, IntermeshCapsule, IntermeshSegment, IntermeshSegment) unresolvedSet, BoxBucket<IntermeshSegment> bucket)
+        private static void CrossWithIntersectionResolve((Point3D, IntermeshCapsule, IntermeshCapsule, IntermeshSegment, IntermeshSegment) unresolvedSet)
         {
             var intersection = unresolvedSet.Item1;
             if (intersection is null) { return; }
@@ -271,7 +268,7 @@ namespace Operations.Intermesh.Classes
             segment2.CapsuleSplit(point);
         }
 
-        private static void GapResolve((IntermeshSegment, IntermeshSegment) unresolvedPair, BoxBucket<IntermeshSegment> bucket)
+        private static void GapResolve((IntermeshSegment, IntermeshSegment) unresolvedPair)
         {
             var linkSegment = IntermeshSegmentExtensions.ShortestLink((unresolvedPair.Item1, unresolvedPair.Item2));
 
@@ -315,32 +312,6 @@ namespace Operations.Intermesh.Classes
             var replacementTable = BuildReplacementTable(replacements);
             ApplyReplacements(replacements, replacementTable);
 
-            return;
-            var start = DateTime.Now;
-            var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
-
-            int count = 0;
-            int count2 = 0;
-            foreach (var slot in slots)
-            {
-                var pointSegmentMap = new GroupingDictionary<int, List<IntermeshSegment>>(() => new List<IntermeshSegment>());
-                foreach (var segment in slot.Segments.Where(s => !s.IsRemoved))
-                {
-                    pointSegmentMap[segment.A.Id].Add(segment);
-                    pointSegmentMap[segment.B.Id].Add(segment);
-                }
-
-                var junctionPoints = pointSegmentMap.Where(p => p.Value.Count() > 2 || (slot.Key.Indicies.Any(i => i == p.Key) && p.Value.Count() > 1)).ToArray();
-                if (junctionPoints.Any())
-                {
-                    count++;
-                }
-                var mismatched = /*slot.Segments.Count > 1 &&*/ slot.Key.Indicies.Any(i => !pointSegmentMap.ContainsKey(i));
-                if (mismatched)
-                {
-                    count2++;
-                }
-            }
             //BaseObjects.Console.WriteLine($"InLineSingleSlotSegmentRemovals Slots: {slots.Count()} Slots with junctions: {count} Mismatched slots {count2}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Yellow);
         }
 

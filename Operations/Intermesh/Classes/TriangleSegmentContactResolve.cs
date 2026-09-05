@@ -15,54 +15,18 @@ namespace Operations.Intermesh.Classes
         {
             DateTime start = DateTime.Now;
 
-            SegmentContactAssignments.Action(intermeshTriangles);
-            var wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"1 Was changed {wasChanged}");
-            if (!wasChanged) return;
+            int count = 0;
+            while (true)
+            {
+                SegmentContactAssignments.Action(intermeshTriangles);
+                var wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
+                count++;
 
-            SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"2 Was changed {wasChanged}");
-            if (!wasChanged) return;
-
-            SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"3 Was changed {wasChanged}");
-            if (!wasChanged) return;
-
-            SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"4 Was changed {wasChanged}");
-            if (!wasChanged) return;
-
-            SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"5 Was changed {wasChanged}");
-            if (!wasChanged) return;
-
-            //SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"6 Was changed {wasChanged}");
-            if (!wasChanged) return;
-
-            //SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"7 Was changed {wasChanged}");
-            if (!wasChanged) return;
-
-            //SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"8 Was changed {wasChanged}");
-            if (!wasChanged) return;
-
-            //SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"9 Was changed {wasChanged}");
-            if (!wasChanged) return;
-
-            //SegmentContactAssignments.Action(intermeshTriangles);
-            wasChanged = TriangleSegmentResolve.Action(intermeshTriangles);
-            BaseObjects.Console.WriteLine($"10 Was changed {wasChanged}");
+                BaseObjects.Console.WriteLine($"{count} Was changed {wasChanged}", 
+                    count > 20 ? ConsoleColor.White : ConsoleColor.Gray, 
+                    count > 20 ? ConsoleColor.Red : ConsoleColor.Black);
+                if (!wasChanged || count > 20) { break; }
+            }
 
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle segment contact resolve. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }

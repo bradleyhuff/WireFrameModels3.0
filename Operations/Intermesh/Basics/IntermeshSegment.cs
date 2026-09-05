@@ -100,7 +100,7 @@ namespace Operations.Intermesh.Basics
 
         public void Remove()
         {
-            _previous.Add(_capsules.ToArray());
+            AddPrevious(_capsules);
             _capsules.Clear();
         }
 
@@ -117,12 +117,12 @@ namespace Operations.Intermesh.Basics
             }
             else if (_capsules.Count == 1)
             {
-                _previous.Add(Capsules.ToArray());
+                AddPrevious(Capsules);
                 _capsules[0] = IntermeshCapsuleExtensions.Fetch(a, b);
             }
             else
             {
-                _previous.Add(Capsules.ToArray());
+                AddPrevious(Capsules);
 
                 var firstPoint = _capsules[0].B;
                 var lastPoint = _capsules[_capsules.Count - 1].A;
@@ -137,9 +137,11 @@ namespace Operations.Intermesh.Basics
 
         public bool CapsuleSplit(IntermeshPoint p)
         {
+            if (_capsules.Points().Any(c => c.Id == p.Id)) { return false; }
             var split = GetCapsuleToSplit(p);
             if (split is not null)
             {
+                var previousCapsules = _capsules.ToArray();
                 var split1 = IntermeshCapsuleExtensions.Fetch(split.A, p);
                 var split2 = IntermeshCapsuleExtensions.Fetch(p, split.B);
 
@@ -148,7 +150,7 @@ namespace Operations.Intermesh.Basics
 
                 if (_capsules.Replace(split, [split1, split2]))
                 {
-                    _previous.Add(_capsules.ToArray());
+                    AddPrevious(previousCapsules);
                 }
                 else { return false; }
 
@@ -164,7 +166,7 @@ namespace Operations.Intermesh.Basics
             var previousCapsules = _capsules.ToArray();
             if (_capsules.Replace(split, replaceWith))
             {
-                _previous.Add(previousCapsules);
+                AddPrevious(previousCapsules);
                 return true;
             }
             return false;
@@ -198,7 +200,7 @@ namespace Operations.Intermesh.Basics
             var projection = Segment.Projection(p.Point, 0);
             if (projection is not null && distanceA > GapConstants.Resolver && distanceB > GapConstants.Resolver) { return false; }
 
-            _previous.Add(Capsules.ToArray());
+            AddPrevious(Capsules);
             if (distanceA < distanceB)
             {
                 _capsules.Insert(0, IntermeshCapsuleExtensions.Fetch(p, _capsules.First().A));
@@ -218,7 +220,7 @@ namespace Operations.Intermesh.Basics
             {
                 return false;
             }
-            _previous.Add(Capsules.ToArray());
+            AddPrevious(Capsules);
             for (int i = 0; i < _capsules.Count; i++)
             {
                 if (_capsules[i].A.Id == old_.Id) { _capsules[i] = IntermeshCapsuleExtensions.Fetch(new_, _capsules[i].B); }
@@ -226,6 +228,11 @@ namespace Operations.Intermesh.Basics
             }
 
             return true;
+        }
+
+        private void AddPrevious(IEnumerable<IntermeshCapsule> previous)
+        {
+            _previous.Add(previous.ToArray());
         }
 
         public Combination2 OriginalKey { get; }

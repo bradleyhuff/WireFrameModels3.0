@@ -5,6 +5,7 @@ using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Basics;
 using Operations.Groupings.Basics;
+using Operations.Groupings.FileExportImport;
 using Operations.Intermesh;
 using Operations.Intermesh.Classes.Support.ExtractFillTriangles;
 using Operations.ParallelSurfaces.Basics;
@@ -79,6 +80,7 @@ namespace Operations.ParallelSurfaces
 
                 difference.ShowVitals();
                 //WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}");
+                //WavefrontFileGroups.ExportBySurfaces(difference, $"Wavefront/Surfaces");
 
                 cluster.TrimmedClusterGrid = difference;
                 if (!cluster.TrimmedClusterGrid.Triangles.Any()) cluster.OriginalClusterGrid = cluster.Cluster.Create();

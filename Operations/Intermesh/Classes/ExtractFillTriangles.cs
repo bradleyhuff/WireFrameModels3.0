@@ -22,7 +22,7 @@ namespace Operations.Intermesh.Classes
                 if (fillStrategy is SimpleFillStrategy) { simpleFillCount++; }
                 if (fillStrategy is ComplexFillStrategy) { complexFillCount++; }
 
-                Logging.ShowLog = false;
+                //Logging.ShowLog = false;
                 fillStrategy.GetFillTriangles(triangle);
             }
 

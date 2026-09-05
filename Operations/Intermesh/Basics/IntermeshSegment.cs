@@ -3,14 +3,6 @@ using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Collections.Buckets.Interfaces;
-using Collections.WireFrameMesh.Basics;
-using Operations.Intermesh.Interfaces;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {

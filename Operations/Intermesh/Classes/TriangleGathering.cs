@@ -4,12 +4,6 @@ using Collections.Buckets;
 using Collections.Threading;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
-using Operations.Intermesh.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Classes
 {

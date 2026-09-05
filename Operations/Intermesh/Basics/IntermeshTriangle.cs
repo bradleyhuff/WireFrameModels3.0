@@ -2,14 +2,6 @@
 using BasicObjects.MathExtensions;
 using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
-using Operations.Intermesh.Interfaces;
-using Operations.PlanarFilling.Basics;
-using Operations.SurfaceSegmentChaining.Basics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Operations.Intermesh.Basics
 {

@@ -7,7 +7,6 @@ using Collections.WireFrameMesh.Interfaces;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
 using Operations.Intermesh.Classes;
-using Operations.Intermesh.Interfaces;
 
 namespace Operations.Intermesh;
 

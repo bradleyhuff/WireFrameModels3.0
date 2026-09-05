@@ -15,4 +15,9 @@
     <ProjectReference Include="..\FileExportImport\FileExportImport.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Intermesh\Extensions\" />
+    <Folder Include="Intermesh\Interfaces\" />
+  </ItemGroup>
+
 </Project>

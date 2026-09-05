@@ -3,7 +3,6 @@ using BasicObjects.GeometricObjects;
 using Collections.Threading;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
-using Operations.Intermesh.Interfaces;
 
 namespace Operations.Intermesh.Classes
 {

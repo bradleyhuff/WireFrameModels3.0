@@ -33,7 +33,7 @@ namespace Operations.ParallelSurfaces
             Mode.ThreadedRun = true;
             ConsoleLog.Push("Build face plate clusters");
 
-            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c))/*.Where(c => c.Id != 141 && c.Id != 161 && c.Id != 162)*/.Where(c => c.Id == 75).ToArray();
+            var clusters = GroupingCollection.ExtractClusters(mesh.Triangles).Select(c => new ClusterSet(c))/*.Where(c => c.Id == 46)*//*.Where(c => c.Id == 159)*//*.Where(c => c.Id == 75)*/.ToArray();
             foreach (var c in clusters)
             {
                 foreach (var f in GroupingCollection.ExtractFaces(c.Cluster)) { c.Faces.Add(new FaceSet(f)); }
@@ -396,7 +396,7 @@ namespace Operations.ParallelSurfaces
         {
             return new SurfaceSegmentSets<PlanarFillingGroup, PositionNormal>
             {
-                DividingSegments = dividerEdges.Select(e => new SurfaceSegmentContainer<PositionNormal>(
+                IntersectionSegments = dividerEdges.Select(e => new SurfaceSegmentContainer<PositionNormal>(
                     new SurfaceRayContainer<PositionNormal>(new Ray3D(e.A.Position, Vector3D.Zero), e.A.Normal, e.A.PositionObject.Id, e.A),
                     new SurfaceRayContainer<PositionNormal>(new Ray3D(e.B.Position, Vector3D.Zero), e.B.Normal, e.B.PositionObject.Id, e.B))).ToArray(),
                 PerimeterSegments = openEdges.Select(e => new SurfaceSegmentContainer<PositionNormal>(

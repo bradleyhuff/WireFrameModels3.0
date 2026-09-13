@@ -43,6 +43,21 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        public double AngleFromSurface(Vector3D vector)
+        {
+            return SMath.Abs(SMath.PI * 0.5 - Vector3D.Angle(Normal, vector.Direction));
+        }
+
+        public double AngleFromSurface(Line3D line)
+        {
+            return AngleFromSurface(line.Vector);
+        }
+
+        public double AngleFromSurface(LineSegment3D segment)
+        {
+            return AngleFromSurface(segment.Vector);
+        }
+
         public Point3D[] CardinalPoints { get { return [Center]; } }
         public Vector3D[] CardinalVectors { get { return [Normal]; } }
         public Plane Constructor(Point3D[] cardinalPoints, Vector3D[] cardinalVectors)

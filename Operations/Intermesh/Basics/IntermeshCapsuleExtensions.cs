@@ -82,7 +82,7 @@ namespace Operations.Intermesh.Basics
         {
             foreach (var capsule in capsules.Where(c => c.A.Id != p.Id && c.B.Id != p.Id))
             {
-                var projection = capsule.Segment.ProjectionWithIn(p.Point, GapConstants.Resolver);
+                var projection = capsule.Segment.Projection(p.Point, GapConstants.Resolver);
                 if (projection is null) { continue; }
                 var distance = Point3D.Distance(projection, p.Point);
                 if (distance < GapConstants.Resolver)

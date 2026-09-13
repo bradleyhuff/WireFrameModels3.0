@@ -53,6 +53,18 @@ namespace Operations.Intermesh.Basics
             }
         }
 
+        public double CoplanarDeviation
+        {
+            get
+            {
+                var plane = Triangle.Plane;
+                var points = Segments.Points().Select(p => p.Point).ToArray();
+
+                var distances = points.Select(p => plane.Distance(p)).ToArray();
+                return BasicObjects.Math.Math.Max(distances);
+            }
+        }
+
         public IEnumerable<IntermeshEdgeSlot> PerimeterSlots
         {
             get

@@ -1,5 +1,6 @@
 ﻿using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
+using Collections.WireFrameMesh.Basics;
 using FileExportImport;
 using Operations.Intermesh.Basics;
 using System.Collections.Generic;
@@ -159,45 +160,57 @@ namespace Operations.Diagnostics
                 var clips = zone.Clip(triangle.PerimeterSegments.Select(s => s.Segment));
                 clips = clips.TranslateToPointAndScale(focusAt, magnification);
                 WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/Perimeter");
+                //WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle/Perimeter-{triangle.Id}");
             }
             {
                 var clips = zone.Clip(triangle.IntersectionSegments.Select(s => s.Segment));
                 clips = clips.TranslateToPointAndScale(focusAt, magnification);
                 WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/Intersections");
+                //WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle/Intersections-{triangle.Id}");
             }
-            {
-                var clips = zone.Clip(triangle.IntersectingTriangles.Select(t => t.Triangle).SelectMany(t => t.Edges));
-                clips = clips.TranslateToPointAndScale(focusAt, magnification);
-                WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/IntersectingTriangles");
-            }
+            //{
+            //    var clips = zone.Clip(triangle.IntersectingTriangles.Select(t => t.Triangle).SelectMany(t => t.Edges));
+            //    clips = clips.TranslateToPointAndScale(focusAt, magnification);
+            //    WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/IntersectingTriangles");
+            //}
 
-            foreach (var segment in triangle.PerimeterSegments)
-            {
-                var clip = zone.Clip(segment.Segment);
-                clip = clip.TranslateToPointAndScale(focusAt, magnification);                
-                WavefrontFile.Export([clip], $"Wavefront/IntermeshTriangle-{triangle.Id}/Perimeter-Segment-{segment.Key}-{segment.Id}");
-                //BaseObjects.Console.WriteLine($"Length {segment.Segment.Length.ToString("E3")}");
-            }
-            foreach (var segment in triangle.IntersectionSegments)
-            {
-                var clip = zone.Clip(segment.Segment);
-                clip = clip.TranslateToPointAndScale(focusAt, magnification);
-                WavefrontFile.Export([clip], $"Wavefront/IntermeshTriangle-{triangle.Id}/Intersection-Segment-{segment.Key}-{segment.Id}");
-                //BaseObjects.Console.WriteLine($"Length {segment.Segment.Length.ToString("E3")}");
-            }
+            //foreach (var segment in triangle.PerimeterSegments)
+            //{
+            //    var clip = zone.Clip(segment.Segment);
+            //    clip = clip.TranslateToPointAndScale(focusAt, magnification);                
+            //    WavefrontFile.Export([clip], $"Wavefront/IntermeshTriangle-{triangle.Id}/Perimeter-Segment-{segment.Key}-{segment.Id}");
+            //    //BaseObjects.Console.WriteLine($"Length {segment.Segment.Length.ToString("E3")}");
+            //}
+            //foreach (var segment in triangle.IntersectionSegments)
+            //{
+            //    var clip = zone.Clip(segment.Segment);
+            //    clip = clip.TranslateToPointAndScale(focusAt, magnification);
+            //    WavefrontFile.Export([clip], $"Wavefront/IntermeshTriangle-{triangle.Id}/Intersection-Segment-{segment.Key}-{segment.Id}");
+            //    //BaseObjects.Console.WriteLine($"Length {segment.Segment.Length.ToString("E3")}");
+            //}
 
-            foreach (var filling in triangle.Fillings)
-            {
-                var clips = zone.Clip(filling.Triangle);
-                clips = clips.TranslateToPointAndScale(focusAt, magnification);
-                WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/FillTriangle-{filling.Id}");
-            }
+            //foreach (var filling in triangle.Fillings)
+            //{
+            //    var clips = zone.Clip(filling.Triangle);
+            //    clips = clips.TranslateToPointAndScale(focusAt, magnification);
+            //    WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/FillTriangle-{filling.Id}");
+            //}
 
-            foreach (var intersectingTriangle in triangle.IntersectingTriangles)
+            //foreach (var intersectingTriangle in triangle.IntersectingTriangles)
+            //{
+            //    var clips = zone.Clip(intersectingTriangle.Triangle.Edges);
+            //    clips = clips.TranslateToPointAndScale(focusAt, magnification);
+            //    WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/IntersectingTriangle -{intersectingTriangle.Id}");
+            //}
+        }
+
+        internal static void Dump(this IEnumerable<LineSegment3D> segments, Point3D focusAt, double magnification, string text = "")
+        {
+            var zone = new Rectangle3D(focusAt, 1 / magnification);
             {
-                var clips = zone.Clip(intersectingTriangle.Triangle.Edges);
+                var clips = zone.Clip(segments);
                 clips = clips.TranslateToPointAndScale(focusAt, magnification);
-                WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle-{triangle.Id}/IntersectingTriangle -{intersectingTriangle.Id}");
+                WavefrontFile.Export(clips, $"Wavefront/IntermeshTriangle/Segments");
             }
         }
 

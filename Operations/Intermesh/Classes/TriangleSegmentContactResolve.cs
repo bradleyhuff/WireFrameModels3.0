@@ -1,12 +1,15 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
+using BasicObjects.Math;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Operations.Basics;
 using Operations.Intermesh.Basics;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,16 +22,18 @@ namespace Operations.Intermesh.Classes
             DateTime start = DateTime.Now;
 
             int count = 0;
+            var usedSegments = new Combination2Dictionary<bool>();
             while (true)
             {
                 Assign(intermeshTriangles);
-                var wasChanged = Resolve(intermeshTriangles);
+                var wasChanged = Resolve(intermeshTriangles, count, usedSegments);
+
                 count++;
 
-                BaseObjects.Console.WriteLine($"{count} Was changed {wasChanged}", 
-                    count > 20 ? ConsoleColor.White : ConsoleColor.Gray, 
-                    count > 20 ? ConsoleColor.Red : ConsoleColor.Black);
-                if (!wasChanged || count > 20) { break; }
+                BaseObjects.Console.WriteLine($"{count} Was changed {wasChanged}",
+                    count > 19 ? ConsoleColor.White : ConsoleColor.Gray,
+                    count > 19 ? ConsoleColor.Red : ConsoleColor.Black);
+                if (!wasChanged || count > 19) { break; }
             }
 
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle segment contact resolve. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
@@ -36,14 +41,14 @@ namespace Operations.Intermesh.Classes
 
         internal static void Assign(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            var allSegments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(i => i.Id).ToArray();
+            var allSegments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(i => i.Id).Where(s => !s.IsRemoved).ToArray();
             foreach (var segment in allSegments) { segment.ClearContacts(); }
 
-            var segmentBucket = new BoxBucket<IntermeshSegment>(allSegments.Where(s => !s.IsRemoved));
-            foreach (var segment in allSegments.Where(s => !s.IsRemoved))
+            var segmentBucket = new BoxBucket<IntermeshSegment>(allSegments);
+            foreach (var segment in allSegments)
             {
-                var matches = segmentBucket.Fetch(segment, 1e-5).Where(m => m.Id != segment.Id);
-                segment.AddRangeContacts(matches.Where(m => LineSegment3D.Distance(m.Segment, segment.Segment) < GapConstants.Resolver));
+                var matches = segmentBucket.Fetch(segment, 1e-5).Where(m => m.Id != segment.Id).ToArray();
+                segment.AddRangeContacts(matches.Where(m => LineSegment3D.Distance(m.Segment, segment.Segment) < GapConstants.Resolver).ToArray());
             }
 
             //var contacts = intermeshTriangles.SelectMany(t => t.Segments.Where(s => !s.IsRemoved).SelectMany(s => s.Contacts.Where(s => !s.IsRemoved)).DistinctBy(c => c.Id));
@@ -67,19 +72,20 @@ namespace Operations.Intermesh.Classes
             return pairs;
         }
 
-        private static bool Resolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        private static bool Resolve(IEnumerable<IntermeshTriangle> intermeshTriangles, int count, Combination2Dictionary<bool> usedSegments)
         {
             var intersections = intermeshTriangles.SelectMany(t => t.IntersectionSegments).DistinctBy(s => s.Id).ToArray();
             if (!intersections.Any()) return false;
-            var wasChanged = ResolveCycle(intermeshTriangles);
+            var wasChanged = ResolveCycle(intermeshTriangles, count, usedSegments);
             if (!wasChanged) return false;
-            while (ResolveCycle(intermeshTriangles));
+            while (ResolveCycle(intermeshTriangles, count, usedSegments)) ;
             InlineMultiSlotSegmentResolve(intermeshTriangles);
             JunctionSlotResolve(intermeshTriangles);
+            CoplanarResolve(intermeshTriangles);
             return true;
         }
 
-        private static bool ResolveCycle(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        private static bool ResolveCycle(IEnumerable<IntermeshTriangle> intermeshTriangles, int count, Combination2Dictionary<bool> usedSegments)
         {
             var segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
             var pairs = BuildPairsTable(segments);
@@ -88,8 +94,8 @@ namespace Operations.Intermesh.Classes
             NearParallelReplacements(intermeshTriangles, segments, ref pairs);
 
             var unresolvedPairs = pairs.Where(p => !IntermeshSegmentExtensions.IsResolved(p.Value)).ToArray();
-            var unresolvedNearInlinePairs = unresolvedPairs.Where(u => IntermeshSegmentExtensions.IsNearInLineParallel(u.Value)).ToArray();
-            var unresolvedCrossPairs = unresolvedPairs.Where(u => IntermeshSegmentExtensions.IsCross(u.Value)).ToArray();
+
+            //BaseObjects.Console.WriteLine($"Unresolved pairs {unresolvedPairs.Length}");
 
             foreach (var unresolvedPair in unresolvedPairs)
             {
@@ -101,7 +107,11 @@ namespace Operations.Intermesh.Classes
                 if (inLine) InLineResolve(unresolvedPair.Value); else if (isCross) CrossResolve(unresolvedPair.Value); else GapResolve(unresolvedPair.Value);
             }
 
-            var wasChanged = segments.Any(s => s.WasChanged);
+            var changedSegments = segments.Where(s => s.WasChanged && !usedSegments.ContainsKey(s.Key)).ToArray();
+            if (count > 3) { foreach (var changedSegment in changedSegments) { usedSegments[changedSegment.Key] = true; } }
+            var wasChanged = changedSegments.Any();
+
+            //BaseObjects.Console.WriteLine($"{count}    Was changed: {string.Join(", ", changedSegments.Take(5).Select(c => $"{c.Key} {c.Segment.Length.ToString("E3")} {c.Id}"))}");
 
             if (wasChanged) SegmentReplacements(intermeshTriangles);
 
@@ -135,7 +145,7 @@ namespace Operations.Intermesh.Classes
         private static IntermeshSegment GetReplacement(IntermeshSegment input)
         {
             var replacement = input.Replacement;
-            while (replacement.Replacement is not null)
+            while (replacement.Replacement is not null && !replacement.Replacement.IsRemoved)
             {
                 replacement = replacement.Replacement;
             }
@@ -318,17 +328,12 @@ namespace Operations.Intermesh.Classes
             unresolvedPair.Item1.ExtendWith(linkSegment.B);
         }
 
-        public static void JunctionSlotResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        private static void JunctionSlotResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var junctionSlots = intermeshTriangles.SelectMany(s => s.EdgeSlots).Where(s => s.JunctionPoints.Any()).DistinctBy(j => j.Id).ToArray();
-            //if (junctionSlots.Any())
-            //{
-            //    BaseObjects.Console.WriteLine($"Junction slots {string.Join(",", junctionSlots.Select(s => s.Id))}");
-            //}
             foreach (var junctionSlot in junctionSlots)
             {
                 var junctionPoints = junctionSlot.JunctionPoints.ToArray();
-                //BaseObjects.Console.WriteLine($"Junction slot {junctionSlot.Id} {string.Join(", ", junctionSlot.JunctionPoints.Select(j => $"{j.Junction.Id}: [{string.Join(", ", j.Segments.Select(s => s.Key))}]"))}");
                 foreach (var junctionPoint in junctionPoints)
                 {
                     var overlaps = junctionPoint.Segments.Where(s => junctionPoints.Any(j => j.Junction.Id == s.A.Id && j.Junction.Id == s.B.Id));
@@ -357,7 +362,7 @@ namespace Operations.Intermesh.Classes
             //BaseObjects.Console.WriteLine($"InLineSingleSlotSegmentRemovals Slots: {slots.Count()} Slots with junctions: {count} Mismatched slots {count2}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Yellow);
         }
 
-        public static void InlineMultiSlotSegmentResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        private static void InlineMultiSlotSegmentResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var start = DateTime.Now;
             var slots = intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).ToArray();
@@ -398,7 +403,6 @@ namespace Operations.Intermesh.Classes
 
             foreach (var inlineReplacement in inLineReplacements)
             {
-                //BaseObjects.Console.WriteLine($"Segment replacement: <{string.Join(",", inlineReplacement.ReplaceIn.Select(s => s.Id))}> {inlineReplacement.ToBeReplaced.Key} => [{string.Join(",", inlineReplacement.ReplaceWith.Select(s => s.Key))}]", ConsoleColor.Cyan);
                 foreach (var slot in inlineReplacement.ReplaceIn)
                 {
                     var list = slot.Segments;
@@ -409,6 +413,80 @@ namespace Operations.Intermesh.Classes
                 }
             }
             //BaseObjects.Console.WriteLine($"InLineMultiSlotSegmentReplacements Slots: {slots.Count()} Segments: {segments.Count()} Points: {points.Count()}   Elapsed Time {(DateTime.Now - start).TotalSeconds} seconds", ConsoleColor.Cyan);
+        }
+        private static void CoplanarResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            var kinkTriangles = intermeshTriangles.Where(t => t.CoplanarDeviation > GapConstants.Resolver);
+            foreach (var kinkTriangle in kinkTriangles)
+            {
+                var kinkPoints = kinkTriangle.Segments.Points().Where(p => kinkTriangle.Triangle.Plane.Distance(p.Point) > GapConstants.Resolver).ToArray();
+                var kinkPoints2 = kinkPoints.Select(k => k.Id).ToArray();
+                //var adjacents = kinkTriangle.PositionTriangle.AllAdjacents.Select(a => a.Id).ToArray();
+                //var adjacents2 = intermeshTriangles.Where(t => adjacents.Any(a => a == t.PositionTriangle.Id)).ToArray();
+                //var adjacentsWithKink = adjacents2.Where(a => a.Segments.Points().Any(k => kinkPoints2.Any(kk => kk == k.Id))).ToArray();
+                //var adjacentsWithKink2 = adjacents2.Where(a => a.Segments.Points().Any(k => kinkPoints2.Any(kk => kk == k.Id))).Select(t => (Triangle: t, KinkPoints: kinkPoints.Where(k => t.Segments.Points().Any(pp => pp.Id == k.Id)))).ToArray();
+
+                BaseObjects.Console.WriteLine($"Kink triangle {kinkTriangle.Id}  {kinkTriangle.CoplanarDeviation.ToString("E3")} Kink points {string.Join(", ", kinkPoints.Select(k => k.Id))}", ConsoleColor.Black, ConsoleColor.Yellow);
+                //BaseObjects.Console.WriteLine($"Kink triangle {kinkTriangle.Id}  {kinkTriangle.CoplanarDeviation.ToString("E3")} Angle {kinkTriangle.Triangle.Plane.AngleFromSurface(s.Segment.Segment).ConvertToDegrees().ToString("##0")}", ConsoleColor.White, ConsoleColor.Red);
+                //BaseObjects.Console.WriteLine($"Base Triangle {kinkTriangle.Id}");
+
+                //var kinkPointTable = new Dictionary<int, IntermeshPoint>();
+                //var basePointTable = new Dictionary<int, (IntermeshTriangle Triangle, IntermeshPoint[] Bases)>();
+                var segmentsToMoveTable = new Dictionary<int, List<(IntermeshTriangle Triangle, IntermeshSegment Segment)>>();
+
+                foreach (var kinkPoint in kinkPoints)
+                {
+                    //kinkPointTable[kinkPoint.Id] = kinkPoint;
+                    var containingSegments = kinkTriangle.Segments.Where(s => s.Key.Indicies.Any(i => i == kinkPoint.Id)).DistinctBy(s => s.Key, Combination2Comparer.Comparer).Select(s => (Triangle: kinkTriangle, Segment: s));
+                    segmentsToMoveTable[kinkPoint.Id] = [.. containingSegments];
+                    //BaseObjects.Console.WriteLine($"    Kink point {kinkPoint.Id}\n{string.Join("\n", containingSegments.Select(s => $"        {s.Segment.Key} {s.Segment.Segment.Length.ToString("E3")} " +
+                    //    $"[{kinkTriangle.Triangle.Plane.Distance(s.Segment.KeyPointA.Point).ToString("E3")}, {kinkTriangle.Triangle.Plane.Distance(s.Segment.KeyPointB.Point).ToString("E3")}] " +
+                    //    $"Angle {kinkTriangle.Triangle.Plane.AngleFromSurface(s.Segment.Segment).ConvertToDegrees().ToString("##0")}"))}");
+                }
+                //foreach (var adjacentWithKink in adjacentsWithKink2)
+                //{
+                //    BaseObjects.Console.WriteLine($"Next Triangle {adjacentWithKink.Triangle.Id}");
+                //    foreach (var kinkPoint in adjacentWithKink.KinkPoints)
+                //    {
+                //        //var containingSegments0 = adjacentWithKink.Triangle.Segments.Where(s => s.Key.Indicies.Any(i => i == kinkPoint.Id));
+                //        var containingSegments = adjacentWithKink.Triangle.Segments.Where(s => s.Key.Indicies.Any(i => i == kinkPoint.Id)).DistinctBy(s => s.Key, Combination2Comparer.Comparer).Select(s => (Triangle: adjacentWithKink.Triangle, Segment: s));
+                //        segmentsToMoveTable[kinkPoint.Id].AddRange(containingSegments);
+                //        BaseObjects.Console.WriteLine($"    Kink point {kinkPoint.Id}\n{string.Join("\n", containingSegments.Select(s => $"        {s.Segment.Key} {s.Segment.Segment.Length.ToString("E3")} " +
+                //        $"[{adjacentWithKink.Triangle.Triangle.Plane.Distance(s.Segment.KeyPointA.Point).ToString("E3")}, {adjacentWithKink.Triangle.Triangle.Plane.Distance(s.Segment.KeyPointB.Point).ToString("E3")}] " +
+                //        $"Angle {kinkTriangle.Triangle.Plane.AngleFromSurface(s.Segment.Segment).ConvertToDegrees().ToString("##0")}"))}");
+                //    }
+                //}
+
+                //foreach (var adjacentWithKink in adjacentsWithKink)
+                //{
+                //    foreach (var kinkPoint in kinkPoints)
+                //    {
+                //        var kinkSegments = segmentsToMoveTable[kinkPoint.Id].Where(s => s.Triangle.Id == kinkTriangle.Id);
+                //        var potentialBasePoints = kinkSegments.Select(k => k.Segment).Points().Where(p => p.Id != kinkPoint.Id).ToArray();
+                //        var basePoints = potentialBasePoints.Where(p => adjacentWithKink.Segments.Points().Any(pp => p.Id == pp.Id)).ToArray();
+                //        basePointTable[kinkPoint.Id] = (Triangle: adjacentWithKink, Bases: basePoints);
+                //    }
+                //}
+                foreach (var kinkPoint in kinkPoints)
+                {
+                    var segments = segmentsToMoveTable[kinkPoint.Id].Where(s => s.Triangle.Id == kinkTriangle.Id).Select(k => k.Segment);
+                    var angles = segments.Select(s => kinkTriangle.Triangle.Plane.AngleFromSurface(s.Segment)).ToArray();
+                    if (BasicObjects.Math.Math.Max(angles) < 0.5) { continue; }
+                    //var bases = basePointTable[kinkPoint.Id];
+                    var endPoints = segments.Points().Where(p => p.Id != kinkPoint.Id).ToArray();
+                    if (endPoints.Length != 2) { continue; }
+                    var slots = kinkTriangle.EdgeSlots.Where(s => s.Segments.Points().Any(p => p.Id == kinkPoint.Id)).ToArray();
+                    foreach (var slot in slots)
+                    {
+                        foreach (var removal in segments)
+                        {
+                            slot.Segments.Remove(removal);
+                        }
+                        slot.Segments.Add(new IntermeshSegment(endPoints[0], endPoints[1]));
+                        BaseObjects.Console.WriteLine($"Kink point {kinkPoint.Id} removed from slot {slot.Id} in triangle {kinkTriangle.Id}", ConsoleColor.Yellow);
+                    }
+                }
+            }
         }
     }
 }

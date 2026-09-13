@@ -234,6 +234,16 @@ namespace Operations.Intermesh.Basics
             get { return new Combination2(A.Id, B.Id); }
         }
 
+        public IntermeshPoint KeyPointA
+        {
+            get { return A.Id == Key.Indicies.First() ? A : B; }
+        }
+
+        public IntermeshPoint KeyPointB
+        {
+            get { return B.Id == Key.Indicies.First() ? A : B; }
+        }
+
         private Rectangle3D _box;
         public Rectangle3D Box
         {

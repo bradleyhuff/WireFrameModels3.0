@@ -29,7 +29,7 @@ internal static class GridIntermesh
         TriangleSegmentContactResolve.Action(collection);
         ExtractFillTriangles.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);
-        SurfaceBoundaryResolve.Action(mesh);
+        //SurfaceBoundaryResolve.Action(mesh);
 
         if (!Mode.ThreadedRun) ConsoleLog.Pop();
         if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
@@ -62,7 +62,7 @@ internal static class GridIntermesh
         TriangleSegmentContactResolve.Action(collection);
         ExtractFillTriangles.Action(collection);
         UpdateResultsGrid.Action(mesh, collection);
-        SurfaceBoundaryResolve.Action(mesh);
+        //SurfaceBoundaryResolve.Action(mesh);
 
         if (!Mode.ThreadedRun) ConsoleLog.Pop();
         if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Intermesh: Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");

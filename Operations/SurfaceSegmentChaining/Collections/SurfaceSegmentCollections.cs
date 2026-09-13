@@ -28,7 +28,7 @@ namespace Operations.SurfaceSegmentChaining.Collections
                 table[segment.A.Index] = segment.A;
                 table[segment.B.Index] = segment.B;
             }
-            foreach (var segment in segmentSet.DividingSegments)
+            foreach (var segment in segmentSet.IntersectionSegments)
             {
                 table[segment.A.Index] = segment.A;
                 table[segment.B.Index] = segment.B;
@@ -45,7 +45,7 @@ namespace Operations.SurfaceSegmentChaining.Collections
                     backTable[segment.A.Index], backTable[segment.B.Index], Rank.Perimeter, segmentSet.GroupKey, segmentSet.GroupObject);
                 AddToLinkSegments(keyTable, surfaceSegment);
             }
-            foreach (var segment in segmentSet.DividingSegments)
+            foreach (var segment in segmentSet.IntersectionSegments)
             {
                 var surfaceSegment = new LinkedIndexSegment<G>(
                     backTable[segment.A.Index], backTable[segment.B.Index], Rank.Dividing, segmentSet.GroupKey, segmentSet.GroupObject);

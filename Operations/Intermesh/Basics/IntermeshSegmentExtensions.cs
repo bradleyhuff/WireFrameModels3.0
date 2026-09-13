@@ -166,6 +166,18 @@ namespace Operations.Intermesh.Basics
             return false;
         }
 
+        public static IEnumerable<IntermeshSegment> DivisionByCapsules(this IEnumerable<IntermeshSegment> input)
+        {
+            foreach (var segment in input.Where(s => !s.IsRemoved))
+            {
+                if (segment.Capsules.Count == 1) { yield return segment; }
+                foreach (var capsule in segment.Capsules)
+                {
+                    yield return new IntermeshSegment(capsule);
+                }
+            }
+        }
+
         public static IEnumerable<IntermeshSegment> NonRepeating(this IEnumerable<IntermeshSegment> input)
         {
             return input.GroupBy(g => g.Key, Combination2Comparer.Comparer).Select(l => l.First());
@@ -237,6 +249,20 @@ namespace Operations.Intermesh.Basics
                 if (newLead == segment.B.Id) { return chain.Skip(1).Select(c => c.Link); }
             }
             return Enumerable.Empty<IntermeshSegment>();
+        }
+
+        private static Dictionary<(int, int), IntermeshSegment> segmentTable = new Dictionary<(int, int), IntermeshSegment>();
+
+        public static IntermeshSegment Fetch(IntermeshPoint a, IntermeshPoint b)
+        {
+            if (!segmentTable.ContainsKey((a.Id, b.Id))) { segmentTable[(a.Id, b.Id)] = new IntermeshSegment(a, b); }
+            return segmentTable[(a.Id, b.Id)];
+        }
+
+        public static IntermeshSegment Fetch(IntermeshCapsule c)
+        {
+            if (!segmentTable.ContainsKey((c.A.Id, c.B.Id))) { segmentTable[(c.A.Id, c.B.Id)] = new IntermeshSegment(c); }
+            return segmentTable[(c.A.Id, c.B.Id)];
         }
     }
 }

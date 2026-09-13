@@ -1,4 +1,6 @@
 ﻿using BaseObjects;
+using BasicObjects.GeometricObjects;
+using BasicObjects.Math;
 using BasicObjects.MathExtensions;
 using Operations.PlanarFilling.Basics;
 using Operations.SurfaceSegmentChaining.Basics;
@@ -14,12 +16,11 @@ namespace Operations.Intermesh.Basics
     {
         public static IEnumerable<SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint>> CreateSurfaceSegmentSets(this IntermeshTriangle triangle)
         {
-            var perimeterSegments = triangle.PerimeterSlots.SelectMany(s => s.Segments).NonRepeating().NoSpurs().ToArray();
-            var intersectionSegments = triangle.IntersectionSlots.Where(s => !triangle.PerimeterSlots.Any(p => p.Key == s.Key)).SelectMany(s => s.Segments).ToArray();
+            var perimeterSegments = triangle.PerimeterSlots.SelectMany(s => s.Segments.DivisionByCapsules()).NonRepeating().NoSpurs().ToArray();
+            var intersectionSegments = triangle.IntersectionSlots.Where(s => !triangle.PerimeterSlots.Any(p => p.Key == s.Key)).SelectMany(s => s.Segments.DivisionByCapsules()).ToArray();
             intersectionSegments = intersectionSegments.ExceptBy(perimeterSegments.Select(s => s.Key), s => s.Key, Combination2Comparer.Comparer).ToArray();/*.DistinctBy(i => i.Key, Combination2Comparer.Comparer)*//*.NoSpurs()*/
 
             RemoveSpurs(perimeterSegments, ref intersectionSegments);
-
             var splits = BoundaryPointSplit(perimeterSegments, intersectionSegments);
 
             splits = splits.Select(s => (Perimeter: RemoveSpurs(s.Perimeter), Intersecting: s.Intersecting)).Where(s => s.Perimeter.Any()).ToArray();
@@ -30,7 +31,7 @@ namespace Operations.Intermesh.Basics
                 {
                     NodeId = triangle.Id,
                     GroupObject = new PlanarFillingGroup(triangle.Triangle.Plane, triangle.Triangle.Box.Diagonal),
-                    DividingSegments = GetSurfaceSegments(triangle, split.Intersecting).ToArray(),
+                    IntersectionSegments = GetSurfaceSegments(triangle, split.Intersecting).ToArray(),
                     PerimeterSegments = GetSurfaceSegments(triangle, split.Perimeter).ToArray()
                 };
             }

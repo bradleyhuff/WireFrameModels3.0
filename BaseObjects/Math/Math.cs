@@ -116,5 +116,10 @@ namespace BasicObjects.Math
         {
             return angle * 180.0 / System.Math.PI;
         }
+
+        public static string ConvertToDegrees(this double angle, string format)
+        {
+            return angle.ConvertToDegrees().ToString(format);
+        }
     }
 }

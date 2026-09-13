@@ -453,7 +453,7 @@ namespace Operations.PositionRemovals
             {
                 NodeId = position.Id,
                 GroupObject = new PlanarFillingGroup(plane, box.Diagonal),
-                DividingSegments = Array.Empty<SurfaceSegmentContainer<PositionNormal>>(),
+                IntersectionSegments = Array.Empty<SurfaceSegmentContainer<PositionNormal>>(),
                 PerimeterSegments = arc.Select(e => new SurfaceSegmentContainer<PositionNormal>(
                     new SurfaceRayContainer<PositionNormal>(PositionNormal.GetRay(e.A), normal, e.A.Id, e.A),
                     new SurfaceRayContainer<PositionNormal>(PositionNormal.GetRay(e.B),normal, e.B.Id, e.B))).ToArray()
@@ -488,7 +488,7 @@ namespace Operations.PositionRemovals
             {
                 NodeId = position.Id,
                 GroupObject = new PlanarFillingGroup(plane, box.Diagonal),
-                DividingSegments = Array.Empty<SurfaceSegmentContainer<PositionNormal>>(),
+                IntersectionSegments = Array.Empty<SurfaceSegmentContainer<PositionNormal>>(),
                 PerimeterSegments = perimeter.Select(e => new SurfaceSegmentContainer<PositionNormal>(
                     new SurfaceRayContainer<PositionNormal>(PositionNormal.GetRay(e.A), positionNormal.Normal, e.A.Id, e.A),
                     new SurfaceRayContainer<PositionNormal>(PositionNormal.GetRay(e.B), positionNormal.Normal, e.B.Id, e.B))).ToArray()

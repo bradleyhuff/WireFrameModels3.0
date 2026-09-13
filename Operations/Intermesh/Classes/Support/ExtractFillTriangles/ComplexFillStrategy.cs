@@ -65,22 +65,24 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 BaseObjects.Console.WriteLine($"Triangle: {triangle.Id} {e.Message}", ConsoleColor.Red);
                 triangle.Show();
 
-                var slotTable = new Combination2Dictionary<int>();
-                foreach (var slot in triangle.EdgeSlots)
-                {
-                    foreach (var segment in slot.Segments)
-                    {
-                        slotTable[segment.Key] = slot.Id;
-                    }
-                }
+                //var slotTable = new Combination2Dictionary<int>();
+                //foreach (var slot in triangle.EdgeSlots)
+                //{
+                //    foreach (var segment in slot.Segments)
+                //    {
+                //        slotTable[segment.Key] = slot.Id;
+                //    }
+                //}
 
-                BaseObjects.Console.WriteLine();
-                BaseObjects.Console.WriteLine($"Perimeters {string.Join(", ", surfaceSet.PerimeterSegments.Select(s => $"{slotTable[new Combination2(s.A.Reference.Id, s.B.Reference.Id)]}: [{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
-                BaseObjects.Console.WriteLine($"Dividings {string.Join(", ", surfaceSet.DividingSegments.Select(s => $"{slotTable[new Combination2(s.A.Reference.Id, s.B.Reference.Id)]}: [{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
-                var pointCount = surfaceSet.PerimeterSegments.SelectMany(ss => ss.Points).GroupBy(g => g.Reference.Id);
-                BaseObjects.Console.WriteLine($"Boundary points [{string.Join(",", pointCount.Where(g => g.Count() > 2).Select(g => g.Key))}]");
-                //triangle.Dump(triangle.Triangle.Center, 1e0);
-                //WavefrontFile.Export([triangle.Triangle], $"Wavefront/Trim/ErrorTriangle-{triangle.Id}");
+                //BaseObjects.Console.WriteLine();
+                //BaseObjects.Console.WriteLine($"Perimeters {string.Join(", ", surfaceSet.PerimeterSegments.Select(s => $"{slotTable[new Combination2(s.A.Reference.Id, s.B.Reference.Id)]}: [{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
+                //BaseObjects.Console.WriteLine($"Dividings {string.Join(", ", surfaceSet.DividingSegments.Select(s => $"{slotTable[new Combination2(s.A.Reference.Id, s.B.Reference.Id)]}: [{s.A.Reference.Id}, {s.B.Reference.Id}]"))}");
+                //var pointCount = surfaceSet.PerimeterSegments.SelectMany(ss => ss.Points).GroupBy(g => g.Reference.Id);
+                //BaseObjects.Console.WriteLine($"Boundary points [{string.Join(",", pointCount.Where(g => g.Count() > 2).Select(g => g.Key))}]");
+                //var center = triangle.Segments.SelectMany(s => s.Points).FirstOrDefault(p => p.Id == 1752);
+                var center = triangle.Triangle.Center;
+                triangle.Dump(center, 1e0);
+                ////WavefrontFile.Export([triangle.Triangle], $"Wavefront/Trim/ErrorTriangle-{triangle.Id}");
             }
         }
 

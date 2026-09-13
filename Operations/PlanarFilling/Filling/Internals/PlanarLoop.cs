@@ -320,7 +320,7 @@ namespace Operations.PlanarFilling.Filling.Internals
                 {
                     if (fillOverride)
                     {
-                        Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}  Fill override applied.");
+                        BaseObjects.Console.WriteLine($"Triangle node {_triangleID} Loop {Id} could not be filled {_passOverCount} > {_startCount}  Fill override applied.", ConsoleColor.Yellow);
                         AdvanceAndFill(leftIndex, index, rightIndex);
                         return false;
                     }

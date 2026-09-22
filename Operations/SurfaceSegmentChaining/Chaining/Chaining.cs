@@ -10,15 +10,14 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 {
     internal static class Chaining
     {
-        public static IEnumerable<ISurfaceSegmentChaining<G, T>> SplitByPerimeterLoops<G, T>(ISurfaceSegmentChaining<G, T> chain) 
+        public static IEnumerable<ISurfaceSegmentChaining<G, T>> SplitByPerimeterLoops<G, T>(ISurfaceSegmentChaining<G, T> chain)
             where G : class
-            //where T : ProtectedIndexedLoops, new()
         {
             var protectedIndexedLoops = ProtectedIndexedLoops.SplitByPerimeterIndexLoops<ProtectedIndexedLoops>(chain.ProtectedIndexedLoops).ToArray();
 
             for (int i = 0; i < chain.PerimeterLoops.Count; i++)
             {
-                yield return new SplitChain<G, T>(
+                yield return new ModifiedChain<G, T>(
                     chain.ReferenceArray,
                     protectedIndexedLoops[i],
                     [chain.PerimeterLoopGroupKeys[i]],
@@ -36,11 +35,51 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                     );
             }
         }
+        public static ISurfaceSegmentChaining<G, T> WhereLoop<G, T>(this ISurfaceSegmentChaining<G, T> chain, Func<SurfaceRayContainer<T>[], bool> includeLoop)
+        where G : class
+        {
+            var includedLoopsIndicies = new List<int>();
+            for (int i = 0; i < chain.Loops.Count; i++)
+            {
+                if (includeLoop(chain.Loops[i]))
+                {
+                    includedLoopsIndicies.Add(i);
+                }
+            }
+
+            var includedLoopsKeys = new List<int>();
+            var includedLoopObjects = new List<G>();
+            var includedLoops = new List<SurfaceRayContainer<T>[]>();
+
+            for (int i = 0; i < includedLoopsIndicies.Count; i++)
+            {
+                includedLoopsKeys.Add(chain.LoopGroupKeys[includedLoopsIndicies[i]]);
+                includedLoopObjects.Add(chain.LoopGroupObjects[includedLoopsIndicies[i]]);
+                includedLoops.Add(chain.Loops[includedLoopsIndicies[i]]);
+            }
+
+            return new ModifiedChain<G, T>(
+                chain.ReferenceArray,
+                ProtectedIndexedLoops.IncludeLoopsByIndex<ProtectedIndexedLoops>(chain.ProtectedIndexedLoops, includedLoopsIndicies),
+                chain.PerimeterLoopGroupKeys,
+                includedLoopsKeys,//
+                chain.SpurredLoopGroupKeys,
+                chain.SpurGroupKeys,
+                chain.PerimeterLoopGroupObjects,
+                includedLoopObjects,//
+                chain.SpurredLoopGroupObjects,
+                chain.SpurGroupObjects,
+                chain.PerimeterLoops,
+                includedLoops,//
+                chain.SpurredLoops,
+                chain.Spurs
+                );
+        }
     }
 
-    internal class SplitChain<G, T> : ISurfaceSegmentChaining<G, T> where G : class
+    internal class ModifiedChain<G, T> : ISurfaceSegmentChaining<G, T> where G : class
     {
-        public SplitChain(
+        public ModifiedChain(
             IReadOnlyList<SurfaceRayContainer<T>> referenceArray,
             ProtectedIndexedLoops protectedIndexedLoops,
             List<int> perimeterLoopGroupKeys,

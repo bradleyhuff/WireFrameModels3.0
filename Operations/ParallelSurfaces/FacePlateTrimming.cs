@@ -46,7 +46,7 @@ namespace Operations.ParallelSurfaces
                 //difference.ShowVitals();
                 //WavefrontFile.Export(difference, $"Wavefront/BeforeTrim/Cluster-{cluster.Id}");
                 int i = 0;
-                foreach (var set in disjointSets)
+                foreach (var set in disjointSets.Take(99))
                 {
                     //WavefrontFile.Export(set, $"Wavefront/Trim/Set-{cluster.Id}-{i}");
                     //Sets.RemoveTags2 = i != 1;

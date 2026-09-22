@@ -41,6 +41,8 @@ namespace Operations.Intermesh.Basics
         }
 
         public Combination3 Key { get; }
+        public Combination LoopKey { get; set; }
+        public IntermeshPoint[] Loop { get; set; }
 
         public int Id { get; }
 

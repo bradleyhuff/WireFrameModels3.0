@@ -43,7 +43,7 @@ namespace Operations.PlanarFilling.Filling
                 if (_fillings is null)
                 {
                     _fillings = _indexedFillTriangles.Select(f =>
-                        new SurfaceTriangleContainer<T>(_referenceArray[f.IndexPointA], _referenceArray[f.IndexPointB], _referenceArray[f.IndexPointC], f.FillId)).ToArray();
+                        new SurfaceTriangleContainer<T>(_referenceArray[f.IndexPointA], _referenceArray[f.IndexPointB], _referenceArray[f.IndexPointC], f.IndexLoop.Select(p => _referenceArray[p]).ToArray(), f.FillId)).ToArray();
                 }
                 return _fillings;
             }

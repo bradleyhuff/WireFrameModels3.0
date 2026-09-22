@@ -56,7 +56,8 @@ internal static class GridIntermesh
         //    if (matches.Any()) { newCollection.Add(triangle); }
         //}
 
-        //collection = collection.Where(c => c.IntersectionSlots.Any() || c.AB.Segments.Count() > 1 || c.BC.Segments.Count() > 1 || c.CA.Segments.Count() > 1).ToArray();
+        //collection = collection.Where(c => c.IntersectingTriangles.Any()).ToArray();
+        //collection = collection.Where(c => c.IntersectingTriangles.Any() || c.IntersectionSlots.Any() || c.AB.Segments.Count() > 1 || c.BC.Segments.Count() > 1 || c.CA.Segments.Count() > 1).ToArray();
         //collection = newCollection.ToArray();
 
         TriangleSegmentContactResolve.Action(collection);

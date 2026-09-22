@@ -5,11 +5,13 @@ namespace Operations.PlanarFilling.Filling.Internals
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public IndexSurfaceTriangle(int indexPointA, int indexPointB, int indexPointC, int fillId)
+        public IndexSurfaceTriangle(int indexPointA, int indexPointB, int indexPointC, int[] indexLoop, int fillId)
         {
             IndexPointA = indexPointA;
             IndexPointB = indexPointB;
             IndexPointC = indexPointC;
+            IndexLoop = indexLoop;
+
             lock (lockObject)
             {
                 Id = _id++;
@@ -21,6 +23,8 @@ namespace Operations.PlanarFilling.Filling.Internals
         public int IndexPointA { get; }
         public int IndexPointB { get; }
         public int IndexPointC { get; }
+
+        public int[] IndexLoop { get; }
 
         public IEnumerable<int> Indicies
         {

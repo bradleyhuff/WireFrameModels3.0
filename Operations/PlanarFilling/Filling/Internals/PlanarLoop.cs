@@ -300,7 +300,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             _passOverCount = 0;
             _tracker.RemoveIndex(index);
             _tracker.AdvanceStep(2);
-            _indexedFillTriangles.Add(new IndexSurfaceTriangle(IndexLoop[leftIndex], IndexLoop[index], IndexLoop[rightIndex], _basicFillId));
+            _indexedFillTriangles.Add(new IndexSurfaceTriangle(IndexLoop[leftIndex], IndexLoop[index], IndexLoop[rightIndex], IndexLoop.ToArray(), _basicFillId));
         }
 
         private void Advance(int leftIndex, int index, int rightIndex)

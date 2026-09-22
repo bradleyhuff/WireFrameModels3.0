@@ -11,11 +11,12 @@ namespace Operations.SurfaceSegmentChaining.Basics
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public SurfaceTriangleContainer(SurfaceRayContainer<T> a, SurfaceRayContainer<T> b, SurfaceRayContainer<T> c, int fillId)
+        public SurfaceTriangleContainer(SurfaceRayContainer<T> a, SurfaceRayContainer<T> b, SurfaceRayContainer<T> c, SurfaceRayContainer<T>[] loop, int fillId)
         {
             A = a;
             B = b;
             C = c;
+            Loop = loop;
             Triangle = new SurfaceTriangle(a, b, c);
             lock (lockObject)
             {
@@ -31,5 +32,6 @@ namespace Operations.SurfaceSegmentChaining.Basics
         public SurfaceRayContainer<T> A { get; }
         public SurfaceRayContainer<T> B { get; }
         public SurfaceRayContainer<T> C { get; }
+        public SurfaceRayContainer<T>[] Loop { get; }
     }
 }

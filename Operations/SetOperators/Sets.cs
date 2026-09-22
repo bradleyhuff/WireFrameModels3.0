@@ -6,6 +6,7 @@ using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
 using Operations.Basics;
 using Operations.Groupings.Basics;
+using Operations.Groupings.FileExportImport;
 using Operations.Intermesh;
 using Operations.Regions;
 using Console = BaseObjects.Console;
@@ -29,6 +30,8 @@ namespace Operations.SetOperators
             return Run("Union", gridA, gridB, (a, b) => (a == Region.OnBoundary && b != Region.Interior) || (a != Region.Interior && b == Region.OnBoundary));
         }
 
+        private static int count = 1;
+
         public static IWireFrameMesh Sum(this IWireFrameMesh gridA, IWireFrameMesh gridB)
         {
             return Run("Sum", gridA, gridB, (a, b) => true);
@@ -48,6 +51,39 @@ namespace Operations.SetOperators
             {
                 sum.Intermesh();
             }
+
+            var surfaces = GroupingCollection.ExtractSurfaces(sum.Triangles).ToArray();
+
+            Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+
+            //WavefrontFileGroups.ExportBySurfaces(sum,$"Wavefront/OpenEdges/Set-{count}/Surface");            
+            {
+                //var tags = sum.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
+                //var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
+                //Console.WriteLine($"Open edges {openEdges.Length}");
+                //WavefrontFile.Export(tags.SelectMany(t => t.OpenEdges).DistinctBy(e => e.Id), $"Wavefront/OpenEdges/Set-{count}/OpenEdges");
+
+                //int twoGroupId = 301633;
+                //var twoGroupTriangle = sum.Triangles.SingleOrDefault(t => t.Id == twoGroupId);
+                //if (twoGroupTriangle is not null)
+                //{
+                //    WavefrontFile.Export([twoGroupTriangle], $"Wavefront/OpenEdges/TwoGroupTriangle-{twoGroupId}");
+                //    WavefrontFile.Export(twoGroupTriangle.ABadjacents, $"Wavefront/OpenEdges/TwoGroupTriangleABadjacents-{twoGroupId}");
+                //    WavefrontFile.Export(twoGroupTriangle.BCadjacents, $"Wavefront/OpenEdges/TwoGroupTriangleBCadjacents-{twoGroupId}");
+                //    WavefrontFile.Export(twoGroupTriangle.CAadjacents, $"Wavefront/OpenEdges/TwoGroupTriangleCAadjacents-{twoGroupId}");
+
+                //    var triangle = twoGroupTriangle.Triangle;
+                //    var adjacents = twoGroupTriangle.BCadjacents;
+
+                //    foreach (var adjacent in adjacents)
+                //    {
+                //        var intersections = Triangle3D.LineSegmentIntersections(triangle, adjacent.Triangle);
+                //        Console.WriteLine($"Adjacent {adjacent.Id} Intersections {intersections.Count()}");
+                //        WavefrontFile.Export(intersections, $"Wavefront/OpenEdges/TwoGroupTriangleBCadjacentIntersections-{twoGroupId}");
+                //    }
+                //}
+            }
+            count++;
 
             var groups = SurfaceExtraction(sum);
             var remainingGroups = TestAndRemoveSurfaces(sum, groups, space, includeGroup);
@@ -262,6 +298,8 @@ namespace Operations.SetOperators
 
         private static int RemoveTags(IWireFrameMesh output)
         {
+            output.ShowVitals();
+
             var start = DateTime.Now;
             var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
             //BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Key} {t.Triangle.MinimumHeight.Normal.Magnitude.ToString("E2")}"))}");

@@ -153,7 +153,7 @@ namespace BasicObjects.GeometricObjects
 
         public override string ToString()
         {
-            return $"[{Start}, {End}] {Length}";
+            return $"[{Start}, {End}] {Length.ToString("E3")}";
         }
 
         public bool PointIsAtAnEndpoint(Point3D p)

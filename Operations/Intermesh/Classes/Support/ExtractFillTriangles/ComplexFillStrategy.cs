@@ -9,7 +9,9 @@ using Operations.PlanarFilling.Filling;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Collections;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 {
@@ -25,12 +27,25 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             }
         }
 
+        private CombinationDictionary<bool> _usedLoops = new CombinationDictionary<bool>();
+        //private CombinationDictionary<List<FillTriangle>> _usedLoops = new CombinationDictionary<List<FillTriangle>>();
+        //public CombinationDictionary<List<FillTriangle>> UsedLoops { get { return _usedLoops; } }
+
         private void GetFillTriangles(IntermeshTriangle triangle, SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint> surfaceSet)
         {
             var collection = new SurfaceSegmentCollections<PlanarFillingGroup, IntermeshPoint>(surfaceSet);
             try
             {
                 var chain = SurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>.Create(collection);
+
+                chain = chain.WhereLoop(loop =>
+                {
+                    var key = new Combination(loop.Select(p => p.Reference.Id));
+                    var isUsed = _usedLoops.ContainsKey(key);
+                    _usedLoops[key] = true;
+                    return !isUsed;
+                });
+
                 if (chain.Spurs.Any())
                 {
                     foreach (var spur in chain.Spurs)
@@ -53,11 +68,28 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 
                 foreach (var filling in fillings)
                 {
+                    //var loopKey = new Combination(filling.Loop.Select(p => p.Reference.Id));
+                    //if (filling.Loop.Length < 3)
+                    //{
+                    //    var isUsed = _usedLoops.ContainsKey(loopKey);
+
+                    //    if (isUsed) { continue; }
+                    //}
+
+
                     var fillTriangle = new FillTriangle(triangle,
                         filling.A.Reference,
                         filling.B.Reference,
                         filling.C.Reference);
+                    fillTriangle.LoopKey = new Combination(filling.Loop.Select(p => p.Reference.Id));
+                    fillTriangle.Loop = filling.Loop.Select(p => p.Reference).ToArray();
+
+                    //if (!_usedLoops.ContainsKey(fillTriangle.LoopKey)) { _usedLoops[fillTriangle.LoopKey] = new List<FillTriangle>(); }
+                    ////if (fillTriangle.LoopKey.Array.Length < 4 && _usedLoops[fillTriangle.LoopKey].Any()) { continue; }
+                    //_usedLoops[fillTriangle.LoopKey].Add(fillTriangle);
+                    //Console.WriteLine($"Triangle {triangle.Id} Fill {fillTriangle.Key}");
                     triangle.Fillings.Add(fillTriangle);
+                    //_usedLoops[loopKey] = true;
                 }
             }
             catch (Exception e)
@@ -80,8 +112,8 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 //var pointCount = surfaceSet.PerimeterSegments.SelectMany(ss => ss.Points).GroupBy(g => g.Reference.Id);
                 //BaseObjects.Console.WriteLine($"Boundary points [{string.Join(",", pointCount.Where(g => g.Count() > 2).Select(g => g.Key))}]");
                 //var center = triangle.Segments.SelectMany(s => s.Points).FirstOrDefault(p => p.Id == 1752);
-                var center = triangle.Triangle.Center;
-                triangle.Dump(center, 1e0);
+                //var center = triangle.Triangle.Center;
+                //triangle.Dump(center, 1e0);
                 ////WavefrontFile.Export([triangle.Triangle], $"Wavefront/Trim/ErrorTriangle-{triangle.Id}");
             }
         }

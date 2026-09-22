@@ -56,7 +56,8 @@ namespace BasicObjects.MathExtensions
         private static Combination2Comparer _comparer;
         public static Combination2Comparer Comparer
         {
-            get {
+            get
+            {
                 if (_comparer is null) { _comparer = new Combination2Comparer(); }
                 return _comparer;
             }
@@ -425,10 +426,17 @@ namespace BasicObjects.MathExtensions
 
     public class Combination
     {
-        public Combination(int[] array)
+        public Combination(IEnumerable<int> input)
         {
+            var array = input.ToArray();
             System.Array.Sort(array);
             Array = array;
+        }
+
+        public Combination(params int[] input)
+        {
+            System.Array.Sort(input);
+            Array = input;
         }
 
         public int[] Array { get; }
@@ -452,6 +460,20 @@ namespace BasicObjects.MathExtensions
             return false;
         }
 
+        public bool Covers(Combination compare)
+        {
+            if (compare.Array.Length > Array.Length) { return false; }
+            int iCompare = 0;
+            int commonIndiciesCount = 0;
+
+            for (int i = 0; i < Array.Length; i++)
+            {
+                if (Array[i] == compare.Array[iCompare]) { commonIndiciesCount++; iCompare++; }
+            }
+
+            return commonIndiciesCount == compare.Array.Length;
+        }
+
         public override bool Equals(object? obj)
         {
             throw new InvalidOperationException("Do not use this method in a dictionary.  Use CombinationDictionary.");
@@ -464,7 +486,7 @@ namespace BasicObjects.MathExtensions
 
         public override string ToString()
         {
-            return $"[{string.Join(",", Array)}]";
+            return $"[{string.Join(", ", Array)}]";
         }
     }
 

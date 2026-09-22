@@ -35,42 +35,6 @@ namespace Operations.Basics
             var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles);
             var faces = GroupingCollection.ExtractFaces(mesh.Triangles);
 
-            //var badTriangles = new List<PositionTriangle>();
-            //foreach (var triangle in mesh.Triangles)
-            //{
-            //    if (triangle.ABadjacents.Count > 1)
-            //    {
-            //        //Console.WriteLine($"{triangle.Id} AB count {triangle.ABadjacents.Count} Parent tag {triangle.Tag} Adjacent tags {string.Join(",", triangle.ABadjacents.Select(t => t.Tag))}");
-            //        //badTriangles.Add(triangle);
-            //        badTriangles.AddRange(triangle.ABadjacents.Where(a => a.Tag != triangle.Tag));
-
-            //    }
-            //    if (triangle.BCadjacents.Count > 1)
-            //    {
-            //        //Console.WriteLine($"{triangle.Id} BC count {triangle.BCadjacents.Count} Parent tag {triangle.Tag} Adjacent tags {string.Join(",", triangle.BCadjacents.Select(t => t.Tag))}");
-            //        //badTriangles.Add(triangle);
-            //        badTriangles.AddRange(triangle.BCadjacents.Where(a => a.Tag != triangle.Tag));
-            //    }
-            //    if (triangle.CAadjacents.Count > 1)
-            //    {
-            //        //Console.WriteLine($"{triangle.Id} CA count {triangle.CAadjacents.Count} Parent tag {triangle.Tag} Adjacent tags {string.Join(",", triangle.CAadjacents.Select(t => t.Tag))}");
-            //        //badTriangles.Add(triangle);
-            //        badTriangles.AddRange(triangle.CAadjacents.Where(a => a.Tag != triangle.Tag));
-            //    }
-            //}
-
-            //mesh.RemoveAllTriangles(badTriangles);
-
-            //var test = mesh.Triangles.SingleOrDefault(t => t.Id == 318561);
-            //if (test is not null)
-            //{
-            //    var adjacents = test.ABadjacents;
-            //    WavefrontFile.Export([test], $"Wavefront/Parent-318561");
-            //    WavefrontFile.Export(adjacents, $"Wavefront/Adjacents-318561");
-            //}
-
-
-
             Console.WriteLine($"Clusters {clusters.Count()}  Surfaces {surfaces.Count()}  Faces {faces.Count()}", ConsoleColor.Yellow);
             Console.WriteLine();
             BaseObjects.Console.WriteLine("Position cardinalities", ConsoleColor.Yellow);
@@ -82,15 +46,21 @@ namespace Operations.Basics
             BaseObjects.Console.WriteLine("CA Adjacency counts", ConsoleColor.Yellow);
             BaseObjects.Console.WriteLine(mesh.Triangles.Select(t => t.CAadjacents).GroupCounts(g => g.Count).DisplayByLine());
 
-            //WavefrontFile.Export(badTriangles, $"Wavefront/BadTriangles");
-
             var tags = mesh.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
             var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
             if (openEdges.Length == 0) { Console.WriteLine("No open edges"); return; }
             Console.WriteLine($"Open edges {openEdges.Length}");
+            WavefrontFile.Export(tags.SelectMany(t => t.OpenEdges).DistinctBy(e => e.Id), $"Wavefront/OpenEdges/OpenEdges-{openEdges.Length}");
+            WavefrontFile.Export(mesh, $"Wavefront/OpenEdges/Grid-{openEdges.Length}");
+
+            var positions = new BoxBucket<Position>(mesh.Positions);
+
             foreach (var openEdge in openEdges)
             {
-                Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length} Aspect {openEdge.t.Triangle.AspectRatio} Height {openEdge.t.Triangle.MinHeight}\n{string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
+                Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length.ToString("E3")} Aspect {openEdge.t.Triangle.AspectRatio.ToString("E3")} Height {openEdge.t.Triangle.MinHeight.ToString("E3")}\n{string.Join("\n", 
+                    openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment} Nearest [{
+                        Point3D.Distance(o.Segment.Start, o.Segment.Start.GetNearestPoint(positions.Fetch(new Rectangle3D(o.Segment.Start, 1e-2)).Where(p => p.Id != o.A.PositionObject.Id).Select(m => m.Point).ToArray())).ToString("E3")}, {
+                        Point3D.Distance(o.Segment.End, o.Segment.End.GetNearestPoint(positions.Fetch(new Rectangle3D(o.Segment.End, 1e-2)).Where(p => p.Id != o.B.PositionObject.Id).Select(m => m.Point).ToArray())).ToString("E3")}]"))}\n", ConsoleColor.Red);
                 //Console.WriteLine($"Open edges {string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
                 //WavefrontFile.Export([openEdge.t], $"Wavefront/OpenEdgeTriangles/{openEdge.t.Id}");
             }

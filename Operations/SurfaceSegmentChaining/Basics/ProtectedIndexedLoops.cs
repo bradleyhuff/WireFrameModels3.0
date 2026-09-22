@@ -48,5 +48,22 @@ namespace Operations.SurfaceSegmentChaining.Basics
                 yield return output;
             }
         }
+
+        internal static T IncludeLoopsByIndex<T>(ProtectedIndexedLoops input, List<int> includedIndex) where T : ProtectedIndexedLoops, new()
+        {
+            T output = new T();
+            output.PerimeterIndexLoops = input.PerimeterIndexLoops;
+
+            var includedIndexedLoops = new List<int[]>();
+            for (int i = 0; i < includedIndex.Count; i++)
+            {
+                includedIndexedLoops.Add(input.IndexLoops[includedIndex[i]]);
+            }
+
+            output.IndexLoops = includedIndexedLoops;
+            output.IndexSpurredLoops = input.IndexSpurredLoops;
+            output.IndexSpurs = input.IndexSpurs;
+            return output;
+        }
     }
 }

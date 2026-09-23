@@ -6,7 +6,7 @@ namespace Operations.PlanarFilling.Filling.Internals
 {
     internal class PlanarLoopSet<T>
     {
-        internal PlanarLoopSet(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillAction<T> fillAction,  int[] perimeterIndexLoop, int triangleID)
+        internal PlanarLoopSet(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillAction<T> fillAction, int[] perimeterIndexLoop, int triangleID)
         {
             Plane = plane;
             PerimeterIndexLoop = perimeterIndexLoop;
@@ -74,30 +74,27 @@ namespace Operations.PlanarFilling.Filling.Internals
             }
         }
 
-        public IReadOnlyList<IndexSurfaceTriangle> FillTriangles
+        public IReadOnlyList<IndexSurfaceTriangle> GetFillTriangles()
         {
-            get
+            if (_indexedFillTriangles is null)
             {
-                if (_indexedFillTriangles is null)
-                {
-                    LoopForFillings();
-                }
-                return _indexedFillTriangles;
+                LoopForFillings();
             }
+            return _indexedFillTriangles;
         }
 
         private void LoopForFillings()
         {
-            _indexedFillTriangles = [.. PerimeterLoop.FillTriangles];
+            _indexedFillTriangles = [.. PerimeterLoop.GetFillTriangles()];
             if (!FillInteriorLoops) { return; }
 
             foreach (var loop in Loops)
             {
-                _indexedFillTriangles.AddRange(loop.FillTriangles);
+                _indexedFillTriangles.AddRange(loop.GetFillTriangles());
             }
             foreach (var loop in SpurredLoops)
             {
-                _indexedFillTriangles.AddRange(loop.FillTriangles);
+                _indexedFillTriangles.AddRange(loop.GetFillTriangles());
             }
         }
     }

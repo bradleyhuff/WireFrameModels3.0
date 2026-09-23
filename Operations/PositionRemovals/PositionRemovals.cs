@@ -333,7 +333,7 @@ namespace Operations.PositionRemovals
 
                 var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, fillAction, position.Id);
 
-                var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
+                var fillings = planarFilling.GetFillTriangles().Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
                 fillingsToAdd.AddRange(fillings);
                 trianglesToRemove.AddRange(triangles);
             }
@@ -374,7 +374,7 @@ namespace Operations.PositionRemovals
                         try
                         {
                             var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, fillAction, position.Id);
-                            var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
+                            var fillings = planarFilling.GetFillTriangles().Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
 
                             fillingsToAdd.AddRange(fillings);
                             trianglesToRemove.AddRange(triangles);
@@ -412,7 +412,7 @@ namespace Operations.PositionRemovals
 
                             fillAction?.PresetMatching(position, perimeterPoints);
                             var planarFilling = new PlanarFilling<PlanarFillingGroup, PositionNormal>(chain, fillAction, position.Id);
-                            var fillings = planarFilling.Fillings.Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
+                            var fillings = planarFilling.GetFillTriangles().Select(f => new PositionNormal[] { f.A.Reference, f.B.Reference, f.C.Reference });
                             fillingsToAdd.AddRange(fillings);
                         }
                         catch (Exception e)

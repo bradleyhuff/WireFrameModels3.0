@@ -2,6 +2,8 @@
 using BasicObjects.MathExtensions;
 using Collections.Buckets.Interfaces;
 using Collections.WireFrameMesh.Basics;
+using Operations.PlanarFilling.Basics;
+using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.Intermesh.Basics
 {
@@ -166,6 +168,7 @@ namespace Operations.Intermesh.Basics
         public List<IntermeshTriangle> IntersectingTriangles { get; } = new List<IntermeshTriangle>();
         public Dictionary<int, IntermeshIntersection> GatheringSets { get; } = new Dictionary<int, IntermeshIntersection>();
 
+        public List<ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>> FillChains { get; set; } = new List<ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>>();
         public List<FillTriangle> Fillings { get; set; } = new List<FillTriangle>();
         public Vector3D NormalFromProjectedPoint(Point3D point)
         {

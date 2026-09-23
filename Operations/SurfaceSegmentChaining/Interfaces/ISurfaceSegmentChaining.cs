@@ -3,7 +3,7 @@ using Operations.SurfaceSegmentChaining.Basics;
 
 namespace Operations.SurfaceSegmentChaining.Interfaces
 {
-    internal interface ISurfaceSegmentChaining<G, T>
+    public interface ISurfaceSegmentChaining<G, T>
     {
         IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray { get; }
         ProtectedIndexedLoops ProtectedIndexedLoops { get; }

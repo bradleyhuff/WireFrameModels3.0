@@ -3,7 +3,7 @@ using BasicObjects.GeometricObjects;
 
 namespace Operations.PlanarFilling.Basics
 {
-    internal class PlanarFillingGroup
+    public class PlanarFillingGroup
     {
         public PlanarFillingGroup(Plane plane, double testSegmentLength)
         {

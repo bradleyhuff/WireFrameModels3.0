@@ -138,21 +138,18 @@ namespace Operations.PlanarFilling.Filling.Internals
             return OutLineRegionOfPoint(testPoint) == Region.Interior;
         }
 
-        public IReadOnlyList<IndexSurfaceTriangle> FillTriangles
+        public IReadOnlyList<IndexSurfaceTriangle> GetFillTriangles()
         {
-            get
+            if (_indexedFillTriangles is null)
             {
-                if (_indexedFillTriangles is null)
+                if (_fillAction is null)
                 {
-                    if (_fillAction is null)
-                    {
-                        return BasicFill();
-                    }
-
-                    _fillAction?.Run(this);
+                    return BasicFill();
                 }
-                return _indexedFillTriangles;
+
+                _fillAction?.Run(this);
             }
+            return _indexedFillTriangles;
         }
 
         public IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray { get; }
@@ -223,8 +220,9 @@ namespace Operations.PlanarFilling.Filling.Internals
                         if (!MergeWithAnEnclosedInternalLoopAndAdvance(leftIndex, index, rightIndex))
                         {
                             AdvanceAndPassOver(index);
-                            if (TrackingError(leftIndex, index, rightIndex, showError)) { 
-                                return false; 
+                            if (TrackingError(leftIndex, index, rightIndex, showError))
+                            {
+                                return false;
                             }
                         }
                         continue;
@@ -240,8 +238,9 @@ namespace Operations.PlanarFilling.Filling.Internals
                 if (_passOver[index])
                 {
                     AdvanceAndPassOver(index);
-                    if (TrackingError(leftIndex, index, rightIndex,showError)) { 
-                        return false; 
+                    if (TrackingError(leftIndex, index, rightIndex, showError))
+                    {
+                        return false;
                     }
                     continue;
                 }
@@ -251,8 +250,9 @@ namespace Operations.PlanarFilling.Filling.Internals
                     if (!MergeWithIntersectingInternalLoop(leftIndex, index, rightIndex))
                     {
                         AdvanceAndPassOver(index);
-                        if (TrackingError(leftIndex, index, rightIndex,showError)) { 
-                            return false; 
+                        if (TrackingError(leftIndex, index, rightIndex, showError))
+                        {
+                            return false;
                         }
                     }
                     continue;
@@ -263,8 +263,9 @@ namespace Operations.PlanarFilling.Filling.Internals
                     if (!MergeWithAnEnclosedInternalLoopAndAdvance(leftIndex, index, rightIndex))
                     {
                         AdvanceAndPassOver(index);
-                        if (TrackingError(leftIndex, index, rightIndex,showError)) { 
-                            return false; 
+                        if (TrackingError(leftIndex, index, rightIndex, showError))
+                        {
+                            return false;
                         }
                     }
                     continue;
@@ -276,7 +277,7 @@ namespace Operations.PlanarFilling.Filling.Internals
                 }
 
                 AdvanceAndPassOver(index);
-                if (TrackingError(leftIndex, index, rightIndex,showError)) { return false; }
+                if (TrackingError(leftIndex, index, rightIndex, showError)) { return false; }
             }
         }
 

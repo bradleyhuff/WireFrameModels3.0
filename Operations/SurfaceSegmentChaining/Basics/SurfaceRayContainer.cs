@@ -2,7 +2,7 @@
 
 namespace Operations.SurfaceSegmentChaining.Basics
 {
-    internal class SurfaceRayContainer<T> : Ray3D
+    public class SurfaceRayContainer<T> : Ray3D
     {
         public SurfaceRayContainer(Ray3D ray, Vector3D triangleNormal, int index, T reference) : base(ray.Point, ray.Normal)
         {

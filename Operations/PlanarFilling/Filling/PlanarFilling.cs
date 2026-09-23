@@ -21,7 +21,7 @@ namespace Operations.PlanarFilling.Filling
 
         public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, int triangleID) : this(chaining, null, triangleID) { }
 
-        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, IFillAction<T> fillAction,  int triangleID)
+        public PlanarFilling(ISurfaceSegmentChaining<G, T> chaining, IFillAction<T> fillAction, int triangleID)
         {
             _triangleID = triangleID;
             _chaining = chaining;
@@ -36,17 +36,14 @@ namespace Operations.PlanarFilling.Filling
         private int _triangleID;
         private IEnumerable<SurfaceTriangleContainer<T>> _fillings;
 
-        public IEnumerable<SurfaceTriangleContainer<T>> Fillings
+        public IEnumerable<SurfaceTriangleContainer<T>> GetFillTriangles()
         {
-            get
+            if (_fillings is null)
             {
-                if (_fillings is null)
-                {
-                    _fillings = _indexedFillTriangles.Select(f =>
-                        new SurfaceTriangleContainer<T>(_referenceArray[f.IndexPointA], _referenceArray[f.IndexPointB], _referenceArray[f.IndexPointC], f.IndexLoop.Select(p => _referenceArray[p]).ToArray(), f.FillId)).ToArray();
-                }
-                return _fillings;
+                _fillings = _indexedFillTriangles.Select(f =>
+                    new SurfaceTriangleContainer<T>(_referenceArray[f.IndexPointA], _referenceArray[f.IndexPointB], _referenceArray[f.IndexPointC], f.IndexLoop.Select(p => _referenceArray[p]).ToArray(), f.FillId)).ToArray();
             }
+            return _fillings;
         }
 
         private void GetFillings()
@@ -54,7 +51,7 @@ namespace Operations.PlanarFilling.Filling
             _indexedFillTriangles = new List<IndexSurfaceTriangle>();
             foreach (var planarLoopSet in _planarLoopSets)
             {
-                _indexedFillTriangles.AddRange(planarLoopSet.FillTriangles);
+                _indexedFillTriangles.AddRange(planarLoopSet.GetFillTriangles());
             }
         }
 

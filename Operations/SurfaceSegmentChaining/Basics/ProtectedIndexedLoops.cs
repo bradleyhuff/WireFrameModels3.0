@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Operations.SurfaceSegmentChaining.Basics
 {
-    internal class ProtectedIndexedLoops
+    public class ProtectedIndexedLoops
     {
         public ProtectedIndexedLoops() { }
         public ProtectedIndexedLoops(

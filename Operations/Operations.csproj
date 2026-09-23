@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Intermesh\Classes\Support\ExtractFillTriangles\Interfaces\" />
     <Folder Include="Intermesh\Extensions\" />
     <Folder Include="Intermesh\Interfaces\" />
   </ItemGroup>

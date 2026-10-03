@@ -1,10 +1,12 @@
 ﻿using BasicObjects.MathExtensions;
 using Operations.SurfaceSegmentChaining.Basics;
+using Operations.SurfaceSegmentChaining.Basics.Abstractions;
 using Operations.SurfaceSegmentChaining.Interfaces;
+using System.Collections.ObjectModel;
 
 namespace Operations.SurfaceSegmentChaining.Chaining
 {
-    internal class BaseDividerSurfaceChaining<G, T> : ISurfaceSegmentChaining<G, T> where G : class
+    internal class BaseDividerSurfaceChaining<G, T> : ISurfaceSegmentChaining<G, T> where G : LoopGroupObjects
     {
         private class InternalProtectedLinkedIndexSegments : ProtectedLinkedIndexSegments<G, T>
         {
@@ -30,6 +32,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         {
             _referenceArray = referenceArray;
             _linkedSegments = linkedSegments;
+
+            SetBackReference();
             BuildAssociationTable(_linkedSegments);
             BuildLinks();
             var keys = GetDividingKeys(_linkedSegments);
@@ -45,6 +49,16 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         }
 
         private Dictionary<int, List<LinkedIndexSegment<G, T>>> _indexAssociationTable = new Dictionary<int, List<LinkedIndexSegment<G, T>>>();
+
+        private void SetBackReference()
+        {
+            var backReference = new Dictionary<int, int>();
+            for (int i = 0; i < _referenceArray.Count; i++)
+            {
+                backReference[_referenceArray[i].Index] = i;
+            }
+            _backReference = backReference;
+        }
 
         private void BuildAssociationTable(IEnumerable<LinkedIndexSegment<G, T>> linkedSegments)
         {
@@ -257,6 +271,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
 
         private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
+        private IReadOnlyDictionary<int, int> _backReference;
         private List<LinkedIndexSegment<G, T>> _linkedSegments;
         private List<int[]> _perimeterIndexLoops = new List<int[]>();
         private List<int[]> _indexLoops = new List<int[]>();
@@ -282,6 +297,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             get { return _protectedIndexedLoops; }
         }
         public IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray { get { return _referenceArray; } }
+        public IReadOnlyDictionary<int, int> BackReference { get { return _backReference; } }
         public IReadOnlyList<SurfaceRayContainer<T>[]> PerimeterLoops
         {
             get
@@ -293,7 +309,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 return _perimeterLoops;
             }
         }
-        public IReadOnlyList<SurfaceRayContainer<T>[]> Loops
+        public IReadOnlyList<SurfaceRayContainer<T>[]> DividingLoops
         {
             get
             {
@@ -327,13 +343,13 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
         }
 
-        public List<int> PerimeterLoopGroupKeys { get { return _perimeterLoopGroupKeys; } }
-        public IReadOnlyList<int> LoopGroupKeys { get { return _loopGroupKeys; } }
+        public IReadOnlyList<int> PerimeterLoopGroupKeys { get { return _perimeterLoopGroupKeys; } }
+        public IReadOnlyList<int> DividingLoopGroupKeys { get { return _loopGroupKeys; } }
         public IReadOnlyList<int> SpurredLoopGroupKeys { get { return _spurredLoopGroupKeys; } }
         public IReadOnlyList<int> SpurGroupKeys { get { return _spurGroupKeys; } }
 
-        public List<G> PerimeterLoopGroupObjects { get { return _perimeterLoopGroupObjects; } }
-        public IReadOnlyList<G> LoopGroupObjects { get { return _loopGroupObjects; } }
+        public IReadOnlyList<G> PerimeterLoopGroupObjects { get { return _perimeterLoopGroupObjects; } }
+        public IReadOnlyList<G> DividingLoopGroupObjects { get { return _loopGroupObjects; } }
         public IReadOnlyList<G> SpurredLoopGroupObjects { get { return _spurredLoopGroupObjects; } }
         public IReadOnlyList<G> SpurGroupObjects { get { return _spurGroupObjects; } }
     }

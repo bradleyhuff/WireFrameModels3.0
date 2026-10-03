@@ -79,7 +79,7 @@ namespace Operations.ParallelSurfaces
                 }
                 //Sets.RemoveTags(difference);
 
-                difference.ShowVitals();
+                //difference.ShowVitals();
                 //WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}");
                 //WavefrontFileGroups.ExportBySurfaces(difference, $"Wavefront/Surfaces");
 

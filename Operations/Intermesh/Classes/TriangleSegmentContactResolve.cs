@@ -421,58 +421,22 @@ namespace Operations.Intermesh.Classes
             {
                 var kinkPoints = kinkTriangle.Segments.Points().Where(p => kinkTriangle.Triangle.Plane.Distance(p.Point) > GapConstants.Resolver).ToArray();
                 var kinkPoints2 = kinkPoints.Select(k => k.Id).ToArray();
-                //var adjacents = kinkTriangle.PositionTriangle.AllAdjacents.Select(a => a.Id).ToArray();
-                //var adjacents2 = intermeshTriangles.Where(t => adjacents.Any(a => a == t.PositionTriangle.Id)).ToArray();
-                //var adjacentsWithKink = adjacents2.Where(a => a.Segments.Points().Any(k => kinkPoints2.Any(kk => kk == k.Id))).ToArray();
-                //var adjacentsWithKink2 = adjacents2.Where(a => a.Segments.Points().Any(k => kinkPoints2.Any(kk => kk == k.Id))).Select(t => (Triangle: t, KinkPoints: kinkPoints.Where(k => t.Segments.Points().Any(pp => pp.Id == k.Id)))).ToArray();
-
                 BaseObjects.Console.WriteLine($"Kink triangle {kinkTriangle.Id}  {kinkTriangle.CoplanarDeviation.ToString("E3")} Kink points {string.Join(", ", kinkPoints.Select(k => k.Id))}", ConsoleColor.Black, ConsoleColor.Yellow);
-                //BaseObjects.Console.WriteLine($"Kink triangle {kinkTriangle.Id}  {kinkTriangle.CoplanarDeviation.ToString("E3")} Angle {kinkTriangle.Triangle.Plane.AngleFromSurface(s.Segment.Segment).ConvertToDegrees().ToString("##0")}", ConsoleColor.White, ConsoleColor.Red);
-                //BaseObjects.Console.WriteLine($"Base Triangle {kinkTriangle.Id}");
-
-                //var kinkPointTable = new Dictionary<int, IntermeshPoint>();
-                //var basePointTable = new Dictionary<int, (IntermeshTriangle Triangle, IntermeshPoint[] Bases)>();
                 var segmentsToMoveTable = new Dictionary<int, List<(IntermeshTriangle Triangle, IntermeshSegment Segment)>>();
 
                 foreach (var kinkPoint in kinkPoints)
                 {
-                    //kinkPointTable[kinkPoint.Id] = kinkPoint;
                     var containingSegments = kinkTriangle.Segments.Where(s => s.Key.Indicies.Any(i => i == kinkPoint.Id)).DistinctBy(s => s.Key, Combination2Comparer.Comparer).Select(s => (Triangle: kinkTriangle, Segment: s));
                     segmentsToMoveTable[kinkPoint.Id] = [.. containingSegments];
                     //BaseObjects.Console.WriteLine($"    Kink point {kinkPoint.Id}\n{string.Join("\n", containingSegments.Select(s => $"        {s.Segment.Key} {s.Segment.Segment.Length.ToString("E3")} " +
                     //    $"[{kinkTriangle.Triangle.Plane.Distance(s.Segment.KeyPointA.Point).ToString("E3")}, {kinkTriangle.Triangle.Plane.Distance(s.Segment.KeyPointB.Point).ToString("E3")}] " +
                     //    $"Angle {kinkTriangle.Triangle.Plane.AngleFromSurface(s.Segment.Segment).ConvertToDegrees().ToString("##0")}"))}");
                 }
-                //foreach (var adjacentWithKink in adjacentsWithKink2)
-                //{
-                //    BaseObjects.Console.WriteLine($"Next Triangle {adjacentWithKink.Triangle.Id}");
-                //    foreach (var kinkPoint in adjacentWithKink.KinkPoints)
-                //    {
-                //        //var containingSegments0 = adjacentWithKink.Triangle.Segments.Where(s => s.Key.Indicies.Any(i => i == kinkPoint.Id));
-                //        var containingSegments = adjacentWithKink.Triangle.Segments.Where(s => s.Key.Indicies.Any(i => i == kinkPoint.Id)).DistinctBy(s => s.Key, Combination2Comparer.Comparer).Select(s => (Triangle: adjacentWithKink.Triangle, Segment: s));
-                //        segmentsToMoveTable[kinkPoint.Id].AddRange(containingSegments);
-                //        BaseObjects.Console.WriteLine($"    Kink point {kinkPoint.Id}\n{string.Join("\n", containingSegments.Select(s => $"        {s.Segment.Key} {s.Segment.Segment.Length.ToString("E3")} " +
-                //        $"[{adjacentWithKink.Triangle.Triangle.Plane.Distance(s.Segment.KeyPointA.Point).ToString("E3")}, {adjacentWithKink.Triangle.Triangle.Plane.Distance(s.Segment.KeyPointB.Point).ToString("E3")}] " +
-                //        $"Angle {kinkTriangle.Triangle.Plane.AngleFromSurface(s.Segment.Segment).ConvertToDegrees().ToString("##0")}"))}");
-                //    }
-                //}
-
-                //foreach (var adjacentWithKink in adjacentsWithKink)
-                //{
-                //    foreach (var kinkPoint in kinkPoints)
-                //    {
-                //        var kinkSegments = segmentsToMoveTable[kinkPoint.Id].Where(s => s.Triangle.Id == kinkTriangle.Id);
-                //        var potentialBasePoints = kinkSegments.Select(k => k.Segment).Points().Where(p => p.Id != kinkPoint.Id).ToArray();
-                //        var basePoints = potentialBasePoints.Where(p => adjacentWithKink.Segments.Points().Any(pp => p.Id == pp.Id)).ToArray();
-                //        basePointTable[kinkPoint.Id] = (Triangle: adjacentWithKink, Bases: basePoints);
-                //    }
-                //}
                 foreach (var kinkPoint in kinkPoints)
                 {
                     var segments = segmentsToMoveTable[kinkPoint.Id].Where(s => s.Triangle.Id == kinkTriangle.Id).Select(k => k.Segment);
                     var angles = segments.Select(s => kinkTriangle.Triangle.Plane.AngleFromSurface(s.Segment)).ToArray();
                     if (BasicObjects.Math.Math.Max(angles) < 0.5) { continue; }
-                    //var bases = basePointTable[kinkPoint.Id];
                     var endPoints = segments.Points().Where(p => p.Id != kinkPoint.Id).ToArray();
                     if (endPoints.Length != 2) { continue; }
                     var slots = kinkTriangle.EdgeSlots.Where(s => s.Segments.Points().Any(p => p.Id == kinkPoint.Id)).ToArray();

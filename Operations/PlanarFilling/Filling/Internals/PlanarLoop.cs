@@ -15,7 +15,7 @@ namespace Operations.PlanarFilling.Filling.Internals
     {
         private static int _id = 0;
         private static object lockObject = new object();
-        public PlanarLoop(Plane plane, double testSegmentLength, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillAction<T> fillAction, int[] indexLoop, int triangleID)
+        public PlanarLoop(Plane plane, double testSegmentLength, bool disabled, IReadOnlyList<SurfaceRayContainer<T>> referenceArray, IFillAction<T> fillAction, int[] indexLoop, int triangleID)
         {
             lock (lockObject)
             {
@@ -24,6 +24,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             _triangleID = triangleID;
             Plane = plane;
             IndexLoop = indexLoop.ToList();
+            _disabled = disabled;
             ReferenceArray = referenceArray;
             _testSegmentLength = testSegmentLength;
             _fillAction = fillAction;
@@ -31,6 +32,7 @@ namespace Operations.PlanarFilling.Filling.Internals
 
         IFillAction<T> _fillAction;
         double _testSegmentLength;
+        bool _disabled;
         PlanarRegions<T> _shellOutLine;
         PlanarRegions<T> _shell;
         IReadOnlyList<Point3D> _projectedPoints;
@@ -301,6 +303,8 @@ namespace Operations.PlanarFilling.Filling.Internals
             _passOverCount = 0;
             _tracker.RemoveIndex(index);
             _tracker.AdvanceStep(2);
+            if (_disabled) {
+                return; }
             _indexedFillTriangles.Add(new IndexSurfaceTriangle(IndexLoop[leftIndex], IndexLoop[index], IndexLoop[rightIndex], IndexLoop.ToArray(), _basicFillId));
         }
 

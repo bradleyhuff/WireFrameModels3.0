@@ -468,6 +468,11 @@ namespace BasicObjects.MathExtensions
 
             for (int i = 0; i < Array.Length; i++)
             {
+                if (iCompare >= compare.Array.Length)
+                {
+                    break;
+                }
+
                 if (Array[i] == compare.Array[iCompare]) { commonIndiciesCount++; iCompare++; }
             }
 
@@ -492,6 +497,15 @@ namespace BasicObjects.MathExtensions
 
     public class CombinationComparer : IEqualityComparer<Combination>, IComparer<Combination>
     {
+        private static CombinationComparer _comparer;
+        public static CombinationComparer Comparer
+        {
+            get
+            {
+                if (_comparer is null) { _comparer = new CombinationComparer(); }
+                return _comparer;
+            }
+        }
         public int Compare(Combination? a, Combination? b)
         {
             if (a.Array.Length < b.Array.Length) return -1;

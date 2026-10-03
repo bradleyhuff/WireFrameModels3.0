@@ -69,7 +69,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
         public static IEnumerable<LinkedIndexSurfaceSegment<G, T>> PullSegments<G, T>(ISurfaceSegmentChaining<G, T> input) where G : PlanarFillingGroup
         {
             var protectedIndexLoops = ProtectedIndexedLoops.Create<InternalProtectedIndexedLoops>(input.ProtectedIndexedLoops);
-            var indexLoops = protectedIndexLoops.GetIndexLoops();
+            var indexLoops = protectedIndexLoops.GetDividingIndexLoops();
             var indexSpurredLoops = protectedIndexLoops.GetIndexSpurredLoops();
             var perimeterIndexLoops = protectedIndexLoops.GetPerimeterIndexLoops();
             var segmentTable = new Combination2Dictionary<bool>();
@@ -81,7 +81,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
 
             foreach (var segment in
                 PullLoopSegments<G, T>(segmentTable, Rank.Dividing,
-                indexLoops, input.LoopGroupKeys, input.LoopGroupObjects))
+                indexLoops, input.DividingLoopGroupKeys, input.DividingLoopGroupObjects))
             { yield return segment; }
 
             foreach (var segment in
@@ -143,9 +143,9 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Extensions
             {
                 return PerimeterIndexLoops;
             }
-            public IReadOnlyList<int[]> GetIndexLoops()
+            public IReadOnlyList<int[]> GetDividingIndexLoops()
             {
-                return IndexLoops;
+                return DividingIndexLoops;
             }
             public IReadOnlyList<int[]> GetIndexSpurredLoops()
             {

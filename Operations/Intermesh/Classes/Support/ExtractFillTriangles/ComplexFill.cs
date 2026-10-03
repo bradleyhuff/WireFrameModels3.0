@@ -1,6 +1,8 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
+using Collections.WireFrameMesh.Basics;
 using FileExportImport;
+using Operations.Cover;
 using Operations.Diagnostics;
 using Operations.Intermesh.Basics;
 using Operations.PlanarFilling.Basics;
@@ -8,6 +10,7 @@ using Operations.PlanarFilling.Filling;
 using Operations.SurfaceSegmentChaining.Basics;
 using Operations.SurfaceSegmentChaining.Chaining;
 using Operations.SurfaceSegmentChaining.Collections;
+using System;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -45,21 +48,86 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
             }
         }
 
-        //private CombinationDictionary<bool> _usedLoops = new CombinationDictionary<bool>();
 
         private void ProcessFillChains(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
-            //
-            //foreach (var triangle in intermeshTriangles)
-            //{
-            //    triangle.FillChain = triangle.FillChain.WhereLoop(loop =>
-            //    {
-            //        var key = new Combination(loop.Select(p => p.Reference.Id));
-            //        var isUsed = _usedLoops.ContainsKey(key);
-            //        _usedLoops[key] = true;
-            //        return !isUsed;
-            //    });
-            //}
+            DateTime now = DateTime.Now;
+
+            var coverCount = 0;
+            var coverSize = 0;
+
+            var coveringLoops = new CombinationDictionary<Rank>();
+
+            Covers.Build(intermeshTriangles,
+                (pass) =>
+                {
+                    //var key = Covers.Combination(l);
+                    //Console.WriteLine($"{key.Array.Length}:{t.Id}:{key} => Perimeter {string.Join(", ", c.Select(c => $"{string.Join(", ", c.Loops.Select(cc => $"{c.Triangle.Id}:{Covers.Combination(cc)}"))}").ToList())}");
+                    //coverCount++;
+                    //if (key.Array.Length > coverSize) { coverSize = key.Array.Length; }
+                },
+                (pass) =>
+                {
+                    var key = Covers.Combination(pass.CoverLoop.Loop);
+                    //Console.WriteLine($"{key.Array.Length}:{t.Id}:{p.Id}:{key} => Dividing {string.Join(", ", c.Select(c => $"{string.Join(", ", c.Loops.Select(cc => $"{c.Triangle.Id}:{cc.FillGroup.Id}:{Covers.Combination(cc.Loop)}"))}").ToList())}");
+                    coverCount++;
+                    if (key.Array.Length > coverSize) { coverSize = key.Array.Length; }
+
+                    var modifiedChain = pass.Chain.DividingLoopSplitBy(pass.CoveredLoops.SelectMany(cc => cc.Loops), coveringLoops);
+                    pass.Triangle.ModifiedFillChains.Add(modifiedChain);
+                    //BaseObjects.Console.WriteLine($"After split {key.Array.Length}:{t.Id}:{p.Id}:{key} => Dividing {string.Join(", ", Covers.CombineDividingLoops(sc).Select(cc => $"{cc.FillGroup.Id}:{Covers.Combination(cc.Loop)}"))}", ConsoleColor.Cyan);
+                }
+                );
+
+            BaseObjects.Console.WriteLine($"Covering loops {coveringLoops.Count}", ConsoleColor.Yellow);
+            BaseObjects.Console.WriteLine($"{string.Join("\n", coveringLoops.Select(kp => kp.Key))}", ConsoleColor.Yellow);
+
+            var loopTable = new CombinationDictionary<List<(PlanarFillingGroup, Rank)>>();
+
+            foreach (var triangle in intermeshTriangles)
+            {
+                foreach (var chain in triangle.FillChains)
+                {
+                    for (int i = 0; i < chain.PerimeterLoops.Count; i++)
+                    {
+                        var loop = chain.PerimeterLoops[i];
+                        var key = Covers.Combination(loop);
+                        if (!loopTable.ContainsKey(key)) { loopTable[key] = new List<(PlanarFillingGroup, Rank)>(); }
+                        loopTable[key].Add((chain.PerimeterLoopGroupObjects[i], Rank.Perimeter));
+                    }
+                    for (int i = 0; i < chain.DividingLoops.Count; i++)
+                    {
+                        var loop = chain.DividingLoops[i];
+                        var key = Covers.Combination(loop);
+                        if (!loopTable.ContainsKey(key)) { loopTable[key] = new List<(PlanarFillingGroup, Rank)>(); }
+                        loopTable[key].Add((chain.DividingLoopGroupObjects[i], Rank.Dividing));
+                    }
+                }
+            }
+
+            foreach (var kv in loopTable)
+            {
+                var list = kv.Value;
+                foreach (var element in list) { element.Item1.Disabled = true; }
+                var perimeter = list.FirstOrDefault(e => e.Item2 == Rank.Perimeter);
+                if (perimeter.Item1 is not null) { perimeter.Item1.Disabled = false; } else
+                {
+                    var dividing = list.First(e => e.Item2 == Rank.Dividing);
+                    dividing.Item1.Disabled = false;
+                }
+            }
+
+            foreach (var key in coveringLoops)
+            {
+                if (!loopTable.ContainsKey(key.Key)) { Console.WriteLine($"Covering {key.Key} not found.");  continue; }
+                var elements = loopTable[key.Key].Where(e => e.Item2 == Rank.Dividing);
+                foreach (var element in elements) { element.Item1.Disabled = true; }                
+            }
+
+            Console.WriteLine($"Process Fill Chain Covers: {coverCount} Max Cover Size: {coverSize} Loop Table: {loopTable.Count} Loop Table Nodes: {loopTable.Count(kv => kv.Value.Count() > 1)}  Elapsed time {(DateTime.Now - now).TotalSeconds}");
+
+
+
         }
 
         private void GetFillTriangles(IEnumerable<IntermeshTriangle> intermeshTriangles)

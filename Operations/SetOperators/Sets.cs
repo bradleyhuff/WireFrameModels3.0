@@ -298,7 +298,7 @@ namespace Operations.SetOperators
 
         private static int RemoveTags(IWireFrameMesh output)
         {
-            output.ShowVitals();
+            //output.ShowVitals();
 
             var start = DateTime.Now;
             var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();

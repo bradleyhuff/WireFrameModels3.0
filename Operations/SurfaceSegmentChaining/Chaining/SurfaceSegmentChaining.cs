@@ -1,12 +1,13 @@
 ﻿using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
 using Operations.SurfaceSegmentChaining.Basics;
+using Operations.SurfaceSegmentChaining.Basics.Abstractions;
 using Operations.SurfaceSegmentChaining.Chaining.Diagnostics;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Chaining
 {
-    internal class SurfaceSegmentChaining<G, T> : ISurfaceSegmentChaining<G, T> where G : class
+    internal class SurfaceSegmentChaining<G, T> : ISurfaceSegmentChaining<G, T> where G : LoopGroupObjects
     {
         private enum Traversal
         {
@@ -23,6 +24,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         }
 
         private IReadOnlyList<SurfaceRayContainer<T>> _referenceArray;
+        private IReadOnlyDictionary<int, int> _backReference;
         private List<LinkedIndexSurfaceSegment<G, T>> _linkedSegments;
         private List<LinkedIndexSurfaceSegment<G, T>> _virtualLinkedSegments = new List<LinkedIndexSurfaceSegment<G, T>>();
 
@@ -43,6 +45,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
         {
             _referenceArray = referenceArray;
             _linkedSegments = linkedSegments;
+            SetBackReference();
             BuildAssociationTable(_linkedSegments);
             AddEndPointSegments();
             BuildAssociationTable(_virtualLinkedSegments);
@@ -58,6 +61,15 @@ namespace Operations.SurfaceSegmentChaining.Chaining
 
         private Dictionary<int, List<LinkedIndexSurfaceSegment<G, T>>> _indexAssociationTable = new Dictionary<int, List<LinkedIndexSurfaceSegment<G, T>>>();
 
+        private void SetBackReference()
+        {
+            var backReference = new Dictionary<int, int>();
+            for (int i = 0; i < _referenceArray.Count; i++)
+            {
+                backReference[_referenceArray[i].Index] = i;
+            }
+            _backReference = backReference;
+        }
         private void BuildAssociationTable(IEnumerable<LinkedIndexSurfaceSegment<G, T>> linkedSegments)
         {
             foreach (var linkedSegment in linkedSegments)
@@ -98,7 +110,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 var indexChain = PullChainWithNoJunction(segment.IndexPointA, segment, (l) => l.Rank == Rank.Perimeter && l.Passes < 1 && l.GroupKey == segment.GroupKey).ToArray();
                 _perimeterIndexLoops.Add(indexChain);
                 _perimeterLoopGroupKeys.Add(segment.GroupKey);
-                _perimeterLoopGroupObjects.Add(segment.GroupObject);
+                _perimeterLoopGroupObjects.Add((G)segment.GroupObject.Clone());
                 count++;
                 if (count > _linkedSegments.Count)
                 {
@@ -188,7 +200,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             {
                 _indexSpurredLoops.Add(indexChain.Where(i => i >= 0).ToArray());
                 _spurredLoopGroupKeys.Add(segment.GroupKey);
-                _spurredLoopGroupObjects.Add(segment.GroupObject);
+                _spurredLoopGroupObjects.Add((G)segment.GroupObject.Clone());
 
                 var rotate = indexChain.RotateToFirst((v, i) => v < 0).ToArray();
                 var groups = rotate.SplitAt(i => i < 0);
@@ -196,14 +208,39 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 {
                     _indexSpurs.Add(group);
                     _spurGroupKeys.Add(segment.GroupKey);
-                    _spurGroupObjects.Add(segment.GroupObject);
+                    _spurGroupObjects.Add((G)segment.GroupObject.Clone());
                 }
             }
             else
             {
-                _indexLoops.Add(indexChain);
+                SplitChain(indexChain, segment);
+
+                //_indexLoops.Add(indexChain);
+                //_loopGroupKeys.Add(segment.GroupKey);
+                //_loopGroupObjects.Add(segment.GroupObject);
+            }
+        }
+
+        private void SplitChain(int[] indexChain, LinkedIndexSurfaceSegment<G, T> segment)
+        {
+            var first = indexChain.First();
+            var chainList = new List<int[]>();
+            var newChain = new List<int>();
+            foreach (var element in indexChain)
+            {
+                if (element == first)
+                {
+                    if (newChain.Any()) { chainList.Add(newChain.ToArray()); newChain = new List<int>(); }
+                }
+                newChain.Add(element);
+            }
+            if (newChain.Any()) { chainList.Add(newChain.ToArray()); }
+
+            foreach (var chain in chainList)
+            {
+                _indexLoops.Add(chain);
                 _loopGroupKeys.Add(segment.GroupKey);
-                _loopGroupObjects.Add(segment.GroupObject);
+                _loopGroupObjects.Add((G)segment.GroupObject.Clone());
             }
         }
 
@@ -221,7 +258,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 if (indexChain.Length == 1 && indexChain[0] == segment.IndexPointA) { return; }
                 _indexLoops.Add(indexChain);
                 _loopGroupKeys.Add(segment.GroupKey);
-                _loopGroupObjects.Add(segment.GroupObject);
+                _loopGroupObjects.Add((G)segment.GroupObject.Clone());
                 count++;
                 if (count > _linkedSegments.Count)
                 {
@@ -457,6 +494,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             get { return _protectedIndexedLoops; }
         }
         public IReadOnlyList<SurfaceRayContainer<T>> ReferenceArray { get { return _referenceArray; } }
+        public IReadOnlyDictionary<int, int> BackReference { get { return _backReference; } }
         public IReadOnlyList<SurfaceRayContainer<T>[]> PerimeterLoops
         {
             get
@@ -468,7 +506,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
                 return _perimeterLoops;
             }
         }
-        public IReadOnlyList<SurfaceRayContainer<T>[]> Loops
+        public IReadOnlyList<SurfaceRayContainer<T>[]> DividingLoops
         {
             get
             {
@@ -507,7 +545,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             get { return _perimeterIndexLoops; }
         }
 
-        protected List<int[]> IndexLoops
+        protected List<int[]> DividingIndexLoops
         {
             get { return _indexLoops; }
         }
@@ -521,13 +559,12 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             get { return _indexSpurs; }
         }
 
-        public List<int> PerimeterLoopGroupKeys { get { return _perimeterLoopGroupKeys; } }
-        public IReadOnlyList<int> LoopGroupKeys { get { return _loopGroupKeys; } }
+        public IReadOnlyList<int> PerimeterLoopGroupKeys { get { return _perimeterLoopGroupKeys; } }
+        public IReadOnlyList<int> DividingLoopGroupKeys { get { return _loopGroupKeys; } }
         public IReadOnlyList<int> SpurredLoopGroupKeys { get { return _spurredLoopGroupKeys; } }
         public IReadOnlyList<int> SpurGroupKeys { get { return _spurGroupKeys; } }
-
-        public List<G> PerimeterLoopGroupObjects { get { return _perimeterLoopGroupObjects; } }
-        public IReadOnlyList<G> LoopGroupObjects { get { return _loopGroupObjects; } }
+        public IReadOnlyList<G> PerimeterLoopGroupObjects { get { return _perimeterLoopGroupObjects; } }
+        public IReadOnlyList<G> DividingLoopGroupObjects { get { return _loopGroupObjects; } }
         public IReadOnlyList<G> SpurredLoopGroupObjects { get { return _spurredLoopGroupObjects; } }
         public IReadOnlyList<G> SpurGroupObjects { get { return _spurGroupObjects; } }
     }

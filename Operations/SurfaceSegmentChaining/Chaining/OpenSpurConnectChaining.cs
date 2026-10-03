@@ -31,8 +31,8 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             var protectedIndexLoops = ProtectedIndexedLoops.Create<SpurChaining.InternalProtectedIndexedLoops>(input.ProtectedIndexedLoops);
             var perimeterIndexLoops = protectedIndexLoops.GetPerimeterIndexLoops();
             var indexSpurredLoops = protectedIndexLoops.GetIndexSpurredLoops();
-            var indexLoops = protectedIndexLoops.GetIndexLoops().ToList();
-            var loops = protectedIndexLoops.GetIndexLoops().ToList();
+            var indexLoops = protectedIndexLoops.GetDividingIndexLoops().ToList();
+            var loops = protectedIndexLoops.GetDividingIndexLoops().ToList();
             loops.AddRange(indexSpurredLoops);
 
             SpurChaining.GetSpurEndpoints(indexSpurredLoops, input, loops, (l) => new InternalLoopSegment(l), out List<SpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> spurEndpoints, out List<OpenSpurEndpoint<G, InternalLoopSegment, OpenSpurStatus, T>> openSpurs);

@@ -169,6 +169,7 @@ namespace Operations.Intermesh.Basics
         public Dictionary<int, IntermeshIntersection> GatheringSets { get; } = new Dictionary<int, IntermeshIntersection>();
 
         public List<ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>> FillChains { get; set; } = new List<ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>>();
+        public List<ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>> ModifiedFillChains { get; set; } = new List<ISurfaceSegmentChaining<PlanarFillingGroup, IntermeshPoint>>();
         public List<FillTriangle> Fillings { get; set; } = new List<FillTriangle>();
         public Vector3D NormalFromProjectedPoint(Point3D point)
         {

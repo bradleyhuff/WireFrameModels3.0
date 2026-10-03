@@ -30,7 +30,7 @@ namespace Operations.Intermesh.Basics
                 yield return new SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint>
                 {
                     NodeId = triangle.Id,
-                    GroupObject = new PlanarFillingGroup(triangle.Triangle.Plane, triangle.Triangle.Box.Diagonal),
+                    GroupObject = new PlanarFillingGroup(triangle.Id, triangle.Triangle.Plane, triangle.Triangle.Box.Diagonal),
                     IntersectionSegments = GetSurfaceSegments(triangle, split.Intersecting).ToArray(),
                     PerimeterSegments = GetSurfaceSegments(triangle, split.Perimeter).ToArray()
                 };

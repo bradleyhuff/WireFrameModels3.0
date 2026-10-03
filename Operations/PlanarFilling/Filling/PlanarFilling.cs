@@ -59,7 +59,7 @@ namespace Operations.PlanarFilling.Filling
         {
             var protectedIndexLoops = ProtectedIndexedLoops.Create<InternalProtectedIndexedLoops>(_chaining.ProtectedIndexedLoops);
             _perimeterIndexLoops = protectedIndexLoops.GetPerimeterIndexLoops();
-            _indexLoops = protectedIndexLoops.GetIndexLoops();
+            _indexLoops = protectedIndexLoops.GetDividingIndexLoops();
             _indexSpurredLoops = protectedIndexLoops.GetIndexSpurredLoops();
             _indexSpurs = protectedIndexLoops.GetIndexSpurs();
         }
@@ -81,24 +81,29 @@ namespace Operations.PlanarFilling.Filling
                             _referenceArray, _fillAction, _perimeterIndexLoops[i], _triangleID)
                     );
                 table[key].Last().FillInteriorLoops = true;
+                table[key].Last().PerimeterLoopDisabled = groupObject.Disabled;
             }
 
-            for (int i = 0; i < _chaining.LoopGroupKeys.Count; i++)
+            for (int i = 0; i < _chaining.DividingLoopGroupKeys.Count; i++)
             {
-                var key = _chaining.LoopGroupKeys[i];
-                table[key].Last().IndexLoops.Add(_indexLoops[i]);
+                var key = _chaining.DividingLoopGroupKeys[i];
+                var groupObject = _chaining.DividingLoopGroupObjects[i];
+                table[key].Last().DividingIndexLoops.Add(_indexLoops[i]);
+                table[key].Last().DividingLoopsDisabled.Add(groupObject.Disabled);
             }
 
             for (int i = 0; i < _chaining.SpurredLoopGroupKeys.Count; i++)
             {
                 var key = _chaining.SpurredLoopGroupKeys[i];
-                table[key].Last().IndexSpurredLoops.Add(_indexSpurredLoops[i]);
+                var groupObject = _chaining.SpurredLoopGroupObjects[i];
+                table[key].Last().SpurredIndexLoops.Add(_indexSpurredLoops[i]);
+                table[key].Last().SpurredLoopsDisabled.Add(groupObject.Disabled);
             }
 
             for (int i = 0; i < _chaining.SpurGroupKeys.Count; i++)
             {
                 var key = _chaining.SpurGroupKeys[i];
-                table[key].Last().IndexSpurs.Add(_indexSpurs[i]);
+                table[key].Last().SpursIndex.Add(_indexSpurs[i]);
             }
 
             CombinePerimeterLoops(table);
@@ -122,7 +127,7 @@ namespace Operations.PlanarFilling.Filling
                 newList.Add(
                     new PlanarLoopSet<T>(first.Plane, first.TestSegmentLength,
                     _referenceArray, _fillAction, outerMostLoops[0].IndexLoop.ToArray(), _triangleID));
-                newList[0].IndexLoops.AddRange(restOfLoops.Select(l => l.IndexLoop.ToArray()));
+                newList[0].DividingIndexLoops.AddRange(restOfLoops.Select(l => l.IndexLoop.ToArray()));
                 newList[0].FillInteriorLoops = false;
             }
             foreach (var pair in newTable)
@@ -137,7 +142,7 @@ namespace Operations.PlanarFilling.Filling
             {
                 List<PlanarLoop<T>> outerMostLoops;
                 List<PlanarLoop<T>> restOfLoops;
-                PlanarLoop<T>.ExtractOuterMostLoopsFromRest(planarLoopSet.Loops, out outerMostLoops, out restOfLoops);
+                PlanarLoop<T>.ExtractOuterMostLoopsFromRest(planarLoopSet.DividingLoops, out outerMostLoops, out restOfLoops);
 
                 planarLoopSet.PerimeterLoop.InternalLoops = outerMostLoops;
                 foreach (var outerMostLoop in outerMostLoops)

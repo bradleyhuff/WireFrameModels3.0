@@ -17,9 +17,12 @@ namespace Operations.PlanarFilling.Filling.Internals
         }
         public Plane Plane { get; }
         public int[] PerimeterIndexLoop { get; }
-        public List<int[]> IndexLoops { get; } = new List<int[]>();
-        public List<int[]> IndexSpurredLoops { get; } = new List<int[]>();
-        public List<int[]> IndexSpurs { get; } = new List<int[]>();
+        public bool PerimeterLoopDisabled { get; set; }
+        public List<int[]> DividingIndexLoops { get; } = new List<int[]>();
+        public List<bool> DividingLoopsDisabled { get; } = new List<bool>();
+        public List<int[]> SpurredIndexLoops { get; } = new List<int[]>();
+        public List<bool> SpurredLoopsDisabled { get; } = new List<bool>();
+        public List<int[]> SpursIndex { get; } = new List<int[]>();
         public bool FillInteriorLoops { get; set; }
 
         private IFillAction<T> _fillAction;
@@ -45,18 +48,18 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_perimeterLoop is null)
                 {
-                    _perimeterLoop = new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillAction, PerimeterIndexLoop, _triangleID);
+                    _perimeterLoop = new PlanarLoop<T>(Plane, _testSegmentLength, PerimeterLoopDisabled, _referenceArray, _fillAction, PerimeterIndexLoop, _triangleID);
                 }
                 return _perimeterLoop;
             }
         }
-        public IReadOnlyList<PlanarLoop<T>> Loops
+        public IReadOnlyList<PlanarLoop<T>> DividingLoops
         {
             get
             {
                 if (_loops is null)
                 {
-                    _loops = IndexLoops.Select(l => new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillAction, l, _triangleID)).ToList();
+                    _loops = DividingIndexLoops.Select((l, i ) => new PlanarLoop<T>(Plane, _testSegmentLength, DividingLoopsDisabled[i], _referenceArray, _fillAction, l, _triangleID)).ToList();
                 }
                 return _loops;
             }
@@ -68,7 +71,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             {
                 if (_spurredLoops is null)
                 {
-                    _spurredLoops = IndexSpurredLoops.Select(l => new PlanarLoop<T>(Plane, _testSegmentLength, _referenceArray, _fillAction, l, _triangleID)).ToList();
+                    _spurredLoops = SpurredIndexLoops.Select((l, i) => new PlanarLoop<T>(Plane, _testSegmentLength, SpurredLoopsDisabled[i], _referenceArray, _fillAction, l, _triangleID)).ToList();
                 }
                 return _spurredLoops;
             }
@@ -88,7 +91,7 @@ namespace Operations.PlanarFilling.Filling.Internals
             _indexedFillTriangles = [.. PerimeterLoop.GetFillTriangles()];
             if (!FillInteriorLoops) { return; }
 
-            foreach (var loop in Loops)
+            foreach (var loop in DividingLoops)
             {
                 _indexedFillTriangles.AddRange(loop.GetFillTriangles());
             }

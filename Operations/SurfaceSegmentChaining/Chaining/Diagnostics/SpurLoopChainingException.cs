@@ -1,9 +1,10 @@
 ﻿using Operations.SurfaceSegmentChaining.Basics;
+using Operations.SurfaceSegmentChaining.Basics.Abstractions;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
 {
-    internal class SpurLoopChainingException<G, T> : InvalidOperationException where G: class
+    internal class SpurLoopChainingException<G, T> : InvalidOperationException where G : LoopGroupObjects
     {
         public SpurLoopChainingException(string message, List<LinkedIndexSurfaceSegment<G, T>> spurConnectingSegments, ISurfaceSegmentChaining<G, T> chain) : base(message)
         {

@@ -2,13 +2,14 @@
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using FileExportImport;
 using Operations.PlanarFilling.Basics;
+using Operations.SurfaceSegmentChaining.Basics.Abstractions;
 using Operations.SurfaceSegmentChaining.Interfaces;
 
 namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
 {
     internal static class WavefrontFileChaining
     {
-        public static void Export<G, T>(ISurfaceSegmentChaining<G, T> chain, string fileName)
+        public static void Export<G, T>(ISurfaceSegmentChaining<G, T> chain, string fileName) where G: LoopGroupObjects
         {
             int i = 0;
             foreach (var perimeterLoop in chain.PerimeterLoops)
@@ -29,7 +30,7 @@ namespace Operations.SurfaceSegmentChaining.Chaining.Diagnostics
                 i++;
             }
             i = 0;
-            foreach (var loop in chain.Loops)
+            foreach (var loop in chain.DividingLoops)
             {
                 var mesh = WireFrameMesh.Create();
 

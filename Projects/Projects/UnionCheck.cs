@@ -21,9 +21,9 @@ namespace Projects.Projects
         protected override void RunProject()
         {
             var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
-            var clusters = import.BuildFacePlateClusters(-0.001254).ToArray();
+            //var clusters = import.BuildFacePlateClusters(-0.001240).ToArray();
             //var clusters = import.BuildFacePlateClusters(-0.001253).ToArray();
-            //var clusters = import.BuildFacePlateClusters(-0.000100).ToArray();
+            var clusters = import.BuildFacePlateClusters(-0.004000).ToArray();
 
             clusters.PlateTrim();
 

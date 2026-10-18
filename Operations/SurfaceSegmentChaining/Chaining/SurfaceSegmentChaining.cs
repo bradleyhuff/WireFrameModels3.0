@@ -213,11 +213,11 @@ namespace Operations.SurfaceSegmentChaining.Chaining
             }
             else
             {
-                SplitChain(indexChain, segment);
+                //SplitChain(indexChain, segment);
 
-                //_indexLoops.Add(indexChain);
-                //_loopGroupKeys.Add(segment.GroupKey);
-                //_loopGroupObjects.Add(segment.GroupObject);
+                _indexLoops.Add(indexChain);
+                _loopGroupKeys.Add(segment.GroupKey);
+                _loopGroupObjects.Add(segment.GroupObject);
             }
         }
 

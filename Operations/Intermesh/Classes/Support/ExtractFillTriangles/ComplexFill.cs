@@ -22,7 +22,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         public void GetFillings(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             GetFillChains(intermeshTriangles);
-            ProcessFillChains(intermeshTriangles);
+            //ProcessFillChains(intermeshTriangles);
             GetFillTriangles(intermeshTriangles);
         }
 

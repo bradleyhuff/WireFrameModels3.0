@@ -1,6 +1,7 @@
 ﻿using BaseObjects;
 using BasicObjects.GeometricObjects;
 using BasicObjects.MathExtensions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Operations.Intermesh.Basics
 {
@@ -220,7 +221,8 @@ namespace Operations.Intermesh.Basics
             {
                 depth++;
                 var output = LinkToDepth(depth, links, segment);
-                if (depth > input.Count() || output.Any()) {
+                if (depth > input.Count() || output.Any())
+                {
                     return output;
                 }
             }

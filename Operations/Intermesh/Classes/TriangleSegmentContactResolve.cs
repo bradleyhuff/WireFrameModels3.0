@@ -79,6 +79,7 @@ namespace Operations.Intermesh.Classes
             var wasChanged = ResolveCycle(intermeshTriangles, count, usedSegments);
             if (!wasChanged) return false;
             while (ResolveCycle(intermeshTriangles, count, usedSegments)) ;
+            EdgeSlotResolve(intermeshTriangles);
             InlineMultiSlotSegmentResolve(intermeshTriangles);
             JunctionSlotResolve(intermeshTriangles);
             CoplanarResolve(intermeshTriangles);
@@ -451,6 +452,52 @@ namespace Operations.Intermesh.Classes
                     }
                 }
             }
+        }
+
+        private static void EdgeSlotResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            int count = 0;
+            int overLapCount = 0;
+            foreach (var slot in intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).Where(s => s.Segments.Count(s => !s.IsRemoved) > 1))
+            {
+                slot.Segments = slot.Segments.DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToList();
+
+                count++;
+
+                var pointGroups = slot.Segments.DistinctBy(s => s.Key, Combination2Comparer.Comparer).Where(s => !s.IsRemoved).SelectMany(s => s.Points).GroupBy(g => g.Id).ToArray();
+                //BaseObjects.Console.WriteLine($"Slot: {slot.Id}  {string.Join(", ", pointGroups.Select(g => $"{g.Key}: {g.Count()}"))}");
+                var points = pointGroups.Select(g => g.First()).ToArray();
+                var endPoints = pointGroups.Where(g => g.Count() == 1).Select(g => g.First());
+                var junctionPoints = pointGroups.Where(g => g.Count() > 2).Select(g => g.First());
+                if (junctionPoints.Any() || endPoints.Count() != 2)
+                {
+                    overLapCount++;
+                    if (slot.EndPoints.First().Id == slot.EndPoints.Last().Id)
+                    {
+                        //BaseObjects.Console.WriteLine($"Slot {slot.Id} has same endpoints {slot.EndPoints.First().Id}");
+                        BaseObjects.Console.WriteLine($"Slot: {slot.Id}  {string.Join(", ", pointGroups.Select(g => $"{g.Key}: {g.Count()}"))} Has same endpoints {slot.EndPoints.First().Id}");
+                        continue;
+                    }
+                    var slotLine = new Line3D(slot.EndPoints.First().Point, slot.EndPoints.Last().Point);
+                    var start = points.First();
+                    var vectorDifferences = points.Skip(1).Select(p => (Point: p, Vector: slotLine.Projection(p.Point) - slotLine.Projection(start.Point))).ToArray();
+                    var referenceVector = vectorDifferences.First().Vector.Direction;
+                    var pointDistances = vectorDifferences.Select(p => (Point: p.Point, Distance: Vector3D.Dot(referenceVector, p.Vector.Direction) * p.Vector.Magnitude)).ToList();
+                    pointDistances.Add((Point: start, Distance: 0));
+                    var orderedPoints = pointDistances.OrderBy(p => p.Distance).ToArray();
+
+                    //BaseObjects.Console.WriteLine($"Slot: {slot.Id}  {string.Join(", ", pointGroups.Select(g => $"{g.Key}: {g.Count()}"))} Ordered Points: {string.Join(", ", orderedPoints.Select(op => $"{op.Point.Id}: {op.Distance}"))}");
+
+                    slot.Segments = new List<IntermeshSegment>();
+                    for (int i = 0; i < orderedPoints.Length - 1; i++)
+                    {
+                        var replace = new IntermeshSegment(orderedPoints[i].Point, orderedPoints[i + 1].Point);
+                        //BaseObjects.Console.WriteLine($"Replace: {replace.Key}");
+                        slot.Segments.Add(replace);
+                    }
+                }
+            }
+            BaseObjects.Console.WriteLine($"Edge slot resolve: Slots: {count} Overlap Slots: {overLapCount}");
         }
     }
 }

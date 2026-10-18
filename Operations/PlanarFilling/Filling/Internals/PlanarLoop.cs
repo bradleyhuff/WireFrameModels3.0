@@ -420,7 +420,7 @@ namespace Operations.PlanarFilling.Filling.Internals
 
         private bool EnclosedByTriangle(Triangle3D triangle)
         {
-            if (!ProjectedLoopPoints.Any()) { return false; }
+            if (!ProjectedLoopPoints.Any() || triangle.IsCollinear) { return false; }
             return triangle.PointIsIn(ProjectedLoopPoints.First());
         }
 

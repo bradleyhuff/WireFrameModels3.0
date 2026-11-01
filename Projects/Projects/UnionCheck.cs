@@ -23,12 +23,12 @@ namespace Projects.Projects
             var import = PntFile.Import(WireFrameMesh.Create, "Pnt/SphereDifference8 64");
             //var clusters = import.BuildFacePlateClusters(-0.001240).ToArray();
             //var clusters = import.BuildFacePlateClusters(-0.001253).ToArray();
-            var clusters = import.BuildFacePlateClusters(-0.004000).ToArray();
+            //var clusters = import.BuildFacePlateClusters(-0.004000).ToArray();
+            var clusters = import.BuildFacePlateClusters(-0.000200).ToArray();
 
             clusters.PlateTrim();
 
             var output = clusters.Select(c => c.TrimmedClusterGrid).Combine();
-            //output.Apply(Transform.Scale(1000));
             //var output = clusters.First().TrimmedClusterGrid;
             WavefrontFile.Export(output, "Wavefront/Output");
 

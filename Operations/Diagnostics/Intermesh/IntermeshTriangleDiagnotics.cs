@@ -68,6 +68,10 @@ namespace Operations.Diagnostics
                 errorTable[capsuleBId] = (false, errorTable[capsuleBId].B);
             }
         }
+        internal static void Show(this IntermeshEdgeSlot slot)
+        {
+            slot.Show(new Dictionary<int, (bool A, bool B)>(), new Dictionary<int, bool>());
+        }
 
         internal static void Show(this IntermeshEdgeSlot slot, Dictionary<int, (bool A, bool B)> errorTableCapsule, Dictionary<int, bool> errorTablePoint)
         {

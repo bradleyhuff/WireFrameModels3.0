@@ -43,45 +43,15 @@ namespace Operations.ParallelSurfaces
                 GridIntermesh.ClusterId = cluster.Id;
                 difference = cluster.Cluster.Create();
 
-                //difference.ShowVitals();
-                //WavefrontFile.Export(difference, $"Wavefront/BeforeTrim/Cluster-{cluster.Id}");
                 int i = 0;
                 foreach (var set in disjointSets.Take(99))
                 {
-                    //WavefrontFile.Export(set, $"Wavefront/Trim/Set-{cluster.Id}-{i}");
-                    //Sets.RemoveTags2 = i != 1;
-                    //WavefrontFile.Export(difference, $"Wavefront/Trim/BeforeTrim-{cluster.Id}-{i}");
+                    //Sets.ToRemoveTags = i != 1 && i != 2 && i != 3;
+                    Console.WriteLine($"Set {i}");
                     difference = difference.Difference(set);
-                    //difference.ShowVitals();
-                    //WavefrontFile.Export(difference, $"Wavefront/Trim/AfterTrim-{cluster.Id}-{i}");
-                    //WavefrontFile.Export(set, $"Wavefront/Trim/Set-{cluster.Id}-{i}");
-                    //set.ShowVitals();
-
-                    //var faces = GroupingCollection.ExtractFaces(difference.Triangles);
-                    //int j = 0;
-                    //foreach (var face in faces)
-                    //{
-                    //    WavefrontFile.Export(face.Create(), $"Wavefront/AfterTrim/Face-{cluster.Id}-{i}-{j}");
-                    //    j++;
-                    //}
-
-                    //i++;
-
-                    //var surfaces = GroupingCollection.ExtractSurfaces(difference.Triangles);
-                    //int j = 0;
-                    //foreach (var surface in surfaces)
-                    //{
-                    //    WavefrontFile.Export(surface.Create(), $"Wavefront/AfterTrim/Surface-{cluster.Id}-{i}-{j}");
-                    //    j++;
-                    //}
-
                     i++;
                 }
-                //Sets.RemoveTags(difference);
-
-                //difference.ShowVitals();
-                //WavefrontFile.Export(difference, $"Wavefront/AfterTrim/Cluster-{cluster.Id}");
-                //WavefrontFileGroups.ExportBySurfaces(difference, $"Wavefront/Surfaces");
+                difference.ShowVitals();
 
                 cluster.TrimmedClusterGrid = difference;
                 if (!cluster.TrimmedClusterGrid.Triangles.Any()) cluster.OriginalClusterGrid = cluster.Cluster.Create();

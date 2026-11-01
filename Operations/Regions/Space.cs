@@ -205,8 +205,8 @@ namespace Operations.Regions
                 if (region == Region.Exterior) { voteForExterior++; }
                 if (region == Region.OnBoundary) { return Region.OnBoundary; }
             }
-            if (voteForInterior >= 2) { return Region.Interior; }
-            if (voteForExterior >= 2) { return Region.Exterior; }
+            //if (voteForInterior >= 2) { return Region.Interior; }
+            //if (voteForExterior >= 2) { return Region.Exterior; }
             {
                 var lineZ = new Line3D(point, Vector3D.BasisZ);
                 var matches = filter(_bucketZ.Fetch(new Point3DNodeZ(point)));

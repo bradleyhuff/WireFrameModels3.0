@@ -4,12 +4,14 @@ using BasicObjects.Math;
 using BasicObjects.MathExtensions;
 using Collections.Buckets;
 using Operations.Basics;
+using Operations.Diagnostics;
 using Operations.Intermesh.Basics;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,6 +25,7 @@ namespace Operations.Intermesh.Classes
 
             int count = 0;
             var usedSegments = new Combination2Dictionary<bool>();
+            SetAdjacents(intermeshTriangles);
             while (true)
             {
                 Assign(intermeshTriangles);
@@ -30,16 +33,40 @@ namespace Operations.Intermesh.Classes
 
                 count++;
 
-                BaseObjects.Console.WriteLine($"{count} Was changed {wasChanged}",
-                    count > 19 ? ConsoleColor.White : ConsoleColor.Gray,
-                    count > 19 ? ConsoleColor.Red : ConsoleColor.Black);
+                //BaseObjects.Console.WriteLine($"{count} Was changed {wasChanged}",
+                //    count > 19 ? ConsoleColor.White : ConsoleColor.Gray,
+                //    count > 19 ? ConsoleColor.Red : ConsoleColor.Black);
                 if (!wasChanged || count > 19) { break; }
             }
 
+            EdgeSlotResolve(intermeshTriangles);
+            ShortSegmentReplacements(intermeshTriangles);
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Triangle segment contact resolve. Elapsed time {(DateTime.Now - start).TotalSeconds} seconds.");
         }
 
-        internal static void Assign(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        private static void SetAdjacents(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            var table = intermeshTriangles.ToDictionary(t => t.PositionTriangle.Id, t => t);
+
+            foreach (var triangle in intermeshTriangles) {
+                var abAdjacents = triangle.PositionTriangle.ABadjacents;
+                var bcAdjacents = triangle.PositionTriangle.BCadjacents;
+                var caAdjacents = triangle.PositionTriangle.CAadjacents;
+                foreach (var adjacent in triangle.PositionTriangle.ABadjacents) {
+                    triangle.AddABAdjacent(table[adjacent.Id]);
+                }
+                foreach (var adjacent in triangle.PositionTriangle.BCadjacents)
+                {
+                    triangle.AddBCAdjacent(table[adjacent.Id]);
+                }
+                foreach (var adjacent in triangle.PositionTriangle.CAadjacents)
+                {
+                    triangle.AddCAAdjacent(table[adjacent.Id]);
+                }
+
+            }
+        }
+        private static void Assign(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
             var allSegments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(i => i.Id).Where(s => !s.IsRemoved).ToArray();
             foreach (var segment in allSegments) { segment.ClearContacts(); }
@@ -117,6 +144,13 @@ namespace Operations.Intermesh.Classes
             if (wasChanged) SegmentReplacements(intermeshTriangles);
 
             return wasChanged;
+        }
+
+        private static void ShortSegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
+        {
+            var segments = intermeshTriangles.SelectMany(t => t.Segments).DistinctBy(s => s.Id).ToArray();
+            var pairs = BuildPairsTable(segments);
+            ShortSegmentReplacements(intermeshTriangles, segments, ref pairs);
         }
 
         private static void SegmentReplacements(IEnumerable<IntermeshTriangle> intermeshTriangles)
@@ -422,7 +456,7 @@ namespace Operations.Intermesh.Classes
             {
                 var kinkPoints = kinkTriangle.Segments.Points().Where(p => kinkTriangle.Triangle.Plane.Distance(p.Point) > GapConstants.Resolver).ToArray();
                 var kinkPoints2 = kinkPoints.Select(k => k.Id).ToArray();
-                BaseObjects.Console.WriteLine($"Kink triangle {kinkTriangle.Id}  {kinkTriangle.CoplanarDeviation.ToString("E3")} Kink points {string.Join(", ", kinkPoints.Select(k => k.Id))}", ConsoleColor.Black, ConsoleColor.Yellow);
+                //BaseObjects.Console.WriteLine($"Kink triangle {kinkTriangle.Id}  {kinkTriangle.CoplanarDeviation.ToString("E3")} Kink points {string.Join(", ", kinkPoints.Select(k => k.Id))}", ConsoleColor.Black, ConsoleColor.Yellow);
                 var segmentsToMoveTable = new Dictionary<int, List<(IntermeshTriangle Triangle, IntermeshSegment Segment)>>();
 
                 foreach (var kinkPoint in kinkPoints)
@@ -448,7 +482,7 @@ namespace Operations.Intermesh.Classes
                             slot.Segments.Remove(removal);
                         }
                         slot.Segments.Add(new IntermeshSegment(endPoints[0], endPoints[1]));
-                        BaseObjects.Console.WriteLine($"Kink point {kinkPoint.Id} removed from slot {slot.Id} in triangle {kinkTriangle.Id}", ConsoleColor.Yellow);
+                        //BaseObjects.Console.WriteLine($"Kink point {kinkPoint.Id} removed from slot {slot.Id} in triangle {kinkTriangle.Id}", ConsoleColor.Yellow);
                     }
                 }
             }
@@ -456,29 +490,25 @@ namespace Operations.Intermesh.Classes
 
         private static void EdgeSlotResolve(IEnumerable<IntermeshTriangle> intermeshTriangles)
         {
+            //return;
             int count = 0;
             int overLapCount = 0;
             foreach (var slot in intermeshTriangles.SelectMany(t => t.EdgeSlots).DistinctBy(s => s.Id).Where(s => s.Segments.Count(s => !s.IsRemoved) > 1))
             {
-                slot.Segments = slot.Segments.DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToList();
+                slot.Segments = slot.Segments.DivisionByCapsules().DistinctBy(s => s.Key, Combination2Comparer.Comparer).ToList();
 
                 count++;
 
                 var pointGroups = slot.Segments.DistinctBy(s => s.Key, Combination2Comparer.Comparer).Where(s => !s.IsRemoved).SelectMany(s => s.Points).GroupBy(g => g.Id).ToArray();
                 //BaseObjects.Console.WriteLine($"Slot: {slot.Id}  {string.Join(", ", pointGroups.Select(g => $"{g.Key}: {g.Count()}"))}");
                 var points = pointGroups.Select(g => g.First()).ToArray();
-                var endPoints = pointGroups.Where(g => g.Count() == 1).Select(g => g.First());
-                var junctionPoints = pointGroups.Where(g => g.Count() > 2).Select(g => g.First());
-                if (junctionPoints.Any() || endPoints.Count() != 2)
+                //
+                //var endPoints = pointGroups.Where(g => g.Count() == 1).Select(g => g.First());
+                //var junctionPoints = pointGroups.Where(g => g.Count() > 2).Select(g => g.First());
+                //if (junctionPoints.Any() || endPoints.Count() != 2)
                 {
                     overLapCount++;
-                    if (slot.EndPoints.First().Id == slot.EndPoints.Last().Id)
-                    {
-                        //BaseObjects.Console.WriteLine($"Slot {slot.Id} has same endpoints {slot.EndPoints.First().Id}");
-                        BaseObjects.Console.WriteLine($"Slot: {slot.Id}  {string.Join(", ", pointGroups.Select(g => $"{g.Key}: {g.Count()}"))} Has same endpoints {slot.EndPoints.First().Id}");
-                        continue;
-                    }
-                    var slotLine = new Line3D(slot.EndPoints.First().Point, slot.EndPoints.Last().Point);
+                    var slotLine = GetSlotLine(points);
                     var start = points.First();
                     var vectorDifferences = points.Skip(1).Select(p => (Point: p, Vector: slotLine.Projection(p.Point) - slotLine.Projection(start.Point))).ToArray();
                     var referenceVector = vectorDifferences.First().Vector.Direction;
@@ -492,12 +522,26 @@ namespace Operations.Intermesh.Classes
                     for (int i = 0; i < orderedPoints.Length - 1; i++)
                     {
                         var replace = new IntermeshSegment(orderedPoints[i].Point, orderedPoints[i + 1].Point);
-                        //BaseObjects.Console.WriteLine($"Replace: {replace.Key}");
+                        //if (replace.Segment.Length < GapConstants.Resolver)
+                        //{
+                        //    BaseObjects.Console.WriteLine($"Edge slot resolve short replacement {replace.Key} {replace.Segment.Length}", ConsoleColor.Yellow);
+                        //}
                         slot.Segments.Add(replace);
                     }
                 }
             }
-            BaseObjects.Console.WriteLine($"Edge slot resolve: Slots: {count} Overlap Slots: {overLapCount}");
+            //BaseObjects.Console.WriteLine($"Edge slot resolve: Slots: {count} Overlap Slots: {overLapCount}");
+        }
+
+        private static Line3D GetSlotLine(IntermeshPoint[] points)
+        {
+            var start = points.First();
+            var vectorDifferences = points.Skip(1).Select(p => (Point: p, Vector: p.Point - start.Point)).ToArray();
+            var referenceVector = vectorDifferences.First().Vector.Direction;
+            var pointDistances = vectorDifferences.Select(p => (Point: p.Point, Distance: Vector3D.Dot(referenceVector, p.Vector.Direction) * p.Vector.Magnitude)).ToList();
+            pointDistances.Add((Point: start, Distance: 0));
+            var orderedPoints = pointDistances.OrderBy(p => p.Distance).ToArray();
+            return new Line3D(orderedPoints.First().Point.Point, orderedPoints.Last().Point.Point);
         }
     }
 }

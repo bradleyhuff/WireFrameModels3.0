@@ -23,6 +23,33 @@ namespace Operations.Intermesh.Basics
 
         public int Id { get; }
         public PositionTriangle PositionTriangle { get { return _triangle; } }
+        public IReadOnlyList<IntermeshTriangle> ABAdjacents { get { return _abAdjacents; } }
+        public IReadOnlyList<IntermeshTriangle> BCAdjacents { get { return _bcAdjacents; } } 
+        public IReadOnlyList<IntermeshTriangle> CAAdjacents { get { return _caAdjacents; } }
+
+        private List<IntermeshTriangle> _abAdjacents = new List<IntermeshTriangle>();
+        private List<IntermeshTriangle> _bcAdjacents = new List<IntermeshTriangle>();
+        private List<IntermeshTriangle> _caAdjacents = new List<IntermeshTriangle>();
+
+        public bool AddABAdjacent(IntermeshTriangle adjacent)
+        {
+            if (_abAdjacents.Any(a => a.Id == adjacent.Id)) { return false; }
+            _abAdjacents.Add(adjacent);
+            return true;
+        }
+        public bool AddBCAdjacent(IntermeshTriangle adjacent)
+        {
+            if (_bcAdjacents.Any(a => a.Id == adjacent.Id)) { return false; }
+            _bcAdjacents.Add(adjacent);
+            return true;
+        }
+
+        public bool AddCAAdjacent(IntermeshTriangle adjacent)
+        {
+            if (_caAdjacents.Any(a => a.Id == adjacent.Id)) { return false; }
+            _caAdjacents.Add(adjacent);
+            return true;
+        }
 
         public Rectangle3D Box
         {

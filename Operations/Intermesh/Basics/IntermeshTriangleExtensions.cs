@@ -16,7 +16,7 @@ namespace Operations.Intermesh.Basics
     {
         public static IEnumerable<SurfaceSegmentSets<PlanarFillingGroup, IntermeshPoint>> CreateSurfaceSegmentSets(this IntermeshTriangle triangle)
         {
-            var perimeterSegments = triangle.PerimeterSlots.SelectMany(s => s.Segments.DivisionByCapsules()).NonRepeating().NoSpurs().ToArray();
+            var perimeterSegments = triangle.PerimeterSlots.SelectMany(s => s.Segments.DivisionByCapsules().NonRepeating()).NonRepeating().NoSpurs().ToArray();
             var intersectionSegments = triangle.IntersectionSlots.Where(s => !triangle.PerimeterSlots.Any(p => p.Key == s.Key)).SelectMany(s => s.Segments.DivisionByCapsules()).ToArray();
             intersectionSegments = intersectionSegments.ExceptBy(perimeterSegments.Select(s => s.Key), s => s.Key, Combination2Comparer.Comparer).ToArray();/*.DistinctBy(i => i.Key, Combination2Comparer.Comparer)*//*.NoSpurs()*/
 

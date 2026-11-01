@@ -9,15 +9,16 @@ namespace Collections.WireFrameMesh.Basics
     {
         private static int _id = 0;
         private static object lockObject = new object();
+        public enum EdgeType { AB, BC, CA, NN}
 
-        public PositionEdge(PositionNormal a, PositionNormal b, PositionTriangle triangle)
+        public PositionEdge(PositionNormal a, PositionNormal b, PositionTriangle triangle, EdgeType edgeType)
         {
             A = a;
             B = b;
             Triangle = triangle;
             Key = new Combination2(a.PositionObject.Id, b.PositionObject.Id);
             SurfaceKey = new Combination2(a.Id, b.Id);
-
+            Edge = edgeType;
             lock (lockObject)
             {
                 Id = _id++;
@@ -25,6 +26,7 @@ namespace Collections.WireFrameMesh.Basics
         }
 
         public int Id { get; }
+        public EdgeType Edge { get; }
 
         public PositionNormal A { get; }
         public PositionNormal B { get; }

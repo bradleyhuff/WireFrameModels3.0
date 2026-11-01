@@ -1,4 +1,5 @@
-﻿using Collections.WireFrameMesh.Basics;
+﻿using BaseObjects;
+using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.BasicWireFrameMesh;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
@@ -38,6 +39,20 @@ namespace Operations.Groupings.FileExportImport
             Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
             Console.WriteLine();
             var meshes = surfaces.Select(s => s.Create());
+
+            //foreach (var element in meshes)
+            //{
+            //    BaseObjects.Console.WriteLine("Surface Position cardinalities", ConsoleColor.Green);
+            //    BaseObjects.Console.WriteLine(element.Positions.GroupCounts(g => g.Cardinality).DisplayByLine());
+            //    BaseObjects.Console.WriteLine("Surface AB Adjacency counts", ConsoleColor.Green);
+            //    BaseObjects.Console.WriteLine(element.Triangles.Select(t => t.ABadjacents).GroupCounts(g => g.Count).DisplayByLine());
+            //    BaseObjects.Console.WriteLine("Surface BC Adjacency counts", ConsoleColor.Green);
+            //    BaseObjects.Console.WriteLine(element.Triangles.Select(t => t.BCadjacents).GroupCounts(g => g.Count).DisplayByLine());
+            //    BaseObjects.Console.WriteLine("Surface CA Adjacency counts", ConsoleColor.Green);
+            //    BaseObjects.Console.WriteLine(element.Triangles.Select(t => t.CAadjacents).GroupCounts(g => g.Count).DisplayByLine());
+            //    BaseObjects.Console.WriteLine();
+            //}
+
             WavefrontFile.Export(meshes.Select(m => overlay(m)), fileName);
         }
 

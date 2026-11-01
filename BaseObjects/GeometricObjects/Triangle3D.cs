@@ -678,6 +678,7 @@ namespace BasicObjects.GeometricObjects
                     var match = LineSegment3D.Intersection(edge, a.LongestEdge);
                     if (match is not null) { yield return match; yield break; }
                 }
+                yield break;
             }
             if (b.IsCollinear)
             {
@@ -686,6 +687,7 @@ namespace BasicObjects.GeometricObjects
                     var match = LineSegment3D.Intersection(edge, b.LongestEdge);
                     if (match is not null) { yield return match; yield break; }
                 }
+                yield break;
             }
 
             if (AreCoplanar(a, b, error))

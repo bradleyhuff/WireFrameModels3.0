@@ -27,7 +27,7 @@ namespace Collections.WireFrameMesh.Basics
             A._triangles.Add(this);
             B._triangles.Add(this);
             C._triangles.Add(this);
-        }
+            }
         internal PositionTriangle(PositionNormal a, PositionNormal b, PositionNormal c, string trace, int tag) : this(a, b, c)
         {
             Trace = trace;
@@ -55,7 +55,7 @@ namespace Collections.WireFrameMesh.Basics
             _mark--;
         }
         public bool IsMarked { get { return _mark == A.Mesh.Mark; } }
-       
+
         public Combination3 Key { get; }
         public Combination3 SurfaceKey { get; }
 
@@ -91,9 +91,9 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                yield return new PositionEdge(A, B, this);
-                yield return new PositionEdge(B, C, this);
-                yield return new PositionEdge(C, A, this);
+                yield return new PositionEdge(A, B, this, PositionEdge.EdgeType.AB);
+                yield return new PositionEdge(B, C, this, PositionEdge.EdgeType.BC);
+                yield return new PositionEdge(C, A, this, PositionEdge.EdgeType.CA);
             }
         }
 
@@ -101,9 +101,9 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (!ABadjacents.Any()) yield return new PositionEdge(A, B, this);
-                if (!BCadjacents.Any()) yield return new PositionEdge(B, C, this);
-                if (!CAadjacents.Any()) yield return new PositionEdge(C, A, this);
+                if (!ABadjacents.Any()) yield return new PositionEdge(A, B, this, PositionEdge.EdgeType.AB);
+                if (!BCadjacents.Any()) yield return new PositionEdge(B, C, this, PositionEdge.EdgeType.BC);
+                if (!CAadjacents.Any()) yield return new PositionEdge(C, A, this, PositionEdge.EdgeType.CA);
             }
         }
 
@@ -111,9 +111,9 @@ namespace Collections.WireFrameMesh.Basics
         {
             get
             {
-                if (ABadjacents.Any()) yield return new PositionEdge(A, B, this);
-                if (BCadjacents.Any()) yield return new PositionEdge(B, C, this);
-                if (CAadjacents.Any()) yield return new PositionEdge(C, A, this);
+                if (ABadjacents.Any()) yield return new PositionEdge(A, B, this, PositionEdge.EdgeType.AB);
+                if (BCadjacents.Any()) yield return new PositionEdge(B, C, this, PositionEdge.EdgeType.BC);
+                if (CAadjacents.Any()) yield return new PositionEdge(C, A, this, PositionEdge.EdgeType.CA);
             }
         }
 

@@ -30,7 +30,8 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
         {
             foreach (var triangle in intermeshTriangles)
             {
-                var surfaceSets = triangle.CreateSurfaceSegmentSets();
+                var surfaceSets = triangle.CreateSurfaceSegmentSets().ToArray();
+                //if (!surfaceSets.Any()) { BaseObjects.Console.WriteLine($"Triangle: {triangle.Id} No surface sets.", ConsoleColor.Red); }
 
                 foreach (var surfaceSet in surfaceSets)
                 {
@@ -80,7 +81,7 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                 );
 
             BaseObjects.Console.WriteLine($"Covering loops {coveringLoops.Count}", ConsoleColor.Yellow);
-            BaseObjects.Console.WriteLine($"{string.Join("\n", coveringLoops.Select(kp => kp.Key))}", ConsoleColor.Yellow);
+            //BaseObjects.Console.WriteLine($"{string.Join("\n", coveringLoops.Select(kp => kp.Key))}", ConsoleColor.Yellow);
 
             var loopTable = new CombinationDictionary<List<(PlanarFillingGroup, Rank)>>();
 
@@ -119,15 +120,12 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
 
             foreach (var key in coveringLoops)
             {
-                if (!loopTable.ContainsKey(key.Key)) { Console.WriteLine($"Covering {key.Key} not found.");  continue; }
+                if (!loopTable.ContainsKey(key.Key)) { /*Console.WriteLine($"Covering {key.Key} not found.");*/  continue; }
                 var elements = loopTable[key.Key].Where(e => e.Item2 == Rank.Dividing);
                 foreach (var element in elements) { element.Item1.Disabled = true; }                
             }
 
             Console.WriteLine($"Process Fill Chain Covers: {coverCount} Max Cover Size: {coverSize} Loop Table: {loopTable.Count} Loop Table Nodes: {loopTable.Count(kv => kv.Value.Count() > 1)}  Elapsed time {(DateTime.Now - now).TotalSeconds}");
-
-
-
         }
 
         private void GetFillTriangles(IEnumerable<IntermeshTriangle> intermeshTriangles)
@@ -148,6 +146,8 @@ namespace Operations.Intermesh.Classes.Support.ExtractFillTriangles
                         triangle.Show();
                         return;
                     }
+
+                    //if (!fillings.Any()) { BaseObjects.Console.WriteLine($"Triangle: {triangle.Id} No fillings", ConsoleColor.Yellow); }
 
                     foreach (var filling in fillings)
                     {

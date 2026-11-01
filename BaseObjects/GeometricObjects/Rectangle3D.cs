@@ -280,6 +280,11 @@ namespace BasicObjects.GeometricObjects
             }
         }
 
+        public IEnumerable<LineSegment3D> Clip(IEnumerable<Triangle3D> triangles)
+        {
+            return Clip(triangles.SelectMany(t => t.Edges));
+        }
+
         public IEnumerable<LineSegment3D> Clip(Triangle3D triangle)
         {
             return Clip(triangle.Edges);

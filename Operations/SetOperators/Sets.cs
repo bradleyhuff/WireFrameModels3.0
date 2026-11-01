@@ -1,6 +1,7 @@
 ﻿using BaseObjects;
 using BaseObjects.Transformations;
 using BasicObjects.GeometricObjects;
+using BasicObjects.MathExtensions;
 using Collections.WireFrameMesh.Basics;
 using Collections.WireFrameMesh.Interfaces;
 using FileExportImport;
@@ -54,39 +55,13 @@ namespace Operations.SetOperators
 
             var surfaces = GroupingCollection.ExtractSurfaces(sum.Triangles).ToArray();
 
-            Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
+            //Console.WriteLine($"Surfaces {surfaces.Count()} [{string.Join(",", surfaces.Select(s => s.Triangles.Count()))}]", ConsoleColor.Cyan, ConsoleColor.DarkBlue);
 
-            //WavefrontFileGroups.ExportBySurfaces(sum,$"Wavefront/OpenEdges/Set-{count}/Surface");            
-            {
-                //var tags = sum.Triangles.Where(t => t.AdjacentAnyCount < 3 && t.Triangle.MaxEdge.Length > 0.0);
-                //var openEdges = tags.Select(t => new { t, t.OpenEdges }).ToArray();
-                //Console.WriteLine($"Open edges {openEdges.Length}");
-                //WavefrontFile.Export(tags.SelectMany(t => t.OpenEdges).DistinctBy(e => e.Id), $"Wavefront/OpenEdges/Set-{count}/OpenEdges");
-
-                //int twoGroupId = 301633;
-                //var twoGroupTriangle = sum.Triangles.SingleOrDefault(t => t.Id == twoGroupId);
-                //if (twoGroupTriangle is not null)
-                //{
-                //    WavefrontFile.Export([twoGroupTriangle], $"Wavefront/OpenEdges/TwoGroupTriangle-{twoGroupId}");
-                //    WavefrontFile.Export(twoGroupTriangle.ABadjacents, $"Wavefront/OpenEdges/TwoGroupTriangleABadjacents-{twoGroupId}");
-                //    WavefrontFile.Export(twoGroupTriangle.BCadjacents, $"Wavefront/OpenEdges/TwoGroupTriangleBCadjacents-{twoGroupId}");
-                //    WavefrontFile.Export(twoGroupTriangle.CAadjacents, $"Wavefront/OpenEdges/TwoGroupTriangleCAadjacents-{twoGroupId}");
-
-                //    var triangle = twoGroupTriangle.Triangle;
-                //    var adjacents = twoGroupTriangle.BCadjacents;
-
-                //    foreach (var adjacent in adjacents)
-                //    {
-                //        var intersections = Triangle3D.LineSegmentIntersections(triangle, adjacent.Triangle);
-                //        Console.WriteLine($"Adjacent {adjacent.Id} Intersections {intersections.Count()}");
-                //        WavefrontFile.Export(intersections, $"Wavefront/OpenEdges/TwoGroupTriangleBCadjacentIntersections-{twoGroupId}");
-                //    }
-                //}
-            }
             count++;
 
             var groups = SurfaceExtraction(sum);
             var remainingGroups = TestAndRemoveSurfaces(sum, groups, space, includeGroup);
+            //BaseObjects.Console.WriteLine($"Remaining groups: {string.Join(", ", remainingGroups.Select(g => $"{g.Id}: {g.Triangles.Count()}"))}", ConsoleColor.Yellow);
             IncludedGroupInverts(remainingGroups);
 
             //ConsoleLog.MaximumLevels = 8;
@@ -146,18 +121,26 @@ namespace Operations.SetOperators
             var remainingSurfaces = new List<GroupingCollection>();
             foreach (var surface in surfaces)
             {
-                var testPoint = GetTestPoint(surface.Triangles);
-                if (testPoint is null)
+                var testTriangle = GetTestTriangle(surface.Triangles);
+                if (testTriangle?.Triangle?.Center is null)
                 {
                     continue;
                 }
 
+                if (surface.Triangles.Count() < 2)
+                {
+                    //BaseObjects.Console.WriteLine($"Remove surface by-pass Triangle id: {surface.Triangles.First().Id}: {surface.Triangles.Count()}",ConsoleColor.Black, ConsoleColor.Yellow);
+                    remainingSurfaces.Add(surface);
+                    continue;
+                }
                 var tag1Region = Region.OnBoundary;
-                var tag2Rregion = Region.OnBoundary;
-                var tag = surface.Triangles.First().Tag;
-                if (tag == 1) { tag2Rregion = space.RegionOfPoint(testPoint, 2); }
-                if (tag == 2) { tag1Region = space.RegionOfPoint(testPoint, 1); }
-                if (!includeGroup(tag1Region, tag2Rregion))
+                var tag2Region = Region.OnBoundary;
+                var tag = testTriangle.Tag;
+
+                if (tag == 1) { tag2Region = space.RegionOfPoint(testTriangle.Triangle.Center, 2); }
+                if (tag == 2) { tag1Region = space.RegionOfPoint(testTriangle.Triangle.Center, 1); }
+
+                if (!includeGroup(tag1Region, tag2Region))
                 {
                     grid.RemoveAllTriangles(surface.Triangles);
                 }
@@ -169,30 +152,6 @@ namespace Operations.SetOperators
             }
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Test and remove surfaces: Remaining surfaces {remainingSurfaces.Count} Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
             return remainingSurfaces;
-        }
-
-        private static List<GroupingCollection> UnionTestAndRemoveGroups(IWireFrameMesh grid, GroupingCollection[] groups, Space space)
-        {
-            var remainingGroups = new List<GroupingCollection>();
-            foreach (var group in groups)
-            {
-                var testPoint = GetTestPoint(group.Triangles);
-                if (testPoint is null)
-                {
-                    continue;
-                }
-
-                var tag = group.Triangles.First().Tag;
-                if (!space.PointIsExteriorAt(testPoint, tag))
-                {
-                    grid.RemoveAllTriangles(group.Triangles);
-                }
-                else
-                {
-                    remainingGroups.Add(group);
-                }
-            }
-            return remainingGroups;
         }
 
         private static void IncludedGroupInverts(List<GroupingCollection> remainingGroups)
@@ -239,10 +198,9 @@ namespace Operations.SetOperators
 
         private const double SpikeThresehold = 1e-5;
 
-        private static Point3D GetTestPoint(IEnumerable<PositionTriangle> triangles)
+        private static PositionTriangle GetTestTriangle(IEnumerable<PositionTriangle> triangles)
         {
-            var internalTriangle = triangles.Where(t => t.Triangle.MinHeight > SpikeThresehold).OrderByDescending(t => t.Triangle.Area).FirstOrDefault();
-            return internalTriangle?.Triangle.Center;
+            return triangles.Where(t => t.Triangle.MinHeight > SpikeThresehold).OrderByDescending(t => t.Triangle.Area).FirstOrDefault();
         }
 
         private static Point3D GetInternalTestPoint(IEnumerable<PositionTriangle> triangles)
@@ -296,9 +254,14 @@ namespace Operations.SetOperators
             if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Fold Priming Elapsed time {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
         }
 
+        public static bool ToRemoveTags { get; set; } = true;
+
         private static int RemoveTags(IWireFrameMesh output)
         {
-            //output.ShowVitals();
+            //if (!ToRemoveTags) {
+            //    /*output.ShowVitals();*/ //return 0; 
+            //    return RemoveTags(output, 99);
+            //}
 
             var start = DateTime.Now;
             var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
@@ -315,6 +278,27 @@ namespace Operations.SetOperators
             return table.Values.Count;
         }
 
+        //private static int RemoveTags(IWireFrameMesh output, int loopsCount)
+        //{
+        //    var start = DateTime.Now;
+        //    var tags = output.Triangles.Where(t => t.AdjacentAnyCount < 3).ToArray();
+
+        //    int loops = 0;
+        //    BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Key} {t.Triangle.MinimumHeight.Normal.Magnitude.ToString("E2")}"))}");
+        //    var table = tags.ToDictionary(t => t.Id, t => t);
+        //    while (tags.Any() && loops < loopsCount)
+        //    {
+        //        tags = tags.SelectMany(t => t.SingleAdjacents).Where(t => !table.ContainsKey(t.Id)).DistinctBy(t => t.Id).ToArray();
+
+        //        loops++;
+        //        BaseObjects.Console.WriteLine($"Remove \n{string.Join("\n", tags.Select(t => $"{t.Id} {t.Key} {t.Triangle.MinimumHeight.Normal.Magnitude.ToString("E2")}"))}");
+        //        foreach (var tag in tags) { table[tag.Id] = tag; }
+        //    }
+        //    output.RemoveAllTriangles(table.Values);
+        //    if (!Mode.ThreadedRun) ConsoleLog.WriteLine($"Remove tags {table.Values.Count} {(DateTime.Now - start).TotalSeconds.ToString("#,##0.00")} seconds.");
+        //    return table.Values.Count;
+        //}
+
         private static int RemoveSpikes(IWireFrameMesh output)
         {
             int count = 0;
@@ -328,7 +312,7 @@ namespace Operations.SetOperators
 
         public static void NearCollinearTrianglePairs(this IWireFrameMesh mesh)
         {
-            var nearCollinearTriangles = mesh.Triangles.Where(t => t.Triangle.MinHeight < 1e-7 );
+            var nearCollinearTriangles = mesh.Triangles.Where(t => t.Triangle.MinHeight < 1e-7);
             //Console.WriteLine($"Near Collinear Triangles: {nearCollinearTriangles.Count()} [{string.Join(",",nearCollinearTriangles.Select(t => t.Id))}]");
             Console.WriteLine($"Near Collinear Triangles: {nearCollinearTriangles.Count()}");
             Console.WriteLine($"Minimum heights: {string.Join(",", nearCollinearTriangles.Select(t => t.Triangle.MinHeight.ToString("e1")))}");
@@ -357,7 +341,8 @@ namespace Operations.SetOperators
 
         private static void RunDividingTriangles(IWireFrameMesh mesh)
         {
-            var dividableTriangles = mesh.Triangles.Where(t => {
+            var dividableTriangles = mesh.Triangles.Where(t =>
+            {
                 if (t.Triangle.MinHeight < 2e-7) { return false; }
                 int count = 0;
                 if (ABpairQualifies(t)) { count++; }
@@ -388,7 +373,8 @@ namespace Operations.SetOperators
 
         private static bool RunStartingTriangles(IWireFrameMesh mesh)
         {
-            var startingTriangles = mesh.Triangles.Where(t => {
+            var startingTriangles = mesh.Triangles.Where(t =>
+            {
                 if (t.Triangle.MinHeight < 1e-7) { return false; }
                 int count = 0;
                 if (ABpairQualifies(t)) { count++; }
@@ -478,7 +464,7 @@ namespace Operations.SetOperators
 
         private static string Rediagonalize(PositionTriangle a, PositionTriangle b)
         {
-            var positions = new []{ a.Positions,  b.Positions }.SelectMany(p => p);
+            var positions = new[] { a.Positions, b.Positions }.SelectMany(p => p);
             var groups = positions.GroupBy(p => p.Id);
             var edges = groups.Where(g => g.Count() == 2).Select(g => g.First()).ToArray();
             var corners = groups.Where(g => g.Count() == 1).Select(g => g.First()).ToArray();
@@ -496,7 +482,7 @@ namespace Operations.SetOperators
             var minAB = Math.Min(a.Triangle.MinHeight, b.Triangle.MinHeight);
             var minAB2 = Math.Min(triangleA.MinHeight, triangleB.MinHeight);
 
-            return $"[{a.Triangle.MinHeight.ToString("e1")}, {b.Triangle.MinHeight.ToString("e1")}] => [{triangleA.MinHeight.ToString("e1")}, {triangleB.MinHeight.ToString("e1")}] {(minAB2 * 0.95 > minAB ? "**": minAB2 > minAB ? "*" : "")}";
+            return $"[{a.Triangle.MinHeight.ToString("e1")}, {b.Triangle.MinHeight.ToString("e1")}] => [{triangleA.MinHeight.ToString("e1")}, {triangleB.MinHeight.ToString("e1")}] {(minAB2 * 0.95 > minAB ? "**" : minAB2 > minAB ? "*" : "")}";
         }
 
         private static void Rediagonalize(PositionTriangle a, PositionTriangle b, List<PositionTriangle> removal, List<SurfaceTriangle> additions)

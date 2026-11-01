@@ -35,6 +35,8 @@ namespace Operations.Basics
             var surfaces = GroupingCollection.ExtractSurfaces(mesh.Triangles);
             var faces = GroupingCollection.ExtractFaces(mesh.Triangles);
 
+            //WavefrontFileGroups.ExportBySurfaces(mesh, $"Wavefront/VitalSurfaces");
+
             Console.WriteLine($"Clusters {clusters.Count()}  Surfaces {surfaces.Count()}  Faces {faces.Count()}", ConsoleColor.Yellow);
             Console.WriteLine();
             BaseObjects.Console.WriteLine("Position cardinalities", ConsoleColor.Yellow);
@@ -57,12 +59,20 @@ namespace Operations.Basics
 
             foreach (var openEdge in openEdges)
             {
-                Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length.ToString("E3")} Aspect {openEdge.t.Triangle.AspectRatio.ToString("E3")} Height {openEdge.t.Triangle.MinHeight.ToString("E3")}\n{string.Join("\n", 
-                    openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment} Nearest [{
-                        Point3D.Distance(o.Segment.Start, o.Segment.Start.GetNearestPoint(positions.Fetch(new Rectangle3D(o.Segment.Start, 1e-2)).Where(p => p.Id != o.A.PositionObject.Id).Select(m => m.Point).ToArray())).ToString("E3")}, {
-                        Point3D.Distance(o.Segment.End, o.Segment.End.GetNearestPoint(positions.Fetch(new Rectangle3D(o.Segment.End, 1e-2)).Where(p => p.Id != o.B.PositionObject.Id).Select(m => m.Point).ToArray())).ToString("E3")}]"))}\n", ConsoleColor.Red);
+                //Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Length {openEdge.t.Triangle.MaxEdge.Length.ToString("E3")} Aspect {openEdge.t.Triangle.AspectRatio.ToString("E3")} Height {openEdge.t.Triangle.MinHeight.ToString("E3")}\n{string.Join("\n",
+                //    openEdge.OpenEdges.Select(o => $"{o.Edge.ToString()} Key {o.Key} Segment {o.Segment} Nearest [{Point3D.Distance(o.Segment.Start, o.Segment.Start.GetNearestPoint(positions.Fetch(new Rectangle3D(o.Segment.Start, 1e-2)).Where(p => p.Id != o.A.PositionObject.Id).Select(m => m.Point).ToArray())).ToString("E3")}, {Point3D.Distance(o.Segment.End, o.Segment.End.GetNearestPoint(positions.Fetch(new Rectangle3D(o.Segment.End, 1e-2)).Where(p => p.Id != o.B.PositionObject.Id).Select(m => m.Point).ToArray())).ToString("E3")}]"))}\n", ConsoleColor.Red);
+
+                Console.WriteLine($"Open edge Triangle {openEdge.t.Id} Tag {openEdge.t.Tag} Length {openEdge.t.Triangle.MaxEdge.Length.ToString("E3")} Aspect {openEdge.t.Triangle.AspectRatio.ToString("E3")} Height {openEdge.t.Triangle.MinHeight.ToString("E3")}\n{string.Join("\n",
+                    openEdge.OpenEdges.Select(o => $"{o.Edge.ToString()} Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
+
+
                 //Console.WriteLine($"Open edges {string.Join("\n", openEdge.OpenEdges.Select(o => $"Key {o.Key} Segment {o.Segment}"))}\n", ConsoleColor.Red);
                 //WavefrontFile.Export([openEdge.t], $"Wavefront/OpenEdgeTriangles/{openEdge.t.Id}");
+                //foreach (var o in openEdge.OpenEdges)
+                //{
+                //    WavefrontFile.Export([o.Segment], $"Wavefront/OpenEdgeTriangles/{o.Key}");
+                //}
+
             }
         }
 
